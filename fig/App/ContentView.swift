@@ -84,9 +84,7 @@ struct ContentView: View {
     @ViewBuilder
     var content: some View {
         VStack {
-            
-            ClockView()
-            
+                        
             if viewModel.hasUpcomingAlerts {
                 alarmList(alarms: Array(viewModel.alarmsMap.values))
             } else {
