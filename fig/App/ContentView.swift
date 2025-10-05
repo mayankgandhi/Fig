@@ -7,6 +7,7 @@
 
 import AlarmKit
 import SwiftUI
+import WalnutDesignSystem
 
 struct ContentView: View {
     
@@ -18,7 +19,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             content
-                .navigationTitle("Alarms")
+                .navigationTitle(Text("Alarms").font(.cabinetLargeTitle))
                 .navigationBarTitleDisplayMode(.automatic)
                 .toolbar {
                     ToolbarItemGroup {
@@ -80,11 +81,33 @@ struct ContentView: View {
         }
     }
     
-    @ViewBuilder var content: some View {
-        if viewModel.hasUpcomingAlerts {
-            alarmList(alarms: Array(viewModel.alarmsMap.values))
-        } else {
-            ContentUnavailableView("No Alarms", systemImage: "clock.badge.exclamationmark", description: Text("Add a new alarm by tapping + button."))
+    @ViewBuilder
+    var content: some View {
+        VStack {
+            
+            ClockView()
+            
+            if viewModel.hasUpcomingAlerts {
+                alarmList(alarms: Array(viewModel.alarmsMap.values))
+            } else {
+                ContentUnavailableView {
+                    Text("No Alarms")
+                        .cabinetTitle()
+                } description: {
+                    Text("Add a new alarm by tapping + button.")
+                        .cabinetHeadline()
+                } actions: {
+                    Button {
+                        showAddSheet = true
+                    } label: {
+                        Label("Add Alarm", systemImage: "plus")
+                            .foregroundStyle(Color.white)
+                    }
+                    .padding(Spacing.small)
+                    .background(Color.blue)
+                    .cornerRadius(Spacing.large)
+                }
+            }
         }
     }
     
@@ -104,4 +127,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environment(ViewModel())
 }

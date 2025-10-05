@@ -20,26 +20,31 @@ extension Font {
     /// Large Title style with Cabinet Grotesk (34pt base, scales with Dynamic Type)
     static var cabinetLargeTitle: Font {
         .custom(cabinetGroteskFamily, size: 34, relativeTo: .largeTitle)
+        .weight(.black)
     }
 
     /// Title 1 style with Cabinet Grotesk (28pt base, scales with Dynamic Type)
     static var cabinetTitle: Font {
         .custom(cabinetGroteskFamily, size: 28, relativeTo: .title)
+        .weight(.bold)
     }
 
     /// Title 2 style with Cabinet Grotesk (22pt base, scales with Dynamic Type)
     static var cabinetTitle2: Font {
         .custom(cabinetGroteskFamily, size: 22, relativeTo: .title2)
+        .weight(.bold)
     }
 
     /// Title 3 style with Cabinet Grotesk (20pt base, scales with Dynamic Type)
     static var cabinetTitle3: Font {
         .custom(cabinetGroteskFamily, size: 20, relativeTo: .title3)
+        .weight(.semibold)
     }
 
     /// Headline style with Cabinet Grotesk (17pt base, scales with Dynamic Type)
     static var cabinetHeadline: Font {
         .custom(cabinetGroteskFamily, size: 17, relativeTo: .headline)
+        .weight(.semibold)
     }
 
     /// Body style with Cabinet Grotesk (17pt base, scales with Dynamic Type)
@@ -55,16 +60,19 @@ extension Font {
     /// Subheadline style with Cabinet Grotesk (15pt base, scales with Dynamic Type)
     static var cabinetSubheadline: Font {
         .custom(cabinetGroteskFamily, size: 15, relativeTo: .subheadline)
+        .weight(.medium)
     }
 
     /// Footnote style with Cabinet Grotesk (13pt base, scales with Dynamic Type)
     static var cabinetFootnote: Font {
         .custom(cabinetGroteskFamily, size: 13, relativeTo: .footnote)
+        .weight(.medium)
     }
 
     /// Caption 1 style with Cabinet Grotesk (12pt base, scales with Dynamic Type)
     static var cabinetCaption: Font {
         .custom(cabinetGroteskFamily, size: 12, relativeTo: .caption)
+        .weight(.medium)
     }
 
     /// Caption 2 style with Cabinet Grotesk (11pt base, scales with Dynamic Type)

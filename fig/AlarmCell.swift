@@ -62,3 +62,4 @@ struct AlarmCell: View {
         }
     }
 }
+
