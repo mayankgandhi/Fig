@@ -11,10 +11,15 @@ let project = Project(
             bundleId: "m.fig",
             infoPlist: .extendingDefault(with: [
                 "UILaunchScreen": [:],
-                "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire."
+                "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire.",
+                "UIAppFonts": ["CabinetGrotesk-Variable.ttf"]
             ]),
             sources: ["fig/**", "Shared/**"],
-            resources: ["fig/Assets.xcassets", "fig/AppIcon.icon/**"],
+            resources: [
+                .glob(pattern: "fig/Resources/Assets.xcassets"),
+                .glob(pattern: "fig/Resources/AppIcon.icon/**"),
+                "fig/Resources/CabinetGrotesk-Variable.ttf"
+            ],
             dependencies: [
                 .target(name: "alarm"),
                 .project(target: "WalnutDesignSystem", path: "../Walnut/WalnutDesignSystem")
