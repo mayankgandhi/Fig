@@ -16,10 +16,13 @@ let project = Project(
             sources: ["fig/**", "Shared/**"],
             resources: ["fig/Assets.xcassets", "fig/AppIcon.icon/**"],
             dependencies: [
-                .target(name: "alarm")
+                .target(name: "alarm"),
+                .project(target: "WalnutDesignSystem", path: "../Walnut/WalnutDesignSystem")
             ],
             settings: .settings(
-                base: [:].automaticCodeSigning(devTeam: "Q7HVAVTGUP"),
+                base: [
+                    "IPHONEOS_DEPLOYMENT_TARGET": "26.0"
+                ].automaticCodeSigning(devTeam: "Q7HVAVTGUP"),
                 configurations: []
             )
         ),
@@ -39,7 +42,9 @@ let project = Project(
             resources: ["alarm/Assets.xcassets"],
             dependencies: [],
             settings: .settings(
-                base: [:].automaticCodeSigning(devTeam: "Q7HVAVTGUP"),
+                base: [
+                    "IPHONEOS_DEPLOYMENT_TARGET": "26.0"
+                ].automaticCodeSigning(devTeam: "Q7HVAVTGUP"),
                 configurations: []
             )
         ),

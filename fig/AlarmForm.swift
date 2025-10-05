@@ -16,7 +16,7 @@ struct AlarmForm {
     var selectedPreAlert = CountdownInterval()
     var selectedPostAlert = CountdownInterval()
     
-    var selectedSecondaryButton: SecondaryButtonOption = .none
+    var selectedSecondaryButton: SecondaryButtonOption?
     
     var preAlertEnabled = false
     var scheduleEnabled = false
@@ -33,10 +33,12 @@ struct AlarmForm {
         selectedDays.contains(day)
     }
     
-    enum SecondaryButtonOption: String, CaseIterable {
+    enum SecondaryButtonOption: String, CaseIterable, CustomStringConvertible {
         case none = "None"
         case countdown = "Countdown"
         case openApp = "Open App"
+
+        var description: String { rawValue }
     }
     
     struct CountdownInterval {
@@ -82,8 +84,9 @@ struct AlarmForm {
     var secondaryButtonBehavior: AlarmPresentation.Alert.SecondaryButtonBehavior? {
         switch selectedSecondaryButton {
         case .none: nil
-        case .countdown: .countdown
-        case .openApp: .custom
+        case .some(.countdown): .countdown
+        case .some(.openApp): .custom
+        case .some(.none): nil
         }
     }
 }
