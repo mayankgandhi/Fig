@@ -82,27 +82,23 @@ struct ClockView: View {
                 }
                 
                 ForEach(events) { event in
-                    ZStack {
-                        RoundedRectangle(cornerRadius: handLength * 0.08)
-                            .fill(event.color)
-                            .frame(width: handLength * 0.15, height: handLength)
-                            .offset(y: -handLength / 2)
-                        
-                        HStack(spacing: 4) {
-                            Text(event.city)
-                                .font(.cabinetBody)
-                                .fontWeight(.semibold)
-                            Text(event.timeString)
-                                .font(.cabinetCallout)
-                                .fontWeight(.regular)
-                        }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(event.color)
-                        .foregroundColor(.white)
-                        .clipShape(Capsule())
-                    }
-                    .rotationEffect(Angle(degrees: event.angle))
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(event.color)
+                        .frame(width: handLength * 0.4, height: handLength * 0.65)
+                        .overlay(
+                            VStack(spacing: 2) {
+                                Text(event.city)
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.6)
+                                Text(event.timeString)
+                                    .font(.system(size: 11, weight: .regular))
+                            }
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        )
+                        .offset(y: -handLength / 2)
+                        .rotationEffect(Angle(degrees: event.angle))
                 }
                 
                 Circle()
