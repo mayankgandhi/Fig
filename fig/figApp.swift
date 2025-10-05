@@ -14,7 +14,7 @@ struct figApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AppView()
         }
     }
 }

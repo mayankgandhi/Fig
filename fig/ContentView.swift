@@ -9,7 +9,7 @@ import AlarmKit
 import SwiftUI
 
 struct ContentView: View {
-    @State private var viewModel = ViewModel()
+    @Environment(ViewModel.self) private var viewModel
     @State private var showAddSheet = false
 
     var body: some View {

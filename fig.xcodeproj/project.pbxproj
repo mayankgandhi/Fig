@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -20,21 +20,27 @@
 		3E7723BBD125338C0B86D659 /* AlarmForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = E87734EC18DC8E9BA4903AC5 /* AlarmForm.swift */; };
 		3F0F0B2BE9960E90F7667281 /* WalnutDesignSystem.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		40433AB5B7EAA57BF64443BE /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 266FE5C4C476A8BE438B8209 /* AppView.swift */; };
+		421137852596A8641935DB88 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */; };
 		56945AD493359CE95E20E424 /* TuistAssets+Alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */; };
 		6340667D37113B5F89A68DC9 /* WalnutDesignSystem.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */; };
 		7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */; };
 		7BDC50ED61FB1F235DBC8267 /* alarm.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 19763A9E52425E0C64DBAE2E /* alarm.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		7C948883BD4E76ADE9A6BD20 /* AboutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5C6A80A2970206B46A4C82 /* AboutSheet.swift */; };
+		86F1D1F343EDDB7A34DE1DFD /* HelpSupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8913AF7FFC9E97CD18483FE /* HelpSupportView.swift */; };
 		8A12392DFB6B771BAFA14E0B /* figTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319190156414A5841EA8398A /* figTests.swift */; };
 		8B8D36DE27F0EF30B94F6F51 /* TimePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BF9050F7041276AFB5B1F69 /* TimePickerView.swift */; };
 		93976426F0440DF8B3F3C4CA /* alarmControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD3E80B49FDC6E4C1AD99BC /* alarmControl.swift */; };
+		ADDD1662D6B9BBABA6F743A6 /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9965479C5AFEA3F9141689FB /* FAQView.swift */; };
 		AF89A9AD2BB62E38F5268011 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01BFDDBC685B5E9E06E99B28 /* TodayView.swift */; };
 		AFE0AA9DB577F5B67EE6B7ED /* AlarmMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */; };
 		B1FAD776C688BE1B7B8B7F0B /* TuistBundle+Alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C8BF1BD88D869D8AD69D6B1 /* TuistBundle+Alarm.swift */; };
+		B21F8344792390E26798F9AC /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DF9ABECE20FE882137D936 /* AboutView.swift */; };
 		B4822408DCFED7CC8A3B141F /* AppIntents.swift in Sources */ = {isa = PBXBuildFile; fileRef = D0AF9669E00D7B83F360382A /* AppIntents.swift */; };
 		B4F67619465FB19364281F7D /* AlarmLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0446BD41A68E48CC40E4DA49 /* AlarmLiveActivityBundle.swift */; };
 		BBA7816FB8C0AF942849D2CA /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 5A036633693D0727AFC91F6C /* AppIcon.icon */; };
 		BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEC2A879826EEBE8656E231 /* AlarmCell.swift */; };
 		C2C9ACEE7BE64D0877F83E39 /* AlarmAddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E291A0248302390E94CCF8 /* AlarmAddView.swift */; };
+		C3EE35C5851A3F5F6531CCAD /* DeleteAllDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */; };
 		DB124E57D4C8824473C80A0A /* alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A7969B4F297ABA148F6928 /* alarm.swift */; };
 		DB9E0E3E33FEF9ACB9A5159D /* AppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6470645AF835B6385503AD90 /* AppIntent.swift */; };
 		F89E11D0E19F1B2BAC5E7899 /* figUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC48BC4132C2E66AFDDE9E8 /* figUITests.swift */; };
@@ -122,6 +128,7 @@
 		01BFDDBC685B5E9E06E99B28 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
 		04360EDA2F7F6A6B0500A39D /* TuistAssets+Fig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+Fig.swift"; sourceTree = "<group>"; };
 		0446BD41A68E48CC40E4DA49 /* AlarmLiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmLiveActivityBundle.swift; sourceTree = "<group>"; };
+		06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		19763A9E52425E0C64DBAE2E /* alarm.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = alarm.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		223FC3B8A7E614D715A170E9 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		266FE5C4C476A8BE438B8209 /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
@@ -130,17 +137,22 @@
 		3BF9050F7041276AFB5B1F69 /* TimePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePickerView.swift; sourceTree = "<group>"; };
 		3C197A26B818FC2A51015E70 /* alarm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "alarm-Info.plist"; sourceTree = "<group>"; };
 		4FD3E80B49FDC6E4C1AD99BC /* alarmControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarmControl.swift; sourceTree = "<group>"; };
-		5A036633693D0727AFC91F6C /* AppIcon.icon */ = {isa = PBXFileReference; path = AppIcon.icon; sourceTree = "<group>"; };
+		5A036633693D0727AFC91F6C /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		6470645AF835B6385503AD90 /* AppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIntent.swift; sourceTree = "<group>"; };
 		6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WalnutDesignSystem.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6913D397C7DEC3B1C61866FD /* figUITests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "figUITests-Info.plist"; sourceTree = "<group>"; };
 		6E6B35F342FD85626527B978 /* figApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figApp.swift; sourceTree = "<group>"; };
 		700A258CF0E346E835D50915 /* ViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewModel.swift; sourceTree = "<group>"; };
+		7B5C6A80A2970206B46A4C82 /* AboutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSheet.swift; sourceTree = "<group>"; };
 		8C8BF1BD88D869D8AD69D6B1 /* TuistBundle+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+Alarm.swift"; sourceTree = "<group>"; };
+		9965479C5AFEA3F9141689FB /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
 		9C9C1CE08D7C6449E52D68C0 /* figUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = figUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A6DF9ABECE20FE882137D936 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		A6E69580B241822C037A795E /* figTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = figTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAllDataView.swift; sourceTree = "<group>"; };
 		AFE2039256D6A7516EFF1725 /* figUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+Alarm.swift"; sourceTree = "<group>"; };
+		B8913AF7FFC9E97CD18483FE /* HelpSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSupportView.swift; sourceTree = "<group>"; };
 		C0A7969B4F297ABA148F6928 /* alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarm.swift; sourceTree = "<group>"; };
 		C1E291A0248302390E94CCF8 /* AlarmAddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAddView.swift; sourceTree = "<group>"; };
 		CAC0C58D115112CDD8052BFC /* AlarmLiveActivity 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AlarmLiveActivity 2.swift"; sourceTree = "<group>"; };
@@ -230,9 +242,22 @@
 			path = InfoPlists;
 			sourceTree = "<group>";
 		};
+		811234830675F2849D4ECA1D /* MenuItems */ = {
+			isa = PBXGroup;
+			children = (
+				7B5C6A80A2970206B46A4C82 /* AboutSheet.swift */,
+				A6DF9ABECE20FE882137D936 /* AboutView.swift */,
+				AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */,
+				9965479C5AFEA3F9141689FB /* FAQView.swift */,
+				B8913AF7FFC9E97CD18483FE /* HelpSupportView.swift */,
+			);
+			path = MenuItems;
+			sourceTree = "<group>";
+		};
 		9A88F8A9F7206A16F240FA2A /* fig */ = {
 			isa = PBXGroup;
 			children = (
+				E346A90FA828B16A8BBF0FCE /* Settings */,
 				C1E291A0248302390E94CCF8 /* AlarmAddView.swift */,
 				CFEC2A879826EEBE8656E231 /* AlarmCell.swift */,
 				E87734EC18DC8E9BA4903AC5 /* AlarmForm.swift */,
@@ -286,6 +311,15 @@
 				ED7A1798A5316DA31A1EC5E4 /* Project */,
 				9ADB60A8AD6C841B3A2251D1 /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		E346A90FA828B16A8BBF0FCE /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				811234830675F2849D4ECA1D /* MenuItems */,
+				06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */,
+			);
+			path = Settings;
 			sourceTree = "<group>";
 		};
 		ED7A1798A5316DA31A1EC5E4 /* Project */ = {
@@ -515,6 +549,12 @@
 				3E7723BBD125338C0B86D659 /* AlarmForm.swift in Sources */,
 				40433AB5B7EAA57BF64443BE /* AppView.swift in Sources */,
 				27C8255AD6398A4157996A93 /* ContentView.swift in Sources */,
+				7C948883BD4E76ADE9A6BD20 /* AboutSheet.swift in Sources */,
+				B21F8344792390E26798F9AC /* AboutView.swift in Sources */,
+				C3EE35C5851A3F5F6531CCAD /* DeleteAllDataView.swift in Sources */,
+				ADDD1662D6B9BBABA6F743A6 /* FAQView.swift in Sources */,
+				86F1D1F343EDDB7A34DE1DFD /* HelpSupportView.swift in Sources */,
+				421137852596A8641935DB88 /* SettingsView.swift in Sources */,
 				8B8D36DE27F0EF30B94F6F51 /* TimePickerView.swift in Sources */,
 				AF89A9AD2BB62E38F5268011 /* TodayView.swift in Sources */,
 				3CFF3528C0046F58E990FBA3 /* ViewModel.swift in Sources */,
@@ -742,10 +782,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -776,10 +813,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -808,10 +842,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -899,10 +930,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
