@@ -13,17 +13,15 @@ struct AppView: View {
     
     var body: some View {
         TabView {
-            Tab("Today", systemImage: "clock") {
-                TodayView()
-                    .environment(viewModel)
-            }
-            .customizationID("com.myApp.home")
-            
-            Tab("Alarms", systemImage: "alarm") {
+            Tab("Alarms", systemImage: "clock") {
                 ContentView()
                     .environment(viewModel)
             }
-            .customizationID("com.myApp.alarms")
+            
+            Tab("Templates", systemImage: "alarm") {
+                TodayView()
+                    .environment(viewModel)
+            }
             
         }
     }

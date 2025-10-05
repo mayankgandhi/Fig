@@ -1,37 +1,51 @@
 /*
-See the LICENSE.txt file for this sample's licensing information.
-
-Abstract:
-The main content view of the app showing the list of alarms.
-*/
+ See the LICENSE.txt file for this sample's licensing information.
+ 
+ Abstract:
+ The main content view of the app showing the list of alarms.
+ */
 
 import AlarmKit
 import SwiftUI
 
 struct ContentView: View {
+    
     @Environment(ViewModel.self) private var viewModel
+    
     @State private var showAddSheet = false
-
+    @State var showSettings: Bool = false
+    
     var body: some View {
         NavigationStack {
             content
                 .navigationTitle("Alarms")
                 .navigationBarTitleDisplayMode(.automatic)
                 .toolbar {
-                    menuButton
-                    
+                    ToolbarItemGroup {
+                        menuButton
+                    }
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Image(systemName: "gear")
+                        }
+                    }
                 }
         }
         .sheet(isPresented: $showAddSheet) {
             AlarmAddView()
         }
+        .sheet(isPresented: $showSettings, content: {
+            SettingsView()
+        })
         .environment(viewModel)
         .onAppear {
             viewModel.fetchAlarms()
         }
         .tint(.accentColor)
     }
-
+    
     var menuButton: some View {
         Menu {
             // Schedules an alarm with an alert but no additional configuration.
@@ -40,21 +54,21 @@ struct ContentView: View {
             } label: {
                 Label("Alert only", systemImage: "bell.circle.fill")
             }
-
+            
             // Schedules an alarm with a countdown button.
             Button {
                 viewModel.scheduleCountdownAlertExample()
             } label: {
                 Label("With Countdown", systemImage: "fitness.timer.fill")
             }
-
+            
             // Schedules an alarm with a custom button to launch the app.
             Button {
                 viewModel.scheduleCustomButtonAlertExample()
             } label: {
                 Label("With Custom Button", systemImage: "alarm")
             }
-
+            
             // Displays a sheet with configuration options for a new alarm.
             Button {
                 showAddSheet.toggle()
@@ -65,7 +79,7 @@ struct ContentView: View {
             Image(systemName: "plus")
         }
     }
-
+    
     @ViewBuilder var content: some View {
         if viewModel.hasUpcomingAlerts {
             alarmList(alarms: Array(viewModel.alarmsMap.values))
@@ -73,7 +87,7 @@ struct ContentView: View {
             ContentUnavailableView("No Alarms", systemImage: "clock.badge.exclamationmark", description: Text("Add a new alarm by tapping + button."))
         }
     }
-
+    
     func alarmList(alarms: [ViewModel.AlarmsMap.Value]) -> some View {
         List {
             ForEach(alarms, id: \.0.id) { (alarm, label) in
