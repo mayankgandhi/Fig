@@ -16,9 +16,10 @@ struct ContentView: View {
         NavigationStack {
             content
                 .navigationTitle("Alarms")
-                .navigationBarTitleDisplayMode(.inline)
+                .navigationBarTitleDisplayMode(.automatic)
                 .toolbar {
                     menuButton
+                    
                 }
         }
         .sheet(isPresented: $showAddSheet) {
