@@ -109,9 +109,9 @@ struct ClockView: View {
                 
                 ForEach(events) { event in
                     VStack(spacing: .zero) {
-                        RoundedRectangle(cornerRadius: 8)
+                        Rectangle()
                             .fill(event.color.opacity(0.25))
-                            .frame(width: handLength * 0.05, height: handLength/4)
+                            .frame(width: handLength * 0.01, height: handLength/4)
                         HStack(spacing: Spacing.xs) {
                             Image(systemName: "clock")
                                 .font(.system(size: 10, weight: .light, design: .rounded))
