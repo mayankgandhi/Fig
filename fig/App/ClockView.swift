@@ -109,23 +109,23 @@ struct ClockView: View {
                 
                 ForEach(events) { event in
                     VStack(spacing: .zero) {
-                        Rectangle()
-                            .fill(event.color.opacity(0.25))
-                            .frame(width: handLength * 0.01, height: handLength/4)
-                        HStack(spacing: Spacing.xs) {
-                            Image(systemName: "clock")
+                        
+                        HStack(spacing: 4) {
+                            Image(systemName: "alarm")
                                 .font(.system(size: 10, weight: .light, design: .rounded))
                                 .foregroundColor(.white)
                             Text(event.city)
                                 .font(.system(.caption, design: .rounded, weight: .light))
                                 .lineLimit(1)
+                                .minimumScaleFactor(0.5)
                                 .foregroundColor(.white)
                         }
+                        .padding(.horizontal, 6)
                         .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
-                        .frame(width: handLength * 0.15, height: handLength*(3/4))
                         .background(
                             RoundedRectangle(cornerRadius: 8)
                                 .fill(event.color)
+                                .frame(width: handLength * 0.15, height: handLength*(3/4))
                         )
                         
                     }
