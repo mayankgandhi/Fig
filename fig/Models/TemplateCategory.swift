@@ -34,4 +34,8 @@ final class TemplateCategory {
         self.categoryDescription = description
         self.templates = templates
     }
+
+    var templateCount: Int {
+        templates.count
+    }
 }

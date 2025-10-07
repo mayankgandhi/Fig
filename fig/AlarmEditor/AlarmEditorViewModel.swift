@@ -14,7 +14,7 @@ import AlarmKit
 class AlarmEditorViewModel {
     // MARK: - Basic Properties
     var label: String = ""
-    var selectedCategory: TickerCategory = .general()
+    var selectedCategoryType: String = "General"
     var tintColorHex: String = "#FF6B6B"
     var isEnabled: Bool = true
 
@@ -56,7 +56,6 @@ class AlarmEditorViewModel {
     enum ScheduleType: String, CaseIterable, CustomStringConvertible {
         case oneTime = "One Time"
         case daily = "Daily"
-//        case weekly = "Weekly"
         case monthly = "Monthly"
         case yearly = "Yearly"
 
@@ -83,7 +82,7 @@ class AlarmEditorViewModel {
     // MARK: - Load from Existing Alarm
     private func loadFromAlarm(_ alarm: AlarmItem) {
         label = alarm.label
-        selectedCategory = alarm.category
+        selectedCategoryType = alarm.categoryName
         tintColorHex = alarm.presentation.tintColorHex ?? "#FF6B6B"
         isEnabled = alarm.isEnabled
 
@@ -96,10 +95,6 @@ class AlarmEditorViewModel {
             case .daily(let time):
                 scheduleType = .daily
                 selectedTime = dateFromTime(time)
-//            case .weekly(let time, let weekdays):
-//                scheduleType = .weekly
-//                selectedTime = dateFromTime(time)
-//                selectedWeekdays = weekdays
             case .monthly(let time, let day):
                 scheduleType = .monthly
                 selectedTime = dateFromTime(time)
@@ -140,32 +135,37 @@ class AlarmEditorViewModel {
         }
 
         // Load category-specific properties
-        loadCategorySpecificProperties(from: alarm.category)
+        loadCategorySpecificProperties(from: alarm)
     }
 
-    private func loadCategorySpecificProperties(from category: TickerCategory) {
-        switch category {
-        case .general(let notes):
-            self.notes = notes ?? ""
-        case .birthday(let personName, let notes):
-            self.personName = personName
-            self.notes = notes ?? ""
-        case .billPayment(let accountName, let amount, _, let notes),
-             .creditCard(let accountName, let amount, _, let notes),
-             .subscription(let accountName, let amount, _, let notes):
-            self.accountName = accountName
-            self.amount = amount.map { String($0) } ?? ""
-            self.notes = notes ?? ""
-        case .appointment(let location, let notes):
-            self.location = location ?? ""
-            self.notes = notes ?? ""
-        case .medication(let medicationName, let dosage, let notes):
-            self.medicationName = medicationName
-            self.dosage = dosage ?? ""
-            self.notes = notes ?? ""
-        case .custom(let iconName, let notes):
-            self.customIcon = iconName ?? "star"
-            self.notes = notes ?? ""
+    private func loadCategorySpecificProperties(from alarm: AlarmItem) {
+        if let general = alarm as? GeneralAlarm {
+            notes = general.notes ?? ""
+        } else if let birthday = alarm as? BirthdayAlarm {
+            personName = birthday.personName
+            notes = birthday.notes ?? ""
+        } else if let billPayment = alarm as? BillPaymentAlarm {
+            accountName = billPayment.accountName
+            amount = billPayment.amount.map { String($0) } ?? ""
+            notes = billPayment.notes ?? ""
+        } else if let creditCard = alarm as? CreditCardAlarm {
+            accountName = creditCard.cardName
+            amount = creditCard.amount.map { String($0) } ?? ""
+            notes = creditCard.notes ?? ""
+        } else if let subscription = alarm as? SubscriptionAlarm {
+            accountName = subscription.serviceName
+            amount = subscription.amount.map { String($0) } ?? ""
+            notes = subscription.notes ?? ""
+        } else if let appointment = alarm as? AppointmentAlarm {
+            location = appointment.location ?? ""
+            notes = appointment.notes ?? ""
+        } else if let medication = alarm as? MedicationAlarm {
+            medicationName = medication.medicationName
+            dosage = medication.dosage ?? ""
+            notes = medication.notes ?? ""
+        } else if let custom = alarm as? CustomAlarm {
+            customIcon = custom.iconName ?? "star"
+            notes = custom.notes ?? ""
         }
     }
 
@@ -182,7 +182,7 @@ class AlarmEditorViewModel {
         guard scheduleType != .oneTime || preAlertEnabled else { return false }
 
         // Validate category-specific requirements
-        switch getCategoryType() {
+        switch selectedCategoryType {
         case "Birthday":
             return !personName.isEmpty
         case "Bill Payment", "Credit Card", "Subscription":
@@ -198,23 +198,31 @@ class AlarmEditorViewModel {
     func saveAlarm(context: ModelContext) throws {
         let schedule = buildSchedule()
         let countdown = buildCountdown()
-        let category = buildCategory()
         let presentation = buildPresentation()
 
         if let existing = existingAlarm {
-            // Update existing alarm
-            existing.label = label
-            existing.category = category
-            existing.schedule = schedule
-            existing.countdown = countdown
-            existing.presentation = presentation
-            existing.isEnabled = isEnabled
+            // Update existing alarm (need to replace with new instance if type changed)
+            if existing.categoryName != selectedCategoryType {
+                // Category changed - need to create new alarm of different type
+                context.delete(existing)
+                let newAlarm = createNewAlarm(
+                    schedule: schedule,
+                    countdown: countdown,
+                    presentation: presentation
+                )
+                context.insert(newAlarm)
+            } else {
+                // Same category - update in place
+                existing.label = label
+                existing.schedule = schedule
+                existing.countdown = countdown
+                existing.presentation = presentation
+                existing.isEnabled = isEnabled
+                updateCategorySpecificProperties(for: existing)
+            }
         } else {
             // Create new alarm
-            let alarm = AlarmItem(
-                label: label,
-                category: category,
-                isEnabled: isEnabled,
+            let alarm = createNewAlarm(
                 schedule: schedule,
                 countdown: countdown,
                 presentation: presentation
@@ -223,6 +231,148 @@ class AlarmEditorViewModel {
         }
 
         try context.save()
+    }
+
+    private func createNewAlarm(
+        schedule: TickerSchedule?,
+        countdown: TickerCountdown?,
+        presentation: TickerPresentation
+    ) -> AlarmItem {
+        let notesValue = notes.isEmpty ? nil : notes
+
+        switch selectedCategoryType {
+        case "General":
+            return GeneralAlarm(
+                label: label,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        case "Birthday":
+            return BirthdayAlarm(
+                label: label,
+                personName: personName,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        case "Bill Payment":
+            return BillPaymentAlarm(
+                label: label,
+                accountName: accountName,
+                amount: Double(amount),
+                dueDay: scheduleType == .monthly ? monthlyDay : nil,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        case "Credit Card":
+            return CreditCardAlarm(
+                label: label,
+                cardName: accountName,
+                amount: Double(amount),
+                dueDay: scheduleType == .monthly ? monthlyDay : nil,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        case "Subscription":
+            return SubscriptionAlarm(
+                label: label,
+                serviceName: accountName,
+                amount: Double(amount),
+                renewalDay: scheduleType == .monthly ? monthlyDay : nil,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        case "Appointment":
+            return AppointmentAlarm(
+                label: label,
+                location: location.isEmpty ? nil : location,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        case "Medication":
+            return MedicationAlarm(
+                label: label,
+                medicationName: medicationName,
+                dosage: dosage.isEmpty ? nil : dosage,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        case "Custom":
+            return CustomAlarm(
+                label: label,
+                iconName: customIcon.isEmpty ? nil : customIcon,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        default:
+            return GeneralAlarm(
+                label: label,
+                notes: notesValue,
+                isEnabled: isEnabled,
+                schedule: schedule,
+                countdown: countdown,
+                presentation: presentation
+            )
+        }
+    }
+
+    private func updateCategorySpecificProperties(for alarm: AlarmItem) {
+        let notesValue = notes.isEmpty ? nil : notes
+
+        if let general = alarm as? GeneralAlarm {
+            general.notes = notesValue
+        } else if let birthday = alarm as? BirthdayAlarm {
+            birthday.personName = personName
+            birthday.notes = notesValue
+        } else if let billPayment = alarm as? BillPaymentAlarm {
+            billPayment.accountName = accountName
+            billPayment.amount = Double(amount)
+            billPayment.dueDay = scheduleType == .monthly ? monthlyDay : nil
+            billPayment.notes = notesValue
+        } else if let creditCard = alarm as? CreditCardAlarm {
+            creditCard.cardName = accountName
+            creditCard.amount = Double(amount)
+            creditCard.dueDay = scheduleType == .monthly ? monthlyDay : nil
+            creditCard.notes = notesValue
+        } else if let subscription = alarm as? SubscriptionAlarm {
+            subscription.serviceName = accountName
+            subscription.amount = Double(amount)
+            subscription.renewalDay = scheduleType == .monthly ? monthlyDay : nil
+            subscription.notes = notesValue
+        } else if let appointment = alarm as? AppointmentAlarm {
+            appointment.location = location.isEmpty ? nil : location
+            appointment.notes = notesValue
+        } else if let medication = alarm as? MedicationAlarm {
+            medication.medicationName = medicationName
+            medication.dosage = dosage.isEmpty ? nil : dosage
+            medication.notes = notesValue
+        } else if let custom = alarm as? CustomAlarm {
+            custom.iconName = customIcon.isEmpty ? nil : customIcon
+            custom.notes = notesValue
+        }
     }
 
     // MARK: - Build Components
@@ -236,9 +386,6 @@ class AlarmEditorViewModel {
             return .oneTime(date: selectedDate)
         case .daily:
             return .daily(time: time)
-//        case .weekly:
-//            guard !selectedWeekdays.isEmpty else { return nil }
-//            return .weekly(time: time, weekdays: selectedWeekdays)
         case .monthly:
             return .monthly(time: time, day: monthlyDay)
         case .yearly:
@@ -282,51 +429,6 @@ class AlarmEditorViewModel {
         return TickerCountdown(preAlert: preAlert, postAlert: postAlert)
     }
 
-    private func buildCategory() -> TickerCategory {
-        let categoryType = getCategoryType()
-        let notesValue = notes.isEmpty ? nil : notes
-
-        switch categoryType {
-        case "General":
-            return .general(notes: notesValue)
-        case "Birthday":
-            return .birthday(personName: personName, notes: notesValue)
-        case "Bill Payment":
-            return .billPayment(
-                accountName: accountName,
-                amount: Double(amount),
-                dueDay: scheduleType == .monthly ? monthlyDay : nil,
-                notes: notesValue
-            )
-        case "Credit Card":
-            return .creditCard(
-                cardName: accountName,
-                amount: Double(amount),
-                dueDay: scheduleType == .monthly ? monthlyDay : nil,
-                notes: notesValue
-            )
-        case "Subscription":
-            return .subscription(
-                serviceName: accountName,
-                amount: Double(amount),
-                renewalDay: scheduleType == .monthly ? monthlyDay : nil,
-                notes: notesValue
-            )
-        case "Appointment":
-            return .appointment(location: location.isEmpty ? nil : location, notes: notesValue)
-        case "Medication":
-            return .medication(
-                medicationName: medicationName,
-                dosage: dosage.isEmpty ? nil : dosage,
-                notes: notesValue
-            )
-        case "Custom":
-            return .custom(iconName: customIcon.isEmpty ? nil : customIcon, notes: notesValue)
-        default:
-            return .general(notes: notesValue)
-        }
-    }
-
     private func buildPresentation() -> TickerPresentation {
         let secondaryButtonType: TickerPresentation.SecondaryButtonType = switch postAlertType {
         case nil: .none
@@ -343,29 +445,10 @@ class AlarmEditorViewModel {
 
     // MARK: - Helpers
     func getCategoryType() -> String {
-        switch selectedCategory {
-        case .general: return "General"
-        case .birthday: return "Birthday"
-        case .billPayment: return "Bill Payment"
-        case .creditCard: return "Credit Card"
-        case .subscription: return "Subscription"
-        case .appointment: return "Appointment"
-        case .medication: return "Medication"
-        case .custom: return "Custom"
-        }
+        selectedCategoryType
     }
 
     func updateCategory(_ categoryType: String) {
-        switch categoryType {
-        case "General": selectedCategory = .general()
-        case "Birthday": selectedCategory = .birthday(personName: personName, notes: nil)
-        case "Bill Payment": selectedCategory = .billPayment(accountName: accountName, amount: nil, dueDay: nil, notes: nil)
-        case "Credit Card": selectedCategory = .creditCard(cardName: accountName, amount: nil, dueDay: nil, notes: nil)
-        case "Subscription": selectedCategory = .subscription(serviceName: accountName, amount: nil, renewalDay: nil, notes: nil)
-        case "Appointment": selectedCategory = .appointment(location: nil, notes: nil)
-        case "Medication": selectedCategory = .medication(medicationName: medicationName, dosage: nil, notes: nil)
-        case "Custom": selectedCategory = .custom(iconName: nil, notes: nil)
-        default: selectedCategory = .general()
-        }
+        selectedCategoryType = categoryType
     }
 }

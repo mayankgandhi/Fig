@@ -30,35 +30,10 @@ class TemplateDataSeeder {
         )
 
         let exerciseTemplates: [AlarmItem] = [
-//            AlarmItem(
-//                label: "Physical Therapy",
-//                category: .appointment(location: "Physio Clinic"),
-//                schedule: .weekly(
-//                    time: .init(hour: 10, minute: 0),
-//                    weekdays: [.monday, .wednesday, .friday]
-//                ),
-//            ),
-            AlarmItem(
+            GeneralAlarm(
                 label: "Morning Workout",
-                category: .general(),
-                schedule: .daily(time: .init(hour: 6, minute: 30)),
-            ),
-//            AlarmItem(
-//                label: "Yoga Session",
-//                category: .general(),
-//                schedule: .weekly(
-//                    time: .init(hour: 18, minute: 0),
-//                    weekdays: [.tuesday, .thursday, .saturday]
-//                ),
-//            ),
-//            AlarmItem(
-//                label: "Weekend Run",
-//                category: .general(),
-//                schedule: .weekly(
-//                    time: .init(hour: 7, minute: 0),
-//                    weekdays: [.saturday, .sunday]
-//                ),
-//            )
+                schedule: .daily(time: .init(hour: 6, minute: 30))
+            )
         ]
 
         exerciseCategory.templates = exerciseTemplates
@@ -72,30 +47,32 @@ class TemplateDataSeeder {
         )
 
         let financesTemplates: [AlarmItem] = [
-            AlarmItem(
+            BillPaymentAlarm(
                 label: "Pay Rent",
-                category: .billPayment(accountName: "Rent"),
-                schedule: .monthly(time: .init(hour: 9, minute: 0), day: 1),
+                accountName: "Rent",
+                schedule: .monthly(time: .init(hour: 9, minute: 0), day: 1)
             ),
-            AlarmItem(
+            CreditCardAlarm(
                 label: "Credit Card Payment",
-                category: .creditCard(cardName: "Credit Card"),
-                schedule: .monthly(time: .init(hour: 10, minute: 0), day: 15),
+                cardName: "Credit Card",
+                schedule: .monthly(time: .init(hour: 10, minute: 0), day: 15)
             ),
-            AlarmItem(
+            BillPaymentAlarm(
                 label: "Insurance Premium",
-                category: .billPayment(accountName: "Insurance"),
-                schedule: .monthly(time: .init(hour: 9, minute: 0), day: 5),
+                accountName: "Insurance",
+                schedule: .monthly(time: .init(hour: 9, minute: 0), day: 5)
             ),
-            AlarmItem(
+            SubscriptionAlarm(
                 label: "Netflix Subscription",
-                category: .subscription(serviceName: "Netflix", amount: 15.99, renewalDay: 10),
-                schedule: .monthly(time: .init(hour: 8, minute: 0), day: 10),
+                serviceName: "Netflix",
+                amount: 15.99,
+                renewalDay: 10,
+                schedule: .monthly(time: .init(hour: 8, minute: 0), day: 10)
             ),
-            AlarmItem(
+            BillPaymentAlarm(
                 label: "Utility Bills",
-                category: .billPayment(accountName: "Utilities"),
-                schedule: .monthly(time: .init(hour: 10, minute: 0), day: 20),
+                accountName: "Utilities",
+                schedule: .monthly(time: .init(hour: 10, minute: 0), day: 20)
             )
         ]
 
@@ -110,42 +87,27 @@ class TemplateDataSeeder {
         )
 
         let healthTemplates: [AlarmItem] = [
-            AlarmItem(
+            MedicationAlarm(
                 label: "Morning Medication",
-                category: .medication(medicationName: "Daily Vitamins", dosage: "1 tablet"),
-                schedule: .daily(time: .init(hour: 8, minute: 0)),
+                medicationName: "Daily Vitamins",
+                dosage: "1 tablet",
+                schedule: .daily(time: .init(hour: 8, minute: 0))
             ),
-            AlarmItem(
+            MedicationAlarm(
                 label: "Evening Medication",
-                category: .medication(medicationName: "Prescription", dosage: "As prescribed"),
-                schedule: .daily(time: .init(hour: 20, minute: 0)),
+                medicationName: "Prescription",
+                dosage: "As prescribed",
+                schedule: .daily(time: .init(hour: 20, minute: 0))
             ),
-//            AlarmItem(
-//                label: "Weekly Injection",
-//                category: .medication(medicationName: "Weekly Shot", dosage: "1 dose"),
-//                schedule: .weekly(
-//                    time: .init(hour: 19, minute: 0),
-//                    weekdays: [.sunday]
-//                ),
-//            ),
-            AlarmItem(
+            AppointmentAlarm(
                 label: "Doctor Checkup",
-                category: .appointment(location: "Medical Center"),
-                schedule: .monthly(time: .init(hour: 14, minute: 0), day: 15),
+                location: "Medical Center",
+                schedule: .monthly(time: .init(hour: 14, minute: 0), day: 15)
             ),
-            AlarmItem(
+            GeneralAlarm(
                 label: "Drink Water",
-                category: .general(),
-                schedule: .daily(time: .init(hour: 12, minute: 0)),
-            ),
-//            AlarmItem(
-//                label: "Blood Pressure Check",
-//                category: .general(),
-//                schedule: .weekly(
-//                    time: .init(hour: 9, minute: 0),
-//                    weekdays: [.monday, .thursday]
-//                ),
-//            )
+                schedule: .daily(time: .init(hour: 12, minute: 0))
+            )
         ]
 
         healthCategory.templates = healthTemplates

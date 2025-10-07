@@ -473,9 +473,10 @@ private struct WeekdayButton: View {
 }
 
 #Preview("Edit Birthday Alarm") {
-    let alarm = AlarmItem(
+    let alarm = BirthdayAlarm(
         label: "Mom's Birthday",
-        category: .birthday(personName: "Mom", notes: "Buy flowers"),
+        personName: "Mom",
+        notes: "Buy flowers",
         schedule: .yearly(month: 3, day: 15, time: .init(hour: 9, minute: 0)),
         countdown: .init(preAlert: .init(hours: 0, minutes: 30, seconds: 0))
     )
