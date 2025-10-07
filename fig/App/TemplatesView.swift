@@ -81,13 +81,13 @@ struct TemplateCard: View {
         } label: {
             VStack(alignment: .leading, spacing: 8) {
                 // Icon
-                Image(systemName: template.category.icon)
+                Image(systemName: template.icon)
                     .font(.title)
                     .foregroundStyle(Color(hex: categoryColor) ?? .accentColor)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Title
-                Text(template.displayLabel)
+                Text(template.label)
                     .font(.headline)
                     .foregroundStyle(.primary)
                     .lineLimit(2)
@@ -122,11 +122,11 @@ struct TemplateCard: View {
         // Create a new AlarmItem from the template
         let newAlarm = AlarmItem(
             label: template.label,
-            category: template.category,
             isEnabled: true,
+            notes: template.notes,
             schedule: template.schedule,
             countdown: template.countdown,
-            presentation: template.presentation,
+            presentation: template.presentation
         )
 
         modelContext.insert(newAlarm)

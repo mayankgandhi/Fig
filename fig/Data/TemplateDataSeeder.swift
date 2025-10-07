@@ -30,92 +30,89 @@ class TemplateDataSeeder {
         )
 
         let exerciseTemplates: [AlarmItem] = [
-            GeneralAlarm(
+            AlarmItem(
                 label: "Morning Workout",
                 schedule: .daily(time: .init(hour: 6, minute: 30))
+            ),
+            AlarmItem(
+                label: "Evening Jog",
+                schedule: .daily(time: .init(hour: 18, minute: 0))
+            ),
+            AlarmItem(
+                label: "Yoga Session",
+                notes: "Bring yoga mat",
+                schedule: .daily(time: .init(hour: 7, minute: 0))
             )
         ]
 
         exerciseCategory.templates = exerciseTemplates
 
-        // Create Finances Category
-        let financesCategory = TemplateCategory(
-            name: "Finances",
-            icon: "dollarsign.circle",
+        // Create Productivity Category
+        let productivityCategory = TemplateCategory(
+            name: "Productivity",
+            icon: "checkmark.circle",
             colorHex: "#4CAF50",
-            description: "Never miss a payment with timely financial reminders"
+            description: "Stay focused and organized throughout your day"
         )
 
-        let financesTemplates: [AlarmItem] = [
-            BillPaymentAlarm(
-                label: "Pay Rent",
-                accountName: "Rent",
-                schedule: .monthly(time: .init(hour: 9, minute: 0), day: 1)
+        let productivityTemplates: [AlarmItem] = [
+            AlarmItem(
+                label: "Daily Standup",
+                schedule: .daily(time: .init(hour: 9, minute: 0))
             ),
-            CreditCardAlarm(
-                label: "Credit Card Payment",
-                cardName: "Credit Card",
-                schedule: .monthly(time: .init(hour: 10, minute: 0), day: 15)
+            AlarmItem(
+                label: "Weekly Review",
+                notes: "Review goals and progress",
+                schedule: .monthly(time: .init(hour: 16, minute: 0), day: 1)
             ),
-            BillPaymentAlarm(
-                label: "Insurance Premium",
-                accountName: "Insurance",
-                schedule: .monthly(time: .init(hour: 9, minute: 0), day: 5)
+            AlarmItem(
+                label: "Lunch Break",
+                schedule: .daily(time: .init(hour: 12, minute: 30))
             ),
-            SubscriptionAlarm(
-                label: "Netflix Subscription",
-                serviceName: "Netflix",
-                amount: 15.99,
-                renewalDay: 10,
-                schedule: .monthly(time: .init(hour: 8, minute: 0), day: 10)
-            ),
-            BillPaymentAlarm(
-                label: "Utility Bills",
-                accountName: "Utilities",
-                schedule: .monthly(time: .init(hour: 10, minute: 0), day: 20)
+            AlarmItem(
+                label: "End of Day",
+                notes: "Wrap up tasks",
+                schedule: .daily(time: .init(hour: 17, minute: 30))
             )
         ]
 
-        financesCategory.templates = financesTemplates
+        productivityCategory.templates = productivityTemplates
 
-        // Create Health Category
-        let healthCategory = TemplateCategory(
-            name: "Health",
+        // Create Wellness Category
+        let wellnessCategory = TemplateCategory(
+            name: "Wellness",
             icon: "heart.fill",
             colorHex: "#E91E63",
-            description: "Stay on top of your health with medication and checkup reminders"
+            description: "Take care of your health and well-being"
         )
 
-        let healthTemplates: [AlarmItem] = [
-            MedicationAlarm(
-                label: "Morning Medication",
-                medicationName: "Daily Vitamins",
-                dosage: "1 tablet",
-                schedule: .daily(time: .init(hour: 8, minute: 0))
-            ),
-            MedicationAlarm(
-                label: "Evening Medication",
-                medicationName: "Prescription",
-                dosage: "As prescribed",
-                schedule: .daily(time: .init(hour: 20, minute: 0))
-            ),
-            AppointmentAlarm(
-                label: "Doctor Checkup",
-                location: "Medical Center",
-                schedule: .monthly(time: .init(hour: 14, minute: 0), day: 15)
-            ),
-            GeneralAlarm(
+        let wellnessTemplates: [AlarmItem] = [
+            AlarmItem(
                 label: "Drink Water",
-                schedule: .daily(time: .init(hour: 12, minute: 0))
+                schedule: .daily(time: .init(hour: 10, minute: 0))
+            ),
+            AlarmItem(
+                label: "Stretch Break",
+                notes: "5 minute stretch",
+                schedule: .daily(time: .init(hour: 14, minute: 0))
+            ),
+            AlarmItem(
+                label: "Bedtime",
+                notes: "Wind down for the night",
+                schedule: .daily(time: .init(hour: 22, minute: 0))
+            ),
+            AlarmItem(
+                label: "Weekly Checkup",
+                schedule: .monthly(time: .init(hour: 9, minute: 0), day: 7)
             )
         ]
 
-        healthCategory.templates = healthTemplates
+        wellnessCategory.templates = wellnessTemplates
 
         // Insert all categories into context
         modelContext.insert(exerciseCategory)
-        modelContext.insert(financesCategory)
-        modelContext.insert(healthCategory)
+        modelContext.insert(productivityCategory)
+        modelContext.insert(wellnessCategory)
 
         // Save context
         do {

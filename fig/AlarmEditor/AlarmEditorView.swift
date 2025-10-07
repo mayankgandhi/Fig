@@ -2,7 +2,7 @@
 //  AlarmEditorView.swift
 //  fig
 //
-//  Fully customizable alarm editor using Walnut Design System
+//  Simplified alarm editor using Walnut Design System
 //
 
 import SwiftUI
@@ -29,7 +29,6 @@ struct AlarmEditorView: View {
             ScrollView {
                 VStack(spacing: Spacing.medium) {
                     basicInfoSection
-                    categorySpecificSection
                     scheduleSection
                     countdownSection
                     postAlertSection
@@ -74,19 +73,6 @@ struct AlarmEditorView: View {
                 iconColor: .blue
             )
 
-            MenuPickerItem(
-                icon: categoryIcon,
-                title: "Category",
-                selectedOption: .constant(viewModel.getCategoryType()),
-                options: ["General", "Birthday", "Bill Payment", "Credit Card", "Subscription", "Appointment", "Medication", "Custom"],
-                placeholder: "Select category",
-                helperText: "Choose the type of alarm",
-                iconColor: categoryColor
-            )
-            .onChange(of: viewModel.getCategoryType()) { _, newValue in
-                viewModel.updateCategory(newValue)
-            }
-
             ColorPickerItem(
                 icon: "paintpalette.fill",
                 title: "Theme Color",
@@ -94,82 +80,6 @@ struct AlarmEditorView: View {
                 helperText: "Customize your alarm's appearance",
                 iconColor: .purple
             )
-        }
-    }
-
-    // MARK: - Category-Specific Section
-
-    @ViewBuilder
-    private var categorySpecificSection: some View {
-        let categoryType = viewModel.getCategoryType()
-
-        VStack(spacing: Spacing.small) {
-            switch categoryType {
-            case "Birthday":
-                TextFieldItem(
-                    icon: "gift",
-                    title: "Person's Name",
-                    text: $viewModel.personName,
-                    placeholder: "e.g., John Doe",
-                    isRequired: true,
-                )
-
-            case "Bill Payment", "Credit Card", "Subscription":
-                TextFieldItem(
-                    icon: "building.columns",
-                    title: categoryType == "Credit Card" ? "Card Name" : categoryType == "Subscription" ? "Service Name" : "Account Name",
-                    text: $viewModel.accountName,
-                    placeholder: "e.g., Electric Company",
-                    isRequired: true,
-                )
-
-                TextFieldItem(
-                    icon: "dollarsign.circle",
-                    title: "Amount",
-                    text: $viewModel.amount,
-                    placeholder: "0.00",
-                    keyboardType: .decimalPad,
-                )
-
-            case "Appointment":
-                TextFieldItem(
-                    icon: "mappin.circle",
-                    title: "Location",
-                    text: $viewModel.location,
-                    placeholder: "e.g., 123 Main St",
-                    iconColor: .blue
-                )
-
-            case "Medication":
-                TextFieldItem(
-                    icon: "pills",
-                    title: "Medication Name",
-                    text: $viewModel.medicationName,
-                    placeholder: "e.g., Aspirin",
-                    isRequired: true,
-                )
-
-                TextFieldItem(
-                    icon: "syringe",
-                    title: "Dosage",
-                    text: $viewModel.dosage,
-                    placeholder: "e.g., 500mg",
-                    iconColor: .red
-                )
-
-            case "Custom":
-                TextFieldItem(
-                    icon: "star",
-                    title: "Custom Icon Name",
-                    text: $viewModel.customIcon,
-                    placeholder: "e.g., heart.fill",
-                    helperText: "SF Symbol name",
-                    iconColor: .orange
-                )
-
-            default:
-                EmptyView()
-            }
         }
     }
 
@@ -213,18 +123,6 @@ struct AlarmEditorView: View {
                 isRequired: true,
                 displayedComponents: [.hourAndMinute]
             )
-
-//        case .weekly:
-//            DatePickerItem(
-//                icon: "clock",
-//                title: "Time",
-//                selectedDate: $viewModel.selectedTime,
-//                iconColor: .blue,
-//                isRequired: true,
-//                displayedComponents: [.hourAndMinute]
-//            )
-//
-//            weekdaySelector
 
         case .monthly:
             DatePickerItem(
@@ -279,35 +177,8 @@ struct AlarmEditorView: View {
                 placeholder: "1-31",
                 keyboardType: .numberPad,
             )
-            case .none:
-                EmptyView()
-        }
-    }
-
-    private var weekdaySelector: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Repeat On")
-                .font(.system(.subheadline, design: .rounded, weight: .medium))
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, Spacing.medium)
-
-            HStack(spacing: 8) {
-                ForEach(TickerSchedule.Weekday.allCases, id: \.self) { weekday in
-                    WeekdayButton(
-                        weekday: weekday,
-                        isSelected: viewModel.selectedWeekdays.contains(weekday)
-                    ) {
-                        if let index = viewModel.selectedWeekdays.firstIndex(of:
-                            weekday
-                        ) {
-                            viewModel.selectedWeekdays.remove(at: index)
-                        } else {
-                            viewModel.selectedWeekdays.append(weekday)
-                        }
-                    }
-                }
-            }
-            .padding(.horizontal, Spacing.medium)
+        case .none:
+            EmptyView()
         }
     }
 
@@ -375,36 +246,10 @@ struct AlarmEditorView: View {
 
     // MARK: - Helpers
 
-    private var categoryIcon: String {
-        switch viewModel.getCategoryType() {
-        case "General": return "alarm"
-        case "Birthday": return "gift"
-        case "Bill Payment": return "dollarsign.circle"
-        case "Credit Card": return "creditcard"
-        case "Subscription": return "arrow.clockwise"
-        case "Appointment": return "calendar"
-        case "Medication": return "pills"
-        case "Custom": return "star"
-        default: return "alarm"
-        }
-    }
-
-    private var categoryColor: Color {
-        switch viewModel.getCategoryType() {
-        case "Birthday": return .pink
-        case "Bill Payment", "Credit Card", "Subscription": return .green
-        case "Appointment": return .blue
-        case "Medication": return .red
-        case "Custom": return .orange
-        default: return .blue
-        }
-    }
-
     private var scheduleHelperText: String {
         switch viewModel.scheduleType {
         case .oneTime: return "Alarm triggers once at the specified date and time"
         case .daily: return "Repeats every day at the same time"
-//        case .weekly: return "Repeats on selected days each week"
         case .monthly: return "Repeats on the same day each month"
         case .yearly: return "Repeats on the same date each year"
         case nil: return "Please select"
@@ -434,37 +279,6 @@ struct AlarmEditorView: View {
     }
 }
 
-// MARK: - Weekday Button Component
-
-private struct WeekdayButton: View {
-    let weekday: TickerSchedule.Weekday
-    let isSelected: Bool
-    let action: () -> Void
-
-    private var label: String {
-        switch weekday {
-        case .sunday: return "S"
-        case .monday: return "M"
-        case .tuesday: return "T"
-        case .wednesday: return "W"
-        case .thursday: return "T"
-        case .friday: return "F"
-        case .saturday: return "S"
-        }
-    }
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.system(.caption, design: .rounded, weight: .semibold))
-                .frame(width: 36, height: 36)
-                .background(isSelected ? Color.blue : Color(.systemGray6))
-                .foregroundStyle(isSelected ? .white : .primary)
-                .clipShape(Circle())
-        }
-    }
-}
-
 // MARK: - Preview
 
 #Preview {
@@ -472,12 +286,11 @@ private struct WeekdayButton: View {
         .modelContainer(for: AlarmItem.self, inMemory: true)
 }
 
-#Preview("Edit Birthday Alarm") {
-    let alarm = BirthdayAlarm(
-        label: "Mom's Birthday",
-        personName: "Mom",
-        notes: "Buy flowers",
-        schedule: .yearly(month: 3, day: 15, time: .init(hour: 9, minute: 0)),
+#Preview("Edit Alarm") {
+    let alarm = AlarmItem(
+        label: "Morning Workout",
+        notes: "Don't forget water bottle",
+        schedule: .daily(time: .init(hour: 6, minute: 30)),
         countdown: .init(preAlert: .init(hours: 0, minutes: 30, seconds: 0))
     )
 

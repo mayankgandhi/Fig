@@ -9,14 +9,15 @@ import Foundation
 import SwiftData
 import AlarmKit
 
-// MARK: - Base AlarmItem Class
+// MARK: - AlarmItem Model
 
 @Model
-class AlarmItem {
+final class AlarmItem {
     var id: UUID
     var label: String
     var createdAt: Date
     var isEnabled: Bool
+    var notes: String?
 
     // Schedule
     var schedule: TickerSchedule?
@@ -35,6 +36,7 @@ class AlarmItem {
         id: UUID = UUID(),
         label: String,
         isEnabled: Bool = true,
+        notes: String? = nil,
         schedule: TickerSchedule? = nil,
         countdown: TickerCountdown? = nil,
         presentation: TickerPresentation = .init()
@@ -43,311 +45,19 @@ class AlarmItem {
         self.label = label
         self.createdAt = Date.now
         self.isEnabled = isEnabled
+        self.notes = notes
         self.schedule = schedule
         self.countdown = countdown
         self.presentation = presentation
     }
 
-    // To be overridden by subclasses
-    var displayName: String { label.isEmpty ? "Alarm" : label }
-    var icon: String { "alarm" }
-    var categoryName: String { "General" }
-}
-
-// MARK: - Category Subclasses
-
-@Model
-final class GeneralAlarm: AlarmItem {
-    var notes: String?
-
-    init(
-        id: UUID = UUID(),
-        label: String,
-        notes: String? = nil,
-        isEnabled: Bool = true,
-        schedule: TickerSchedule? = nil,
-        countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
-    ) {
-        self.notes = notes
-        super.init(
-            id: id,
-            label: label,
-            isEnabled: isEnabled,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation
-        )
+    var displayName: String {
+        label.isEmpty ? "Alarm" : label
     }
 
-    override var categoryName: String { "General" }
-}
-
-@Model
-final class BirthdayAlarm: AlarmItem {
-    var personName: String
-    var notes: String?
-
-    init(
-        id: UUID = UUID(),
-        label: String,
-        personName: String,
-        notes: String? = nil,
-        isEnabled: Bool = true,
-        schedule: TickerSchedule? = nil,
-        countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
-    ) {
-        self.personName = personName
-        self.notes = notes
-        super.init(
-            id: id,
-            label: label,
-            isEnabled: isEnabled,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation
-        )
+    var icon: String {
+        "alarm"
     }
-
-    override var displayName: String {
-        label.isEmpty ? "\(personName)'s Birthday" : label
-    }
-
-    override var icon: String { "gift" }
-    override var categoryName: String { "Birthday" }
-}
-
-@Model
-final class BillPaymentAlarm: AlarmItem {
-    var accountName: String
-    var amount: Double?
-    var dueDay: Int?
-    var notes: String?
-
-    init(
-        id: UUID = UUID(),
-        label: String,
-        accountName: String,
-        amount: Double? = nil,
-        dueDay: Int? = nil,
-        notes: String? = nil,
-        isEnabled: Bool = true,
-        schedule: TickerSchedule? = nil,
-        countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
-    ) {
-        self.accountName = accountName
-        self.amount = amount
-        self.dueDay = dueDay
-        self.notes = notes
-        super.init(
-            id: id,
-            label: label,
-            isEnabled: isEnabled,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation
-        )
-    }
-
-    override var displayName: String {
-        label.isEmpty ? "\(accountName) Bill" : label
-    }
-
-    override var icon: String { "dollarsign.circle" }
-    override var categoryName: String { "Bill Payment" }
-}
-
-@Model
-final class CreditCardAlarm: AlarmItem {
-    var cardName: String
-    var amount: Double?
-    var dueDay: Int?
-    var notes: String?
-
-    init(
-        id: UUID = UUID(),
-        label: String,
-        cardName: String,
-        amount: Double? = nil,
-        dueDay: Int? = nil,
-        notes: String? = nil,
-        isEnabled: Bool = true,
-        schedule: TickerSchedule? = nil,
-        countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
-    ) {
-        self.cardName = cardName
-        self.amount = amount
-        self.dueDay = dueDay
-        self.notes = notes
-        super.init(
-            id: id,
-            label: label,
-            isEnabled: isEnabled,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation
-        )
-    }
-
-    override var displayName: String {
-        label.isEmpty ? "\(cardName) Payment" : label
-    }
-
-    override var icon: String { "creditcard" }
-    override var categoryName: String { "Credit Card" }
-}
-
-@Model
-final class SubscriptionAlarm: AlarmItem {
-    var serviceName: String
-    var amount: Double?
-    var renewalDay: Int?
-    var notes: String?
-
-    init(
-        id: UUID = UUID(),
-        label: String,
-        serviceName: String,
-        amount: Double? = nil,
-        renewalDay: Int? = nil,
-        notes: String? = nil,
-        isEnabled: Bool = true,
-        schedule: TickerSchedule? = nil,
-        countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
-    ) {
-        self.serviceName = serviceName
-        self.amount = amount
-        self.renewalDay = renewalDay
-        self.notes = notes
-        super.init(
-            id: id,
-            label: label,
-            isEnabled: isEnabled,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation
-        )
-    }
-
-    override var displayName: String {
-        label.isEmpty ? "\(serviceName) Subscription" : label
-    }
-
-    override var icon: String { "arrow.clockwise" }
-    override var categoryName: String { "Subscription" }
-}
-
-@Model
-final class AppointmentAlarm: AlarmItem {
-    var location: String?
-    var notes: String?
-
-    init(
-        id: UUID = UUID(),
-        label: String,
-        location: String? = nil,
-        notes: String? = nil,
-        isEnabled: Bool = true,
-        schedule: TickerSchedule? = nil,
-        countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
-    ) {
-        self.location = location
-        self.notes = notes
-        super.init(
-            id: id,
-            label: label,
-            isEnabled: isEnabled,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation
-        )
-    }
-
-    override var displayName: String {
-        if !label.isEmpty { return label }
-        return location.map { "Appointment at \($0)" } ?? "Appointment"
-    }
-
-    override var icon: String { "calendar" }
-    override var categoryName: String { "Appointment" }
-}
-
-@Model
-final class MedicationAlarm: AlarmItem {
-    var medicationName: String
-    var dosage: String?
-    var notes: String?
-
-    init(
-        id: UUID = UUID(),
-        label: String,
-        medicationName: String,
-        dosage: String? = nil,
-        notes: String? = nil,
-        isEnabled: Bool = true,
-        schedule: TickerSchedule? = nil,
-        countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
-    ) {
-        self.medicationName = medicationName
-        self.dosage = dosage
-        self.notes = notes
-        super.init(
-            id: id,
-            label: label,
-            isEnabled: isEnabled,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation
-        )
-    }
-
-    override var displayName: String {
-        label.isEmpty ? medicationName : label
-    }
-
-    override var icon: String { "pills" }
-    override var categoryName: String { "Medication" }
-}
-
-@Model
-final class CustomAlarm: AlarmItem {
-    var iconName: String?
-    var notes: String?
-
-    init(
-        id: UUID = UUID(),
-        label: String,
-        iconName: String? = nil,
-        notes: String? = nil,
-        isEnabled: Bool = true,
-        schedule: TickerSchedule? = nil,
-        countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
-    ) {
-        self.iconName = iconName
-        self.notes = notes
-        super.init(
-            id: id,
-            label: label,
-            isEnabled: isEnabled,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation
-        )
-    }
-
-    override var displayName: String {
-        label.isEmpty ? "Custom Alarm" : label
-    }
-
-    override var icon: String { iconName ?? "star" }
-    override var categoryName: String { "Custom" }
 }
 
 // MARK: - TickerSchedule
