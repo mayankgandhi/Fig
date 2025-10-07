@@ -54,8 +54,8 @@ struct ClockView: View {
     var body: some View {
         GeometryReader { geometry in
             let radius = min(geometry.size.width, geometry.size.height) / 2
-            let markOffset = radius * 0.85
-            let handLength = radius * 0.7
+            let markOffset = radius * 0.95
+            let handLength = radius * 0.90
             
             ZStack {
                 Circle()
@@ -82,22 +82,22 @@ struct ClockView: View {
                 }
                 
                 ForEach(events) { event in
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 8)
                         .fill(event.color)
-                        .frame(width: handLength * 0.4, height: handLength * 0.65)
+                        .frame(width: handLength * 0.15, height: handLength)
                         .overlay(
-                            VStack(spacing: 2) {
+                            HStack(spacing: 2) {
                                 Text(event.city)
-                                    .font(.system(size: 13, weight: .semibold))
+                                    .font(.system(size: 7, weight: .regular))
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.6)
                                 Text(event.timeString)
-                                    .font(.system(size: 11, weight: .regular))
+                                    .font(.system(size: 7, weight: .regular))
                             }
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                         )
-                        .offset(y: -handLength / 2)
+                        .offset(y: 0)
                         .rotationEffect(Angle(degrees: event.angle))
                 }
                 

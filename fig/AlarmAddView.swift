@@ -28,7 +28,7 @@ struct AlarmAddView: View {
                 .padding(.vertical, Spacing.small)
             }
             .navigationTitle("Add Alarm")
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbarTitleDisplayMode(.inlineLarge)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {

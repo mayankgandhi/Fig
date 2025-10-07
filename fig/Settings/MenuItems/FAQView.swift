@@ -84,7 +84,7 @@ struct FAQDetailView: View {
                 .padding(.vertical, Spacing.large)
             }
             .navigationTitle("FAQ")
-            .navigationBarTitleDisplayMode(.large)
+            .toolbarTitleDisplayMode(.inlineLarge)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {

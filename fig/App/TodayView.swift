@@ -16,7 +16,7 @@ struct TodayView: View {
         NavigationStack {
             Text(verbatim: "Today View")
                 .navigationTitle("Today")
-                .navigationBarTitleDisplayMode(.automatic)
+                .toolbarTitleDisplayMode(.inlineLarge)
                 
         }
         .tint(.accentColor)

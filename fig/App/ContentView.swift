@@ -20,7 +20,7 @@ struct ContentView: View {
         NavigationStack {
             content
                 .navigationTitle(Text("Alarms").font(.cabinetLargeTitle))
-                .navigationBarTitleDisplayMode(.automatic)
+                .toolbarTitleDisplayMode(.inlineLarge)
                 .toolbar {
                     ToolbarItemGroup {
                         menuButton

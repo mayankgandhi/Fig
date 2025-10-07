@@ -61,7 +61,7 @@ struct AboutSheet: View {
             }
             .padding(Spacing.medium)
             .navigationTitle(Text("About"))
-            .navigationBarTitleDisplayMode(.inline)
+            .toolbarTitleDisplayMode(.inlineLarge)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") {
