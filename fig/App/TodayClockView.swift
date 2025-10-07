@@ -42,6 +42,7 @@ struct TodayClockView: View {
     var body: some View {
         ClockView(events: events)
             .navigationTitle("Today")
+            .toolbarTitleDisplayMode(.inlineLarge)
             .padding(.trailing)
     }
 }

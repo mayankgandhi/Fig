@@ -17,16 +17,16 @@ final class AlarmItem {
     var isEnabled: Bool
 
     // Category
-    var category: AlarmCategory
+    var category: TickerCategory
 
     // Schedule
-    var schedule: AlarmSchedule?
+    var schedule: TickerSchedule?
 
     // Countdown/Pre-alert
-    var countdown: AlarmCountdown?
+    var countdown: TickerCountdown?
 
     // Presentation
-    var presentation: AlarmPresentation
+    var presentation: TickerPresentation
 
     // AlarmKit Integration
     var alarmKitID: UUID?
@@ -35,11 +35,11 @@ final class AlarmItem {
     init(
         id: UUID = UUID(),
         label: String,
-        category: AlarmCategory = .general,
+        category: TickerCategory = .general(),
         isEnabled: Bool = true,
-        schedule: AlarmSchedule? = nil,
-        countdown: AlarmCountdown? = nil,
-        presentation: AlarmPresentation = .init()
+        schedule: TickerSchedule? = nil,
+        countdown: TickerCountdown? = nil,
+        presentation: TickerPresentation = .init()
     ) {
         self.id = id
         self.label = label
@@ -52,17 +52,17 @@ final class AlarmItem {
     }
 }
 
-// MARK: - AlarmCategory
+// MARK: - TickerCategory
 
-enum AlarmCategory: Codable, Hashable {
+enum TickerCategory: Codable, Hashable {
     case general(notes: String? = nil)
     case birthday(personName: String, notes: String? = nil)
-    case billPayment(accountName: String, amount: Double?, dueDay: Int?, notes: String? = nil)
-    case creditCard(cardName: String, amount: Double?, dueDay: Int?, notes: String? = nil)
-    case subscription(serviceName: String, amount: Double?, renewalDay: Int?, notes: String? = nil)
-    case appointment(location: String?, notes: String? = nil)
-    case medication(medicationName: String, dosage: String?, notes: String? = nil)
-    case custom(iconName: String?, notes: String? = nil)
+    case billPayment(accountName: String, amount: Double? = nil, dueDay: Int? = nil, notes: String? = nil)
+    case creditCard(cardName: String, amount: Double? = nil, dueDay: Int? = nil, notes: String? = nil)
+    case subscription(serviceName: String, amount: Double? = nil, renewalDay: Int? = nil, notes: String? = nil)
+    case appointment(location: String? = nil, notes: String? = nil)
+    case medication(medicationName: String, dosage: String? = nil, notes: String? = nil)
+    case custom(iconName: String? = nil, notes: String? = nil)
 
     var displayName: String {
         switch self {
@@ -91,9 +91,9 @@ enum AlarmCategory: Codable, Hashable {
     }
 }
 
-// MARK: - AlarmSchedule
+// MARK: - TickerSchedule
 
-enum AlarmSchedule: Codable, Hashable {
+enum TickerSchedule: Codable, Hashable {
     case oneTime(date: Date)
     case daily(time: TimeOfDay)
     case weekly(time: TimeOfDay, weekdays: Set<Weekday>)
@@ -139,9 +139,9 @@ enum AlarmSchedule: Codable, Hashable {
     }
 }
 
-// MARK: - AlarmCountdown
+// MARK: - TickerCountdown
 
-struct AlarmCountdown: Codable, Hashable {
+struct TickerCountdown: Codable, Hashable {
     var preAlert: CountdownDuration?
     var postAlert: PostAlertBehavior?
 
@@ -165,14 +165,14 @@ struct AlarmCountdown: Codable, Hashable {
 
     enum PostAlertBehavior: Codable, Hashable {
         case snooze(duration: CountdownDuration)
-        case repeat(duration: CountdownDuration)
+        case `repeat`(duration: CountdownDuration)
         case openApp
     }
 }
 
 // MARK: - AlarmPresentation
 
-struct AlarmPresentation: Codable, Hashable {
+struct TickerPresentation: Codable, Hashable {
     var tintColorHex: String?
     var secondaryButtonType: SecondaryButtonType
 
@@ -246,7 +246,9 @@ extension AlarmItem {
 
         case .daily(let time):
             let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
-            return .relative(.init(time: alarmTime, repeats: .daily))
+                return .relative(
+                    .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
+                )
 
         case .weekly(let time, let weekdays):
             let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
@@ -265,7 +267,7 @@ extension AlarmItem {
         }
     }
 
-    var alarmKitSecondaryButtonBehavior: AlarmPresentation.Alert.SecondaryButtonBehavior? {
+    var alarmKitSecondaryButtonBehavior: AlarmKit.AlarmPresentation.Alert.SecondaryButtonBehavior? {
         switch presentation.secondaryButtonType {
         case .none: return nil
         case .countdown: return .countdown

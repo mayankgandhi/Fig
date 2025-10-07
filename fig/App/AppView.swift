@@ -24,9 +24,8 @@ struct AppView: View {
                     .environment(viewModel)
             }
             
-            Tab("Templates", systemImage: "alarm") {
-                TodayView()
-                    .environment(viewModel)
+            Tab("Templates", systemImage: "square.grid.2x2") {
+                TemplatesView()
             }
             
         }
