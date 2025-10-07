@@ -23,11 +23,6 @@ struct AppView: View {
                 ContentView()
                     .environment(viewModel)
             }
-            
-            Tab("Templates", systemImage: "square.grid.2x2") {
-                TemplatesView()
-            }
-            
         }
     }
     

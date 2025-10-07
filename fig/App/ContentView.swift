@@ -14,7 +14,7 @@ struct ContentView: View {
     @Environment(ViewModel.self) private var viewModel
     
     @State private var showAddSheet = false
-    @State var showSettings: Bool = false
+    @State private var showTemplates: Bool = false
     
     var body: some View {
         NavigationStack {
@@ -24,21 +24,24 @@ struct ContentView: View {
                 .toolbar {
                     ToolbarItemGroup {
                         menuButton
+                        
                     }
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "gear")
+                    ToolbarItem {
+                        Button("Templates", systemImage: "pencil.and.list.clipboard") {
+                            showTemplates = true
                         }
                     }
                 }
         }
         .sheet(isPresented: $showAddSheet) {
             AlarmAddView()
+                .presentationCornerRadius(Spacing.large)
+                .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $showSettings, content: {
-            SettingsView()
+        .sheet(isPresented: $showTemplates, content: {
+            TemplatesView()
+                .presentationCornerRadius(Spacing.large)
+                .presentationDragIndicator(.visible)
         })
         .environment(viewModel)
         .onAppear {
@@ -84,7 +87,7 @@ struct ContentView: View {
     @ViewBuilder
     var content: some View {
         VStack {
-                        
+            
             if viewModel.hasUpcomingAlerts {
                 alarmList(alarms: Array(viewModel.alarmsMap.values))
             } else {

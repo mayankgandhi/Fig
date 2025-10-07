@@ -6,8 +6,12 @@
 //
 
 import SwiftUI
+import WalnutDesignSystem
 
 struct TodayClockView: View {
+    
+    @State private var showSettings: Bool = false
+    
     @State private var events: [ClockView.TimeBlock] = [
         ClockView.TimeBlock(
             id: UUID(),
@@ -38,12 +42,28 @@ struct TodayClockView: View {
             color: .blue
         )
     ]
-
+    
     var body: some View {
-        ClockView(events: events)
-            .navigationTitle("Today")
-            .toolbarTitleDisplayMode(.inlineLarge)
-            .padding(.trailing)
+        NavigationStack {
+            ClockView(events: events)
+                .navigationTitle("Today")
+                .toolbarTitleDisplayMode(.inlineLarge)
+                .padding(.trailing)
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        Button {
+                            showSettings = true
+                        } label: {
+                            Image(systemName: "gear")
+                        }
+                    }
+                }
+                .sheet(isPresented: $showSettings, content: {
+                    SettingsView()
+                        .presentationCornerRadius(Spacing.large)
+                        .presentationDragIndicator(.visible)
+                })
+        }
     }
 }
 
