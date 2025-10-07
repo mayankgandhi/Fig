@@ -144,12 +144,12 @@ struct TemplateCard: View {
             return date.formatted(date: .abbreviated, time: .shortened)
         case .daily(let time):
             return "Daily at \(String(format: "%02d:%02d", time.hour, time.minute))"
-        case .weekly(let time, let weekdays):
-            let days = weekdays.sorted(by: { $0.rawValue < $1.rawValue })
-                .prefix(2)
-                .map { $0.shortName }
-                .joined(separator: ", ")
-            return "\(days)... at \(String(format: "%02d:%02d", time.hour, time.minute))"
+//        case .weekly(let time, let weekdays):
+//            let days = weekdays.sorted(by: { $0.rawValue < $1.rawValue })
+//                .prefix(2)
+//                .map { $0.shortName }
+//                .joined(separator: ", ")
+//            return "\(days)... at \(String(format: "%02d:%02d", time.hour, time.minute))"
         case .monthly(let time, let day):
             return "Day \(day) at \(String(format: "%02d:%02d", time.hour, time.minute))"
         case .yearly(let month, let day, _):

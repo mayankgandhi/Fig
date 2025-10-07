@@ -214,17 +214,17 @@ struct AlarmEditorView: View {
                 displayedComponents: [.hourAndMinute]
             )
 
-        case .weekly:
-            DatePickerItem(
-                icon: "clock",
-                title: "Time",
-                selectedDate: $viewModel.selectedTime,
-                iconColor: .blue,
-                isRequired: true,
-                displayedComponents: [.hourAndMinute]
-            )
-
-            weekdaySelector
+//        case .weekly:
+//            DatePickerItem(
+//                icon: "clock",
+//                title: "Time",
+//                selectedDate: $viewModel.selectedTime,
+//                iconColor: .blue,
+//                isRequired: true,
+//                displayedComponents: [.hourAndMinute]
+//            )
+//
+//            weekdaySelector
 
         case .monthly:
             DatePickerItem(
@@ -297,10 +297,12 @@ struct AlarmEditorView: View {
                         weekday: weekday,
                         isSelected: viewModel.selectedWeekdays.contains(weekday)
                     ) {
-                        if viewModel.selectedWeekdays.contains(weekday) {
-                            viewModel.selectedWeekdays.remove(weekday)
+                        if let index = viewModel.selectedWeekdays.firstIndex(of:
+                            weekday
+                        ) {
+                            viewModel.selectedWeekdays.remove(at: index)
                         } else {
-                            viewModel.selectedWeekdays.insert(weekday)
+                            viewModel.selectedWeekdays.append(weekday)
                         }
                     }
                 }
@@ -402,7 +404,7 @@ struct AlarmEditorView: View {
         switch viewModel.scheduleType {
         case .oneTime: return "Alarm triggers once at the specified date and time"
         case .daily: return "Repeats every day at the same time"
-        case .weekly: return "Repeats on selected days each week"
+//        case .weekly: return "Repeats on selected days each week"
         case .monthly: return "Repeats on the same day each month"
         case .yearly: return "Repeats on the same date each year"
         case nil: return "Please select"

@@ -30,35 +30,35 @@ class TemplateDataSeeder {
         )
 
         let exerciseTemplates: [AlarmItem] = [
-            AlarmItem(
-                label: "Physical Therapy",
-                category: .appointment(location: "Physio Clinic"),
-                schedule: .weekly(
-                    time: .init(hour: 10, minute: 0),
-                    weekdays: [.monday, .wednesday, .friday]
-                ),
-            ),
+//            AlarmItem(
+//                label: "Physical Therapy",
+//                category: .appointment(location: "Physio Clinic"),
+//                schedule: .weekly(
+//                    time: .init(hour: 10, minute: 0),
+//                    weekdays: [.monday, .wednesday, .friday]
+//                ),
+//            ),
             AlarmItem(
                 label: "Morning Workout",
                 category: .general(),
                 schedule: .daily(time: .init(hour: 6, minute: 30)),
             ),
-            AlarmItem(
-                label: "Yoga Session",
-                category: .general(),
-                schedule: .weekly(
-                    time: .init(hour: 18, minute: 0),
-                    weekdays: [.tuesday, .thursday, .saturday]
-                ),
-            ),
-            AlarmItem(
-                label: "Weekend Run",
-                category: .general(),
-                schedule: .weekly(
-                    time: .init(hour: 7, minute: 0),
-                    weekdays: [.saturday, .sunday]
-                ),
-            )
+//            AlarmItem(
+//                label: "Yoga Session",
+//                category: .general(),
+//                schedule: .weekly(
+//                    time: .init(hour: 18, minute: 0),
+//                    weekdays: [.tuesday, .thursday, .saturday]
+//                ),
+//            ),
+//            AlarmItem(
+//                label: "Weekend Run",
+//                category: .general(),
+//                schedule: .weekly(
+//                    time: .init(hour: 7, minute: 0),
+//                    weekdays: [.saturday, .sunday]
+//                ),
+//            )
         ]
 
         exerciseCategory.templates = exerciseTemplates
@@ -120,14 +120,14 @@ class TemplateDataSeeder {
                 category: .medication(medicationName: "Prescription", dosage: "As prescribed"),
                 schedule: .daily(time: .init(hour: 20, minute: 0)),
             ),
-            AlarmItem(
-                label: "Weekly Injection",
-                category: .medication(medicationName: "Weekly Shot", dosage: "1 dose"),
-                schedule: .weekly(
-                    time: .init(hour: 19, minute: 0),
-                    weekdays: [.sunday]
-                ),
-            ),
+//            AlarmItem(
+//                label: "Weekly Injection",
+//                category: .medication(medicationName: "Weekly Shot", dosage: "1 dose"),
+//                schedule: .weekly(
+//                    time: .init(hour: 19, minute: 0),
+//                    weekdays: [.sunday]
+//                ),
+//            ),
             AlarmItem(
                 label: "Doctor Checkup",
                 category: .appointment(location: "Medical Center"),
@@ -138,14 +138,14 @@ class TemplateDataSeeder {
                 category: .general(),
                 schedule: .daily(time: .init(hour: 12, minute: 0)),
             ),
-            AlarmItem(
-                label: "Blood Pressure Check",
-                category: .general(),
-                schedule: .weekly(
-                    time: .init(hour: 9, minute: 0),
-                    weekdays: [.monday, .thursday]
-                ),
-            )
+//            AlarmItem(
+//                label: "Blood Pressure Check",
+//                category: .general(),
+//                schedule: .weekly(
+//                    time: .init(hour: 9, minute: 0),
+//                    weekdays: [.monday, .thursday]
+//                ),
+//            )
         ]
 
         healthCategory.templates = healthTemplates

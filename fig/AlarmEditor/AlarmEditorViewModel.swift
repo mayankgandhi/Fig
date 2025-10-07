@@ -22,7 +22,7 @@ class AlarmEditorViewModel {
     var scheduleType: ScheduleType?
     var selectedDate: Date? = Date()
     var selectedTime: Date? = Date()
-    var selectedWeekdays: Set<TickerSchedule.Weekday> = []
+    var selectedWeekdays: Array<TickerSchedule.Weekday> = []
     var monthlyDay: Int = 1
     var yearlyMonth: Int = 1
     var yearlyDay: Int = 1
@@ -56,7 +56,7 @@ class AlarmEditorViewModel {
     enum ScheduleType: String, CaseIterable, CustomStringConvertible {
         case oneTime = "One Time"
         case daily = "Daily"
-        case weekly = "Weekly"
+//        case weekly = "Weekly"
         case monthly = "Monthly"
         case yearly = "Yearly"
 
@@ -96,10 +96,10 @@ class AlarmEditorViewModel {
             case .daily(let time):
                 scheduleType = .daily
                 selectedTime = dateFromTime(time)
-            case .weekly(let time, let weekdays):
-                scheduleType = .weekly
-                selectedTime = dateFromTime(time)
-                selectedWeekdays = weekdays
+//            case .weekly(let time, let weekdays):
+//                scheduleType = .weekly
+//                selectedTime = dateFromTime(time)
+//                selectedWeekdays = weekdays
             case .monthly(let time, let day):
                 scheduleType = .monthly
                 selectedTime = dateFromTime(time)
@@ -236,9 +236,9 @@ class AlarmEditorViewModel {
             return .oneTime(date: selectedDate)
         case .daily:
             return .daily(time: time)
-        case .weekly:
-            guard !selectedWeekdays.isEmpty else { return nil }
-            return .weekly(time: time, weekdays: selectedWeekdays)
+//        case .weekly:
+//            guard !selectedWeekdays.isEmpty else { return nil }
+//            return .weekly(time: time, weekdays: selectedWeekdays)
         case .monthly:
             return .monthly(time: time, day: monthlyDay)
         case .yearly:
