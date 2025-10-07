@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WalnutDesignSystem
 
 struct ClockView: View {
     
@@ -28,34 +29,47 @@ struct ClockView: View {
         }
     }
     
+    struct MinuteMark: Identifiable {
+        var id: Double {
+            angle
+        }
+        var angle: Double
+    }
+    
+    
     struct HourMark: Identifiable {
         var id: Int
         var time: Int?
         var angle: Double
+        var textAngle: Double?
     }
     
-    let events: [TimeBlock]
+    var events: [TimeBlock]
     
-    var hourMarks: [HourMark] = [
-        HourMark(id: 0, time: 12, angle: 0),
-        HourMark(id: 1, time: nil, angle: 30),
-        HourMark(id: 2, time: nil, angle: 60),
-        HourMark(id: 3, time: 3, angle: 90),
-        HourMark(id: 4, time: nil, angle: 120),
-        HourMark(id: 5, time: nil, angle: 150),
-        HourMark(id: 6, time: 6, angle: 180),
-        HourMark(id: 7, time: nil, angle: 210),
-        HourMark(id: 8, time: nil, angle: 240),
-        HourMark(id: 9, time: 9, angle: 270),
-        HourMark(id: 10, time: nil, angle: 300),
-        HourMark(id: 11, time: nil, angle: 330),
+    let hourMarks: [HourMark] = [
+        HourMark(id: 0, time: 12, angle: 0, textAngle: 0),
+        HourMark(id: 1, time: nil, angle: 30, textAngle: nil),
+        HourMark(id: 2, time: nil, angle: 60, textAngle: nil),
+        HourMark(id: 3, time: 3, angle: 90, textAngle: 270),
+        HourMark(id: 4, time: nil, angle: 120, textAngle: nil),
+        HourMark(id: 5, time: nil, angle: 150, textAngle: nil),
+        HourMark(id: 6, time: 6, angle: 180, textAngle: 180),
+        HourMark(id: 7, time: nil, angle: 210, textAngle: nil),
+        HourMark(id: 8, time: nil, angle: 240, textAngle: nil),
+        HourMark(id: 9, time: 9, angle: 270, textAngle: 90),
+        HourMark(id: 10, time: nil, angle: 300, textAngle: nil),
+        HourMark(id: 11, time: nil, angle: 330, textAngle: nil),
     ]
+    
+    let minuteMarks: [MinuteMark] = stride(from: 0, through: 360, by: 3).map { angle in
+        MinuteMark(angle: Double(angle))
+    }
     
     var body: some View {
         GeometryReader { geometry in
             let radius = min(geometry.size.width, geometry.size.height) / 2
             let markOffset = radius * 0.95
-            let handLength = radius * 0.90
+            let handLength = radius
             
             ZStack {
                 Circle()
@@ -64,16 +78,17 @@ struct ClockView: View {
                 
                 ForEach(hourMarks) { hourmark in
                     Rectangle()
-                        .fill(hourmark.time != nil ? Color.black : Color.gray.opacity(0.5))
+                        .fill(hourmark.time != nil ? Color.black : Color.gray)
                         .frame(
                             width: hourmark.time != nil ? 2 : 1,
-                            height: hourmark.time != nil ? radius * 0.08 : radius * 0.04
+                            height: hourmark.time != nil ? radius * 0.12 : radius * 0.08
                         )
                         .offset(y: -markOffset)
                         .rotationEffect(Angle(degrees: hourmark.angle))
                     
-                    if let time = hourmark.time {
+                    if let time = hourmark.time, let textAngle = hourmark.textAngle {
                         Text("\(time)")
+                            .rotationEffect(Angle(degrees: textAngle))
                             .font(.cabinetTitle2)
                             .fontWeight(.bold)
                             .offset(y: -radius * 0.7)
@@ -81,24 +96,41 @@ struct ClockView: View {
                     }
                 }
                 
-                ForEach(events) { event in
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(event.color)
-                        .frame(width: handLength * 0.15, height: handLength)
-                        .overlay(
-                            HStack(spacing: 2) {
-                                Text(event.city)
-                                    .font(.system(size: 7, weight: .regular))
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
-                                Text(event.timeString)
-                                    .font(.system(size: 7, weight: .regular))
-                            }
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                ForEach(minuteMarks) { hourmark in
+                    Rectangle()
+                        .fill(Color.gray.opacity(0.5))
+                        .frame(
+                            width: 1,
+                            height: radius * 0.04
                         )
-                        .offset(y: 0)
-                        .rotationEffect(Angle(degrees: event.angle))
+                        .offset(y: -markOffset)
+                        .rotationEffect(Angle(degrees: hourmark.angle))
+                }
+                
+                ForEach(events) { event in
+                    VStack(spacing: .zero) {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(event.color.opacity(0.25))
+                            .frame(width: handLength * 0.05, height: handLength/4)
+                        HStack(spacing: Spacing.xs) {
+                            Image(systemName: "clock")
+                                .font(.system(size: 10, weight: .light, design: .rounded))
+                                .foregroundColor(.white)
+                            Text(event.city)
+                                .font(.system(.caption, design: .rounded, weight: .light))
+                                .lineLimit(1)
+                                .foregroundColor(.white)
+                        }
+                        .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
+                        .frame(width: handLength * 0.15, height: handLength*(3/4))
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(event.color)
+                        )
+                        
+                    }
+                    .offset(x:0, y: handLength/2)
+                    .rotationEffect(Angle(degrees: event.angle))
                 }
                 
                 Circle()
