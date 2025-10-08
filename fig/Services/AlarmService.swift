@@ -84,8 +84,10 @@ enum AlarmAuthorizationStatus {
 final class AlarmService: AlarmServiceProtocol {
     typealias AlarmConfiguration = AlarmManager.AlarmConfiguration<TickerData>
 
-    // Public state
-    private(set) var alarms: [UUID: AlarmState] = [:]
+    // Public state (delegated to state manager)
+    var alarms: [UUID: AlarmState] {
+        stateManager.alarms
+    }
 
     var authorizationStatus: AlarmAuthorizationStatus {
         AlarmAuthorizationStatus(from: alarmManager.authorizationState)
@@ -95,9 +97,28 @@ final class AlarmService: AlarmServiceProtocol {
     @ObservationIgnored
     private let alarmManager = AlarmManager.shared
 
+    // Configuration builder
+    @ObservationIgnored
+    private let configurationBuilder: AlarmConfigurationBuilderProtocol
+
+    // State manager
+    @ObservationIgnored
+    private let stateManager: AlarmStateManagerProtocol
+
+    // Sync coordinator
+    @ObservationIgnored
+    private let syncCoordinator: AlarmSyncCoordinatorProtocol
+
     // MARK: - Initialization
 
-    init() {
+    init(
+        configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
+        stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
+        syncCoordinator: AlarmSyncCoordinatorProtocol = AlarmSyncCoordinator()
+    ) {
+        self.configurationBuilder = configurationBuilder
+        self.stateManager = stateManager
+        self.syncCoordinator = syncCoordinator
         observeAlarmUpdates()
     }
 
@@ -131,7 +152,7 @@ final class AlarmService: AlarmServiceProtocol {
         }
 
         // 2. Build AlarmKit configuration
-        guard let configuration = buildAlarmKitConfiguration(from: alarmItem) else {
+        guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
             throw AlarmServiceError.invalidConfiguration
         }
 
@@ -148,7 +169,7 @@ final class AlarmService: AlarmServiceProtocol {
             try context.save()
 
             // 6. Update local state
-            await updateLocalAlarmState(from: alarm, label: LocalizedStringResource(stringLiteral: alarmItem.label))
+            await stateManager.updateState(from: alarm, label: LocalizedStringResource(stringLiteral: alarmItem.label))
 
         } catch let error as AlarmServiceError {
             throw error
@@ -179,7 +200,7 @@ final class AlarmService: AlarmServiceProtocol {
                 throw AlarmServiceError.notAuthorized
             }
 
-            guard let configuration = buildAlarmKitConfiguration(from: alarmItem) else {
+            guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
                 throw AlarmServiceError.invalidConfiguration
             }
 
@@ -188,13 +209,13 @@ final class AlarmService: AlarmServiceProtocol {
                 alarmItem.alarmKitID = alarm.id
                 try context.save()
 
-                await updateLocalAlarmState(from: alarm, label: LocalizedStringResource(stringLiteral: alarmItem.label))
+                await stateManager.updateState(from: alarm, label: LocalizedStringResource(stringLiteral: alarmItem.label))
             } catch {
                 throw AlarmServiceError.schedulingFailed(underlying: error)
             }
         } else {
             // If disabled, just remove from local state
-            await removeLocalAlarmState(id: alarmItem.id)
+            await stateManager.removeState(id: alarmItem.id)
         }
     }
 
@@ -204,7 +225,7 @@ final class AlarmService: AlarmServiceProtocol {
 
         // Remove from local state
         Task {
-            await removeLocalAlarmState(id: id)
+            await stateManager.removeState(id: id)
         }
 
         // Delete from SwiftData if context provided
@@ -265,7 +286,7 @@ final class AlarmService: AlarmServiceProtocol {
     }
 
     func getAlarmState(id: UUID) -> AlarmState? {
-        alarms[id]
+        stateManager.getState(id: id)
     }
 
     func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: AlarmItem?)] {
@@ -290,68 +311,11 @@ final class AlarmService: AlarmServiceProtocol {
     // MARK: - Synchronization
 
     func synchronizeAlarmsOnLaunch(context: ModelContext) async {
-        print("🔄 Starting alarm synchronization (AlarmKit → SwiftData)...")
-
-        // 1. Fetch all alarms from AlarmKit (source of truth)
-        guard let alarmKitAlarms = try? alarmManager.alarms else {
-            print("⚠️ Failed to fetch alarms from AlarmKit")
-            return
-        }
-
-        print("⏰ Found \(alarmKitAlarms.count) alarms in AlarmKit")
-
-        // 2. Clean up template alarms that shouldn't be scheduled
-        // Fetch all AlarmItems to check which ones are disabled templates
-        let allItemsDescriptor = FetchDescriptor<AlarmItem>()
-        let allItems = (try? context.fetch(allItemsDescriptor)) ?? []
-        let disabledItemIds = Set(allItems.filter { !$0.isEnabled }.map { $0.id })
-
-        var alarmsToKeep: [Alarm] = []
-        for alarm in alarmKitAlarms {
-            // If this alarm corresponds to a disabled template, cancel it
-            if disabledItemIds.contains(alarm.id) {
-                print("🗑️ Canceling template alarm: \(alarm.id)")
-                try? alarmManager.cancel(id: alarm.id)
-            } else {
-                alarmsToKeep.append(alarm)
-            }
-        }
-
-        print("✅ Kept \(alarmsToKeep.count) valid alarms")
-
-        // 3. Update local AlarmService state with valid alarms only
-        for alarm in alarmsToKeep {
-            // Look up metadata from SwiftData
-            let metadata = allItems.first { $0.id == alarm.id }
-            let label = metadata?.label ?? "Alarm"
-
-            // Update local state
-            await updateLocalAlarmState(from: alarm, label: LocalizedStringResource(stringLiteral: label))
-
-            print("✅ Loaded alarm: \(label)")
-        }
-
-        // 4. Ensure SwiftData entries exist for all AlarmKit alarms
-        // (This handles orphaned alarms that exist in AlarmKit but not SwiftData)
-        for alarm in alarmsToKeep {
-            // If no SwiftData entry exists, create one
-            if !allItems.contains(where: { $0.id == alarm.id }) {
-                print("📝 Creating SwiftData entry for orphaned alarm: \(alarm.id)")
-
-                let alarmItem = AlarmItem(
-                    id: alarm.id,
-                    label: "Alarm",
-                    isEnabled: true
-                )
-                alarmItem.alarmKitID = alarm.id
-                context.insert(alarmItem)
-            }
-        }
-
-        // Save any new entries
-        try? context.save()
-
-        print("✨ Alarm synchronization complete")
+        await syncCoordinator.synchronizeOnLaunch(
+            alarmManager: alarmManager,
+            stateManager: stateManager,
+            context: context
+        )
     }
 
     // MARK: - Private Helpers
@@ -359,131 +323,9 @@ final class AlarmService: AlarmServiceProtocol {
     private func observeAlarmUpdates() {
         Task {
             for await incomingAlarms in alarmManager.alarmUpdates {
-                updateAlarmState(with: incomingAlarms)
+                stateManager.updateState(with: incomingAlarms)
             }
         }
-    }
-
-    private func updateAlarmState(with remoteAlarms: [Alarm]) {
-        Task { @MainActor in
-            // Update existing alarm states
-            remoteAlarms.forEach { updated in
-                if let existingState = alarms[updated.id] {
-                    alarms[updated.id] = AlarmState(from: updated, label: existingState.label)
-                } else {
-                    // New alarm from old session
-                    alarms[updated.id] = AlarmState(from: updated, label: "Alarm (Old Session)")
-                }
-            }
-
-            let knownAlarmIDs = Set(alarms.keys)
-            let incomingAlarmIDs = Set(remoteAlarms.map(\.id))
-
-            // Clean up removed alarms
-            let removedAlarmIDs = knownAlarmIDs.subtracting(incomingAlarmIDs)
-            removedAlarmIDs.forEach {
-                alarms[$0] = nil
-            }
-        }
-    }
-
-    @MainActor
-    private func updateLocalAlarmState(from alarm: Alarm, label: LocalizedStringResource) {
-        alarms[alarm.id] = AlarmState(from: alarm, label: label)
-    }
-
-    @MainActor
-    private func removeLocalAlarmState(id: UUID) {
-        alarms[id] = nil
-    }
-
-    private func buildAlarmKitConfiguration(from alarmItem: AlarmItem) -> AlarmConfiguration? {
-        // Build attributes
-        let attributes = AlarmAttributes(
-            presentation: buildAlarmPresentation(from: alarmItem),
-            metadata: alarmItem.tickerData ?? TickerData(),
-            tintColor: Color.accentColor
-        )
-
-        // Build configuration
-        let configuration = AlarmConfiguration(
-            countdownDuration: alarmItem.alarmKitCountdownDuration,
-            schedule: alarmItem.alarmKitSchedule,
-            attributes: attributes,
-            stopIntent: StopIntent(alarmID: alarmItem.id.uuidString),
-            secondaryIntent: buildSecondaryIntent(for: alarmItem)
-        )
-
-        return configuration
-    }
-
-    private func buildAlarmPresentation(from alarmItem: AlarmItem) -> AlarmPresentation {
-        let secondaryButtonBehavior = alarmItem.alarmKitSecondaryButtonBehavior
-        let secondaryButton: AlarmButton? = switch secondaryButtonBehavior {
-            case .countdown: .repeatButton
-            case .custom: .openAppButton
-            default: nil
-        }
-
-        let alertContent = AlarmPresentation.Alert(
-            title: LocalizedStringResource(stringLiteral: alarmItem.label),
-            stopButton: .stopButton,
-            secondaryButton: secondaryButton,
-            secondaryButtonBehavior: secondaryButtonBehavior
-        )
-
-        guard alarmItem.countdown != nil else {
-            // An alarm without a countdown only specifies an alert state
-            return AlarmPresentation(alert: alertContent)
-        }
-
-        // With countdown enabled, a presentation appears for both countdown and paused state
-        let countdownContent = AlarmPresentation.Countdown(
-            title: LocalizedStringResource(stringLiteral: alarmItem.label),
-            pauseButton: .pauseButton
-        )
-
-        let pausedContent = AlarmPresentation.Paused(
-            title: "Paused",
-            resumeButton: .resumeButton
-        )
-
-        return AlarmPresentation(alert: alertContent, countdown: countdownContent, paused: pausedContent)
-    }
-
-    private func buildSecondaryIntent(for alarmItem: AlarmItem) -> (any LiveActivityIntent)? {
-        switch alarmItem.presentation.secondaryButtonType {
-        case .none:
-            return nil
-        case .countdown:
-            return RepeatIntent(alarmID: alarmItem.id.uuidString)
-        case .openApp:
-            return OpenAlarmAppIntent(alarmID: alarmItem.id.uuidString)
-        }
-    }
-}
-
-// MARK: - AlarmButton Extensions
-
-extension AlarmButton {
-    static var openAppButton: Self {
-        AlarmButton(text: "Open", textColor: .black, systemImageName: "swift")
-    }
-
-    static var pauseButton: Self {
-        AlarmButton(text: "Pause", textColor: .black, systemImageName: "pause.fill")
-    }
-
-    static var resumeButton: Self {
-        AlarmButton(text: "Start", textColor: .black, systemImageName: "play.fill")
-    }
-
-    static var repeatButton: Self {
-        AlarmButton(text: "Repeat", textColor: .black, systemImageName: "repeat.circle")
-    }
-
-    static var stopButton: Self {
-        AlarmButton(text: "Done", textColor: .white, systemImageName: "stop.circle")
     }
 }
 
