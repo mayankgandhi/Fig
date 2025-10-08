@@ -12,6 +12,7 @@ struct AddAlarmView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(AlarmService.self) private var alarmService
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var selectedDate = Date()
     @State private var alarmName = ""
@@ -45,78 +46,82 @@ struct AddAlarmView: View {
                         // Month/Year Header with Navigation
                         HStack {
                             Text(selectedDate.formatted(.dateTime.month(.wide).year()))
-                                .font(.title2)
-                                .fontWeight(.semibold)
+                                .font(TickerTypography.headerMedium)
+                                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                             Image(systemName: "chevron.right")
-                                .font(.title3)
-                                .foregroundStyle(.blue)
+                                .font(TickerTypography.bodyLarge)
+                                .foregroundStyle(TickerColors.criticalRed)
 
                             Spacer()
 
-                            HStack(spacing: 16) {
+                            HStack(spacing: TickerSpacing.md) {
                                 Button {
-                                    withAnimation {
+                                    TickerHaptics.selection()
+                                    withAnimation(TickerAnimation.quick) {
                                         selectedDate = Calendar.current.date(byAdding: .month, value: -1, to: selectedDate) ?? selectedDate
                                     }
                                 } label: {
                                     Image(systemName: "chevron.left")
-                                        .font(.title3)
-                                        .foregroundStyle(.secondary)
+                                        .font(TickerTypography.bodyLarge)
+                                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                                 }
 
                                 Button {
-                                    withAnimation {
+                                    TickerHaptics.selection()
+                                    withAnimation(TickerAnimation.quick) {
                                         selectedDate = Calendar.current.date(byAdding: .month, value: 1, to: selectedDate) ?? selectedDate
                                     }
                                 } label: {
                                     Image(systemName: "chevron.right")
-                                        .font(.title3)
-                                        .foregroundStyle(.secondary)
+                                        .font(TickerTypography.bodyLarge)
+                                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                                 }
                             }
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
+                        .padding(.horizontal, TickerSpacing.md)
+                        .padding(.top, TickerSpacing.md)
 
                         // Calendar Grid
                         CalendarGrid(selectedDate: $selectedDate)
                             .padding(.horizontal, 20)
 
                         // Time Section
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                             Text("Time")
-                                .font(.headline)
-                                .foregroundStyle(.secondary)
+                                .font(TickerTypography.labelBold)
+                                .textCase(.uppercase)
+                                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                             DatePicker("", selection: $selectedDate, displayedComponents: .hourAndMinute)
                                 .datePickerStyle(.compact)
                                 .labelsHidden()
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, TickerSpacing.md)
                     }
 
                     Spacer()
 
                     // Bottom Controls
-                    VStack(spacing: 16) {
+                    VStack(spacing: TickerSpacing.md) {
                         // Date & Time / Repeat Options
-                        HStack(spacing: 12) {
+                        HStack(spacing: TickerSpacing.sm) {
                             // Date & Time Button
                             Button {
+                                TickerHaptics.selection()
                                 // Toggle date picker or advanced options
                             } label: {
-                                HStack(spacing: 8) {
+                                HStack(spacing: TickerSpacing.xs) {
                                     Image(systemName: "clock")
-                                        .font(.body)
+                                        .font(TickerTypography.bodyMedium)
                                     Text("Date & time")
-                                        .font(.body)
+                                        .font(TickerTypography.bodyMedium)
                                 }
-                                .foregroundStyle(.primary)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 14)
-                                .background(Color(.secondarySystemBackground))
+                                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                                .padding(.horizontal, TickerSpacing.md)
+                                .padding(.vertical, TickerSpacing.sm)
+                                .background(TickerColors.surface(for: colorScheme))
                                 .clipShape(Capsule())
                             }
 
@@ -124,6 +129,7 @@ struct AddAlarmView: View {
                             Menu {
                                 ForEach(RepeatOption.allCases, id: \.self) { option in
                                     Button {
+                                        TickerHaptics.selection()
                                         repeatOption = option
                                     } label: {
                                         HStack {
@@ -135,34 +141,35 @@ struct AddAlarmView: View {
                                     }
                                 }
                             } label: {
-                                HStack(spacing: 8) {
+                                HStack(spacing: TickerSpacing.xs) {
                                     Image(systemName: repeatOption.icon)
-                                        .font(.body)
+                                        .font(TickerTypography.bodyMedium)
                                     Text(repeatOption.rawValue)
-                                        .font(.body)
+                                        .font(TickerTypography.bodyMedium)
                                 }
-                                .foregroundStyle(.primary)
-                                .padding(.horizontal, 20)
-                                .padding(.vertical, 14)
-                                .background(Color(.secondarySystemBackground))
+                                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                                .padding(.horizontal, TickerSpacing.md)
+                                .padding(.vertical, TickerSpacing.sm)
+                                .background(TickerColors.surface(for: colorScheme))
                                 .clipShape(Capsule())
                             }
 
                             Spacer()
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, TickerSpacing.md)
 
                         // Bottom Action Bar
-                        HStack(spacing: 16) {
+                        HStack(spacing: TickerSpacing.md) {
                             // Advanced Button
                             Button {
+                                TickerHaptics.selection()
                                 showingAdvanced.toggle()
                             } label: {
                                 Image(systemName: "slider.horizontal.3")
-                                    .font(.title3)
-                                    .foregroundStyle(.secondary)
-                                    .frame(width: 50, height: 50)
-                                    .background(Color(.secondarySystemBackground))
+                                    .font(TickerTypography.headerSmall)
+                                    .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                                    .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
+                                    .background(TickerColors.surface(for: colorScheme))
                                     .clipShape(Circle())
                             }
 
@@ -175,21 +182,16 @@ struct AddAlarmView: View {
                                 HStack {
                                     if isSaving {
                                         ProgressView()
-                                            .tint(.white)
+                                            .tint(TickerColors.absoluteWhite)
                                     }
                                     Text(isSaving ? "Saving..." : "Done")
                                 }
-                                .font(.headline)
-                                .foregroundStyle(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 50)
-                                .background(isSaving ? Color.blue.opacity(0.6) : .blue)
-                                .clipShape(Capsule())
                             }
+                            .tickerPrimaryButton()
                             .disabled(isSaving)
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.bottom, 20)
+                        .padding(.horizontal, TickerSpacing.md)
+                        .padding(.bottom, TickerSpacing.md)
                     }
                 }
             }
@@ -242,8 +244,10 @@ struct AddAlarmView: View {
         do {
             // Use AlarmService to schedule the alarm
             try await alarmService.scheduleAlarm(from: alarm, context: modelContext)
+            TickerHaptics.success()
             dismiss()
         } catch {
+            TickerHaptics.error()
             errorMessage = error.localizedDescription
             showingError = true
         }
@@ -321,6 +325,7 @@ struct CalendarDayCell: View {
     let isSelected: Bool
     let isToday: Bool
     let onTap: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
 
     private var dayNumber: String {
         let formatter = DateFormatter()
@@ -329,20 +334,23 @@ struct CalendarDayCell: View {
     }
 
     var body: some View {
-        Button(action: onTap) {
+        Button(action: {
+            TickerHaptics.selection()
+            onTap()
+        }) {
             Text(dayNumber)
-                .font(.title3)
+                .font(TickerTypography.headerSmall)
                 .fontWeight(isSelected ? .bold : .regular)
-                .foregroundStyle(isSelected ? .white : .primary)
+                .foregroundStyle(isSelected ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
                 .frame(maxWidth: .infinity)
-                .frame(height: 44)
+                .frame(height: TickerSpacing.tapTargetMin)
                 .background(
                     Circle()
-                        .fill(isSelected ? .blue : .clear)
+                        .fill(isSelected ? TickerColors.criticalRed : .clear)
                 )
                 .overlay(
                     Circle()
-                        .strokeBorder(isToday && !isSelected ? .blue : .clear, lineWidth: 2)
+                        .strokeBorder(isToday && !isSelected ? TickerColors.criticalRed : .clear, lineWidth: 2)
                 )
         }
         .buttonStyle(.plain)
@@ -353,6 +361,7 @@ struct CalendarDayCell: View {
 
 struct AdvancedOptionsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @Binding var alarmName: String
 
     var body: some View {
@@ -360,8 +369,11 @@ struct AdvancedOptionsView: View {
             Form {
                 Section {
                     TextField("Alarm name", text: $alarmName)
+                        .font(TickerTypography.bodyLarge)
                 } header: {
                     Text("Name")
+                        .font(TickerTypography.labelBold)
+                        .textCase(.uppercase)
                 }
 
                 Section {
@@ -370,19 +382,25 @@ struct AdvancedOptionsView: View {
                     } label: {
                         HStack {
                             Text("Sound")
+                                .font(TickerTypography.bodyMedium)
                             Spacer()
                             Text("Default")
-                                .foregroundStyle(.secondary)
+                                .font(TickerTypography.bodySmall)
+                                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                         }
                     }
 
                     Toggle("Vibrate", isOn: .constant(true))
+                        .font(TickerTypography.bodyMedium)
                 }
 
                 Section {
                     Toggle("Snooze", isOn: .constant(true))
+                        .font(TickerTypography.bodyMedium)
                 } footer: {
                     Text("Allow snoozing when alarm goes off")
+                        .font(TickerTypography.bodySmall)
+                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                 }
             }
             .navigationTitle("Advanced")
@@ -390,6 +408,7 @@ struct AdvancedOptionsView: View {
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") {
+                        TickerHaptics.selection()
                         dismiss()
                     }
                 }

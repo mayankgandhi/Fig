@@ -27,6 +27,9 @@ struct figApp: App {
     @State private var alarmService = AlarmService()
 
     init() {
+            // Register Cabinet Grotesk fonts
+            FigFontFamily.registerAllCustomFonts()
+
             TemplateDataSeeder.seedTemplatesIfNeeded(modelContext: sharedModelContainer.mainContext)
     }
 

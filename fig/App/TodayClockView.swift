@@ -11,6 +11,7 @@ import WalnutDesignSystem
 
 struct TodayClockView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @Query(filter: #Predicate<Ticker> { alarm in
         alarm.isEnabled == true
     }, sort: \Ticker.createdAt) private var alarms: [Ticker]
@@ -69,40 +70,39 @@ struct TodayClockView: View {
                         .padding(.top, 8)
 
                     // Upcoming Alarms Section
-                    VStack(alignment: .leading, spacing: 16) {
+                    VStack(alignment: .leading, spacing: TickerSpacing.md) {
                         HStack {
                             Text("Next 12 Hours")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(TickerTypography.headerLarge)
+                                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                             Spacer()
 
                             Text("\(upcomingAlarms.count)")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.secondary)
+                                .font(TickerTypography.headerMedium)
+                                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                         }
-                        .padding(.horizontal, 20)
-                        .padding(.top, 24)
+                        .padding(.horizontal, TickerSpacing.md)
+                        .padding(.top, TickerSpacing.lg)
 
                         if upcomingAlarms.isEmpty {
-                            VStack(spacing: 12) {
+                            VStack(spacing: TickerSpacing.sm) {
                                 Image(systemName: "clock.badge.checkmark")
-                                    .font(.system(size: 48))
-                                    .foregroundStyle(.tertiary)
+                                    .font(.system(size: 64))
+                                    .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                                 Text("No upcoming alarms")
-                                    .font(.headline)
-                                    .foregroundStyle(.secondary)
+                                    .font(TickerTypography.headerMedium)
+                                    .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                                 Text("Alarms scheduled for the next 12 hours will appear here")
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                                    .font(TickerTypography.bodySmall)
+                                    .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                                     .multilineTextAlignment(.center)
-                                    .padding(.horizontal, 40)
+                                    .padding(.horizontal, TickerSpacing.xxl)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 48)
+                            .padding(.vertical, TickerSpacing.xxl)
                         } else {
                             LazyVStack(spacing: 0) {
                                 ForEach(upcomingAlarms) { alarm in
@@ -122,6 +122,7 @@ struct TodayClockView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button {
+                        TickerHaptics.selection()
                         showSettings = true
                     } label: {
                         Image(systemName: "gear")
@@ -130,7 +131,7 @@ struct TodayClockView: View {
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
-                    .presentationCornerRadius(Spacing.large)
+                    .presentationCornerRadius(TickerRadius.large)
                     .presentationDragIndicator(.visible)
             }
         }
@@ -201,6 +202,7 @@ struct TodayClockView: View {
 
 struct UpcomingAlarmRow: View {
     let alarm: Ticker
+    @Environment(\.colorScheme) private var colorScheme
 
     private var nextAlarmTime: Date {
         guard let schedule = alarm.schedule else { return Date() }
@@ -251,35 +253,35 @@ struct UpcomingAlarmRow: View {
     }
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: TickerSpacing.md) {
             // Color indicator and icon
             ZStack {
                 Circle()
                     .fill(alarmColor.opacity(0.15))
-                    .frame(width: 50, height: 50)
+                    .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
                 Image(systemName: alarm.tickerData?.icon ?? "alarm")
-                    .font(.system(size: 22))
+                    .font(.system(size: 24, weight: .medium))
                     .foregroundStyle(alarmColor)
             }
 
             // Alarm details
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                 Text(alarm.displayName)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+                    .font(TickerTypography.headerSmall)
+                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
-                HStack(spacing: 8) {
+                HStack(spacing: TickerSpacing.xs) {
                     Text(nextAlarmTime, style: .time)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(TickerTypography.bodyMedium)
+                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                     Text("•")
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                     Text(timeUntilAlarm)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(TickerTypography.bodyMedium)
+                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 }
             }
 
@@ -290,27 +292,15 @@ struct UpcomingAlarmRow: View {
                 switch schedule {
                 case .oneTime:
                     Text("Once")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color(.tertiarySystemFill))
-                        .clipShape(Capsule())
+                        .tickerStatusBadge(color: TickerColors.scheduled)
                 case .daily:
                     Text("Daily")
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color(.tertiarySystemFill))
-                        .clipShape(Capsule())
+                        .tickerStatusBadge(color: TickerColors.running)
                 }
             }
         }
-        .padding(16)
-        .background(Color(.systemBackground))
+        .padding(TickerSpacing.md)
+        .background(TickerColors.background(for: colorScheme))
     }
 }
 

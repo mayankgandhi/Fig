@@ -10,54 +10,57 @@ import SwiftUI
 struct AlarmCell: View {
     let alarmItem: Ticker
     @Environment(AlarmService.self) private var alarmService
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: TickerSpacing.md) {
             // Leading: Category icon with colored background
             categoryIconView
 
             // Main content area
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                 // Primary: Alarm label
                 Text(alarmItem.label)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
+                    .font(TickerTypography.headerSmall)
+                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 // Secondary: Category name
                 if let tickerData = alarmItem.tickerData, let name = tickerData.name {
                     Text(name)
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
+                        .font(TickerTypography.bodyMedium)
+                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 }
 
                 // Tertiary: Schedule info
                 scheduleInfoView
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .font(TickerTypography.bodySmall)
+                    .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
             }
 
             Spacer()
 
             // Trailing: Time and status
-            VStack(alignment: .trailing, spacing: 6) {
+            VStack(alignment: .trailing, spacing: TickerSpacing.xs) {
                 // Time display (large and prominent)
                 if let schedule = alarmItem.schedule {
                     scheduleText(for: schedule)
-                        .font(.system(size: 32, weight: .semibold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(.primary)
+                        .font(TickerTypography.timeLarge)
+                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } else if let countdown = alarmItem.countdown?.preAlert {
                     Text(formatDuration(countdown.interval))
-                        .font(.system(size: 28, weight: .semibold, design: .rounded))
-                        .monospacedDigit()
-                        .foregroundStyle(.primary)
+                        .font(TickerTypography.timeMedium)
+                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 }
 
                 // Status tag
                 tag
             }
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, TickerSpacing.sm)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            TickerHaptics.selection()
+        }
     }
 
     // MARK: - Subviews
@@ -67,23 +70,23 @@ struct AlarmCell: View {
         if let tickerData = alarmItem.tickerData, let icon = tickerData.icon {
             ZStack {
                 Circle()
-                    .fill(Color(hex: tickerData.colorHex ?? "") ?? .blue)
+                    .fill(Color(hex: tickerData.colorHex ?? "") ?? TickerColors.scheduled)
                     .opacity(0.15)
-                    .frame(width: 48, height: 48)
+                    .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
                 Image(systemName: icon)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(Color(hex: tickerData.colorHex ?? "") ?? .blue)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(Color(hex: tickerData.colorHex ?? "") ?? TickerColors.scheduled)
             }
         } else {
             ZStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.15))
-                    .frame(width: 48, height: 48)
+                    .fill(TickerColors.scheduled.opacity(0.15))
+                    .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
                 Image(systemName: "alarm")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundStyle(.blue)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(TickerColors.scheduled)
             }
         }
     }
@@ -149,11 +152,7 @@ struct AlarmCell: View {
 
     var tag: some View {
         Text(tagLabel)
-            .textCase(.uppercase)
-            .font(.caption.bold())
-            .padding(4)
-            .background(tagColor)
-            .clipShape(RoundedRectangle(cornerRadius: 4))
+            .tickerStatusBadge(color: tagColor)
     }
 
     var tagLabel: String {
@@ -174,14 +173,14 @@ struct AlarmCell: View {
         // Get current state from AlarmService
         if let alarmState = alarmService.getAlarmState(id: alarmItem.id) {
             switch alarmState.state {
-            case .scheduled: return .blue
-            case .countdown: return .green
-            case .paused: return .yellow
-            case .alerting: return .red
+            case .scheduled: return TickerColors.scheduled
+            case .countdown: return TickerColors.running
+            case .paused: return TickerColors.paused
+            case .alerting: return TickerColors.alertActive
             }
         }
         // If no state in AlarmService
-        return alarmItem.isEnabled ? .blue : .gray
+        return alarmItem.isEnabled ? TickerColors.scheduled : TickerColors.disabled
     }
 }
 

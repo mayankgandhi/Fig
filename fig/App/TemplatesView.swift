@@ -10,6 +10,7 @@ import SwiftData
 
 struct TemplatesView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
     @Query(filter: #Predicate<TemplateCategory> { _ in true }) private var categories: [TemplateCategory]
 
     var body: some View {
@@ -38,16 +39,17 @@ struct TemplatesView: View {
 
 struct CategoryHeader: View {
     let category: TemplateCategory
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: TickerSpacing.xs) {
             Image(systemName: category.icon)
-                .foregroundStyle(Color(hex: category.colorHex) ?? .accentColor)
+                .foregroundStyle(Color(hex: category.colorHex) ?? TickerColors.criticalRed)
 
             Text(category.name)
                 .textCase(.uppercase)
-                .font(.subheadline)
-                .fontWeight(.semibold)
+                .font(TickerTypography.labelBold)
+                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
         }
     }
 }
@@ -59,33 +61,35 @@ struct TemplateRow: View {
     let categoryColor: String
 
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         Button {
+            TickerHaptics.standardAction()
             addTemplateToAlarms()
         } label: {
-            HStack(spacing: 12) {
+            HStack(spacing: TickerSpacing.sm) {
                 // Icon
                 ZStack {
                     Circle()
-                        .fill(Color(hex: categoryColor)?.opacity(0.15) ?? Color.accentColor.opacity(0.15))
-                        .frame(width: 44, height: 44)
+                        .fill(Color(hex: categoryColor)?.opacity(0.15) ?? TickerColors.criticalRed.opacity(0.15))
+                        .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
                     Image(systemName: template.icon)
-                        .font(.system(size: 20))
-                        .foregroundStyle(Color(hex: categoryColor) ?? .accentColor)
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundStyle(Color(hex: categoryColor) ?? TickerColors.criticalRed)
                 }
 
                 // Content
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                     Text(template.label)
-                        .font(.body)
-                        .foregroundStyle(.primary)
+                        .font(TickerTypography.bodyLarge)
+                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                     if let schedule = template.schedule {
                         Text(scheduleDescription(schedule))
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                            .font(TickerTypography.bodySmall)
+                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                     }
                 }
 
@@ -93,8 +97,8 @@ struct TemplateRow: View {
 
                 // Disclosure indicator
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundStyle(.tertiary)
+                    .font(TickerTypography.bodySmall)
+                    .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
             }
             .contentShape(Rectangle())
         }

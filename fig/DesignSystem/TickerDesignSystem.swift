@@ -89,70 +89,70 @@ enum TickerTypography {
     // MARK: Time Display (Massive, Tabular)
 
     /// 72pt - Hero alarm time
-    static let timeHero = Font.custom("CabinetGrotesk-Variable", size: 72)
+    static let timeHero = Font.custom("Cabinet Grotesk Variable", size: 72)
         .weight(.black)
         .monospacedDigit()
 
     /// 56pt - Large alarm time in list
-    static let timeLarge = Font.custom("CabinetGrotesk-Variable", size: 56)
+    static let timeLarge = Font.custom("Cabinet Grotesk Variable", size: 56)
         .weight(.bold)
         .monospacedDigit()
 
     /// 36pt - Medium time display
-    static let timeMedium = Font.custom("CabinetGrotesk-Variable", size: 36)
+    static let timeMedium = Font.custom("Cabinet Grotesk Variable", size: 36)
         .weight(.semibold)
         .monospacedDigit()
 
     // MARK: Headers (Strong Geometric)
 
     /// 34pt - Screen titles
-    static let headerXL = Font.custom("CabinetGrotesk-Variable", size: 34)
+    static let headerXL = Font.custom("Cabinet Grotesk Variable", size: 34)
         .weight(.black)
 
     /// 28pt - Section headers
-    static let headerLarge = Font.custom("CabinetGrotesk-Variable", size: 28)
+    static let headerLarge = Font.custom("Cabinet Grotesk Variable", size: 28)
         .weight(.heavy)
 
     /// 22pt - Subsection headers
-    static let headerMedium = Font.custom("CabinetGrotesk-Variable", size: 22)
+    static let headerMedium = Font.custom("Cabinet Grotesk Variable", size: 22)
         .weight(.bold)
 
     /// 17pt - Small headers
-    static let headerSmall = Font.custom("CabinetGrotesk-Variable", size: 17)
+    static let headerSmall = Font.custom("Cabinet Grotesk Variable", size: 17)
         .weight(.semibold)
 
     // MARK: Body Text (Legible)
 
     /// 17pt - Primary body
-    static let bodyLarge = Font.custom("CabinetGrotesk-Variable", size: 17)
+    static let bodyLarge = Font.custom("Cabinet Grotesk Variable", size: 17)
         .weight(.regular)
 
     /// 15pt - Secondary body
-    static let bodyMedium = Font.custom("CabinetGrotesk-Variable", size: 15)
+    static let bodyMedium = Font.custom("Cabinet Grotesk Variable", size: 15)
         .weight(.regular)
 
     /// 13pt - Small body
-    static let bodySmall = Font.custom("CabinetGrotesk-Variable", size: 13)
+    static let bodySmall = Font.custom("Cabinet Grotesk Variable", size: 13)
         .weight(.regular)
 
     // MARK: Labels (Uppercase, Bold)
 
     /// 11pt - Status tags, badges
-    static let labelBold = Font.custom("CabinetGrotesk-Variable", size: 11)
+    static let labelBold = Font.custom("Cabinet Grotesk Variable", size: 11)
         .weight(.heavy)
 
     /// 10pt - Tiny labels
-    static let labelSmall = Font.custom("CabinetGrotesk-Variable", size: 10)
+    static let labelSmall = Font.custom("Cabinet Grotesk Variable", size: 10)
         .weight(.semibold)
 
     // MARK: Buttons
 
     /// 20pt - Primary action buttons
-    static let buttonPrimary = Font.custom("CabinetGrotesk-Variable", size: 20)
+    static let buttonPrimary = Font.custom("Cabinet Grotesk Variable", size: 20)
         .weight(.bold)
 
     /// 17pt - Secondary buttons
-    static let buttonSecondary = Font.custom("CabinetGrotesk-Variable", size: 17)
+    static let buttonSecondary = Font.custom("Cabinet Grotesk Variable", size: 17)
         .weight(.semibold)
 }
 

@@ -9,6 +9,7 @@ import SwiftUI
 import WalnutDesignSystem
 
 struct ClockView: View {
+    @Environment(\.colorScheme) private var colorScheme
     
     struct TimeBlock: Identifiable {
         let id: UUID
@@ -118,9 +119,8 @@ struct ClockView: View {
                     if let time = hourmark.time, let textAngle = hourmark.textAngle {
                         Text("\(time)")
                             .rotationEffect(Angle(degrees: textAngle))
-                            .font(.cabinetTitle2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color(.label))
+                            .font(TickerTypography.headerMedium)
+                            .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                             .offset(y: -radius * 0.7)
                             .rotationEffect(Angle(degrees: hourmark.angle))
                     }
@@ -139,56 +139,57 @@ struct ClockView: View {
 
                 // Hour Hand
                 RoundedRectangle(cornerRadius: 2)
-                    .fill(Color(.label))
+                    .fill(TickerColors.textPrimary(for: colorScheme))
                     .frame(width: 4, height: radius * 0.5)
                     .offset(y: -radius * 0.25)
                     .rotationEffect(Angle(degrees: hourAngle))
-                    .shadow(color: Color(.label).opacity(0.3), radius: 2, x: 0, y: 1)
+                    .shadow(color: TickerColors.textPrimary(for: colorScheme).opacity(0.3), radius: 2, x: 0, y: 1)
 
                 // Minute Hand
                 RoundedRectangle(cornerRadius: 1.5)
-                    .fill(Color(.label))
+                    .fill(TickerColors.textPrimary(for: colorScheme))
                     .frame(width: 3, height: radius * 0.7)
                     .offset(y: -radius * 0.35)
                     .rotationEffect(Angle(degrees: minuteAngle))
-                    .shadow(color: Color(.label).opacity(0.3), radius: 2, x: 0, y: 1)
+                    .shadow(color: TickerColors.textPrimary(for: colorScheme).opacity(0.3), radius: 2, x: 0, y: 1)
 
                 // Second Hand
                 RoundedRectangle(cornerRadius: 1)
-                    .fill(Color.accentColor)
+                    .fill(TickerColors.criticalRed)
                     .frame(width: 1.5, height: radius * 0.8)
                     .offset(y: -radius * 0.4)
                     .rotationEffect(Angle(degrees: secondAngle))
-                    .animation(.linear(duration: 0.2), value: secondAngle)
+                    .animation(TickerAnimation.quick, value: secondAngle)
 
                 ForEach(events) { event in
                     VStack(spacing: .zero) {
-                        
-                        HStack(spacing: 4) {
+
+                        HStack(spacing: TickerSpacing.xxs) {
                             Image(systemName: "alarm")
                                 .font(.system(size: 10, weight: .light, design: .rounded))
-                                .foregroundColor(.primary)
+                                .foregroundColor(TickerColors.textPrimary(for: colorScheme))
                             Text(event.city)
-                                .font(.system(.caption, design: .rounded, weight: .light))
+                                .font(TickerTypography.labelSmall)
+                                .textCase(.uppercase)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.5)
-                                .foregroundColor(.primary)
+                                .foregroundColor(TickerColors.textPrimary(for: colorScheme))
                         }
-                        .padding(.horizontal, 6)
+                        .padding(.horizontal, TickerSpacing.xs)
                         .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
                         .background(
-                            RoundedRectangle(cornerRadius: 8)
+                            RoundedRectangle(cornerRadius: TickerRadius.small)
                                 .fill(event.color.opacity(0.5))
                                 .frame(width: handLength * 0.15, height: handLength*(3/4))
                         )
-                        
+
                     }
                     .offset(x:0, y: handLength/2)
                     .rotationEffect(Angle(degrees: event.angle))
                 }
-                
+
                 Circle()
-                    .fill(Color.accentColor)
+                    .fill(TickerColors.criticalRed)
                     .frame(width: radius * 0.02, height: radius * 0.02)
                 }
                 .frame(

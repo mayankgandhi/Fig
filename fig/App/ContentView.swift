@@ -13,6 +13,7 @@ struct ContentView: View {
 
     @Environment(AlarmService.self) private var alarmService
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var showAddSheet = false
     @State private var showTemplates: Bool = false
@@ -21,7 +22,7 @@ struct ContentView: View {
     private var displayAlarms: [(state: AlarmState, metadata: Ticker?)] {
         alarmService.getAlarmsWithMetadata(context: modelContext)
     }
-    
+
     var body: some View {
         NavigationStack {
             content
@@ -30,10 +31,11 @@ struct ContentView: View {
                 .toolbar {
                     ToolbarItemGroup {
                         menuButton
-                        
+
                     }
                     ToolbarItem {
                         Button("Templates", systemImage: "pencil.and.list.clipboard") {
+                            TickerHaptics.selection()
                             showTemplates = true
                         }
                     }
@@ -43,27 +45,28 @@ struct ContentView: View {
             showAddSheet = false
         }) {
             AddAlarmView()
-                .presentationCornerRadius(Spacing.large)
+                .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
         }
         .sheet(isPresented: $showTemplates, onDismiss: {
             showTemplates = false
         }, content: {
             TemplatesView()
-                .presentationCornerRadius(Spacing.large)
+                .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
         })
-        .tint(.accentColor)
+        .tint(TickerColors.criticalRed)
     }
     
     var menuButton: some View {
         Button {
+            TickerHaptics.selection()
             showAddSheet.toggle()
         } label: {
             Image(systemName: "plus")
         }
     }
-    
+
     @ViewBuilder
     var content: some View {
         VStack {
@@ -72,20 +75,21 @@ struct ContentView: View {
             } else {
                 ContentUnavailableView {
                     Text("No Alarms")
-                        .cabinetTitle()
+                        .font(TickerTypography.headerLarge)
+                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } description: {
                     Text("Add a new alarm by tapping + button.")
-                        .cabinetHeadline()
+                        .font(TickerTypography.bodyLarge)
+                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 } actions: {
                     Button {
+                        TickerHaptics.criticalAction()
                         showAddSheet = true
                     } label: {
-                        Label("Add Alarm", systemImage: "plus")
-                            .foregroundStyle(Color.white)
+                        Text("Add Alarm")
                     }
-                    .padding(Spacing.small)
-                    .background(Color.blue)
-                    .cornerRadius(Spacing.large)
+                    .tickerPrimaryButton()
+                    .padding(.horizontal, TickerSpacing.xl)
                 }
             }
         }
@@ -113,6 +117,7 @@ struct ContentView: View {
     private func deleteAlarms(at offsets: IndexSet) {
         offsets.forEach { index in
             let alarmToDelete = displayAlarms[index]
+            TickerHaptics.warning()
             try? alarmService.cancelAlarm(id: alarmToDelete.state.id, context: modelContext)
         }
     }
