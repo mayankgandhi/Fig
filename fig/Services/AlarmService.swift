@@ -279,7 +279,7 @@ final class AlarmService: AlarmServiceProtocol {
     func fetchAllAlarms() throws {
         do {
             let remoteAlarms = try alarmManager.alarms
-            updateAlarmState(with: remoteAlarms)
+            stateManager.updateState(with: remoteAlarms)
         } catch {
             throw AlarmServiceError.schedulingFailed(underlying: error)
         }

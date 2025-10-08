@@ -17,8 +17,31 @@ struct TodayClockView: View {
 
     @State private var showSettings: Bool = false
 
+    private var upcomingAlarms: [AlarmItem] {
+        let now = Date()
+        let next12Hours = now.addingTimeInterval(12 * 60 * 60)
+
+        return alarms.filter { alarm in
+            guard let schedule = alarm.schedule else { return false }
+
+            switch schedule {
+            case .oneTime(let date):
+                return date >= now && date <= next12Hours
+
+            case .daily(let time):
+                // Check if this time occurs in the next 12 hours
+                let nextOccurrence = getNextOccurrence(for: time, from: now)
+                return nextOccurrence <= next12Hours
+            }
+        }.sorted { alarm1, alarm2 in
+            let time1 = getNextAlarmTime(for: alarm1)
+            let time2 = getNextAlarmTime(for: alarm2)
+            return time1 < time2
+        }
+    }
+
     private var events: [ClockView.TimeBlock] {
-        alarms.compactMap { alarm -> ClockView.TimeBlock? in
+        upcomingAlarms.compactMap { alarm -> ClockView.TimeBlock? in
             guard let schedule = alarm.schedule else { return nil }
 
             let (hour, minute) = extractTime(from: schedule)
@@ -37,25 +60,76 @@ struct TodayClockView: View {
 
     var body: some View {
         NavigationStack {
-            ClockView(events: events)
-                .navigationTitle("Today")
-                .toolbarTitleDisplayMode(.inlineLarge)
-                .padding()
-                .toolbar {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button {
-                            showSettings = true
-                        } label: {
-                            Image(systemName: "gear")
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Clock View
+                    ClockView(events: events)
+                        .frame(height: 350)
+                        .padding()
+
+                    // Upcoming Alarms Section
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack {
+                            Text("Next 12 Hours")
+                                .font(.title2)
+                                .fontWeight(.bold)
+
+                            Spacer()
+
+                            Text("\(upcomingAlarms.count)")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.secondary)
+                        }
+                        .padding(.horizontal)
+
+                        if upcomingAlarms.isEmpty {
+                            VStack(spacing: 12) {
+                                Image(systemName: "clock.badge.checkmark")
+                                    .font(.system(size: 48))
+                                    .foregroundStyle(.tertiary)
+
+                                Text("No upcoming alarms")
+                                    .font(.headline)
+                                    .foregroundStyle(.secondary)
+
+                                Text("Alarms scheduled for the next 12 hours will appear here")
+                                    .font(.caption)
+                                    .foregroundStyle(.tertiary)
+                                    .multilineTextAlignment(.center)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 32)
+                        } else {
+                            LazyVStack(spacing: 0) {
+                                ForEach(upcomingAlarms) { alarm in
+                                    UpcomingAlarmRow(alarm: alarm)
+                                }
+                            }
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(.horizontal)
                         }
                     }
+                    .padding(.bottom, 24)
                 }
-            
-                .sheet(isPresented: $showSettings, content: {
-                    SettingsView()
-                        .presentationCornerRadius(Spacing.large)
-                        .presentationDragIndicator(.visible)
-                })
+            }
+            .navigationTitle("Today")
+            .toolbarTitleDisplayMode(.inlineLarge)
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gear")
+                    }
+                }
+            }
+            .sheet(isPresented: $showSettings) {
+                SettingsView()
+                    .presentationCornerRadius(Spacing.large)
+                    .presentationDragIndicator(.visible)
+            }
         }
     }
 
@@ -75,13 +149,13 @@ struct TodayClockView: View {
     private func extractColor(from alarm: AlarmItem) -> Color {
         // Try to get color from ticker data
         if let colorHex = alarm.tickerData?.colorHex,
-           let color = hexToColor(colorHex) {
+           let color = Color(hex: colorHex) {
             return color
         }
 
         // Try to get color from presentation
         if let tintHex = alarm.presentation.tintColorHex,
-           let color = hexToColor(tintHex) {
+           let color = Color(hex: tintHex) {
             return color
         }
 
@@ -89,29 +163,151 @@ struct TodayClockView: View {
         return .accentColor
     }
 
-    private func hexToColor(_ hex: String) -> Color? {
-        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
-        var int: UInt64 = 0
-        Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
-        switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
-        default:
-            return nil
+    private func getNextOccurrence(for time: TickerSchedule.TimeOfDay, from date: Date) -> Date {
+        let calendar = Calendar.current
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.hour = time.hour
+        components.minute = time.minute
+        components.second = 0
+
+        guard let todayOccurrence = calendar.date(from: components) else {
+            return date
         }
 
-        return Color(
-            .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: Double(a) / 255
-        )
+        // If today's occurrence has passed, return tomorrow's
+        if todayOccurrence <= date {
+            return calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence
+        }
+
+        return todayOccurrence
+    }
+
+    private func getNextAlarmTime(for alarm: AlarmItem) -> Date {
+        guard let schedule = alarm.schedule else { return Date.distantFuture }
+
+        switch schedule {
+        case .oneTime(let date):
+            return date
+        case .daily(let time):
+            return getNextOccurrence(for: time, from: Date())
+        }
+    }
+}
+
+// MARK: - Upcoming Alarm Row
+
+struct UpcomingAlarmRow: View {
+    let alarm: AlarmItem
+
+    private var nextAlarmTime: Date {
+        guard let schedule = alarm.schedule else { return Date() }
+
+        switch schedule {
+        case .oneTime(let date):
+            return date
+        case .daily(let time):
+            let calendar = Calendar.current
+            let now = Date()
+            var components = calendar.dateComponents([.year, .month, .day], from: now)
+            components.hour = time.hour
+            components.minute = time.minute
+            components.second = 0
+
+            guard let todayOccurrence = calendar.date(from: components) else {
+                return now
+            }
+
+            if todayOccurrence <= now {
+                return calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence
+            }
+
+            return todayOccurrence
+        }
+    }
+
+    private var timeUntilAlarm: String {
+        let interval = nextAlarmTime.timeIntervalSince(Date())
+        let hours = Int(interval) / 3600
+        let minutes = (Int(interval) % 3600) / 60
+
+        if hours > 0 {
+            return "in \(hours)h \(minutes)m"
+        } else {
+            return "in \(minutes)m"
+        }
+    }
+
+    private var alarmColor: Color {
+        if let colorHex = alarm.tickerData?.colorHex {
+            return Color(hex: colorHex) ?? .accentColor
+        }
+        if let tintHex = alarm.presentation.tintColorHex {
+            return Color(hex: tintHex) ?? .accentColor
+        }
+        return .accentColor
+    }
+
+    var body: some View {
+        HStack(spacing: 16) {
+            // Color indicator and icon
+            ZStack {
+                Circle()
+                    .fill(alarmColor.opacity(0.15))
+                    .frame(width: 50, height: 50)
+
+                Image(systemName: alarm.tickerData?.icon ?? "alarm")
+                    .font(.system(size: 22))
+                    .foregroundStyle(alarmColor)
+            }
+
+            // Alarm details
+            VStack(alignment: .leading, spacing: 4) {
+                Text(alarm.displayName)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                HStack(spacing: 8) {
+                    Text(nextAlarmTime, style: .time)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+
+                    Text("•")
+                        .foregroundStyle(.tertiary)
+
+                    Text(timeUntilAlarm)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            Spacer()
+
+            // Schedule type badge
+            if let schedule = alarm.schedule {
+                switch schedule {
+                case .oneTime:
+                    Text("Once")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(.tertiarySystemFill))
+                        .clipShape(Capsule())
+                case .daily:
+                    Text("Daily")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color(.tertiarySystemFill))
+                        .clipShape(Capsule())
+                }
+            }
+        }
+        .padding(16)
+        .background(Color(.systemBackground))
     }
 }
 
