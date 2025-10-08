@@ -37,45 +37,7 @@ enum AlarmServiceError: LocalizedError {
     }
 }
 
-// MARK: - AlarmState
 
-struct AlarmState {
-    let id: UUID
-    let state: State
-    let alertingTime: Date?
-    let countdownRemaining: TimeInterval?
-    let label: LocalizedStringResource
-
-    enum State {
-        case scheduled
-        case countdown
-        case paused
-        case alerting
-
-        init(from alarmKitState: Alarm.State) {
-            switch alarmKitState {
-            case .scheduled:
-                self = .scheduled
-            case .countdown:
-                self = .countdown
-            case .paused:
-                self = .paused
-            case .alerting:
-                self = .alerting
-            @unknown default:
-                self = .scheduled
-            }
-        }
-    }
-
-    init(from alarm: Alarm, label: LocalizedStringResource) {
-        self.id = alarm.id
-        self.state = State(from: alarm.state)
-        self.alertingTime = alarm.alertingTime
-        self.countdownRemaining = nil // Could be calculated from alarm.countdownDuration
-        self.label = label
-    }
-}
 
 // MARK: - AlarmService Protocol
 
@@ -93,6 +55,7 @@ protocol AlarmServiceProtocol: Observable {
     func repeatCountdown(id: UUID) throws
     func fetchAllAlarms() throws
     func getAlarmState(id: UUID) -> AlarmState?
+    func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: AlarmItem?)]
     func synchronizeAlarmsOnLaunch(context: ModelContext) async
 }
 
@@ -305,61 +268,87 @@ final class AlarmService: AlarmServiceProtocol {
         alarms[id]
     }
 
+    func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: AlarmItem?)] {
+        // Get all alarms from AlarmKit (source of truth)
+        let alarmStates = Array(alarms.values)
+
+        // Fetch all AlarmItems once
+        let allItemsDescriptor = FetchDescriptor<AlarmItem>()
+        let allItems = (try? context.fetch(allItemsDescriptor)) ?? []
+
+        // Create a lookup dictionary for fast access
+        let itemsById = Dictionary(uniqueKeysWithValues: allItems.map { ($0.id, $0) })
+
+        // Map each alarm to its SwiftData metadata
+        return alarmStates.map { alarmState in
+            let metadata = itemsById[alarmState.id]
+            return (state: alarmState, metadata: metadata)
+        }
+        .sorted { $0.metadata?.createdAt ?? Date.distantPast > $1.metadata?.createdAt ?? Date.distantPast }
+    }
+
     // MARK: - Synchronization
 
     func synchronizeAlarmsOnLaunch(context: ModelContext) async {
-        print("🔄 Starting alarm synchronization...")
+        print("🔄 Starting alarm synchronization (AlarmKit → SwiftData)...")
 
-        // 1. Fetch all enabled AlarmItems from SwiftData
-        let descriptor = FetchDescriptor<AlarmItem>(
-            predicate: #Predicate { $0.isEnabled }
-        )
-
-        guard let savedAlarms = try? context.fetch(descriptor) else {
-            print("⚠️ Failed to fetch saved alarms from SwiftData")
+        // 1. Fetch all alarms from AlarmKit (source of truth)
+        guard let alarmKitAlarms = try? alarmManager.alarms else {
+            print("⚠️ Failed to fetch alarms from AlarmKit")
             return
         }
 
-        print("📱 Found \(savedAlarms.count) enabled alarms in SwiftData")
+        print("⏰ Found \(alarmKitAlarms.count) alarms in AlarmKit")
 
-        // 2. Cancel all existing AlarmKit alarms (fresh start)
-        if let alarmKitAlarms = try? alarmManager.alarms {
-            print("🗑️ Canceling \(alarmKitAlarms.count) existing AlarmKit alarms")
-            for alarm in alarmKitAlarms {
+        // 2. Clean up template alarms that shouldn't be scheduled
+        // Fetch all AlarmItems to check which ones are disabled templates
+        let allItemsDescriptor = FetchDescriptor<AlarmItem>()
+        let allItems = (try? context.fetch(allItemsDescriptor)) ?? []
+        let disabledItemIds = Set(allItems.filter { !$0.isEnabled }.map { $0.id })
+
+        var alarmsToKeep: [Alarm] = []
+        for alarm in alarmKitAlarms {
+            // If this alarm corresponds to a disabled template, cancel it
+            if disabledItemIds.contains(alarm.id) {
+                print("🗑️ Canceling template alarm: \(alarm.id)")
                 try? alarmManager.cancel(id: alarm.id)
+            } else {
+                alarmsToKeep.append(alarm)
             }
         }
 
-        // 3. Re-schedule all enabled alarms from SwiftData
-        for alarmItem in savedAlarms {
-            do {
-                // Check authorization
-                let authStatus = try await requestAuthorization()
-                guard authStatus == .authorized else {
-                    print("⚠️ Not authorized to schedule alarms")
-                    break
-                }
+        print("✅ Kept \(alarmsToKeep.count) valid alarms")
 
-                // Build configuration
-                guard let configuration = buildAlarmKitConfiguration(from: alarmItem) else {
-                    print("⚠️ Invalid configuration for alarm: \(alarmItem.label)")
-                    continue
-                }
+        // 3. Update local AlarmService state with valid alarms only
+        for alarm in alarmsToKeep {
+            // Look up metadata from SwiftData
+            let metadata = allItems.first { $0.id == alarm.id }
+            let label = metadata?.label ?? "Alarm"
 
-                // Schedule with AlarmKit
-                let alarm = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
+            // Update local state
+            await updateLocalAlarmState(from: alarm, label: LocalizedStringResource(stringLiteral: label))
+
+            print("✅ Loaded alarm: \(label)")
+        }
+
+        // 4. Ensure SwiftData entries exist for all AlarmKit alarms
+        // (This handles orphaned alarms that exist in AlarmKit but not SwiftData)
+        for alarm in alarmsToKeep {
+            // If no SwiftData entry exists, create one
+            if !allItems.contains(where: { $0.id == alarm.id }) {
+                print("📝 Creating SwiftData entry for orphaned alarm: \(alarm.id)")
+
+                let alarmItem = AlarmItem(
+                    id: alarm.id,
+                    label: "Alarm",
+                    isEnabled: true
+                )
                 alarmItem.alarmKitID = alarm.id
-
-                // Update local state
-                await updateLocalAlarmState(from: alarm, label: LocalizedStringResource(stringLiteral: alarmItem.label))
-
-                print("✅ Synchronized alarm: \(alarmItem.label)")
-            } catch {
-                print("❌ Failed to synchronize alarm \(alarmItem.label): \(error)")
+                context.insert(alarmItem)
             }
         }
 
-        // Save any alarmKitID updates
+        // Save any new entries
         try? context.save()
 
         print("✨ Alarm synchronization complete")

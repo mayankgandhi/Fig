@@ -12,10 +12,15 @@ import WalnutDesignSystem
 struct ContentView: View {
 
     @Environment(AlarmService.self) private var alarmService
-    @Query(sort: \AlarmItem.createdAt, order: .reverse) private var alarmItems: [AlarmItem]
+    @Environment(\.modelContext) private var modelContext
 
     @State private var showAddSheet = false
     @State private var showTemplates: Bool = false
+
+    // Fetch alarms from AlarmKit (via AlarmService) and enrich with SwiftData metadata
+    private var displayAlarms: [(state: AlarmState, metadata: AlarmItem?)] {
+        alarmService.getAlarmsWithMetadata(context: modelContext)
+    }
     
     var body: some View {
         NavigationStack {
@@ -62,7 +67,7 @@ struct ContentView: View {
     @ViewBuilder
     var content: some View {
         VStack {
-            if !alarmItems.isEmpty {
+            if !displayAlarms.isEmpty {
                 alarmList
             } else {
                 ContentUnavailableView {
@@ -88,8 +93,18 @@ struct ContentView: View {
 
     var alarmList: some View {
         List {
-            ForEach(alarmItems) { alarmItem in
-                AlarmCell(alarmItem: alarmItem)
+            ForEach(displayAlarms, id: \.state.id) { item in
+                // Use metadata if available, otherwise create minimal AlarmItem for display
+                if let metadata = item.metadata {
+                    AlarmCell(alarmItem: metadata)
+                } else {
+                    // Orphaned alarm (exists in AlarmKit but not SwiftData)
+                    AlarmCell(alarmItem: AlarmItem(
+                        id: item.state.id,
+                        label: String(localized: item.state.label),
+                        isEnabled: true
+                    ))
+                }
             }
             .onDelete(perform: deleteAlarms)
         }
@@ -97,8 +112,8 @@ struct ContentView: View {
 
     private func deleteAlarms(at offsets: IndexSet) {
         offsets.forEach { index in
-            let alarmItem = alarmItems[index]
-            try? alarmService.cancelAlarm(id: alarmItem.id, context: nil)
+            let alarmToDelete = displayAlarms[index]
+            try? alarmService.cancelAlarm(id: alarmToDelete.state.id, context: modelContext)
         }
     }
 }

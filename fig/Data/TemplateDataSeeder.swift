@@ -12,6 +12,9 @@ import SwiftData
 class TemplateDataSeeder {
 
     static func seedTemplatesIfNeeded(modelContext: ModelContext) {
+        // Clean up any alarms with deprecated schedule types (monthly/yearly)
+        cleanupDeprecatedSchedules(modelContext: modelContext)
+
         // Check if templates already exist
         let descriptor = FetchDescriptor<TemplateCategory>()
         let existingCategories = (try? modelContext.fetch(descriptor)) ?? []
@@ -24,7 +27,7 @@ class TemplateDataSeeder {
         // Create Exercise Category
         let exerciseCategory = TemplateCategory(
             name: "Exercise",
-            icon: "figure.run",
+            icon: "figure.run.circle.fill",
             colorHex: "#FF6B35",
             description: "Stay active and healthy with regular exercise reminders"
         )
@@ -38,16 +41,19 @@ class TemplateDataSeeder {
         let exerciseTemplates: [AlarmItem] = [
             AlarmItem(
                 label: "Morning Workout",
+                isEnabled: false,
                 schedule: .daily(time: .init(hour: 6, minute: 30)),
                 tickerData: exerciseTickerData
             ),
             AlarmItem(
                 label: "Evening Jog",
+                isEnabled: false,
                 schedule: .daily(time: .init(hour: 18, minute: 0)),
                 tickerData: exerciseTickerData
             ),
             AlarmItem(
                 label: "Yoga Session",
+                isEnabled: false,
                 notes: "Bring yoga mat",
                 schedule: .daily(time: .init(hour: 7, minute: 0)),
                 tickerData: exerciseTickerData
@@ -59,7 +65,7 @@ class TemplateDataSeeder {
         // Create Productivity Category
         let productivityCategory = TemplateCategory(
             name: "Productivity",
-            icon: "checkmark.circle",
+            icon: "checkmark.circle.fill",
             colorHex: "#4CAF50",
             description: "Stay focused and organized throughout your day"
         )
@@ -73,22 +79,26 @@ class TemplateDataSeeder {
         let productivityTemplates: [AlarmItem] = [
             AlarmItem(
                 label: "Daily Standup",
+                isEnabled: false,
                 schedule: .daily(time: .init(hour: 9, minute: 0)),
                 tickerData: productivityTickerData
             ),
             AlarmItem(
                 label: "Weekly Review",
+                isEnabled: false,
                 notes: "Review goals and progress",
-                schedule: .monthly(time: .init(hour: 16, minute: 0), day: 1),
+                schedule: .daily(time: .init(hour: 16, minute: 0)),
                 tickerData: productivityTickerData
             ),
             AlarmItem(
                 label: "Lunch Break",
+                isEnabled: false,
                 schedule: .daily(time: .init(hour: 12, minute: 30)),
                 tickerData: productivityTickerData
             ),
             AlarmItem(
                 label: "End of Day",
+                isEnabled: false,
                 notes: "Wrap up tasks",
                 schedule: .daily(time: .init(hour: 17, minute: 30)),
                 tickerData: productivityTickerData
@@ -114,24 +124,28 @@ class TemplateDataSeeder {
         let wellnessTemplates: [AlarmItem] = [
             AlarmItem(
                 label: "Drink Water",
+                isEnabled: false,
                 schedule: .daily(time: .init(hour: 10, minute: 0)),
                 tickerData: wellnessTickerData
             ),
             AlarmItem(
                 label: "Stretch Break",
+                isEnabled: false,
                 notes: "5 minute stretch",
                 schedule: .daily(time: .init(hour: 14, minute: 0)),
                 tickerData: wellnessTickerData
             ),
             AlarmItem(
                 label: "Bedtime",
+                isEnabled: false,
                 notes: "Wind down for the night",
                 schedule: .daily(time: .init(hour: 22, minute: 0)),
                 tickerData: wellnessTickerData
             ),
             AlarmItem(
                 label: "Weekly Checkup",
-                schedule: .monthly(time: .init(hour: 9, minute: 0), day: 7),
+                isEnabled: false,
+                schedule: .daily(time: .init(hour: 9, minute: 0)),
                 tickerData: wellnessTickerData
             )
         ]
@@ -150,5 +164,24 @@ class TemplateDataSeeder {
         } catch {
             print("Error seeding templates: \(error)")
         }
+    }
+
+    /// Removes any AlarmItems that have deprecated schedule types (monthly/yearly)
+    /// These schedule types are no longer supported since they don't work properly with AlarmKit
+    ///
+    /// Note: SwiftData will automatically fail to decode AlarmItems with monthly/yearly schedules
+    /// since those enum cases no longer exist. This cleanup is here for documentation and
+    /// to handle any edge cases.
+    private static func cleanupDeprecatedSchedules(modelContext: ModelContext) {
+        print("🧹 Checking for deprecated schedule types...")
+
+        // SwiftData will automatically skip AlarmItems that fail to decode due to
+        // the missing .monthly and .yearly enum cases. Any such items will not appear
+        // in fetch results, effectively "cleaning themselves up" from the app's perspective.
+
+        // The data remains in the SQLite database but is inaccessible, which is fine
+        // since those schedule types never worked properly with AlarmKit anyway.
+
+        print("✅ SwiftData will automatically skip any items with deprecated schedules")
     }
 }

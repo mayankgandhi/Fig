@@ -9,72 +9,50 @@ import SwiftUI
 import SwiftData
 
 struct TemplatesView: View {
-
     @Environment(\.modelContext) private var modelContext
     @Query(filter: #Predicate<TemplateCategory> { _ in true }) private var categories: [TemplateCategory]
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 24) {
-                    ForEach(categories) { category in
-                        CategorySection(category: category)
+            List {
+                ForEach(categories) { category in
+                    Section {
+                        ForEach(category.templates) { template in
+                            TemplateRow(
+                                template: template,
+                                categoryName: category.name,
+                                categoryIcon: category.icon,
+                                categoryColor: category.colorHex
+                            )
+                        }
+                    } header: {
+                        CategoryHeader(category: category)
                     }
                 }
-                .padding()
             }
+            .listStyle(.insetGrouped)
             .navigationTitle("Templates")
-            .toolbarTitleDisplayMode(.inlineLarge)
         }
-        .tint(.accentColor)
     }
 }
 
-struct CategorySection: View {
+struct CategoryHeader: View {
     let category: TemplateCategory
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            // Category Header
-            HStack {
-                Image(systemName: category.icon)
-                    .font(.title2)
-                    .foregroundStyle(Color(hex: category.colorHex) ?? .accentColor)
+        HStack(spacing: 8) {
+            Image(systemName: category.icon)
+                .foregroundStyle(Color(hex: category.colorHex) ?? .accentColor)
 
-                Text(category.name)
-                    .font(.title2)
-                    .fontWeight(.bold)
-
-                Spacer()
-            }
-            .padding(.horizontal, 4)
-
-            // Category Description
-            Text(category.categoryDescription)
+            Text(category.name)
+                .textCase(.uppercase)
                 .font(.subheadline)
-                .foregroundStyle(.secondary)
-                .padding(.horizontal, 4)
-
-            // Templates Grid
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
-                ForEach(category.templates) { template in
-                    TemplateCard(
-                        template: template,
-                        categoryName: category.name,
-                        categoryIcon: category.icon,
-                        categoryColor: category.colorHex
-                    )
-                }
-            }
+                .fontWeight(.semibold)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 16))
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
     }
 }
 
-struct TemplateCard: View {
+struct TemplateRow: View {
     let template: AlarmItem
     let categoryName: String
     let categoryIcon: String
@@ -86,41 +64,39 @@ struct TemplateCard: View {
         Button {
             addTemplateToAlarms()
         } label: {
-            VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 12) {
                 // Icon
-                Image(systemName: template.icon)
-                    .font(.title)
-                    .foregroundStyle(Color(hex: categoryColor) ?? .accentColor)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: categoryColor)?.opacity(0.15) ?? Color.accentColor.opacity(0.15))
+                        .frame(width: 44, height: 44)
 
-                // Title
-                Text(template.label)
-                    .font(.headline)
-                    .foregroundStyle(.primary)
-                    .lineLimit(2)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                    Image(systemName: template.icon)
+                        .font(.system(size: 20))
+                        .foregroundStyle(Color(hex: categoryColor) ?? .accentColor)
+                }
 
-                // Schedule info
-                if let schedule = template.schedule {
-                    Text(scheduleDescription(schedule))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                // Content
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(template.label)
+                        .font(.body)
+                        .foregroundStyle(.primary)
+
+                    if let schedule = template.schedule {
+                        Text(scheduleDescription(schedule))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
 
                 Spacer()
 
-                // Add button indicator
-                HStack {
-                    Spacer()
-                    Image(systemName: "plus.circle.fill")
-                        .foregroundStyle(Color(hex: categoryColor) ?? .accentColor)
-                }
+                // Disclosure indicator
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
-            .padding(12)
-            .frame(height: 140)
-            .background(Color(.secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
     }
@@ -159,16 +135,6 @@ struct TemplateCard: View {
             return date.formatted(date: .abbreviated, time: .shortened)
         case .daily(let time):
             return "Daily at \(String(format: "%02d:%02d", time.hour, time.minute))"
-//        case .weekly(let time, let weekdays):
-//            let days = weekdays.sorted(by: { $0.rawValue < $1.rawValue })
-//                .prefix(2)
-//                .map { $0.shortName }
-//                .joined(separator: ", ")
-//            return "\(days)... at \(String(format: "%02d:%02d", time.hour, time.minute))"
-        case .monthly(let time, let day):
-            return "Day \(day) at \(String(format: "%02d:%02d", time.hour, time.minute))"
-        case .yearly(let month, let day, _):
-            return "\(month)/\(day)"
         }
     }
 }

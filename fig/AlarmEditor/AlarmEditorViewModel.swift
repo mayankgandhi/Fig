@@ -48,8 +48,6 @@ class AlarmEditorViewModel {
     enum ScheduleType: String, CaseIterable, CustomStringConvertible {
         case oneTime = "One Time"
         case daily = "Daily"
-        case monthly = "Monthly"
-        case yearly = "Yearly"
 
         var description: String { rawValue }
     }
@@ -88,15 +86,6 @@ class AlarmEditorViewModel {
             case .daily(let time):
                 scheduleType = .daily
                 selectedTime = dateFromTime(time)
-            case .monthly(let time, let day):
-                scheduleType = .monthly
-                selectedTime = dateFromTime(time)
-                monthlyDay = day
-            case .yearly(let month, let day, let time):
-                scheduleType = .yearly
-                selectedTime = dateFromTime(time)
-                yearlyMonth = month
-                yearlyDay = day
             }
         }
 
@@ -185,11 +174,8 @@ class AlarmEditorViewModel {
             return .oneTime(date: selectedDate)
         case .daily:
             return .daily(time: time)
-        case .monthly:
-            return .monthly(time: time, day: monthlyDay)
-        case .yearly:
-            return .yearly(month: yearlyMonth, day: yearlyDay, time: time)
-        case .none: return nil
+        case .none:
+            return nil
         }
     }
 

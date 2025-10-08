@@ -70,8 +70,6 @@ final class AlarmItem {
 enum TickerSchedule: Codable, Hashable {
     case oneTime(date: Date)
     case daily(time: TimeOfDay)
-    case monthly(time: TimeOfDay, day: Int) // day: 1-31
-    case yearly(month: Int, day: Int, time: TimeOfDay) // For birthdays, anniversaries
 
     struct TimeOfDay: Codable, Hashable {
         var hour: Int // 0-23
@@ -190,19 +188,9 @@ extension AlarmItem {
 
         case .daily(let time):
             let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
-                return .relative(
-                    .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
-                )
-
-        case .monthly(let time, _):
-            // AlarmKit doesn't support monthly directly, use weekly for now
-            let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
-            return .relative(.init(time: alarmTime, repeats: .never))
-
-        case .yearly(_, _, let time):
-            // For yearly (birthdays), schedule as one-time or daily
-            let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
-            return .relative(.init(time: alarmTime, repeats: .never))
+            return .relative(
+                .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
+            )
         }
     }
 

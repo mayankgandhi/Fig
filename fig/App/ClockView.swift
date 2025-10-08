@@ -45,7 +45,9 @@ struct ClockView: View {
     }
     
     var events: [TimeBlock]
-    
+
+    @State private var currentTime = Date()
+
     let hourMarks: [HourMark] = [
         HourMark(id: 0, time: 12, angle: 0, textAngle: 0),
         HourMark(id: 1, time: nil, angle: 30, textAngle: nil),
@@ -66,12 +68,22 @@ struct ClockView: View {
     }
     
     var body: some View {
-        GeometryReader { geometry in
-            let radius = min(geometry.size.width, geometry.size.height) / 2
-            let markOffset = radius * 0.95
-            let handLength = radius
-            
-            ZStack {
+        TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
+            GeometryReader { geometry in
+                let radius = min(geometry.size.width, geometry.size.height) / 2
+                let markOffset = radius * 0.95
+                let handLength = radius
+
+                let calendar = Calendar.current
+                let hour = calendar.component(.hour, from: timeline.date)
+                let minute = calendar.component(.minute, from: timeline.date)
+                let second = calendar.component(.second, from: timeline.date)
+
+                let hourAngle = Double(hour % 12) * 30 + Double(minute) * 0.5
+                let minuteAngle = Double(minute) * 6
+                let secondAngle = Double(second) * 6
+
+                ZStack {
                 Circle()
                     .fill(
                         LinearGradient(
@@ -121,7 +133,31 @@ struct ClockView: View {
                         .offset(y: -markOffset)
                         .rotationEffect(Angle(degrees: hourmark.angle))
                 }
-                
+
+                // Hour Hand
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color(.label))
+                    .frame(width: 4, height: radius * 0.5)
+                    .offset(y: -radius * 0.25)
+                    .rotationEffect(Angle(degrees: hourAngle))
+                    .shadow(color: Color(.label).opacity(0.3), radius: 2, x: 0, y: 1)
+
+                // Minute Hand
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color(.label))
+                    .frame(width: 3, height: radius * 0.7)
+                    .offset(y: -radius * 0.35)
+                    .rotationEffect(Angle(degrees: minuteAngle))
+                    .shadow(color: Color(.label).opacity(0.3), radius: 2, x: 0, y: 1)
+
+                // Second Hand
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(Color.accentColor)
+                    .frame(width: 1.5, height: radius * 0.8)
+                    .offset(y: -radius * 0.4)
+                    .rotationEffect(Angle(degrees: secondAngle))
+                    .animation(.linear(duration: 0.2), value: secondAngle)
+
                 ForEach(events) { event in
                     VStack(spacing: .zero) {
                         
@@ -151,12 +187,13 @@ struct ClockView: View {
                 Circle()
                     .fill(Color.accentColor)
                     .frame(width: radius * 0.02, height: radius * 0.02)
+                }
+                .frame(
+                    width: geometry.size.width,
+                    height: geometry.size.width,
+                    alignment: .center
+                )
             }
-            .frame(
-                width: geometry.size.width,
-                height: geometry.size.width,
-                alignment: .center
-            )
         }
     }
 }

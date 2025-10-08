@@ -125,59 +125,6 @@ struct AlarmEditorView: View {
                 displayedComponents: [.hourAndMinute]
             )
 
-        case .monthly:
-            DatePickerItem(
-                icon: "clock",
-                title: "Time",
-                selectedDate: $viewModel.selectedTime,
-                iconColor: .blue,
-                isRequired: true,
-                displayedComponents: [.hourAndMinute]
-            )
-
-            TextFieldItem(
-                icon: "calendar.badge.clock",
-                title: "Day of Month",
-                text: Binding(
-                    get: { String(viewModel.monthlyDay) },
-                    set: { viewModel.monthlyDay = Int($0) ?? 1 }
-                ),
-                placeholder: "1-31",
-                keyboardType: .numberPad,
-            )
-
-        case .yearly:
-            DatePickerItem(
-                icon: "clock",
-                title: "Time",
-                selectedDate: $viewModel.selectedTime,
-                iconColor: .blue,
-                isRequired: true,
-                displayedComponents: [.hourAndMinute]
-            )
-
-            TextFieldItem(
-                icon: "calendar",
-                title: "Month",
-                text: Binding(
-                    get: { String(viewModel.yearlyMonth) },
-                    set: { viewModel.yearlyMonth = Int($0) ?? 1 }
-                ),
-                placeholder: "1-12",
-                helperText: "Month number (1=Jan, 12=Dec)",
-                keyboardType: .numberPad,
-            )
-
-            TextFieldItem(
-                icon: "calendar.badge.clock",
-                title: "Day",
-                text: Binding(
-                    get: { String(viewModel.yearlyDay) },
-                    set: { viewModel.yearlyDay = Int($0) ?? 1 }
-                ),
-                placeholder: "1-31",
-                keyboardType: .numberPad,
-            )
         case .none:
             EmptyView()
         }
@@ -251,8 +198,6 @@ struct AlarmEditorView: View {
         switch viewModel.scheduleType {
         case .oneTime: return "Alarm triggers once at the specified date and time"
         case .daily: return "Repeats every day at the same time"
-        case .monthly: return "Repeats on the same day each month"
-        case .yearly: return "Repeats on the same date each year"
         case nil: return "Please select"
         }
     }
