@@ -16,7 +16,6 @@
 		181A88713B6BB7BE4AB3AA65 /* TickerDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36BE6F3D3858AA0AB407ABD0 /* TickerDesignSystem.swift */; };
 		1AF0D5ED761EDEDD5859FDB1 /* TuistBundle+Fig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747BA24CF551C903AA062E5 /* TuistBundle+Fig.swift */; };
 		1F582D86B89A2AC099079D8A /* AlarmItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4642AFB704F6FDBC4AE0C63 /* AlarmItem.swift */; };
-		212113C5E24EC7E9203E8FB5 /* AlarmEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2967677EC9E2E83CB308C964 /* AlarmEditorView.swift */; };
 		294B12B2F92A3AA9BEDDABA3 /* AlarmLiveActivity 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC0C58D115112CDD8052BFC /* AlarmLiveActivity 2.swift */; };
 		2D55E9BF030501DDE08EF3F1 /* AlarmSyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4204F0AC1A3171771BF51C8 /* AlarmSyncCoordinator.swift */; };
 		34B12B1B0404464594236966 /* figUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE2039256D6A7516EFF1725 /* figUITestsLaunchTests.swift */; };
@@ -60,12 +59,10 @@
 		BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEC2A879826EEBE8656E231 /* AlarmCell.swift */; };
 		C1DD9C0DBD2C2C7BFD05301A /* TickerDesignSystemPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6398EAEB39219B04DBC3923A /* TickerDesignSystemPreviews.swift */; };
 		C27553C8B3DB731B26477736 /* AddAlarmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81DEFDA4EF42182CDED6CD0E /* AddAlarmView.swift */; };
-		C2C9ACEE7BE64D0877F83E39 /* AlarmAddView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1E291A0248302390E94CCF8 /* AlarmAddView.swift */; };
 		C2D0E7A2FE870F39E8B92AD5 /* StartTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */; };
 		C3C2F6D4CB36C0350317B65A /* AlarmStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84262CCA4F1F2BA7C15293E6 /* AlarmStateManager.swift */; };
 		C3EE35C5851A3F5F6531CCAD /* DeleteAllDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */; };
 		C498E7D5CE723A52F130615C /* AlarmService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50EFC6CD879FBFE35D76A6F1 /* AlarmService.swift */; };
-		CE916E4903E10986BA9B3D04 /* AlarmEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D42317692DFA2E84828726E5 /* AlarmEditorViewModel.swift */; };
 		D8A23A056BF8C1C09B34B400 /* TuistFonts+Fig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9D8CAED4F0EF662CBB8D75 /* TuistFonts+Fig.swift */; };
 		DB124E57D4C8824473C80A0A /* alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A7969B4F297ABA148F6928 /* alarm.swift */; };
 		DBE282BA5FE50B46D2363B6A /* ConfigurationAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */; };
@@ -165,7 +162,6 @@
 		24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerConfiguration.swift; sourceTree = "<group>"; };
 		26E623500F694DE819AE086E /* AlarmConfigurationBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmConfigurationBuilder.swift; sourceTree = "<group>"; };
 		27CFC00A0F8B7138C50EE947 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		2967677EC9E2E83CB308C964 /* AlarmEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEditorView.swift; sourceTree = "<group>"; };
 		2C9D8CAED4F0EF662CBB8D75 /* TuistFonts+Fig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistFonts+Fig.swift"; sourceTree = "<group>"; };
 		3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseIntent.swift; sourceTree = "<group>"; };
 		319190156414A5841EA8398A /* figTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figTests.swift; sourceTree = "<group>"; };
@@ -201,12 +197,10 @@
 		B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+Alarm.swift"; sourceTree = "<group>"; };
 		B8913AF7FFC9E97CD18483FE /* HelpSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSupportView.swift; sourceTree = "<group>"; };
 		C0A7969B4F297ABA148F6928 /* alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarm.swift; sourceTree = "<group>"; };
-		C1E291A0248302390E94CCF8 /* AlarmAddView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmAddView.swift; sourceTree = "<group>"; };
 		CAC0C58D115112CDD8052BFC /* AlarmLiveActivity 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AlarmLiveActivity 2.swift"; sourceTree = "<group>"; };
 		CDB0E58D4215AB2EAEFDB33C /* figTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "figTests-Info.plist"; sourceTree = "<group>"; };
 		CDC48BC4132C2E66AFDDE9E8 /* figUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figUITests.swift; sourceTree = "<group>"; };
 		CFEC2A879826EEBE8656E231 /* AlarmCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmCell.swift; sourceTree = "<group>"; };
-		D42317692DFA2E84828726E5 /* AlarmEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmEditorViewModel.swift; sourceTree = "<group>"; };
 		D63B13EB0D3B5C1FE4ABE20F /* ResumeIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeIntent.swift; sourceTree = "<group>"; };
 		DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesView.swift; sourceTree = "<group>"; };
 		DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmMetadata.swift; sourceTree = "<group>"; };
@@ -301,15 +295,6 @@
 			path = Models;
 			sourceTree = "<group>";
 		};
-		322448B7FBF21BCE51D4E407 /* AlarmEditor */ = {
-			isa = PBXGroup;
-			children = (
-				2967677EC9E2E83CB308C964 /* AlarmEditorView.swift */,
-				D42317692DFA2E84828726E5 /* AlarmEditorViewModel.swift */,
-			);
-			path = AlarmEditor;
-			sourceTree = "<group>";
-		};
 		3F929FD55F291B3ED60A5E55 /* figUITests */ = {
 			isa = PBXGroup;
 			children = (
@@ -382,7 +367,6 @@
 		9A88F8A9F7206A16F240FA2A /* fig */ = {
 			isa = PBXGroup;
 			children = (
-				322448B7FBF21BCE51D4E407 /* AlarmEditor */,
 				CC3F06E4CD70F412077AEB7D /* App */,
 				EB73C8732AB0A1E9916C4392 /* AppIntents */,
 				14D2FAFB9E39ACF5C614D8D7 /* Data */,
@@ -392,7 +376,6 @@
 				EDD646705E85A5331E2F5162 /* Resources */,
 				0B5456DADD85F29388EB4C2A /* Services */,
 				E346A90FA828B16A8BBF0FCE /* Settings */,
-				C1E291A0248302390E94CCF8 /* AlarmAddView.swift */,
 				CFEC2A879826EEBE8656E231 /* AlarmCell.swift */,
 				3BF9050F7041276AFB5B1F69 /* TimePickerView.swift */,
 			);
@@ -720,10 +703,7 @@
 				1AF0D5ED761EDEDD5859FDB1 /* TuistBundle+Fig.swift in Sources */,
 				D8A23A056BF8C1C09B34B400 /* TuistFonts+Fig.swift in Sources */,
 				7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */,
-				C2C9ACEE7BE64D0877F83E39 /* AlarmAddView.swift in Sources */,
 				BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */,
-				212113C5E24EC7E9203E8FB5 /* AlarmEditorView.swift in Sources */,
-				CE916E4903E10986BA9B3D04 /* AlarmEditorViewModel.swift in Sources */,
 				C27553C8B3DB731B26477736 /* AddAlarmView.swift in Sources */,
 				F06305927069972E3B6181F8 /* AppView.swift in Sources */,
 				591D6326755CC012AB440AFC /* ClockView.swift in Sources */,

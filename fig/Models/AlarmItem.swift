@@ -33,7 +33,6 @@ final class Ticker {
 
     // AlarmKit Integration
     var alarmKitID: UUID?
-    var lastTriggered: Date?
 
     init(
         id: UUID = UUID(),
