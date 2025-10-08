@@ -11,11 +11,15 @@ import SwiftData
 struct AddAlarmView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(AlarmService.self) private var alarmService
 
     @State private var selectedDate = Date()
     @State private var alarmName = ""
     @State private var repeatOption: RepeatOption = .noRepeat
     @State private var showingAdvanced = false
+    @State private var isSaving = false
+    @State private var errorMessage: String?
+    @State private var showingError = false
 
     enum RepeatOption: String, CaseIterable {
         case noRepeat = "No repeat"
@@ -164,16 +168,25 @@ struct AddAlarmView: View {
 
                             // Done Button
                             Button {
-                                saveAlarm()
+                                Task {
+                                    await saveAlarm()
+                                }
                             } label: {
-                                Text("Done")
-                                    .font(.headline)
-                                    .foregroundStyle(.white)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 50)
-                                    .background(.blue)
-                                    .clipShape(Capsule())
+                                HStack {
+                                    if isSaving {
+                                        ProgressView()
+                                            .tint(.white)
+                                    }
+                                    Text(isSaving ? "Saving..." : "Done")
+                                }
+                                .font(.headline)
+                                .foregroundStyle(.white)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(isSaving ? Color.blue.opacity(0.6) : .blue)
+                                .clipShape(Capsule())
                             }
+                            .disabled(isSaving)
                         }
                         .padding(.horizontal, 20)
                         .padding(.bottom, 20)
@@ -191,10 +204,22 @@ struct AddAlarmView: View {
             .sheet(isPresented: $showingAdvanced) {
                 AdvancedOptionsView(alarmName: $alarmName)
             }
+            .alert("Error", isPresented: $showingError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                if let errorMessage {
+                    Text(errorMessage)
+                }
+            }
         }
     }
 
-    private func saveAlarm() {
+    private func saveAlarm() async {
+        guard !isSaving else { return }
+
+        isSaving = true
+        defer { isSaving = false }
+
         let calendar = Calendar.current
         let components = calendar.dateComponents([.hour, .minute], from: selectedDate)
 
@@ -211,11 +236,17 @@ struct AddAlarmView: View {
         let alarm = AlarmItem(
             label: alarmName.isEmpty ? "Alarm" : alarmName,
             isEnabled: true,
-            schedule: schedule,
+            schedule: schedule
         )
 
-        modelContext.insert(alarm)
-        dismiss()
+        do {
+            // Use AlarmService to schedule the alarm
+            try await alarmService.scheduleAlarm(from: alarm, context: modelContext)
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
+            showingError = true
+        }
     }
 }
 

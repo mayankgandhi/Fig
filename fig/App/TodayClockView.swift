@@ -61,11 +61,12 @@ struct TodayClockView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
+                VStack(spacing: 0) {
                     // Clock View
                     ClockView(events: events)
                         .frame(height: 350)
-                        .padding()
+                        .padding(.horizontal, 20)
+                        .padding(.top, 8)
 
                     // Upcoming Alarms Section
                     VStack(alignment: .leading, spacing: 16) {
@@ -81,7 +82,8 @@ struct TodayClockView: View {
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.secondary)
                         }
-                        .padding(.horizontal)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 24)
 
                         if upcomingAlarms.isEmpty {
                             VStack(spacing: 12) {
@@ -97,9 +99,10 @@ struct TodayClockView: View {
                                     .font(.caption)
                                     .foregroundStyle(.tertiary)
                                     .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 40)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 32)
+                            .padding(.vertical, 48)
                         } else {
                             LazyVStack(spacing: 0) {
                                 ForEach(upcomingAlarms) { alarm in
@@ -108,7 +111,7 @@ struct TodayClockView: View {
                             }
                             .background(Color(.secondarySystemBackground))
                             .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .padding(.horizontal)
+                            .padding(.horizontal, 20)
                         }
                     }
                     .padding(.bottom, 24)
