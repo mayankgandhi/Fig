@@ -28,6 +28,9 @@ final class AlarmItem {
     // Presentation
     var presentation: TickerPresentation
 
+    // Category/Template metadata
+    var tickerData: TickerData?
+
     // AlarmKit Integration
     var alarmKitID: UUID?
     var lastTriggered: Date?
@@ -39,7 +42,8 @@ final class AlarmItem {
         notes: String? = nil,
         schedule: TickerSchedule? = nil,
         countdown: TickerCountdown? = nil,
-        presentation: TickerPresentation = .init()
+        presentation: TickerPresentation = .init(),
+        tickerData: TickerData? = nil
     ) {
         self.id = id
         self.label = label
@@ -49,6 +53,7 @@ final class AlarmItem {
         self.schedule = schedule
         self.countdown = countdown
         self.presentation = presentation
+        self.tickerData = tickerData
     }
 
     var displayName: String {

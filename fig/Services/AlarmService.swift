@@ -119,7 +119,7 @@ enum AlarmAuthorizationStatus {
 
 @Observable
 final class AlarmService: AlarmServiceProtocol {
-    typealias AlarmConfiguration = AlarmManager.AlarmConfiguration<CookingData>
+    typealias AlarmConfiguration = AlarmManager.AlarmConfiguration<TickerData>
 
     // Public state
     private(set) var alarms: [UUID: AlarmState] = [:]
@@ -412,7 +412,7 @@ final class AlarmService: AlarmServiceProtocol {
         // Build attributes
         let attributes = AlarmAttributes(
             presentation: buildAlarmPresentation(from: alarmItem),
-            metadata: CookingData(),
+            metadata: alarmItem.tickerData ?? TickerData(),
             tintColor: Color.accentColor
         )
 

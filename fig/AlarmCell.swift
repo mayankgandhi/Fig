@@ -7,28 +7,149 @@ A view that displays an individual alarm cell in the list.
 
 import SwiftUI
 
+// Helper extension for hex color
+extension Color {
+    init?(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            return nil
+        }
+
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue:  Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+
 struct AlarmCell: View {
     let alarmItem: AlarmItem
     @Environment(AlarmService.self) private var alarmService
 
     var body: some View {
-        VStack(alignment: .leading) {
-            HStack {
-                if let schedule = alarmItem.schedule {
-                    scheduleText(for: schedule)
-                        .font(.title)
-                        .fontWeight(.medium)
-                } else if let countdown = alarmItem.countdown?.preAlert {
-                    Text(formatDuration(countdown.interval))
-                        .font(.title)
-                        .fontWeight(.medium)
+        HStack(spacing: 16) {
+            // Leading: Category icon with colored background
+            categoryIconView
+
+            // Main content area
+            VStack(alignment: .leading, spacing: 6) {
+                // Primary: Alarm label
+                Text(alarmItem.label)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                // Secondary: Category name
+                if let tickerData = alarmItem.tickerData, let name = tickerData.name {
+                    Text(name)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
                 }
-                Spacer()
-                tag
+
+                // Tertiary: Schedule info
+                scheduleInfoView
+                    .font(.caption)
+                    .foregroundStyle(.tertiary)
             }
 
-            Text(alarmItem.label)
-                .font(.headline)
+            Spacer()
+
+            // Trailing: Time and status
+            VStack(alignment: .trailing, spacing: 6) {
+                // Time display (large and prominent)
+                if let schedule = alarmItem.schedule {
+                    scheduleText(for: schedule)
+                        .font(.system(size: 32, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+                } else if let countdown = alarmItem.countdown?.preAlert {
+                    Text(formatDuration(countdown.interval))
+                        .font(.system(size: 28, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+                }
+
+                // Status tag
+                tag
+            }
+        }
+        .padding(.vertical, 8)
+    }
+
+    // MARK: - Subviews
+
+    @ViewBuilder
+    private var categoryIconView: some View {
+        if let tickerData = alarmItem.tickerData, let icon = tickerData.icon {
+            ZStack {
+                Circle()
+                    .fill(Color(hex: tickerData.colorHex ?? "") ?? .blue)
+                    .opacity(0.15)
+                    .frame(width: 48, height: 48)
+
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(Color(hex: tickerData.colorHex ?? "") ?? .blue)
+            }
+        } else {
+            ZStack {
+                Circle()
+                    .fill(Color.blue.opacity(0.15))
+                    .frame(width: 48, height: 48)
+
+                Image(systemName: "alarm")
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundStyle(.blue)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var scheduleInfoView: some View {
+        if let schedule = alarmItem.schedule {
+            HStack(spacing: 4) {
+                Image(systemName: scheduleIcon(for: schedule))
+                Text(scheduleDescription(for: schedule))
+            }
+        } else if alarmItem.countdown?.preAlert != nil {
+            HStack(spacing: 4) {
+                Image(systemName: "timer")
+                Text("Countdown")
+            }
+        }
+    }
+
+    private func scheduleIcon(for schedule: TickerSchedule) -> String {
+        switch schedule {
+        case .oneTime: return "calendar"
+        case .daily: return "repeat"
+        case .monthly: return "calendar.badge.clock"
+        case .yearly: return "calendar.badge.checkmark"
+        }
+    }
+
+    private func scheduleDescription(for schedule: TickerSchedule) -> String {
+        switch schedule {
+        case .oneTime(let date):
+            return date.formatted(date: .abbreviated, time: .omitted)
+        case .daily:
+            return "Every day"
+        case .monthly(_, let day):
+            return "Day \(day) of month"
+        case .yearly(let month, let day, _):
+            return "\(month)/\(day) every year"
         }
     }
 

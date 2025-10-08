@@ -16,7 +16,7 @@ import WidgetKit
 
 struct AlarmLiveActivity: Widget {
     var body: some WidgetConfiguration {
-        ActivityConfiguration(for: AlarmAttributes<CookingData>.self) { context in
+        ActivityConfiguration(for: AlarmAttributes<TickerData>.self) { context in
             // The Lock Screen presentation.
             lockScreenView(attributes: context.attributes, state: context.state)
         } dynamicIsland: { context in
@@ -27,7 +27,7 @@ struct AlarmLiveActivity: Widget {
                     alarmTitle(attributes: context.attributes, state: context.state)
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    cookingMethod(metadata: context.attributes.metadata)
+                    tickerCategory(metadata: context.attributes.metadata)
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     bottomView(attributes: context.attributes, state: context.state)
@@ -38,12 +38,12 @@ struct AlarmLiveActivity: Widget {
                     .foregroundStyle(context.attributes.tintColor)
             } compactTrailing: {
                 // The compact trailing presentation.
-                AlarmProgressView(cookingMethod: context.attributes.metadata?.method,
+                AlarmProgressView(tickerIcon: context.attributes.metadata?.icon,
                                   mode: context.state.mode,
                                   tint: context.attributes.tintColor)
             } minimal: {
                 // The minimal presentation.
-                AlarmProgressView(cookingMethod: context.attributes.metadata?.method,
+                AlarmProgressView(tickerIcon: context.attributes.metadata?.icon,
                                   mode: context.state.mode,
                                   tint: context.attributes.tintColor)
             }
@@ -51,20 +51,20 @@ struct AlarmLiveActivity: Widget {
         }
     }
     
-    func lockScreenView(attributes: AlarmAttributes<CookingData>, state: AlarmPresentationState) -> some View {
+    func lockScreenView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
         VStack {
             HStack(alignment: .top) {
                 alarmTitle(attributes: attributes, state: state)
                 Spacer()
-                cookingMethod(metadata: attributes.metadata)
+                tickerCategory(metadata: attributes.metadata)
             }
-            
+
             bottomView(attributes: attributes, state: state)
         }
         .padding(.all, 12)
     }
-    
-    func bottomView(attributes: AlarmAttributes<CookingData>, state: AlarmPresentationState) -> some View {
+
+    func bottomView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
         HStack {
             countdown(state: state, maxWidth: 150)
                 .font(.system(size: 40, design: .rounded))
@@ -92,7 +92,7 @@ struct AlarmLiveActivity: Widget {
         .frame(maxWidth: maxWidth, alignment: .leading)
     }
     
-    @ViewBuilder func alarmTitle(attributes: AlarmAttributes<CookingData>, state: AlarmPresentationState) -> some View {
+    @ViewBuilder func alarmTitle(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
         let title: LocalizedStringResource? = switch state.mode {
         case .countdown:
             attributes.presentation.countdown?.title
@@ -109,11 +109,11 @@ struct AlarmLiveActivity: Widget {
             .padding(.leading, 6)
     }
     
-    @ViewBuilder func cookingMethod(metadata: CookingData?) -> some View {
-        if let method = metadata?.method {
+    @ViewBuilder func tickerCategory(metadata: TickerData?) -> some View {
+        if let name = metadata?.name, let icon = metadata?.icon {
             HStack(spacing: 4) {
-                Text(method.rawValue.localizedCapitalized)
-                Image(systemName: method.icon)
+                Text(name)
+                Image(systemName: icon)
             }
             .font(.body)
             .fontWeight(.medium)
@@ -126,10 +126,10 @@ struct AlarmLiveActivity: Widget {
 }
 
 struct AlarmProgressView: View {
-    var cookingMethod: CookingData.Method?
+    var tickerIcon: String?
     var mode: AlarmPresentationState.Mode
     var tint: Color
-    
+
     var body: some View {
         Group {
             switch mode {
@@ -139,7 +139,7 @@ struct AlarmProgressView: View {
                     countsDown: true,
                     label: { EmptyView() },
                     currentValueLabel: {
-                        Image(systemName: cookingMethod?.rawValue ?? "")
+                        Image(systemName: tickerIcon ?? "bell.fill")
                             .scaleEffect(0.9)
                     })
             case .paused(let pausedState):

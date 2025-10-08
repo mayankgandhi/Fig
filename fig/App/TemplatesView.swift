@@ -58,7 +58,12 @@ struct CategorySection: View {
             // Templates Grid
             LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                 ForEach(category.templates) { template in
-                    TemplateCard(template: template, categoryColor: category.colorHex)
+                    TemplateCard(
+                        template: template,
+                        categoryName: category.name,
+                        categoryIcon: category.icon,
+                        categoryColor: category.colorHex
+                    )
                 }
             }
         }
@@ -71,6 +76,8 @@ struct CategorySection: View {
 
 struct TemplateCard: View {
     let template: AlarmItem
+    let categoryName: String
+    let categoryIcon: String
     let categoryColor: String
 
     @Environment(\.modelContext) private var modelContext
@@ -119,6 +126,13 @@ struct TemplateCard: View {
     }
 
     private func addTemplateToAlarms() {
+        // Create TickerData from category information
+        let tickerData = TickerData(
+            name: categoryName,
+            icon: categoryIcon,
+            colorHex: categoryColor
+        )
+
         // Create a new AlarmItem from the template
         let newAlarm = AlarmItem(
             label: template.label,
@@ -126,7 +140,8 @@ struct TemplateCard: View {
             notes: template.notes,
             schedule: template.schedule,
             countdown: template.countdown,
-            presentation: template.presentation
+            presentation: template.presentation,
+            tickerData: tickerData
         )
 
         modelContext.insert(newAlarm)
