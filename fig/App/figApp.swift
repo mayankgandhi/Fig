@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import AlarmKit
 
 @main
 struct figApp: App {
@@ -25,6 +24,8 @@ struct figApp: App {
         }
     }()
 
+    @State private var alarmService = AlarmService()
+
     init() {
             TemplateDataSeeder.seedTemplatesIfNeeded(modelContext: sharedModelContainer.mainContext)
     }
@@ -32,6 +33,11 @@ struct figApp: App {
     var body: some Scene {
         WindowGroup {
             AppView()
+                .environment(alarmService)
+                .task {
+                    // Synchronize alarms on app launch
+                    await alarmService.synchronizeAlarmsOnLaunch(context: sharedModelContainer.mainContext)
+                }
         }
         .modelContainer(sharedModelContainer)
     }

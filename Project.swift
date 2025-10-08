@@ -14,7 +14,10 @@ let project = Project(
                 "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire.",
                 "UIAppFonts": ["CabinetGrotesk-Variable.ttf"]
             ]),
-            sources: ["fig/**", "Shared/**"],
+            sources: [
+                "fig/**",
+                "Shared/**"
+            ],
             resources: [
                 .glob(pattern: "fig/Resources/Assets.xcassets"),
                 .glob(pattern: "fig/Resources/AppIcon.icon/**"),
@@ -43,7 +46,11 @@ let project = Project(
                     "NSExtensionPointIdentifier": "com.apple.widgetkit-extension"
                 ]
             ]),
-            sources: ["alarm/**", "Shared/**"],
+            sources: [
+                "alarm/**",
+                "Shared/**",
+                "fig/AppIntents/**"  // Share AppIntents with widget extension
+            ],
             resources: ["alarm/Assets.xcassets"],
             dependencies: [],
             settings: .settings(

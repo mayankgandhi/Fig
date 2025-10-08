@@ -8,6 +8,8 @@
 import WidgetKit
 import SwiftUI
 
+// Note: ConfigurationAppIntent is now located at fig/AppIntents/Widget/ConfigurationAppIntent.swift
+
 struct Provider: AppIntentTimelineProvider {
     func placeholder(in context: Context) -> SimpleEntry {
         SimpleEntry(date: Date(), configuration: ConfigurationAppIntent())

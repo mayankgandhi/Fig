@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import SwiftData
 import WalnutDesignSystem
-import AlarmKit
 
 struct DeleteAllDataView: View {
-    @Environment(ViewModel.self) private var viewModel
+    @Environment(AlarmService.self) private var alarmService
+    @Environment(\.modelContext) private var modelContext
+    @Query private var alarmItems: [AlarmItem]
     @State private var showDeleteConfirmation = false
 
     var body: some View {
@@ -33,17 +35,16 @@ struct DeleteAllDataView: View {
     }
 
     private func deleteAllAlarms() {
-        // Get all alarm IDs
-        let alarmIDs = Array(viewModel.alarmsMap.keys)
-
-        // Unschedule all alarms
-        for alarmID in alarmIDs {
-            viewModel.unscheduleAlarm(with: alarmID)
+        // Cancel and delete all alarms
+        for alarmItem in alarmItems {
+            try? alarmService.cancelAlarm(id: alarmItem.id, context: modelContext)
         }
     }
 }
 
 #Preview {
-    DeleteAllDataView()
-        .environment(ViewModel())
+    let alarmService = AlarmService()
+    return DeleteAllDataView()
+        .modelContainer(for: AlarmItem.self, inMemory: true)
+        .environment(alarmService)
 }

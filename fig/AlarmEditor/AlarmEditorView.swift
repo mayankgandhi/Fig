@@ -12,6 +12,7 @@ import WalnutDesignSystem
 struct AlarmEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(AlarmService.self) private var alarmService
 
     @State private var viewModel: AlarmEditorViewModel
     @State private var showError = false
@@ -19,9 +20,9 @@ struct AlarmEditorView: View {
 
     private let isEditing: Bool
 
-    init(alarm: AlarmItem? = nil) {
+    init(alarm: AlarmItem? = nil, alarmService: AlarmService) {
         self.isEditing = alarm != nil
-        self._viewModel = State(initialValue: AlarmEditorViewModel(alarm: alarm))
+        self._viewModel = State(initialValue: AlarmEditorViewModel(alarm: alarm, alarmService: alarmService))
     }
 
     var body: some View {
@@ -269,12 +270,14 @@ struct AlarmEditorView: View {
     // MARK: - Actions
 
     private func saveAlarm() {
-        do {
-            try viewModel.saveAlarm(context: modelContext)
-            dismiss()
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
+        Task {
+            do {
+                try await viewModel.saveAlarm(context: modelContext)
+                dismiss()
+            } catch {
+                errorMessage = error.localizedDescription
+                showError = true
+            }
         }
     }
 }
@@ -282,11 +285,14 @@ struct AlarmEditorView: View {
 // MARK: - Preview
 
 #Preview {
-    AlarmEditorView()
+    let alarmService = AlarmService()
+    return AlarmEditorView(alarmService: alarmService)
         .modelContainer(for: AlarmItem.self, inMemory: true)
+        .environment(alarmService)
 }
 
 #Preview("Edit Alarm") {
+    let alarmService = AlarmService()
     let alarm = AlarmItem(
         label: "Morning Workout",
         notes: "Don't forget water bottle",
@@ -294,6 +300,7 @@ struct AlarmEditorView: View {
         countdown: .init(preAlert: .init(hours: 0, minutes: 30, seconds: 0))
     )
 
-    return AlarmEditorView(alarm: alarm)
+    return AlarmEditorView(alarm: alarm, alarmService: alarmService)
         .modelContainer(for: AlarmItem.self, inMemory: true)
+        .environment(alarmService)
 }

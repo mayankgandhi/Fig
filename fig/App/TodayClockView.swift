@@ -48,7 +48,7 @@ struct TodayClockView: View {
             ClockView(events: events)
                 .navigationTitle("Today")
                 .toolbarTitleDisplayMode(.inlineLarge)
-                .padding(.trailing)
+                .padding()
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button {
@@ -58,6 +58,7 @@ struct TodayClockView: View {
                         }
                     }
                 }
+            
                 .sheet(isPresented: $showSettings, content: {
                     SettingsView()
                         .presentationCornerRadius(Spacing.large)

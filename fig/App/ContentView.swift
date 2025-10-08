@@ -5,14 +5,15 @@
  The main content view of the app showing the list of alarms.
  */
 
-import AlarmKit
 import SwiftUI
+import SwiftData
 import WalnutDesignSystem
 
 struct ContentView: View {
-    
-    @Environment(ViewModel.self) private var viewModel
-    
+
+    @Environment(AlarmService.self) private var alarmService
+    @Query(sort: \AlarmItem.createdAt, order: .reverse) private var alarmItems: [AlarmItem]
+
     @State private var showAddSheet = false
     @State private var showTemplates: Bool = false
     
@@ -33,52 +34,26 @@ struct ContentView: View {
                     }
                 }
         }
-        .sheet(isPresented: $showAddSheet) {
+        .sheet(isPresented: $showAddSheet, onDismiss: {
+            showAddSheet = false
+        }) {
             AlarmAddView()
                 .presentationCornerRadius(Spacing.large)
                 .presentationDragIndicator(.visible)
         }
-        .sheet(isPresented: $showTemplates, content: {
+        .sheet(isPresented: $showTemplates, onDismiss: {
+            showTemplates = false
+        }, content: {
             TemplatesView()
                 .presentationCornerRadius(Spacing.large)
                 .presentationDragIndicator(.visible)
         })
-        .environment(viewModel)
-        .onAppear {
-            viewModel.fetchAlarms()
-        }
         .tint(.accentColor)
     }
     
     var menuButton: some View {
-        Menu {
-            // Schedules an alarm with an alert but no additional configuration.
-            Button {
-                viewModel.scheduleAlertOnlyExample()
-            } label: {
-                Label("Alert only", systemImage: "bell.circle.fill")
-            }
-            
-            // Schedules an alarm with a countdown button.
-            Button {
-                viewModel.scheduleCountdownAlertExample()
-            } label: {
-                Label("With Countdown", systemImage: "fitness.timer.fill")
-            }
-            
-            // Schedules an alarm with a custom button to launch the app.
-            Button {
-                viewModel.scheduleCustomButtonAlertExample()
-            } label: {
-                Label("With Custom Button", systemImage: "alarm")
-            }
-            
-            // Displays a sheet with configuration options for a new alarm.
-            Button {
-                showAddSheet.toggle()
-            } label: {
-                Label("Configure", systemImage: "pencil.and.scribble")
-            }
+        Button {
+            showAddSheet.toggle()
         } label: {
             Image(systemName: "plus")
         }
@@ -87,9 +62,8 @@ struct ContentView: View {
     @ViewBuilder
     var content: some View {
         VStack {
-            
-            if viewModel.hasUpcomingAlerts {
-                alarmList(alarms: Array(viewModel.alarmsMap.values))
+            if !alarmItems.isEmpty {
+                alarmList
             } else {
                 ContentUnavailableView {
                     Text("No Alarms")
@@ -111,22 +85,27 @@ struct ContentView: View {
             }
         }
     }
-    
-    func alarmList(alarms: [ViewModel.AlarmsMap.Value]) -> some View {
+
+    var alarmList: some View {
         List {
-            ForEach(alarms, id: \.0.id) { (alarm, label) in
-                AlarmCell(alarm: alarm, label: label)
+            ForEach(alarmItems) { alarmItem in
+                AlarmCell(alarmItem: alarmItem)
             }
-            .onDelete { indexSet in
-                indexSet.forEach { idx in
-                    viewModel.unscheduleAlarm(with: alarms[idx].0.id)
-                }
-            }
+            .onDelete(perform: deleteAlarms)
+        }
+    }
+
+    private func deleteAlarms(at offsets: IndexSet) {
+        offsets.forEach { index in
+            let alarmItem = alarmItems[index]
+            try? alarmService.cancelAlarm(id: alarmItem.id, context: nil)
         }
     }
 }
 
 #Preview {
-    ContentView()
-        .environment(ViewModel())
+    let alarmService = AlarmService()
+    return ContentView()
+        .modelContainer(for: AlarmItem.self, inMemory: true)
+        .environment(alarmService)
 }

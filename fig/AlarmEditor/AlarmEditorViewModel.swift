@@ -8,7 +8,6 @@
 import Foundation
 import SwiftUI
 import SwiftData
-import AlarmKit
 
 @Observable
 class AlarmEditorViewModel {
@@ -42,6 +41,9 @@ class AlarmEditorViewModel {
     // MARK: - Existing Alarm (for editing)
     private var existingAlarm: AlarmItem?
 
+    // MARK: - AlarmService
+    private let alarmService: AlarmService
+
     // MARK: - Enums
     enum ScheduleType: String, CaseIterable, CustomStringConvertible {
         case oneTime = "One Time"
@@ -62,8 +64,9 @@ class AlarmEditorViewModel {
     }
 
     // MARK: - Initialization
-    init(alarm: AlarmItem? = nil) {
+    init(alarm: AlarmItem? = nil, alarmService: AlarmService) {
         self.existingAlarm = alarm
+        self.alarmService = alarmService
         if let alarm = alarm {
             loadFromAlarm(alarm)
         }
@@ -139,7 +142,7 @@ class AlarmEditorViewModel {
     }
 
     // MARK: - Save Alarm
-    func saveAlarm(context: ModelContext) throws {
+    func saveAlarm(context: ModelContext) async throws {
         let schedule = buildSchedule()
         let countdown = buildCountdown()
         let presentation = buildPresentation()
@@ -152,6 +155,9 @@ class AlarmEditorViewModel {
             existing.countdown = countdown
             existing.presentation = presentation
             existing.isEnabled = isEnabled
+
+            // Update with AlarmService
+            try await alarmService.updateAlarm(existing, context: context)
         } else {
             // Create new alarm
             let alarm = AlarmItem(
@@ -162,10 +168,10 @@ class AlarmEditorViewModel {
                 countdown: countdown,
                 presentation: presentation
             )
-            context.insert(alarm)
-        }
 
-        try context.save()
+            // Schedule with AlarmService
+            try await alarmService.scheduleAlarm(from: alarm, context: context)
+        }
     }
 
     // MARK: - Build Components

@@ -11,6 +11,9 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
+// Note: LiveActivity intents (PauseIntent, StopIntent, ResumeIntent) are now located
+// at fig/AppIntents/LiveActivity/
+
 struct AlarmLiveActivity: Widget {
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: AlarmAttributes<CookingData>.self) { context in
