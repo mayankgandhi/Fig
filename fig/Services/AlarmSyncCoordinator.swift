@@ -40,8 +40,8 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
         print("⏰ Found \(alarmKitAlarms.count) alarms in AlarmKit")
 
         // 2. Clean up template alarms that shouldn't be scheduled
-        // Fetch all AlarmItems to check which ones are disabled templates
-        let allItemsDescriptor = FetchDescriptor<AlarmItem>()
+        // Fetch all Tickers to check which ones are disabled templates
+        let allItemsDescriptor = FetchDescriptor<Ticker>()
         let allItems = (try? context.fetch(allItemsDescriptor)) ?? []
         let disabledItemIds = Set(allItems.filter { !$0.isEnabled }.map { $0.id })
 
@@ -77,7 +77,7 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
             if !allItems.contains(where: { $0.id == alarm.id }) {
                 print("📝 Creating SwiftData entry for orphaned alarm: \(alarm.id)")
 
-                let alarmItem = AlarmItem(
+                let alarmItem = Ticker(
                     id: alarm.id,
                     label: "Alarm",
                     isEnabled: true

@@ -38,20 +38,20 @@ class TemplateDataSeeder {
             colorHex: exerciseCategory.colorHex
         )
 
-        let exerciseTemplates: [AlarmItem] = [
-            AlarmItem(
+        let exerciseTemplates: [Ticker] = [
+            Ticker(
                 label: "Morning Workout",
                 isEnabled: false,
                 schedule: .daily(time: .init(hour: 6, minute: 30)),
                 tickerData: exerciseTickerData
             ),
-            AlarmItem(
+            Ticker(
                 label: "Evening Jog",
                 isEnabled: false,
                 schedule: .daily(time: .init(hour: 18, minute: 0)),
                 tickerData: exerciseTickerData
             ),
-            AlarmItem(
+            Ticker(
                 label: "Yoga Session",
                 isEnabled: false,
                 notes: "Bring yoga mat",
@@ -76,27 +76,27 @@ class TemplateDataSeeder {
             colorHex: productivityCategory.colorHex
         )
 
-        let productivityTemplates: [AlarmItem] = [
-            AlarmItem(
+        let productivityTemplates: [Ticker] = [
+            Ticker(
                 label: "Daily Standup",
                 isEnabled: false,
                 schedule: .daily(time: .init(hour: 9, minute: 0)),
                 tickerData: productivityTickerData
             ),
-            AlarmItem(
+            Ticker(
                 label: "Weekly Review",
                 isEnabled: false,
                 notes: "Review goals and progress",
                 schedule: .daily(time: .init(hour: 16, minute: 0)),
                 tickerData: productivityTickerData
             ),
-            AlarmItem(
+            Ticker(
                 label: "Lunch Break",
                 isEnabled: false,
                 schedule: .daily(time: .init(hour: 12, minute: 30)),
                 tickerData: productivityTickerData
             ),
-            AlarmItem(
+            Ticker(
                 label: "End of Day",
                 isEnabled: false,
                 notes: "Wrap up tasks",
@@ -121,28 +121,28 @@ class TemplateDataSeeder {
             colorHex: wellnessCategory.colorHex
         )
 
-        let wellnessTemplates: [AlarmItem] = [
-            AlarmItem(
+        let wellnessTemplates: [Ticker] = [
+            Ticker(
                 label: "Drink Water",
                 isEnabled: false,
                 schedule: .daily(time: .init(hour: 10, minute: 0)),
                 tickerData: wellnessTickerData
             ),
-            AlarmItem(
+            Ticker(
                 label: "Stretch Break",
                 isEnabled: false,
                 notes: "5 minute stretch",
                 schedule: .daily(time: .init(hour: 14, minute: 0)),
                 tickerData: wellnessTickerData
             ),
-            AlarmItem(
+            Ticker(
                 label: "Bedtime",
                 isEnabled: false,
                 notes: "Wind down for the night",
                 schedule: .daily(time: .init(hour: 22, minute: 0)),
                 tickerData: wellnessTickerData
             ),
-            AlarmItem(
+            Ticker(
                 label: "Weekly Checkup",
                 isEnabled: false,
                 schedule: .daily(time: .init(hour: 9, minute: 0)),
@@ -166,16 +166,16 @@ class TemplateDataSeeder {
         }
     }
 
-    /// Removes any AlarmItems that have deprecated schedule types (monthly/yearly)
+    /// Removes any Tickers that have deprecated schedule types (monthly/yearly)
     /// These schedule types are no longer supported since they don't work properly with AlarmKit
     ///
-    /// Note: SwiftData will automatically fail to decode AlarmItems with monthly/yearly schedules
+    /// Note: SwiftData will automatically fail to decode Tickers with monthly/yearly schedules
     /// since those enum cases no longer exist. This cleanup is here for documentation and
     /// to handle any edge cases.
     private static func cleanupDeprecatedSchedules(modelContext: ModelContext) {
         print("🧹 Checking for deprecated schedule types...")
 
-        // SwiftData will automatically skip AlarmItems that fail to decode due to
+        // SwiftData will automatically skip Tickers that fail to decode due to
         // the missing .monthly and .yearly enum cases. Any such items will not appear
         // in fetch results, effectively "cleaning themselves up" from the app's perspective.
 

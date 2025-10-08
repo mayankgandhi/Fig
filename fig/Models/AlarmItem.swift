@@ -1,5 +1,5 @@
 //
-//  AlarmItem.swift
+//  Ticker.swift
 //  fig
 //
 //  SwiftData model for persistent alarm storage
@@ -9,10 +9,10 @@ import Foundation
 import SwiftData
 import AlarmKit
 
-// MARK: - AlarmItem Model
+// MARK: - Ticker Model
 
 @Model
-final class AlarmItem {
+final class Ticker {
     var id: UUID
     var label: String
     var createdAt: Date
@@ -161,7 +161,7 @@ struct TickerPresentation: Codable, Hashable {
 
 // MARK: - AlarmKit Conversion
 
-extension AlarmItem {
+extension Ticker {
     var alarmKitCountdownDuration: Alarm.CountdownDuration? {
         guard let countdown = countdown else { return nil }
 

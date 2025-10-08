@@ -12,7 +12,7 @@ import WalnutDesignSystem
 struct DeleteAllDataView: View {
     @Environment(AlarmService.self) private var alarmService
     @Environment(\.modelContext) private var modelContext
-    @Query private var alarmItems: [AlarmItem]
+    @Query private var alarmItems: [Ticker]
     @State private var showDeleteConfirmation = false
 
     var body: some View {
@@ -45,6 +45,6 @@ struct DeleteAllDataView: View {
 #Preview {
     let alarmService = AlarmService()
     return DeleteAllDataView()
-        .modelContainer(for: AlarmItem.self, inMemory: true)
+        .modelContainer(for: Ticker.self, inMemory: true)
         .environment(alarmService)
 }

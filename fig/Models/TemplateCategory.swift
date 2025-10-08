@@ -17,7 +17,7 @@ final class TemplateCategory {
     var categoryDescription: String
 
     @Relationship(deleteRule: .cascade)
-    var templates: [AlarmItem]
+    var templates: [Ticker]
 
     init(
         id: UUID = UUID(),
@@ -25,7 +25,7 @@ final class TemplateCategory {
         icon: String,
         colorHex: String,
         description: String,
-        templates: [AlarmItem] = []
+        templates: [Ticker] = []
     ) {
         self.id = id
         self.name = name

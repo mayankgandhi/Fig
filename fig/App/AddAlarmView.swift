@@ -233,7 +233,7 @@ struct AddAlarmView: View {
             schedule = .oneTime(date: selectedDate)
         }
 
-        let alarm = AlarmItem(
+        let alarm = Ticker(
             label: alarmName.isEmpty ? "Alarm" : alarmName,
             isEnabled: true,
             schedule: schedule
@@ -400,7 +400,7 @@ struct AdvancedOptionsView: View {
 
 #Preview {
     AddAlarmView()
-        .modelContainer(for: [AlarmItem.self])
+        .modelContainer(for: [Ticker.self])
 }
 
 #Preview("Advanced Options") {

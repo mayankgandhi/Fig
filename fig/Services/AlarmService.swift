@@ -46,8 +46,8 @@ protocol AlarmServiceProtocol: Observable {
     var authorizationStatus: AlarmAuthorizationStatus { get }
 
     func requestAuthorization() async throws -> AlarmAuthorizationStatus
-    func scheduleAlarm(from alarmItem: AlarmItem, context: ModelContext) async throws
-    func updateAlarm(_ alarmItem: AlarmItem, context: ModelContext) async throws
+    func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws
+    func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws
     func cancelAlarm(id: UUID, context: ModelContext?) throws
     func pauseAlarm(id: UUID) throws
     func resumeAlarm(id: UUID) throws
@@ -55,7 +55,7 @@ protocol AlarmServiceProtocol: Observable {
     func repeatCountdown(id: UUID) throws
     func fetchAllAlarms() throws
     func getAlarmState(id: UUID) -> AlarmState?
-    func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: AlarmItem?)]
+    func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: Ticker?)]
     func synchronizeAlarmsOnLaunch(context: ModelContext) async
 }
 
@@ -144,7 +144,7 @@ final class AlarmService: AlarmServiceProtocol {
 
     // MARK: - Schedule Management
 
-    func scheduleAlarm(from alarmItem: AlarmItem, context: ModelContext) async throws {
+    func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws {
         // 1. Request authorization
         let authStatus = try await requestAuthorization()
         guard authStatus == .authorized else {
@@ -180,7 +180,7 @@ final class AlarmService: AlarmServiceProtocol {
         }
     }
 
-    func updateAlarm(_ alarmItem: AlarmItem, context: ModelContext) async throws {
+    func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         // Cancel existing alarm
         if let alarmKitID = alarmItem.alarmKitID {
             try? alarmManager.cancel(id: alarmKitID)
@@ -230,7 +230,7 @@ final class AlarmService: AlarmServiceProtocol {
 
         // Delete from SwiftData if context provided
         if let context = context {
-            let descriptor = FetchDescriptor<AlarmItem>(predicate: #Predicate { $0.id == id })
+            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
             if let alarmItem = try? context.fetch(descriptor).first {
                 context.delete(alarmItem)
                 try? context.save()
@@ -289,12 +289,12 @@ final class AlarmService: AlarmServiceProtocol {
         stateManager.getState(id: id)
     }
 
-    func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: AlarmItem?)] {
+    func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: Ticker?)] {
         // Get all alarms from AlarmKit (source of truth)
         let alarmStates = Array(alarms.values)
 
-        // Fetch all AlarmItems once
-        let allItemsDescriptor = FetchDescriptor<AlarmItem>()
+        // Fetch all Tickers once
+        let allItemsDescriptor = FetchDescriptor<Ticker>()
         let allItems = (try? context.fetch(allItemsDescriptor)) ?? []
 
         // Create a lookup dictionary for fast access

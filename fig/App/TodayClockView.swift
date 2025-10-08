@@ -11,13 +11,13 @@ import WalnutDesignSystem
 
 struct TodayClockView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(filter: #Predicate<AlarmItem> { alarm in
+    @Query(filter: #Predicate<Ticker> { alarm in
         alarm.isEnabled == true
-    }, sort: \AlarmItem.createdAt) private var alarms: [AlarmItem]
+    }, sort: \Ticker.createdAt) private var alarms: [Ticker]
 
     @State private var showSettings: Bool = false
 
-    private var upcomingAlarms: [AlarmItem] {
+    private var upcomingAlarms: [Ticker] {
         let now = Date()
         let next12Hours = now.addingTimeInterval(12 * 60 * 60)
 
@@ -64,7 +64,7 @@ struct TodayClockView: View {
                 VStack(spacing: 0) {
                     // Clock View
                     ClockView(events: events)
-                        .frame(height: 350)
+                        .frame(height: UIScreen.main.bounds.width)
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
 
@@ -149,7 +149,7 @@ struct TodayClockView: View {
         }
     }
 
-    private func extractColor(from alarm: AlarmItem) -> Color {
+    private func extractColor(from alarm: Ticker) -> Color {
         // Try to get color from ticker data
         if let colorHex = alarm.tickerData?.colorHex,
            let color = Color(hex: colorHex) {
@@ -185,7 +185,7 @@ struct TodayClockView: View {
         return todayOccurrence
     }
 
-    private func getNextAlarmTime(for alarm: AlarmItem) -> Date {
+    private func getNextAlarmTime(for alarm: Ticker) -> Date {
         guard let schedule = alarm.schedule else { return Date.distantFuture }
 
         switch schedule {
@@ -200,7 +200,7 @@ struct TodayClockView: View {
 // MARK: - Upcoming Alarm Row
 
 struct UpcomingAlarmRow: View {
-    let alarm: AlarmItem
+    let alarm: Ticker
 
     private var nextAlarmTime: Date {
         guard let schedule = alarm.schedule else { return Date() }
@@ -316,5 +316,5 @@ struct UpcomingAlarmRow: View {
 
 #Preview {
     TodayClockView()
-        .modelContainer(for: [AlarmItem.self, TemplateCategory.self])
+        .modelContainer(for: [Ticker.self, TemplateCategory.self])
 }

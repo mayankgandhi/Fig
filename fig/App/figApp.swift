@@ -12,7 +12,7 @@ import SwiftData
 struct figApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            AlarmItem.self,
+            Ticker.self,
             TemplateCategory.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)

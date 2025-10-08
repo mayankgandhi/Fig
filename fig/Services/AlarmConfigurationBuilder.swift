@@ -2,7 +2,7 @@
 //  AlarmConfigurationBuilder.swift
 //  fig
 //
-//  Handles building AlarmKit configuration objects from AlarmItem models
+//  Handles building AlarmKit configuration objects from Ticker models
 //
 
 import Foundation
@@ -13,14 +13,14 @@ import AppIntents
 // MARK: - AlarmConfigurationBuilder Protocol
 
 protocol AlarmConfigurationBuilderProtocol {
-    func buildConfiguration(from alarmItem: AlarmItem) -> AlarmManager.AlarmConfiguration<TickerData>?
+    func buildConfiguration(from alarmItem: Ticker) -> AlarmManager.AlarmConfiguration<TickerData>?
 }
 
 // MARK: - AlarmConfigurationBuilder Implementation
 
 struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
 
-    func buildConfiguration(from alarmItem: AlarmItem) -> AlarmManager.AlarmConfiguration<TickerData>? {
+    func buildConfiguration(from alarmItem: Ticker) -> AlarmManager.AlarmConfiguration<TickerData>? {
         // Build attributes
         let attributes = AlarmAttributes(
             presentation: buildPresentation(from: alarmItem),
@@ -42,7 +42,7 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
 
     // MARK: - Private Helpers
 
-    private func buildPresentation(from alarmItem: AlarmItem) -> AlarmPresentation {
+    private func buildPresentation(from alarmItem: Ticker) -> AlarmPresentation {
         let secondaryButtonBehavior = alarmItem.alarmKitSecondaryButtonBehavior
         let secondaryButton: AlarmButton? = switch secondaryButtonBehavior {
             case .countdown: .repeatButton
@@ -76,7 +76,7 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
         return AlarmPresentation(alert: alertContent, countdown: countdownContent, paused: pausedContent)
     }
 
-    private func buildSecondaryIntent(for alarmItem: AlarmItem) -> (any LiveActivityIntent)? {
+    private func buildSecondaryIntent(for alarmItem: Ticker) -> (any LiveActivityIntent)? {
         switch alarmItem.presentation.secondaryButtonType {
         case .none:
             return nil

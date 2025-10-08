@@ -8,7 +8,7 @@ A view that displays an individual alarm cell in the list.
 import SwiftUI
 
 struct AlarmCell: View {
-    let alarmItem: AlarmItem
+    let alarmItem: Ticker
     @Environment(AlarmService.self) private var alarmService
 
     var body: some View {

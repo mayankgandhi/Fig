@@ -15,13 +15,7 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: Spacing.medium) {
-                    NavBarHeader(
-                        iconName: "gear",
-                        iconColor: .blue,
-                        title: "Settings",
-                        subtitle: "Manage your alarm preferences"
-                    )
-
+                    
                     // App Settings Section
                     appSettingsSection
                         .padding(.horizontal, Spacing.medium)
@@ -36,6 +30,8 @@ struct SettingsView: View {
             }
             .presentationCompactAdaptation(.sheet)
             .presentationDragIndicator(.visible)
+            .navigationTitle("Settings")
+            .toolbarTitleDisplayMode(.inlineLarge)
             
         }
     }

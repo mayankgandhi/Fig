@@ -18,7 +18,7 @@ struct ContentView: View {
     @State private var showTemplates: Bool = false
 
     // Fetch alarms from AlarmKit (via AlarmService) and enrich with SwiftData metadata
-    private var displayAlarms: [(state: AlarmState, metadata: AlarmItem?)] {
+    private var displayAlarms: [(state: AlarmState, metadata: Ticker?)] {
         alarmService.getAlarmsWithMetadata(context: modelContext)
     }
     
@@ -42,7 +42,7 @@ struct ContentView: View {
         .sheet(isPresented: $showAddSheet, onDismiss: {
             showAddSheet = false
         }) {
-            AlarmAddView()
+            AddAlarmView()
                 .presentationCornerRadius(Spacing.large)
                 .presentationDragIndicator(.visible)
         }
@@ -94,12 +94,12 @@ struct ContentView: View {
     var alarmList: some View {
         List {
             ForEach(displayAlarms, id: \.state.id) { item in
-                // Use metadata if available, otherwise create minimal AlarmItem for display
+                // Use metadata if available, otherwise create minimal Ticker for display
                 if let metadata = item.metadata {
                     AlarmCell(alarmItem: metadata)
                 } else {
                     // Orphaned alarm (exists in AlarmKit but not SwiftData)
-                    AlarmCell(alarmItem: AlarmItem(
+                    AlarmCell(alarmItem: Ticker(
                         id: item.state.id,
                         label: String(localized: item.state.label),
                         isEnabled: true
@@ -121,6 +121,6 @@ struct ContentView: View {
 #Preview {
     let alarmService = AlarmService()
     return ContentView()
-        .modelContainer(for: AlarmItem.self, inMemory: true)
+        .modelContainer(for: Ticker.self, inMemory: true)
         .environment(alarmService)
 }

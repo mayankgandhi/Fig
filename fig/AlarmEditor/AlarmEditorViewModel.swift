@@ -39,7 +39,7 @@ class AlarmEditorViewModel {
     var postAlertSeconds: Int = 0
 
     // MARK: - Existing Alarm (for editing)
-    private var existingAlarm: AlarmItem?
+    private var existingAlarm: Ticker?
 
     // MARK: - AlarmService
     private let alarmService: AlarmService
@@ -62,7 +62,7 @@ class AlarmEditorViewModel {
     }
 
     // MARK: - Initialization
-    init(alarm: AlarmItem? = nil, alarmService: AlarmService) {
+    init(alarm: Ticker? = nil, alarmService: AlarmService) {
         self.existingAlarm = alarm
         self.alarmService = alarmService
         if let alarm = alarm {
@@ -71,7 +71,7 @@ class AlarmEditorViewModel {
     }
 
     // MARK: - Load from Existing Alarm
-    private func loadFromAlarm(_ alarm: AlarmItem) {
+    private func loadFromAlarm(_ alarm: Ticker) {
         label = alarm.label
         notes = alarm.notes ?? ""
         tintColorHex = alarm.presentation.tintColorHex ?? "#FF6B6B"
@@ -149,7 +149,7 @@ class AlarmEditorViewModel {
             try await alarmService.updateAlarm(existing, context: context)
         } else {
             // Create new alarm
-            let alarm = AlarmItem(
+            let alarm = Ticker(
                 label: label,
                 isEnabled: isEnabled,
                 notes: notes.isEmpty ? nil : notes,

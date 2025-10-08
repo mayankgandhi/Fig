@@ -16,12 +16,15 @@ struct ClockView: View {
         let hour: Int
         let minute: Int
         let color: Color
-        
+
         var angle: Double {
-            let totalMinutes = Double(hour * 60 + minute)
-            return (totalMinutes / 720.0) * 360.0
+            // Convert to 12-hour format for display
+            let hour12 = hour % 12
+            // Calculate angle: 0° at 12, 90° at 3, 180° at 6, 270° at 9
+            // Each hour = 30°, each minute = 0.5°
+            return Double(hour12) * 30.0 + Double(minute) * 0.5
         }
-        
+
         var timeString: String {
             let period = hour >= 12 ? "PM" : "AM"
             let displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)

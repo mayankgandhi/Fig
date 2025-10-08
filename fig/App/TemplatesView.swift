@@ -53,7 +53,7 @@ struct CategoryHeader: View {
 }
 
 struct TemplateRow: View {
-    let template: AlarmItem
+    let template: Ticker
     let categoryName: String
     let categoryIcon: String
     let categoryColor: String
@@ -109,8 +109,8 @@ struct TemplateRow: View {
             colorHex: categoryColor
         )
 
-        // Create a new AlarmItem from the template
-        let newAlarm = AlarmItem(
+        // Create a new Ticker from the template
+        let newAlarm = Ticker(
             label: template.label,
             isEnabled: true,
             notes: template.notes,
@@ -183,5 +183,5 @@ extension TickerSchedule.Weekday {
 
 #Preview {
     TemplatesView()
-        .modelContainer(for: [TemplateCategory.self, AlarmItem.self])
+        .modelContainer(for: [TemplateCategory.self, Ticker.self])
 }

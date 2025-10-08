@@ -20,7 +20,7 @@ struct AlarmEditorView: View {
 
     private let isEditing: Bool
 
-    init(alarm: AlarmItem? = nil, alarmService: AlarmService) {
+    init(alarm: Ticker? = nil, alarmService: AlarmService) {
         self.isEditing = alarm != nil
         self._viewModel = State(initialValue: AlarmEditorViewModel(alarm: alarm, alarmService: alarmService))
     }
@@ -232,13 +232,13 @@ struct AlarmEditorView: View {
 #Preview {
     let alarmService = AlarmService()
     return AlarmEditorView(alarmService: alarmService)
-        .modelContainer(for: AlarmItem.self, inMemory: true)
+        .modelContainer(for: Ticker.self, inMemory: true)
         .environment(alarmService)
 }
 
 #Preview("Edit Alarm") {
     let alarmService = AlarmService()
-    let alarm = AlarmItem(
+    let alarm = Ticker(
         label: "Morning Workout",
         notes: "Don't forget water bottle",
         schedule: .daily(time: .init(hour: 6, minute: 30)),
@@ -246,6 +246,6 @@ struct AlarmEditorView: View {
     )
 
     return AlarmEditorView(alarm: alarm, alarmService: alarmService)
-        .modelContainer(for: AlarmItem.self, inMemory: true)
+        .modelContainer(for: Ticker.self, inMemory: true)
         .environment(alarmService)
 }
