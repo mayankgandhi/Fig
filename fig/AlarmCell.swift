@@ -8,6 +8,7 @@ A view that displays an individual alarm cell in the list.
 import SwiftUI
 
 struct AlarmCell: View {
+
     let alarmItem: Ticker
     @Environment(AlarmService.self) private var alarmService
     @Environment(\.colorScheme) private var colorScheme
@@ -21,19 +22,19 @@ struct AlarmCell: View {
             VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                 // Primary: Alarm label
                 Text(alarmItem.label)
-                    .font(TickerTypography.headerSmall)
+                    .cabinetTitle3()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 // Secondary: Category name
                 if let tickerData = alarmItem.tickerData, let name = tickerData.name {
                     Text(name)
-                        .font(TickerTypography.bodyMedium)
+                        .cabinetSubheadline()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 }
 
                 // Tertiary: Schedule info
                 scheduleInfoView
-                    .font(TickerTypography.bodySmall)
+                    .cabinetFootnote()
                     .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
             }
 
@@ -44,11 +45,11 @@ struct AlarmCell: View {
                 // Time display (large and prominent)
                 if let schedule = alarmItem.schedule {
                     scheduleText(for: schedule)
-                        .font(TickerTypography.timeLarge)
+                    .cabinetTitle3()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } else if let countdown = alarmItem.countdown?.preAlert {
                     Text(formatDuration(countdown.interval))
-                        .font(TickerTypography.timeMedium)
+                        .cabinetHeadline()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 }
 

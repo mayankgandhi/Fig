@@ -42,7 +42,7 @@ struct SettingsView: View {
     private var appSettingsSection: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             Text("App Settings")
-                .font(TickerTypography.labelBold)
+                .cabinetCaption2()
                 .textCase(.uppercase)
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -58,7 +58,7 @@ struct SettingsView: View {
     private var dataSection: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             Text("Data")
-                .font(TickerTypography.labelBold)
+                .cabinetCaption2()
                 .textCase(.uppercase)
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)

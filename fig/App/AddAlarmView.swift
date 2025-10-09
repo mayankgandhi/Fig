@@ -46,11 +46,11 @@ struct AddAlarmView: View {
                         // Month/Year Header with Navigation
                         HStack {
                             Text(selectedDate.formatted(.dateTime.month(.wide).year()))
-                                .font(TickerTypography.headerMedium)
+                                .cabinetTitle2()
                                 .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                             Image(systemName: "chevron.right")
-                                .font(TickerTypography.bodyLarge)
+                                .cabinetBody()
                                 .foregroundStyle(TickerColors.criticalRed)
 
                             Spacer()
@@ -63,7 +63,7 @@ struct AddAlarmView: View {
                                     }
                                 } label: {
                                     Image(systemName: "chevron.left")
-                                        .font(TickerTypography.bodyLarge)
+                                        .cabinetBody()
                                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                                 }
 
@@ -74,7 +74,7 @@ struct AddAlarmView: View {
                                     }
                                 } label: {
                                     Image(systemName: "chevron.right")
-                                        .font(TickerTypography.bodyLarge)
+                                        .cabinetBody()
                                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                                 }
                             }
@@ -89,7 +89,7 @@ struct AddAlarmView: View {
                         // Time Section
                         VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                             Text("Time")
-                                .font(TickerTypography.labelBold)
+                                .cabinetCaption2()
                                 .textCase(.uppercase)
                                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
@@ -114,9 +114,9 @@ struct AddAlarmView: View {
                             } label: {
                                 HStack(spacing: TickerSpacing.xs) {
                                     Image(systemName: "clock")
-                                        .font(TickerTypography.bodyMedium)
+                                        .cabinetSubheadline()
                                     Text("Date & time")
-                                        .font(TickerTypography.bodyMedium)
+                                        .cabinetSubheadline()
                                 }
                                 .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                                 .padding(.horizontal, TickerSpacing.md)
@@ -143,9 +143,9 @@ struct AddAlarmView: View {
                             } label: {
                                 HStack(spacing: TickerSpacing.xs) {
                                     Image(systemName: repeatOption.icon)
-                                        .font(TickerTypography.bodyMedium)
+                                        .cabinetSubheadline()
                                     Text(repeatOption.rawValue)
-                                        .font(TickerTypography.bodyMedium)
+                                        .cabinetSubheadline()
                                 }
                                 .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                                 .padding(.horizontal, TickerSpacing.md)
@@ -166,7 +166,7 @@ struct AddAlarmView: View {
                                 showingAdvanced.toggle()
                             } label: {
                                 Image(systemName: "slider.horizontal.3")
-                                    .font(TickerTypography.headerSmall)
+                                    .cabinetTitle3()
                                     .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                                     .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
                                     .background(TickerColors.surface(for: colorScheme))
@@ -339,7 +339,7 @@ struct CalendarDayCell: View {
             onTap()
         }) {
             Text(dayNumber)
-                .font(TickerTypography.headerSmall)
+                .cabinetTitle3()
                 .fontWeight(isSelected ? .bold : .regular)
                 .foregroundStyle(isSelected ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
                 .frame(maxWidth: .infinity)
@@ -369,10 +369,10 @@ struct AdvancedOptionsView: View {
             Form {
                 Section {
                     TextField("Alarm name", text: $alarmName)
-                        .font(TickerTypography.bodyLarge)
+                        .cabinetBody()
                 } header: {
                     Text("Name")
-                        .font(TickerTypography.labelBold)
+                        .cabinetCaption2()
                         .textCase(.uppercase)
                 }
 
@@ -382,24 +382,24 @@ struct AdvancedOptionsView: View {
                     } label: {
                         HStack {
                             Text("Sound")
-                                .font(TickerTypography.bodyMedium)
+                                .cabinetSubheadline()
                             Spacer()
                             Text("Default")
-                                .font(TickerTypography.bodySmall)
+                                .cabinetFootnote()
                                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                         }
                     }
 
                     Toggle("Vibrate", isOn: .constant(true))
-                        .font(TickerTypography.bodyMedium)
+                        .cabinetSubheadline()
                 }
 
                 Section {
                     Toggle("Snooze", isOn: .constant(true))
-                        .font(TickerTypography.bodyMedium)
+                        .cabinetSubheadline()
                 } footer: {
                     Text("Allow snoozing when alarm goes off")
-                        .font(TickerTypography.bodySmall)
+                        .cabinetFootnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                 }
             }

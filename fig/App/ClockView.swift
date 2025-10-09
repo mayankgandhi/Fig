@@ -119,7 +119,7 @@ struct ClockView: View {
                     if let time = hourmark.time, let textAngle = hourmark.textAngle {
                         Text("\(time)")
                             .rotationEffect(Angle(degrees: textAngle))
-                            .font(TickerTypography.headerMedium)
+                            .cabinetTitle2()
                             .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                             .offset(y: -radius * 0.7)
                             .rotationEffect(Angle(degrees: hourmark.angle))
@@ -169,7 +169,7 @@ struct ClockView: View {
                                 .font(.system(size: 10, weight: .light, design: .rounded))
                                 .foregroundColor(TickerColors.textPrimary(for: colorScheme))
                             Text(event.city)
-                                .font(TickerTypography.labelSmall)
+                                .cabinetFootnote()
                                 .textCase(.uppercase)
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.5)

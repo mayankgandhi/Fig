@@ -73,13 +73,13 @@ struct TodayClockView: View {
                     VStack(alignment: .leading, spacing: TickerSpacing.md) {
                         HStack {
                             Text("Next 12 Hours")
-                                .font(TickerTypography.headerLarge)
+                                .cabinetTitle()
                                 .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                             Spacer()
 
                             Text("\(upcomingAlarms.count)")
-                                .font(TickerTypography.headerMedium)
+                                .cabinetTitle2()
                                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                         }
                         .padding(.horizontal, TickerSpacing.md)
@@ -92,11 +92,11 @@ struct TodayClockView: View {
                                     .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                                 Text("No upcoming alarms")
-                                    .font(TickerTypography.headerMedium)
+                                    .cabinetTitle2()
                                     .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                                 Text("Alarms scheduled for the next 12 hours will appear here")
-                                    .font(TickerTypography.bodySmall)
+                                    .cabinetFootnote()
                                     .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                                     .multilineTextAlignment(.center)
                                     .padding(.horizontal, TickerSpacing.xxl)
@@ -268,19 +268,19 @@ struct UpcomingAlarmRow: View {
             // Alarm details
             VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                 Text(alarm.displayName)
-                    .font(TickerTypography.headerSmall)
+                    .cabinetTitle3()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 HStack(spacing: TickerSpacing.xs) {
                     Text(nextAlarmTime, style: .time)
-                        .font(TickerTypography.bodyMedium)
+                        .cabinetSubheadline()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                     Text("•")
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                     Text(timeUntilAlarm)
-                        .font(TickerTypography.bodyMedium)
+                        .cabinetSubheadline()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 }
             }

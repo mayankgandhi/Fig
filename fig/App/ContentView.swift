@@ -11,7 +11,6 @@ import WalnutDesignSystem
 
 struct ContentView: View {
 
-    @Environment(AlarmService.self) private var alarmService
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
 
@@ -75,11 +74,11 @@ struct ContentView: View {
             } else {
                 ContentUnavailableView {
                     Text("No Alarms")
-                        .font(TickerTypography.headerLarge)
+                        .cabinetTitle()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } description: {
                     Text("Add a new alarm by tapping + button.")
-                        .font(TickerTypography.bodyLarge)
+                        .cabinetBody()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 } actions: {
                     Button {
@@ -124,8 +123,6 @@ struct ContentView: View {
 }
 
 #Preview {
-    let alarmService = AlarmService()
     return ContentView()
         .modelContainer(for: Ticker.self, inMemory: true)
-        .environment(alarmService)
 }

@@ -48,7 +48,7 @@ struct CategoryHeader: View {
 
             Text(category.name)
                 .textCase(.uppercase)
-                .font(TickerTypography.labelBold)
+                .cabinetCaption2()
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
         }
     }
@@ -83,12 +83,12 @@ struct TemplateRow: View {
                 // Content
                 VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                     Text(template.label)
-                        .font(TickerTypography.bodyLarge)
+                        .cabinetBody()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                     if let schedule = template.schedule {
                         Text(scheduleDescription(schedule))
-                            .font(TickerTypography.bodySmall)
+                            .cabinetFootnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                     }
                 }
@@ -97,7 +97,7 @@ struct TemplateRow: View {
 
                 // Disclosure indicator
                 Image(systemName: "chevron.right")
-                    .font(TickerTypography.bodySmall)
+                    .cabinetFootnote()
                     .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
             }
             .contentShape(Rectangle())
