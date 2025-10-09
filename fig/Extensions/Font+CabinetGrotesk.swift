@@ -11,73 +11,71 @@ extension Font {
 
     // MARK: - Cabinet Grotesk Font Family
 
-    /// Cabinet Grotesk is a variable font that supports dynamic weights
-    /// The font family name for the variable font
-    private static let cabinetGroteskFamily = "Cabinet Grotesk Variable"
+    /// Cabinet Grotesk font family names for individual OTF weights
+    private static let cabinetGroteskThin = "CabinetGrotesk-Thin"
+    private static let cabinetGroteskExtralight = "CabinetGrotesk-Extralight"
+    private static let cabinetGroteskLight = "CabinetGrotesk-Light"
+    private static let cabinetGroteskRegular = "CabinetGrotesk-Regular"
+    private static let cabinetGroteskMedium = "CabinetGrotesk-Medium"
+    private static let cabinetGroteskBold = "CabinetGrotesk-Bold"
+    private static let cabinetGroteskExtrabold = "CabinetGrotesk-Extrabold"
+    private static let cabinetGroteskBlack = "CabinetGrotesk-Black"
 
     // MARK: - Dynamic Type Styles with Cabinet Grotesk
 
     /// Large Title style with Cabinet Grotesk (34pt base, scales with Dynamic Type)
     static var cabinetLargeTitle: Font {
-        .custom(cabinetGroteskFamily, size: 34, relativeTo: .largeTitle)
-        .weight(.black)
+        .custom(cabinetGroteskBlack, size: 34, relativeTo: .largeTitle)
     }
 
     /// Title 1 style with Cabinet Grotesk (28pt base, scales with Dynamic Type)
     static var cabinetTitle: Font {
-        .custom(cabinetGroteskFamily, size: 28, relativeTo: .title)
-        .weight(.bold)
+        .custom(cabinetGroteskBold, size: 28, relativeTo: .title)
     }
 
     /// Title 2 style with Cabinet Grotesk (22pt base, scales with Dynamic Type)
     static var cabinetTitle2: Font {
-        .custom(cabinetGroteskFamily, size: 22, relativeTo: .title2)
-        .weight(.bold)
+        .custom(cabinetGroteskBold, size: 22, relativeTo: .title2)
     }
 
     /// Title 3 style with Cabinet Grotesk (20pt base, scales with Dynamic Type)
     static var cabinetTitle3: Font {
-        .custom(cabinetGroteskFamily, size: 20, relativeTo: .title3)
-        .weight(.semibold)
+        .custom(cabinetGroteskMedium, size: 20, relativeTo: .title3)
     }
 
     /// Headline style with Cabinet Grotesk (17pt base, scales with Dynamic Type)
     static var cabinetHeadline: Font {
-        .custom(cabinetGroteskFamily, size: 17, relativeTo: .headline)
-        .weight(.semibold)
+        .custom(cabinetGroteskMedium, size: 17, relativeTo: .headline)
     }
 
     /// Body style with Cabinet Grotesk (17pt base, scales with Dynamic Type)
     static var cabinetBody: Font {
-        .custom(cabinetGroteskFamily, size: 17, relativeTo: .body)
+        .custom(cabinetGroteskRegular, size: 17, relativeTo: .body)
     }
 
     /// Callout style with Cabinet Grotesk (16pt base, scales with Dynamic Type)
     static var cabinetCallout: Font {
-        .custom(cabinetGroteskFamily, size: 16, relativeTo: .callout)
+        .custom(cabinetGroteskRegular, size: 16, relativeTo: .callout)
     }
 
     /// Subheadline style with Cabinet Grotesk (15pt base, scales with Dynamic Type)
     static var cabinetSubheadline: Font {
-        .custom(cabinetGroteskFamily, size: 15, relativeTo: .subheadline)
-        .weight(.medium)
+        .custom(cabinetGroteskMedium, size: 15, relativeTo: .subheadline)
     }
 
     /// Footnote style with Cabinet Grotesk (13pt base, scales with Dynamic Type)
     static var cabinetFootnote: Font {
-        .custom(cabinetGroteskFamily, size: 13, relativeTo: .footnote)
-        .weight(.medium)
+        .custom(cabinetGroteskMedium, size: 13, relativeTo: .footnote)
     }
 
     /// Caption 1 style with Cabinet Grotesk (12pt base, scales with Dynamic Type)
     static var cabinetCaption: Font {
-        .custom(cabinetGroteskFamily, size: 12, relativeTo: .caption)
-        .weight(.medium)
+        .custom(cabinetGroteskMedium, size: 12, relativeTo: .caption)
     }
 
     /// Caption 2 style with Cabinet Grotesk (11pt base, scales with Dynamic Type)
     static var cabinetCaption2: Font {
-        .custom(cabinetGroteskFamily, size: 11, relativeTo: .caption2)
+        .custom(cabinetGroteskRegular, size: 11, relativeTo: .caption2)
     }
 
     // MARK: - Custom Sizes with Cabinet Grotesk
@@ -85,17 +83,47 @@ extension Font {
     /// Custom size Cabinet Grotesk font with dynamic type support
     /// - Parameters:
     ///   - size: Base font size
+    ///   - weight: Font weight (defaults to regular)
     ///   - relativeTo: Text style to scale relative to for Dynamic Type
     /// - Returns: Custom sized Cabinet Grotesk font
-    static func cabinet(size: CGFloat, relativeTo textStyle: Font.TextStyle = .body) -> Font {
-        .custom(cabinetGroteskFamily, size: size, relativeTo: textStyle)
+    static func cabinet(size: CGFloat, weight: CabinetGroteskWeight = .regular, relativeTo textStyle: Font.TextStyle = .body) -> Font {
+        .custom(weight.fontName, size: size, relativeTo: textStyle)
     }
 
     /// Fixed size Cabinet Grotesk font (does not scale with Dynamic Type)
-    /// - Parameter size: Fixed font size
+    /// - Parameters:
+    ///   - size: Fixed font size
+    ///   - weight: Font weight (defaults to regular)
     /// - Returns: Fixed size Cabinet Grotesk font
-    static func cabinetFixed(size: CGFloat) -> Font {
-        .custom(cabinetGroteskFamily, fixedSize: size)
+    static func cabinetFixed(size: CGFloat, weight: CabinetGroteskWeight = .regular) -> Font {
+        .custom(weight.fontName, fixedSize: size)
+    }
+
+    // MARK: - Weight Helper
+
+    /// Cabinet Grotesk weight options
+    enum CabinetGroteskWeight {
+        case thin
+        case extralight
+        case light
+        case regular
+        case medium
+        case bold
+        case extrabold
+        case black
+
+        var fontName: String {
+            switch self {
+            case .thin: return "CabinetGrotesk-Thin"
+            case .extralight: return "CabinetGrotesk-Extralight"
+            case .light: return "CabinetGrotesk-Light"
+            case .regular: return "CabinetGrotesk-Regular"
+            case .medium: return "CabinetGrotesk-Medium"
+            case .bold: return "CabinetGrotesk-Bold"
+            case .extrabold: return "CabinetGrotesk-Extrabold"
+            case .black: return "CabinetGrotesk-Black"
+            }
+        }
     }
 }
 
@@ -159,13 +187,13 @@ extension View {
     }
 
     /// Apply custom size Cabinet Grotesk font with dynamic type support
-    func cabinet(size: CGFloat, relativeTo textStyle: Font.TextStyle = .body) -> some View {
-        self.font(.cabinet(size: size, relativeTo: textStyle))
+    func cabinet(size: CGFloat, weight: Font.CabinetGroteskWeight = .regular, relativeTo textStyle: Font.TextStyle = .body) -> some View {
+        self.font(.cabinet(size: size, weight: weight, relativeTo: textStyle))
     }
 
     /// Apply fixed size Cabinet Grotesk font (no dynamic type scaling)
-    func cabinetFixed(size: CGFloat) -> some View {
-        self.font(.cabinetFixed(size: size))
+    func cabinetFixed(size: CGFloat, weight: Font.CabinetGroteskWeight = .regular) -> some View {
+        self.font(.cabinetFixed(size: size, weight: weight))
     }
 }
 
@@ -213,15 +241,47 @@ extension View {
 
             Divider()
 
+            Text("Font Weights")
+                .font(.headline)
+                .padding(.top)
+
+            Group {
+                Text("Thin")
+                    .cabinet(size: 20, weight: .thin)
+
+                Text("Extralight")
+                    .cabinet(size: 20, weight: .extralight)
+
+                Text("Light")
+                    .cabinet(size: 20, weight: .light)
+
+                Text("Regular")
+                    .cabinet(size: 20, weight: .regular)
+
+                Text("Medium")
+                    .cabinet(size: 20, weight: .medium)
+
+                Text("Bold")
+                    .cabinet(size: 20, weight: .bold)
+
+                Text("Extrabold")
+                    .cabinet(size: 20, weight: .extrabold)
+
+                Text("Black")
+                    .cabinet(size: 20, weight: .black)
+            }
+
+            Divider()
+
             Group {
                 Text("Custom Size 24pt")
                     .cabinet(size: 24)
 
-                Text("Custom Size 32pt (relative to title)")
-                    .cabinet(size: 32, relativeTo: .title)
+                Text("Custom Size 32pt Bold (relative to title)")
+                    .cabinet(size: 32, weight: .bold, relativeTo: .title)
 
-                Text("Fixed Size 18pt (no scaling)")
-                    .cabinetFixed(size: 18)
+                Text("Fixed Size 18pt Medium (no scaling)")
+                    .cabinetFixed(size: 18, weight: .medium)
             }
         }
         .padding()
