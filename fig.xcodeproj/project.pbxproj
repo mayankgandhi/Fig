@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 55;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -12,7 +12,6 @@
 		0DE68B5006586B79BCD5F652 /* CabinetGrotesk-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 435917DBE046BD256291CA42 /* CabinetGrotesk-Bold.otf */; };
 		0ECDE744DED25E6CE4DEDADB /* TimerConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */; };
 		0F0451CC0BA4579FAAA98143 /* StopIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F8F4849184746F46BC4D6 /* StopIntent.swift */; };
-		0FA05A20CF48C1C65A749DD5 /* AlarmState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A989BFAE5952580D189947B7 /* AlarmState.swift */; };
 		13450FD74A78F8AC05843A81 /* OpenAlarmAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */; };
 		15EEE9C931BDE3270EC82851 /* CabinetGrotesk-Extrabold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3ADA2A6A9D58B1803DC3864A /* CabinetGrotesk-Extrabold.otf */; };
 		181A88713B6BB7BE4AB3AA65 /* TickerDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36BE6F3D3858AA0AB407ABD0 /* TickerDesignSystem.swift */; };
@@ -174,7 +173,7 @@
 		2C9D8CAED4F0EF662CBB8D75 /* TuistFonts+Fig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistFonts+Fig.swift"; sourceTree = "<group>"; };
 		3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseIntent.swift; sourceTree = "<group>"; };
 		319190156414A5841EA8398A /* figTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figTests.swift; sourceTree = "<group>"; };
-		347A310C2C1C4740678168EB /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		347A310C2C1C4740678168EB /* AppIcon.icon */ = {isa = PBXFileReference; path = AppIcon.icon; sourceTree = "<group>"; };
 		367C8CC5D5A5B19456CE0424 /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		36BE6F3D3858AA0AB407ABD0 /* TickerDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDesignSystem.swift; sourceTree = "<group>"; };
 		3ADA2A6A9D58B1803DC3864A /* CabinetGrotesk-Extrabold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Extrabold.otf"; sourceTree = "<group>"; };
@@ -204,7 +203,6 @@
 		A4204F0AC1A3171771BF51C8 /* AlarmSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSyncCoordinator.swift; sourceTree = "<group>"; };
 		A6DF9ABECE20FE882137D936 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		A6E69580B241822C037A795E /* figTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = figTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		A989BFAE5952580D189947B7 /* AlarmState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmState.swift; sourceTree = "<group>"; };
 		AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAllDataView.swift; sourceTree = "<group>"; };
 		AFE2039256D6A7516EFF1725 /* figUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		B4642AFB704F6FDBC4AE0C63 /* AlarmItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmItem.swift; sourceTree = "<group>"; };
@@ -265,7 +263,6 @@
 			children = (
 				26E623500F694DE819AE086E /* AlarmConfigurationBuilder.swift */,
 				50EFC6CD879FBFE35D76A6F1 /* AlarmService.swift */,
-				A989BFAE5952580D189947B7 /* AlarmState.swift */,
 				84262CCA4F1F2BA7C15293E6 /* AlarmStateManager.swift */,
 				A4204F0AC1A3171771BF51C8 /* AlarmSyncCoordinator.swift */,
 			);
@@ -755,7 +752,6 @@
 				8A1E26BD84627E2978128EA1 /* TemplateCategory.swift in Sources */,
 				7ADA0CB3AEB3525BBAB38B73 /* AlarmConfigurationBuilder.swift in Sources */,
 				C498E7D5CE723A52F130615C /* AlarmService.swift in Sources */,
-				0FA05A20CF48C1C65A749DD5 /* AlarmState.swift in Sources */,
 				C3C2F6D4CB36C0350317B65A /* AlarmStateManager.swift in Sources */,
 				2D55E9BF030501DDE08EF3F1 /* AlarmSyncCoordinator.swift in Sources */,
 				7C948883BD4E76ADE9A6BD20 /* AboutSheet.swift in Sources */,
@@ -988,7 +984,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
+					"$(inherited)",
+					DEBUG,
+				);
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1019,7 +1018,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
+					"$(inherited)",
+					DEBUG,
+				);
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1048,7 +1050,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
+					"$(inherited)",
+					DEBUG,
+				);
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1136,7 +1141,10 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
+					"$(inherited)",
+					DEBUG,
+				);
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;

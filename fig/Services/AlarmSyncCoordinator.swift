@@ -61,13 +61,25 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
         // 3. Update local AlarmService state with valid alarms only
         for alarm in alarmsToKeep {
             // Look up metadata from SwiftData
-            let metadata = allItems.first { $0.id == alarm.id }
-            let label = metadata?.label ?? "Alarm"
+            let ticker = allItems.first { $0.id == alarm.id }
+
+            // If we have a ticker, use it; otherwise create a minimal one
+            let tickerToUse: Ticker
+            if let existingTicker = ticker {
+                tickerToUse = existingTicker
+            } else {
+                tickerToUse = Ticker(
+                    id: alarm.id,
+                    label: "Alarm",
+                    isEnabled: true
+                )
+                tickerToUse.alarmKitID = alarm.id
+            }
 
             // Update local state
-            await stateManager.updateState(from: alarm, label: LocalizedStringResource(stringLiteral: label))
+            await stateManager.updateState(from: alarm, ticker: tickerToUse)
 
-            print("✅ Loaded alarm: \(label)")
+            print("✅ Loaded alarm: \(tickerToUse.label)")
         }
 
         // 4. Ensure SwiftData entries exist for all AlarmKit alarms

@@ -157,30 +157,20 @@ struct AlarmCell: View {
     }
 
     var tagLabel: String {
-        // Get current state from AlarmService
-        if let alarmState = alarmService.getAlarmState(id: alarmItem.id) {
-            switch alarmState.state {
-            case .scheduled: return "Scheduled"
-            case .countdown: return "Running"
-            case .paused: return "Paused"
-            case .alerting: return "Alert"
-            }
+        // If alarm is in service, it's active
+        if alarmService.getTicker(id: alarmItem.id) != nil {
+            return "Active"
         }
-        // If no state in AlarmService, show based on isEnabled
+        // If not in service, show based on isEnabled
         return alarmItem.isEnabled ? "Scheduled" : "Disabled"
     }
 
     var tagColor: Color {
-        // Get current state from AlarmService
-        if let alarmState = alarmService.getAlarmState(id: alarmItem.id) {
-            switch alarmState.state {
-            case .scheduled: return TickerColors.scheduled
-            case .countdown: return TickerColors.running
-            case .paused: return TickerColors.paused
-            case .alerting: return TickerColors.alertActive
-            }
+        // If alarm is in service, it's active (scheduled color)
+        if alarmService.getTicker(id: alarmItem.id) != nil {
+            return TickerColors.scheduled
         }
-        // If no state in AlarmService
+        // If not in service
         return alarmItem.isEnabled ? TickerColors.scheduled : TickerColors.disabled
     }
 }

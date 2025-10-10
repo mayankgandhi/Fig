@@ -13,15 +13,14 @@ struct ContentView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(AlarmService.self) private var alarmService
 
     @State private var showAddSheet = false
     @State private var showTemplates: Bool = false
 
-    // Fetch alarms from AlarmKit (via AlarmService) and enrich with SwiftData metadata
-    private var displayAlarms: [(state: AlarmState, metadata: Ticker?)] {
-        alarmService.getAlarmsWithMetadata(context: modelContext)
-    }
-
+    // Fetch alarms from AlarmKit (via AlarmService)
+    private var displayAlarms: [Ticker] = []
+    
     var body: some View {
         NavigationStack {
             content
@@ -96,18 +95,8 @@ struct ContentView: View {
 
     var alarmList: some View {
         List {
-            ForEach(displayAlarms, id: \.state.id) { item in
-                // Use metadata if available, otherwise create minimal Ticker for display
-                if let metadata = item.metadata {
-                    AlarmCell(alarmItem: metadata)
-                } else {
-                    // Orphaned alarm (exists in AlarmKit but not SwiftData)
-                    AlarmCell(alarmItem: Ticker(
-                        id: item.state.id,
-                        label: String(localized: item.state.label),
-                        isEnabled: true
-                    ))
-                }
+            ForEach(displayAlarms, id: \.id) { ticker in
+                AlarmCell(alarmItem: ticker)
             }
             .onDelete(perform: deleteAlarms)
         }
@@ -117,7 +106,7 @@ struct ContentView: View {
         offsets.forEach { index in
             let alarmToDelete = displayAlarms[index]
             TickerHaptics.warning()
-            try? alarmService.cancelAlarm(id: alarmToDelete.state.id, context: modelContext)
+            try? alarmService.cancelAlarm(id: alarmToDelete.id, context: modelContext)
         }
     }
 }

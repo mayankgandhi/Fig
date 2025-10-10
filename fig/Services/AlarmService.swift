@@ -42,7 +42,7 @@ enum AlarmServiceError: LocalizedError {
 // MARK: - AlarmService Protocol
 
 protocol AlarmServiceProtocol: Observable {
-    var alarms: [UUID: AlarmState] { get }
+    var alarms: [UUID: Ticker] { get }
     var authorizationStatus: AlarmAuthorizationStatus { get }
 
     func requestAuthorization() async throws -> AlarmAuthorizationStatus
@@ -54,8 +54,8 @@ protocol AlarmServiceProtocol: Observable {
     func stopAlarm(id: UUID) throws
     func repeatCountdown(id: UUID) throws
     func fetchAllAlarms() throws
-    func getAlarmState(id: UUID) -> AlarmState?
-    func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: Ticker?)]
+    func getTicker(id: UUID) -> Ticker?
+    func getAlarmsWithMetadata(context: ModelContext) -> [Ticker]
     func synchronizeAlarmsOnLaunch(context: ModelContext) async
 }
 
@@ -85,7 +85,7 @@ final class AlarmService: AlarmServiceProtocol {
     typealias AlarmConfiguration = AlarmManager.AlarmConfiguration<TickerData>
 
     // Public state (delegated to state manager)
-    var alarms: [UUID: AlarmState] {
+    var alarms: [UUID: Ticker] {
         stateManager.alarms
     }
 
@@ -169,7 +169,7 @@ final class AlarmService: AlarmServiceProtocol {
             try context.save()
 
             // 6. Update local state
-            await stateManager.updateState(from: alarm, label: LocalizedStringResource(stringLiteral: alarmItem.label))
+            await stateManager.updateState(from: alarm, ticker: alarmItem)
 
         } catch let error as AlarmServiceError {
             throw error
@@ -209,7 +209,7 @@ final class AlarmService: AlarmServiceProtocol {
                 alarmItem.alarmKitID = alarm.id
                 try context.save()
 
-                await stateManager.updateState(from: alarm, label: LocalizedStringResource(stringLiteral: alarmItem.label))
+                await stateManager.updateState(from: alarm, ticker: alarmItem)
             } catch {
                 throw AlarmServiceError.schedulingFailed(underlying: error)
             }
@@ -285,27 +285,16 @@ final class AlarmService: AlarmServiceProtocol {
         }
     }
 
-    func getAlarmState(id: UUID) -> AlarmState? {
+    func getTicker(id: UUID) -> Ticker? {
         stateManager.getState(id: id)
     }
 
-    func getAlarmsWithMetadata(context: ModelContext) -> [(state: AlarmState, metadata: Ticker?)] {
-        // Get all alarms from AlarmKit (source of truth)
-        let alarmStates = Array(alarms.values)
+    func getAlarmsWithMetadata(context: ModelContext) -> [Ticker] {
+        // Get all tickers from state manager
+        let tickers = Array(alarms.values)
 
-        // Fetch all Tickers once
-        let allItemsDescriptor = FetchDescriptor<Ticker>()
-        let allItems = (try? context.fetch(allItemsDescriptor)) ?? []
-
-        // Create a lookup dictionary for fast access
-        let itemsById = Dictionary(uniqueKeysWithValues: allItems.map { ($0.id, $0) })
-
-        // Map each alarm to its SwiftData metadata
-        return alarmStates.map { alarmState in
-            let metadata = itemsById[alarmState.id]
-            return (state: alarmState, metadata: metadata)
-        }
-        .sorted { $0.metadata?.createdAt ?? Date.distantPast > $1.metadata?.createdAt ?? Date.distantPast }
+        // Sort by creation date
+        return tickers.sorted { $0.createdAt > $1.createdAt }
     }
 
     // MARK: - Synchronization
