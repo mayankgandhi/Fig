@@ -1,5 +1,5 @@
 //
-//  AddAlarmView.swift
+//  AddTickerView.swift
 //  fig
 //
 //  Created by Mayank Gandhi on 09/10/25.
@@ -8,19 +8,30 @@
 import SwiftUI
 import SwiftData
 
-struct AddAlarmView: View {
+struct AddTickerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(AlarmService.self) private var alarmService
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var selectedDate = Date()
-    @State private var alarmName = ""
+    @State private var tickerLabel = ""
+    @State private var tickerNotes: String?
     @State private var repeatOption: RepeatOption = .noRepeat
     @State private var showingAdvanced = false
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showingError = false
+
+    // Countdown options
+    @State private var enableCountdown = false
+    @State private var countdownHours = 0
+    @State private var countdownMinutes = 5
+    @State private var countdownSeconds = 0
+
+    // Presentation options
+    @State private var tintColorHex: String?
+    @State private var secondaryButtonType: TickerPresentation.SecondaryButtonType = .none
 
     enum RepeatOption: String, CaseIterable {
         case noRepeat = "No repeat"
@@ -176,7 +187,7 @@ struct AddAlarmView: View {
                             // Done Button
                             Button {
                                 Task {
-                                    await saveAlarm()
+                                    await saveTicker()
                                 }
                             } label: {
                                 HStack {
@@ -204,7 +215,16 @@ struct AddAlarmView: View {
                 }
             }
             .sheet(isPresented: $showingAdvanced) {
-                AdvancedOptionsView(alarmName: $alarmName)
+                AdvancedOptionsView(
+                    tickerLabel: $tickerLabel,
+                    tickerNotes: $tickerNotes,
+                    enableCountdown: $enableCountdown,
+                    countdownHours: $countdownHours,
+                    countdownMinutes: $countdownMinutes,
+                    countdownSeconds: $countdownSeconds,
+                    tintColorHex: $tintColorHex,
+                    secondaryButtonType: $secondaryButtonType
+                )
             }
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) { }
@@ -216,7 +236,7 @@ struct AddAlarmView: View {
         }
     }
 
-    private func saveAlarm() async {
+    private func saveTicker() async {
         guard !isSaving else { return }
 
         isSaving = true
@@ -225,6 +245,7 @@ struct AddAlarmView: View {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.hour, .minute], from: selectedDate)
 
+        // Build schedule
         let schedule: TickerSchedule
         if repeatOption == .daily {
             schedule = .daily(time: TickerSchedule.TimeOfDay(
@@ -235,15 +256,39 @@ struct AddAlarmView: View {
             schedule = .oneTime(date: selectedDate)
         }
 
-        let alarm = Ticker(
-            label: alarmName.isEmpty ? "Alarm" : alarmName,
+        // Build countdown (if enabled)
+        let countdown: TickerCountdown?
+        if enableCountdown {
+            let duration = TickerCountdown.CountdownDuration(
+                hours: countdownHours,
+                minutes: countdownMinutes,
+                seconds: countdownSeconds
+            )
+            countdown = TickerCountdown(preAlert: duration, postAlert: nil)
+        } else {
+            countdown = nil
+        }
+
+        // Build presentation
+        let presentation = TickerPresentation(
+            tintColorHex: tintColorHex,
+            secondaryButtonType: secondaryButtonType
+        )
+
+        // Build Ticker
+        let ticker = Ticker(
+            label: tickerLabel.isEmpty ? "Ticker" : tickerLabel,
             isEnabled: true,
-            schedule: schedule
+            notes: tickerNotes,
+            schedule: schedule,
+            countdown: countdown,
+            presentation: presentation,
+            tickerData: nil
         )
 
         do {
-            // Use AlarmService to schedule the alarm
-            try await alarmService.scheduleAlarm(from: alarm, context: modelContext)
+            // Use AlarmService to schedule the ticker
+            try await alarmService.scheduleAlarm(from: ticker, context: modelContext)
             TickerHaptics.success()
             dismiss()
         } catch {
@@ -362,13 +407,22 @@ struct CalendarDayCell: View {
 struct AdvancedOptionsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    @Binding var alarmName: String
+
+    @Binding var tickerLabel: String
+    @Binding var tickerNotes: String?
+    @Binding var enableCountdown: Bool
+    @Binding var countdownHours: Int
+    @Binding var countdownMinutes: Int
+    @Binding var countdownSeconds: Int
+    @Binding var tintColorHex: String?
+    @Binding var secondaryButtonType: TickerPresentation.SecondaryButtonType
 
     var body: some View {
         NavigationStack {
             Form {
+                // Name Section
                 Section {
-                    TextField("Alarm name", text: $alarmName)
+                    TextField("Ticker name", text: $tickerLabel)
                         .cabinetBody()
                 } header: {
                     Text("Name")
@@ -376,6 +430,75 @@ struct AdvancedOptionsView: View {
                         .textCase(.uppercase)
                 }
 
+                // Notes Section
+                Section {
+                    TextEditor(text: Binding(
+                        get: { tickerNotes ?? "" },
+                        set: { tickerNotes = $0.isEmpty ? nil : $0 }
+                    ))
+                    .cabinetBody()
+                    .frame(minHeight: 80)
+                } header: {
+                    Text("Notes")
+                        .cabinetCaption2()
+                        .textCase(.uppercase)
+                }
+
+                // Countdown Section
+                Section {
+                    Toggle("Enable Countdown", isOn: $enableCountdown)
+                        .cabinetSubheadline()
+
+                    if enableCountdown {
+                        HStack {
+                            Picker("Hours", selection: $countdownHours) {
+                                ForEach(0..<24) { hour in
+                                    Text("\(hour)h").tag(hour)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+
+                            Picker("Minutes", selection: $countdownMinutes) {
+                                ForEach(0..<60) { minute in
+                                    Text("\(minute)m").tag(minute)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+
+                            Picker("Seconds", selection: $countdownSeconds) {
+                                ForEach(0..<60) { second in
+                                    Text("\(second)s").tag(second)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                        }
+                        .frame(height: 120)
+                    }
+                } header: {
+                    Text("Countdown Timer")
+                        .cabinetCaption2()
+                        .textCase(.uppercase)
+                } footer: {
+                    Text("Start a countdown before the alarm goes off")
+                        .cabinetFootnote()
+                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                }
+
+                // Presentation Section
+                Section {
+                    Picker("Secondary Button", selection: $secondaryButtonType) {
+                        Text("None").tag(TickerPresentation.SecondaryButtonType.none)
+                        Text("Countdown").tag(TickerPresentation.SecondaryButtonType.countdown)
+                        Text("Open App").tag(TickerPresentation.SecondaryButtonType.openApp)
+                    }
+                    .cabinetSubheadline()
+                } header: {
+                    Text("Alert Options")
+                        .cabinetCaption2()
+                        .textCase(.uppercase)
+                }
+
+                // Sound & Vibration Section
                 Section {
                     NavigationLink {
                         Text("Sound picker")
@@ -394,6 +517,7 @@ struct AdvancedOptionsView: View {
                         .cabinetSubheadline()
                 }
 
+                // Snooze Section
                 Section {
                     Toggle("Snooze", isOn: .constant(true))
                         .cabinetSubheadline()
@@ -418,10 +542,19 @@ struct AdvancedOptionsView: View {
 }
 
 #Preview {
-    AddAlarmView()
+    AddTickerView()
         .modelContainer(for: [Ticker.self])
 }
 
 #Preview("Advanced Options") {
-    AdvancedOptionsView(alarmName: .constant("Wake Up"))
+    AdvancedOptionsView(
+        tickerLabel: .constant("Wake Up"),
+        tickerNotes: .constant("Morning alarm"),
+        enableCountdown: .constant(false),
+        countdownHours: .constant(0),
+        countdownMinutes: .constant(5),
+        countdownSeconds: .constant(0),
+        tintColorHex: .constant(nil),
+        secondaryButtonType: .constant(.none)
+    )
 }

@@ -60,7 +60,6 @@
 		B4F67619465FB19364281F7D /* AlarmLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0446BD41A68E48CC40E4DA49 /* AlarmLiveActivityBundle.swift */; };
 		BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEC2A879826EEBE8656E231 /* AlarmCell.swift */; };
 		C1DD9C0DBD2C2C7BFD05301A /* TickerDesignSystemPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6398EAEB39219B04DBC3923A /* TickerDesignSystemPreviews.swift */; };
-		C27553C8B3DB731B26477736 /* AddAlarmView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81DEFDA4EF42182CDED6CD0E /* AddAlarmView.swift */; };
 		C2D0E7A2FE870F39E8B92AD5 /* StartTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */; };
 		C3C2F6D4CB36C0350317B65A /* AlarmStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84262CCA4F1F2BA7C15293E6 /* AlarmStateManager.swift */; };
 		C3EE35C5851A3F5F6531CCAD /* DeleteAllDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */; };
@@ -70,6 +69,7 @@
 		DA074603D8C71957CD6ABB72 /* CabinetGrotesk-Extralight.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4736CE5D2CA3E91A39453375 /* CabinetGrotesk-Extralight.otf */; };
 		DB124E57D4C8824473C80A0A /* alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A7969B4F297ABA148F6928 /* alarm.swift */; };
 		DBE282BA5FE50B46D2363B6A /* ConfigurationAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */; };
+		E01A27428F40E88C5C7DE71F /* AddTickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587D0194C8F07CF8EC300A70 /* AddTickerView.swift */; };
 		E47DFDFB17FC5653F2C003D8 /* CabinetGrotesk-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0D41124DD433A70170250E5B /* CabinetGrotesk-Thin.otf */; };
 		E7ABF7D158BD97A18E047C0D /* CabinetGrotesk-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1DE20B033C15E2B201DC6705 /* CabinetGrotesk-Black.otf */; };
 		F06305927069972E3B6181F8 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367C8CC5D5A5B19456CE0424 /* AppView.swift */; };
@@ -185,13 +185,13 @@
 		4FD3E80B49FDC6E4C1AD99BC /* alarmControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarmControl.swift; sourceTree = "<group>"; };
 		50904A8D0E5D91EDC4432E09 /* CabinetGrotesk-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Medium.otf"; sourceTree = "<group>"; };
 		50EFC6CD879FBFE35D76A6F1 /* AlarmService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmService.swift; sourceTree = "<group>"; };
+		587D0194C8F07CF8EC300A70 /* AddTickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTickerView.swift; sourceTree = "<group>"; };
 		5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatIntent.swift; sourceTree = "<group>"; };
 		6398EAEB39219B04DBC3923A /* TickerDesignSystemPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDesignSystemPreviews.swift; sourceTree = "<group>"; };
 		6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WalnutDesignSystem.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		6913D397C7DEC3B1C61866FD /* figUITests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "figUITests-Info.plist"; sourceTree = "<group>"; };
 		7B5C6A80A2970206B46A4C82 /* AboutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSheet.swift; sourceTree = "<group>"; };
 		810B9E25B2ECEC713A4256E6 /* figApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figApp.swift; sourceTree = "<group>"; };
-		81DEFDA4EF42182CDED6CD0E /* AddAlarmView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddAlarmView.swift; sourceTree = "<group>"; };
 		84262CCA4F1F2BA7C15293E6 /* AlarmStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmStateManager.swift; sourceTree = "<group>"; };
 		85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartTimerIntent.swift; sourceTree = "<group>"; };
 		87DD47A739D2F84FC64EB2BB /* TemplateCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCategory.swift; sourceTree = "<group>"; };
@@ -437,7 +437,7 @@
 		CC3F06E4CD70F412077AEB7D /* App */ = {
 			isa = PBXGroup;
 			children = (
-				81DEFDA4EF42182CDED6CD0E /* AddAlarmView.swift */,
+				587D0194C8F07CF8EC300A70 /* AddTickerView.swift */,
 				367C8CC5D5A5B19456CE0424 /* AppView.swift */,
 				1A5264B901040CA6F1EC1FAD /* ClockView.swift */,
 				01598E9F3022D964F45BA82A /* ContentView.swift */,
@@ -729,7 +729,7 @@
 				D8A23A056BF8C1C09B34B400 /* TuistFonts+Fig.swift in Sources */,
 				7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */,
 				BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */,
-				C27553C8B3DB731B26477736 /* AddAlarmView.swift in Sources */,
+				E01A27428F40E88C5C7DE71F /* AddTickerView.swift in Sources */,
 				F06305927069972E3B6181F8 /* AppView.swift in Sources */,
 				591D6326755CC012AB440AFC /* ClockView.swift in Sources */,
 				AC348F1BACF4EB1CB6F25DBC /* ContentView.swift in Sources */,

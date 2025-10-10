@@ -42,7 +42,7 @@ struct ContentView: View {
         .sheet(isPresented: $showAddSheet, onDismiss: {
             showAddSheet = false
         }) {
-            AddAlarmView()
+            AddTickerView()
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
         }
