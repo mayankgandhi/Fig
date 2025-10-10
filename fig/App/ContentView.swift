@@ -17,6 +17,7 @@ struct ContentView: View {
 
     @State private var showAddSheet = false
     @State private var showTemplates: Bool = false
+    @Namespace private var addButtonNamespace
 
     // Fetch alarms from AlarmKit (via AlarmService)
     private var displayAlarms: [Ticker] = []
@@ -42,10 +43,11 @@ struct ContentView: View {
         .sheet(isPresented: $showAddSheet, onDismiss: {
             showAddSheet = false
         }) {
-            AddTickerView()
+            AddTickerView(namespace: addButtonNamespace)
                 .presentationDetents([.height(620)])
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
+                .presentationBackground(.ultraThinMaterial)
         }
         .sheet(isPresented: $showTemplates, onDismiss: {
             showTemplates = false
@@ -64,6 +66,7 @@ struct ContentView: View {
         } label: {
             Image(systemName: "plus")
         }
+        .matchedTransitionSource(id: "addButton", in: addButtonNamespace)
     }
 
     @ViewBuilder

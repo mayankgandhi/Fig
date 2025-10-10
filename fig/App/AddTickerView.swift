@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftData
 
 struct AddTickerView: View {
+    let namespace: Namespace.ID
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(AlarmService.self) private var alarmService
@@ -143,11 +145,8 @@ struct AddTickerView: View {
 
                     Spacer(minLength: 0)
                 }
-                .background(TickerColors.background(for: colorScheme))
-
-                // Bottom Action Bar
-                bottomActionBar
             }
+            .background(.ultraThinMaterial)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -155,7 +154,27 @@ struct AddTickerView: View {
                         dismiss()
                     }
                 }
+
+                ToolbarItem(placement: .confirmationAction) {
+                    Button {
+                        Task {
+                            await saveTicker()
+                        }
+                    } label: {
+                        HStack(spacing: TickerSpacing.xxs) {
+                            if isSaving {
+                                ProgressView()
+                                    .tint(TickerColors.primary)
+                                    .scaleEffect(0.8)
+                            }
+                            Text(isSaving ? "Saving..." : "Done")
+                                .cabinetSubheadline()
+                        }
+                    }
+                    .disabled(isSaving)
+                }
             }
+            .toolbarBackground(.hidden, for: .navigationBar)
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -169,6 +188,7 @@ struct AddTickerView: View {
                 updateSmartDate()
             }
         }
+        .navigationTransition(.zoom(sourceID: "addButton", in: namespace))
         .overlay(alignment: .topTrailing) {
             // Repeat Menu Overlay
             Menu {
@@ -256,7 +276,9 @@ struct AddTickerView: View {
     }
 
     private func pillButtonContent(icon: String, title: String, isActive: Bool) -> some View {
-        HStack(spacing: TickerSpacing.xxs) {
+        let hasValue = hasSelectedValue(for: icon, title: title)
+
+        return HStack(spacing: TickerSpacing.xxs) {
             Image(systemName: icon)
                 .font(.system(size: 12))
             Text(title)
@@ -267,7 +289,30 @@ struct AddTickerView: View {
         .padding(.horizontal, TickerSpacing.sm)
         .padding(.vertical, TickerSpacing.xs)
         .background(isActive ? TickerColors.primary : TickerColors.surface(for: colorScheme))
+        .overlay(
+            Capsule()
+                .strokeBorder(hasValue ? TickerColors.primary.opacity(0.5) : Color.clear, lineWidth: 1.5)
+        )
         .clipShape(Capsule())
+    }
+
+    private func hasSelectedValue(for icon: String, title: String) -> Bool {
+        switch icon {
+        case "calendar":
+            return !Calendar.current.isDateInToday(selectedDate)
+        case "tag":
+            return !tickerLabel.isEmpty
+        case "note.text":
+            return tickerNotes != nil && !tickerNotes!.isEmpty
+        case "timer":
+            return enableCountdown
+        case "bell.badge":
+            return enableSnooze
+        case "iphone.radiowaves.left.and.right":
+            return enableVibrate
+        default:
+            return false
+        }
     }
 
     // MARK: - Expanded Content View
@@ -358,32 +403,6 @@ struct AddTickerView: View {
                 expandedField = field
             }
         }
-    }
-
-    // MARK: - Bottom Action Bar
-
-    private var bottomActionBar: some View {
-        Button {
-            Task {
-                await saveTicker()
-            }
-        } label: {
-            HStack {
-                if isSaving {
-                    ProgressView()
-                        .tint(TickerColors.absoluteWhite)
-                }
-                Text(isSaving ? "Saving..." : "Set Alarm")
-            }
-        }
-        .tickerPrimaryButton()
-        .disabled(isSaving)
-        .padding(.horizontal, TickerSpacing.md)
-        .padding(.vertical, TickerSpacing.sm)
-        .background(
-            TickerColors.background(for: colorScheme)
-                .shadow(color: Color.black.opacity(0.1), radius: 10, y: -5)
-        )
     }
 
     // MARK: - Smart Date Logic
@@ -667,6 +686,7 @@ struct FlowLayout: Layout {
 }
 
 #Preview {
-    AddTickerView()
+    @Previewable @Namespace var namespace
+    AddTickerView(namespace: namespace)
         .modelContainer(for: [Ticker.self])
 }

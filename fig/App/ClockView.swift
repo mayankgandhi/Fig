@@ -184,7 +184,7 @@ struct ClockView: View {
                         )
 
                     }
-                    .offset(x:0, y: handLength/2)
+                    .offset(y: -handLength * 0.37)
                     .rotationEffect(Angle(degrees: event.angle))
                 }
 
