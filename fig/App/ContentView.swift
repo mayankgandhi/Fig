@@ -20,7 +20,9 @@ struct ContentView: View {
     @Namespace private var addButtonNamespace
 
     // Fetch alarms from AlarmKit (via AlarmService)
-    private var displayAlarms: [Ticker] = []
+    private var displayAlarms: [Ticker] {
+        alarmService.getAlarmsWithMetadata(context: modelContext)
+    }
     
     var body: some View {
         NavigationStack {

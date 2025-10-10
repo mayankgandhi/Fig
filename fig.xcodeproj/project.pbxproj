@@ -22,10 +22,12 @@
 		34B12B1B0404464594236966 /* figUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE2039256D6A7516EFF1725 /* figUITestsLaunchTests.swift */; };
 		37EC0012716CC915F4E3BCB8 /* TuistAssets+Fig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04360EDA2F7F6A6B0500A39D /* TuistAssets+Fig.swift */; };
 		38E699A155E43050F9FAA40B /* StartTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */; };
+		3C0A2B586F3574490F0D1A66 /* UpcomingAlarmRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF49B4A5608FC40E550E8929 /* UpcomingAlarmRow.swift */; };
 		3F0F0B2BE9960E90F7667281 /* WalnutDesignSystem.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		421137852596A8641935DB88 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */; };
 		4E30C36BB625FB416CA3A141 /* CabinetGrotesk-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9229A3BFE3654C114C59D280 /* CabinetGrotesk-Light.otf */; };
 		4E5A7725991AC87508684F87 /* CabinetGrotesk-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0A0FBDB7ED85B994C89519FF /* CabinetGrotesk-Regular.otf */; };
+		5262EBB1626D6B0E44F46052 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB8F047C0EB0D58ADCE86B7 /* TodayViewModel.swift */; };
 		56945AD493359CE95E20E424 /* TuistAssets+Alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */; };
 		56A1DA96A53548851EBE69A1 /* StopIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F8F4849184746F46BC4D6 /* StopIntent.swift */; };
 		5731B66B61452F1AEA4CB6DE /* ConfigurationAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */; };
@@ -204,6 +206,7 @@
 		A6DF9ABECE20FE882137D936 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		A6E69580B241822C037A795E /* figTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = figTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAllDataView.swift; sourceTree = "<group>"; };
+		AEB8F047C0EB0D58ADCE86B7 /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
 		AFE2039256D6A7516EFF1725 /* figUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		B4642AFB704F6FDBC4AE0C63 /* AlarmItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmItem.swift; sourceTree = "<group>"; };
 		B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+Alarm.swift"; sourceTree = "<group>"; };
@@ -212,6 +215,7 @@
 		CAC0C58D115112CDD8052BFC /* AlarmLiveActivity 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AlarmLiveActivity 2.swift"; sourceTree = "<group>"; };
 		CDB0E58D4215AB2EAEFDB33C /* figTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "figTests-Info.plist"; sourceTree = "<group>"; };
 		CDC48BC4132C2E66AFDDE9E8 /* figUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figUITests.swift; sourceTree = "<group>"; };
+		CF49B4A5608FC40E550E8929 /* UpcomingAlarmRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingAlarmRow.swift; sourceTree = "<group>"; };
 		CFEC2A879826EEBE8656E231 /* AlarmCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmCell.swift; sourceTree = "<group>"; };
 		D63B13EB0D3B5C1FE4ABE20F /* ResumeIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeIntent.swift; sourceTree = "<group>"; };
 		DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesView.swift; sourceTree = "<group>"; };
@@ -444,6 +448,8 @@
 				810B9E25B2ECEC713A4256E6 /* figApp.swift */,
 				DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */,
 				E16F93A499B517360B7FDA1E /* TodayClockView.swift */,
+				AEB8F047C0EB0D58ADCE86B7 /* TodayViewModel.swift */,
+				CF49B4A5608FC40E550E8929 /* UpcomingAlarmRow.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -735,6 +741,8 @@
 				AC348F1BACF4EB1CB6F25DBC /* ContentView.swift in Sources */,
 				0577043153072121D761C245 /* TemplatesView.swift in Sources */,
 				667102853DAB536757F1D768 /* TodayClockView.swift in Sources */,
+				5262EBB1626D6B0E44F46052 /* TodayViewModel.swift in Sources */,
+				3C0A2B586F3574490F0D1A66 /* UpcomingAlarmRow.swift in Sources */,
 				5B9759240C6176799171A0D6 /* figApp.swift in Sources */,
 				C2D0E7A2FE870F39E8B92AD5 /* StartTimerIntent.swift in Sources */,
 				7EF057A6C000AB61987DA80D /* TimerConfiguration.swift in Sources */,

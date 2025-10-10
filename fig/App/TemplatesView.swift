@@ -15,24 +15,52 @@ struct TemplatesView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(categories) { category in
-                    Section {
-                        ForEach(category.templates) { template in
-                            TemplateRow(
-                                template: template,
-                                categoryName: category.name,
-                                categoryIcon: category.icon,
-                                categoryColor: category.colorHex
-                            )
+            Group {
+                if categories.isEmpty {
+                    ContentUnavailableView {
+                        Label("No Templates", systemImage: "doc.text.fill")
+                            .cabinetTitle()
+                            .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    } description: {
+                        Text("Templates will appear here once loaded")
+                            .cabinetBody()
+                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                    } actions: {
+                        Button {
+                            TemplateDataSeeder.seedTemplatesIfNeeded(modelContext: modelContext)
+                        } label: {
+                            Text("Reload Templates")
+                                .cabinetSubheadline()
                         }
-                    } header: {
-                        CategoryHeader(category: category)
+                        .buttonStyle(.bordered)
                     }
+                } else {
+                    List {
+                        ForEach(categories) { category in
+                            Section {
+                                if category.templates.isEmpty {
+                                    Text("No templates in this category")
+                                        .cabinetBody()
+                                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                                } else {
+                                    ForEach(category.templates) { template in
+                                        TemplateRow(
+                                            template: template,
+                                            categoryName: category.name,
+                                            categoryIcon: category.icon,
+                                            categoryColor: category.colorHex
+                                        )
+                                    }
+                                }
+                            } header: {
+                                CategoryHeader(category: category)
+                            }
+                        }
+                    }
+                    .listStyle(.insetGrouped)
+                    .scrollContentBackground(.hidden)
                 }
             }
-            .listStyle(.insetGrouped)
-            .scrollContentBackground(.hidden)
             .background(
                 ZStack {
                     TickerColors.liquidGlassGradient(for: colorScheme)
@@ -41,11 +69,30 @@ struct TemplatesView: View {
                     // Subtle overlay for glass effect
                     Rectangle()
                         .fill(.ultraThinMaterial)
-.opacity(0.1)
+                        .opacity(0.1)
                         .ignoresSafeArea()
                 }
             )
             .navigationTitle("Templates")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        Button(role: .destructive) {
+                            TemplateDataSeeder.forceReseed(modelContext: modelContext)
+                        } label: {
+                            Label("Reset Templates", systemImage: "arrow.clockwise")
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
+            .onAppear {
+                print("📱 TemplatesView appeared - Categories: \(categories.count)")
+                for category in categories {
+                    print("   - \(category.name): \(category.templates.count) templates")
+                }
+            }
         }
     }
 }
@@ -88,7 +135,7 @@ struct TemplateRow: View {
                         .fill(Color(hex: categoryColor)?.opacity(0.15) ?? TickerColors.primary.opacity(0.15))
                         .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
-                    Image(systemName: template.icon)
+                    Image(systemName: template.tickerData?.icon ?? categoryIcon)
                         .font(.system(size: 24, weight: .medium))
                         .foregroundStyle(Color(hex: categoryColor) ?? TickerColors.primary)
                 }

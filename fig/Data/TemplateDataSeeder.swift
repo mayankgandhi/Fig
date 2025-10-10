@@ -11,6 +11,40 @@ import SwiftData
 @MainActor
 class TemplateDataSeeder {
 
+    /// Force delete all templates and categories, then re-seed
+    static func forceReseed(modelContext: ModelContext) {
+        print("🗑️ Force deleting all template categories...")
+
+        // Delete all existing categories and their templates
+        let descriptor = FetchDescriptor<TemplateCategory>()
+        let existingCategories = (try? modelContext.fetch(descriptor)) ?? []
+
+        for category in existingCategories {
+            modelContext.delete(category)
+        }
+
+        // Also delete any orphaned template Tickers
+        let tickerDescriptor = FetchDescriptor<Ticker>(
+            predicate: #Predicate<Ticker> { ticker in
+                ticker.tickerData != nil
+            }
+        )
+        let templateTickers = (try? modelContext.fetch(tickerDescriptor)) ?? []
+        for ticker in templateTickers where ticker.isEnabled == false {
+            modelContext.delete(ticker)
+        }
+
+        do {
+            try modelContext.save()
+            print("✅ Deleted \(existingCategories.count) categories and \(templateTickers.count) template tickers")
+        } catch {
+            print("❌ Error deleting templates: \(error)")
+        }
+
+        // Now seed fresh templates
+        seedTemplates(modelContext: modelContext)
+    }
+
     static func seedTemplatesIfNeeded(modelContext: ModelContext) {
         // Clean up any alarms with deprecated schedule types (monthly/yearly)
         cleanupDeprecatedSchedules(modelContext: modelContext)
@@ -19,11 +53,21 @@ class TemplateDataSeeder {
         let descriptor = FetchDescriptor<TemplateCategory>()
         let existingCategories = (try? modelContext.fetch(descriptor)) ?? []
 
+        print("📦 Template seeding check - Found \(existingCategories.count) existing categories")
+
         guard existingCategories.isEmpty else {
-            print("Templates already seeded")
+            print("✅ Templates already seeded (\(existingCategories.count) categories)")
+            for category in existingCategories {
+                print("   - \(category.name): \(category.templates.count) templates")
+            }
             return
         }
 
+        print("🌱 Seeding new templates...")
+        seedTemplates(modelContext: modelContext)
+    }
+
+    private static func seedTemplates(modelContext: ModelContext) {
         // Create Exercise Category
         let exerciseCategory = TemplateCategory(
             name: "Exercise",
@@ -61,6 +105,9 @@ class TemplateDataSeeder {
         ]
 
         exerciseCategory.templates = exerciseTemplates
+
+        // Insert exercise templates into context
+        exerciseTemplates.forEach { modelContext.insert($0) }
 
         // Create Productivity Category
         let productivityCategory = TemplateCategory(
@@ -107,6 +154,9 @@ class TemplateDataSeeder {
 
         productivityCategory.templates = productivityTemplates
 
+        // Insert productivity templates into context
+        productivityTemplates.forEach { modelContext.insert($0) }
+
         // Create Wellness Category
         let wellnessCategory = TemplateCategory(
             name: "Wellness",
@@ -152,6 +202,9 @@ class TemplateDataSeeder {
 
         wellnessCategory.templates = wellnessTemplates
 
+        // Insert wellness templates into context
+        wellnessTemplates.forEach { modelContext.insert($0) }
+
         // Insert all categories into context
         modelContext.insert(exerciseCategory)
         modelContext.insert(productivityCategory)
@@ -160,9 +213,12 @@ class TemplateDataSeeder {
         // Save context
         do {
             try modelContext.save()
-            print("Successfully seeded template data")
+            print("✅ Successfully seeded template data:")
+            print("   - Exercise: \(exerciseCategory.templates.count) templates")
+            print("   - Productivity: \(productivityCategory.templates.count) templates")
+            print("   - Wellness: \(wellnessCategory.templates.count) templates")
         } catch {
-            print("Error seeding templates: \(error)")
+            print("❌ Error seeding templates: \(error)")
         }
     }
 
