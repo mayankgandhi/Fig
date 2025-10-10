@@ -13,6 +13,10 @@ struct TemplatesView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Query(filter: #Predicate<TemplateCategory> { _ in true }) private var categories: [TemplateCategory]
 
+    @State private var showingAddTickerSheet = false
+    @State private var selectedTemplate: Ticker?
+    @Namespace private var namespace
+
     var body: some View {
         NavigationStack {
             Group {
@@ -48,7 +52,11 @@ struct TemplatesView: View {
                                             template: template,
                                             categoryName: category.name,
                                             categoryIcon: category.icon,
-                                            categoryColor: category.colorHex
+                                            categoryColor: category.colorHex,
+                                            onTemplateSelected: { selectedTemplate in
+                                                self.selectedTemplate = selectedTemplate
+                                                self.showingAddTickerSheet = true
+                                            }
                                         )
                                     }
                                 }
@@ -87,6 +95,11 @@ struct TemplatesView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showingAddTickerSheet) {
+                if let template = selectedTemplate {
+                    AddTickerView(namespace: namespace, prefillTemplate: template)
+                }
+            }
             .onAppear {
                 print("📱 TemplatesView appeared - Categories: \(categories.count)")
                 for category in categories {
@@ -119,78 +132,50 @@ struct TemplateRow: View {
     let categoryName: String
     let categoryIcon: String
     let categoryColor: String
+    let onTemplateSelected: (Ticker) -> Void
 
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        Button {
-            TickerHaptics.standardAction()
-            addTemplateToAlarms()
-        } label: {
-            HStack(spacing: TickerSpacing.sm) {
-                // Icon
-                ZStack {
-                    Circle()
-                        .fill(Color(hex: categoryColor)?.opacity(0.15) ?? TickerColors.primary.opacity(0.15))
-                        .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
+        HStack(spacing: TickerSpacing.sm) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(Color(hex: categoryColor)?.opacity(0.15) ?? TickerColors.primary.opacity(0.15))
+                    .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
-                    Image(systemName: template.tickerData?.icon ?? categoryIcon)
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(Color(hex: categoryColor) ?? TickerColors.primary)
-                }
-
-                // Content
-                VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
-                    Text(template.label)
-                        .cabinetBody()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
-
-                    if let schedule = template.schedule {
-                        Text(scheduleDescription(schedule))
-                            .cabinetFootnote()
-                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
-                    }
-                }
-
-                Spacer()
-
-                // Disclosure indicator
-                Image(systemName: "chevron.right")
-                    .cabinetFootnote()
-                    .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                Image(systemName: template.tickerData?.icon ?? categoryIcon)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(Color(hex: categoryColor) ?? TickerColors.primary)
             }
-            .contentShape(Rectangle())
+
+            // Content
+            VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
+                Text(template.label)
+                    .cabinetBody()
+                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+
+                if let schedule = template.schedule {
+                    Text(scheduleDescription(schedule))
+                        .cabinetFootnote()
+                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                }
+            }
+
+            Spacer()
+
+            // Plus button to open AddTickerView with prefill
+            Button {
+                TickerHaptics.selection()
+                onTemplateSelected(template)
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundStyle(TickerColors.primary)
+            }
+            .buttonStyle(.plain)
         }
-        .buttonStyle(.plain)
-    }
-
-    private func addTemplateToAlarms() {
-        // Create TickerData from category information
-        let tickerData = TickerData(
-            name: categoryName,
-            icon: categoryIcon,
-            colorHex: categoryColor
-        )
-
-        // Create a new Ticker from the template
-        let newAlarm = Ticker(
-            label: template.label,
-            isEnabled: true,
-            notes: template.notes,
-            schedule: template.schedule,
-            countdown: template.countdown,
-            presentation: template.presentation,
-            tickerData: tickerData
-        )
-
-        modelContext.insert(newAlarm)
-
-        do {
-            try modelContext.save()
-        } catch {
-            print("Error saving alarm: \(error)")
-        }
+        .contentShape(Rectangle())
     }
 
     private func scheduleDescription(_ schedule: TickerSchedule) -> String {

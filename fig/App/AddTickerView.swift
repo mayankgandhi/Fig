@@ -10,12 +10,13 @@ import SwiftData
 
 struct AddTickerView: View {
     let namespace: Namespace.ID
-    
+    let prefillTemplate: Ticker?
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Environment(AlarmService.self) private var alarmService
     @Environment(\.colorScheme) private var colorScheme
-    
+
     @State private var selectedDate = Date()
     @State private var selectedHour = Calendar.current.component(.hour, from: Date())
     @State private var selectedMinute = Calendar.current.component(.minute, from: Date())
@@ -25,27 +26,39 @@ struct AddTickerView: View {
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showingError = false
-    
+
     // Expandable fields state
     @State private var expandedField: ExpandableField? = nil
-    
+
     // Countdown options
     @State private var enableCountdown = false
     @State private var countdownHours = 0
     @State private var countdownMinutes = 5
     @State private var countdownSeconds = 0
-    
+
     // Presentation options
     @State private var tintColorHex: String?
     @State private var secondaryButtonType: TickerPresentation.SecondaryButtonType = .none
     @State private var enableSnooze = true
-    
+
+    // Icon and color selection
+    @State private var selectedIcon: String = "alarm"
+    @State private var selectedColorHex: String = "#8B5CF6"
+
+    // MARK: - Initialization
+
+    init(namespace: Namespace.ID, prefillTemplate: Ticker? = nil) {
+        self.namespace = namespace
+        self.prefillTemplate = prefillTemplate
+    }
+
     enum ExpandableField: Hashable {
         case calendar
         case `repeat`
         case label
         case notes
         case countdown
+        case icon
     }
     
     enum RepeatOption: String, CaseIterable {
@@ -126,6 +139,12 @@ struct AddTickerView: View {
                                 icon: "timer",
                                 title: displayCountdown,
                                 field: .countdown
+                            )
+
+                            expandablePillButton(
+                                icon: selectedIcon,
+                                title: "Icon",
+                                field: .icon
                             )
 
                             pillButton(icon: "bell.badge", title: "Snooze", isActive: enableSnooze) {
@@ -218,7 +237,11 @@ struct AddTickerView: View {
             .onChange(of: selectedHour) { _, _ in updateSmartDate() }
             .onChange(of: selectedMinute) { _, _ in updateSmartDate() }
             .onAppear {
-                updateSmartDate()
+                if let template = prefillTemplate {
+                    prefillFromTemplate(template)
+                } else {
+                    updateSmartDate()
+                }
             }
         }
         .navigationTransition(.zoom(sourceID: "addButton", in: namespace))
@@ -363,6 +386,9 @@ struct AddTickerView: View {
                     .padding(TickerSpacing.md)
                     .background(TickerColors.surface(for: colorScheme))
                     .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+
+                case .icon:
+                    IconPickerView(selectedIcon: $selectedIcon, selectedColorHex: $selectedColorHex)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -398,10 +424,12 @@ struct AddTickerView: View {
     
     private func pillButtonContent(icon: String, title: String, isActive: Bool) -> some View {
         let hasValue = hasSelectedValue(for: icon, title: title)
-        
+        let iconColor = title == "Icon" ? (Color(hex: selectedColorHex) ?? TickerColors.primary) : nil
+
         return HStack(spacing: TickerSpacing.xxs) {
             Image(systemName: icon)
                 .font(.system(size: 12))
+                .foregroundStyle(iconColor ?? (isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme)))
             Text(title)
                 .cabinetCaption2()
                 .lineLimit(1)
@@ -447,18 +475,78 @@ struct AddTickerView: View {
         }
     }
     
+    // MARK: - Template Prefill Logic
+
+    private func prefillFromTemplate(_ template: Ticker) {
+        let calendar = Calendar.current
+        let now = Date()
+
+        // Populate schedule data
+        if let schedule = template.schedule {
+            switch schedule {
+            case .oneTime(let date):
+                selectedHour = calendar.component(.hour, from: date)
+                selectedMinute = calendar.component(.minute, from: date)
+                selectedDate = date >= now ? date : now
+                repeatOption = .noRepeat
+
+            case .daily(let time):
+                selectedHour = time.hour
+                selectedMinute = time.minute
+                repeatOption = .daily
+
+                // Set selectedDate to next occurrence
+                var components = calendar.dateComponents([.year, .month, .day], from: now)
+                components.hour = time.hour
+                components.minute = time.minute
+                guard let todayOccurrence = calendar.date(from: components) else { return }
+
+                if todayOccurrence <= now {
+                    selectedDate = calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence
+                } else {
+                    selectedDate = todayOccurrence
+                }
+            }
+        }
+
+        // Populate label and notes
+        tickerLabel = template.label
+        tickerNotes = template.notes
+
+        // Populate countdown
+        if let countdown = template.countdown?.preAlert {
+            enableCountdown = true
+            countdownHours = countdown.hours
+            countdownMinutes = countdown.minutes
+            countdownSeconds = countdown.seconds
+        } else {
+            enableCountdown = false
+        }
+
+        // Populate icon and color
+        if let tickerData = template.tickerData {
+            selectedIcon = tickerData.icon ?? "clock"
+            selectedColorHex = tickerData.colorHex ?? "#123455"
+        }
+
+        // Populate presentation options
+        tintColorHex = template.presentation.tintColorHex
+        secondaryButtonType = template.presentation.secondaryButtonType
+        // Note: enableSnooze is not stored in Ticker model, keeping default
+    }
+
     // MARK: - Smart Date Logic
-    
+
     private func updateSmartDate() {
         let calendar = Calendar.current
         let now = Date()
-        
+
         var components = calendar.dateComponents([.year, .month, .day], from: now)
         components.hour = selectedHour
         components.minute = selectedMinute
-        
+
         guard let todayWithSelectedTime = calendar.date(from: components) else { return }
-        
+
         if todayWithSelectedTime < now {
             selectedDate = calendar.date(byAdding: .day, value: 1, to: todayWithSelectedTime) ?? todayWithSelectedTime
         } else {
@@ -512,7 +600,14 @@ struct AddTickerView: View {
             tintColorHex: tintColorHex,
             secondaryButtonType: secondaryButtonType
         )
-        
+
+        // Create TickerData with selected icon and color
+        let tickerData = TickerData(
+            name: tickerLabel.isEmpty ? "Ticker" : tickerLabel,
+            icon: selectedIcon,
+            colorHex: selectedColorHex
+        )
+
         let ticker = Ticker(
             label: tickerLabel.isEmpty ? "Ticker" : tickerLabel,
             isEnabled: true,
@@ -520,7 +615,7 @@ struct AddTickerView: View {
             schedule: schedule,
             countdown: countdown,
             presentation: presentation,
-            tickerData: nil
+            tickerData: tickerData
         )
         
         do {

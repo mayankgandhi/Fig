@@ -19,7 +19,6 @@ struct UpcomingAlarmPresentation: Identifiable {
     let icon: String
     let color: Color
     let nextAlarmTime: Date
-    let timeUntilAlarm: String
     let scheduleType: ScheduleType
 
     enum ScheduleType {
@@ -38,6 +37,21 @@ struct UpcomingAlarmPresentation: Identifiable {
             case .oneTime: return TickerColors.scheduled
             case .daily: return TickerColors.running
             }
+        }
+    }
+
+    /// Dynamically formatted time until alarm
+    func timeUntilAlarm(from currentDate: Date) -> String {
+        let interval = nextAlarmTime.timeIntervalSince(currentDate)
+        let hours = Int(interval) / 3600
+        let minutes = (Int(interval) % 3600) / 60
+
+        if hours > 0 {
+            return "in \(hours)h \(minutes)m"
+        } else if minutes > 0 {
+            return "in \(minutes)m"
+        } else {
+            return "now"
         }
     }
 }
@@ -135,7 +149,6 @@ final class TodayViewModel {
             icon: alarm.tickerData?.icon ?? "alarm",
             color: extractColor(from: alarm),
             nextAlarmTime: nextTime,
-            timeUntilAlarm: formatTimeUntil(nextTime, from: currentTime),
             scheduleType: scheduleType
         )
     }
@@ -189,18 +202,5 @@ final class TodayViewModel {
 
         // Default to accent
         return .accentColor
-    }
-
-    /// Formats time interval as human-readable string
-    private func formatTimeUntil(_ targetDate: Date, from currentDate: Date) -> String {
-        let interval = targetDate.timeIntervalSince(currentDate)
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
-
-        if hours > 0 {
-            return "in \(hours)h \(minutes)m"
-        } else {
-            return "in \(minutes)m"
-        }
     }
 }
