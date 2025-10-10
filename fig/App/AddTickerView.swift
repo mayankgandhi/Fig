@@ -42,6 +42,7 @@ struct AddTickerView: View {
     
     enum ExpandableField: Hashable {
         case calendar
+        case `repeat`
         case label
         case notes
         case countdown
@@ -95,116 +96,51 @@ struct AddTickerView: View {
                         .padding(.top, TickerSpacing.sm)
                     
                     // Compact Pill Buttons with Inline Expansion
-                    VStack(alignment: .leading, spacing: TickerSpacing.xs) {
+                    VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                         FlowLayout(spacing: TickerSpacing.xs) {
                             expandablePillButton(
                                 icon: "calendar",
                                 title: displayDate,
-                                field: .calendar,
-                                content: {
-                                    CalendarGrid(selectedDate: $selectedDate)
-                                        .padding(TickerSpacing.sm)
-                                }
+                                field: .calendar
                             )
-                            
-                            Menu {
-                                ForEach(RepeatOption.allCases, id: \.self) { option in
-                                    Button {
-                                        TickerHaptics.selection()
-                                        repeatOption = option
-                                    } label: {
-                                        HStack {
-                                            Text(option.rawValue)
-                                            if repeatOption == option {
-                                                Image(systemName: "checkmark")
-                                            }
-                                        }
-                                    }
-                                }
-                            } label: {
-                                pillButtonContent(icon: repeatOption.icon, title: repeatOption.rawValue, isActive: false)
-                            }
-                            
+
+                            expandablePillButton(
+                                icon: repeatOption.icon,
+                                title: repeatOption.rawValue,
+                                field: .repeat
+                            )
+
                             expandablePillButton(
                                 icon: "tag",
                                 title: displayLabel,
-                                field: .label,
-                                content: {
-                                    TextField("Enter label", text: $tickerLabel)
-                                        .cabinetBody()
-                                        .padding(TickerSpacing.md)
-                                }
+                                field: .label
                             )
-                            
+
                             expandablePillButton(
                                 icon: "note.text",
                                 title: displayNotes,
-                                field: .notes,
-                                content: {
-                                    TextEditor(text: Binding(
-                                        get: { tickerNotes ?? "" },
-                                        set: { tickerNotes = $0.isEmpty ? nil : $0 }
-                                    ))
-                                    .cabinetBody()
-                                    .frame(height: 100)
-                                    .scrollContentBackground(.hidden)
-                                    .padding(TickerSpacing.sm)
-                                }
+                                field: .notes
                             )
-                            
+
                             expandablePillButton(
                                 icon: "timer",
                                 title: displayCountdown,
-                                field: .countdown,
-                                content: {
-                                    VStack(spacing: TickerSpacing.sm) {
-                                        Toggle("Enable Countdown", isOn: $enableCountdown)
-                                            .cabinetFootnote()
-                                            .tint(TickerColors.primary)
-                                        
-                                        if enableCountdown {
-                                            HStack(spacing: 0) {
-                                                Picker("Hours", selection: $countdownHours) {
-                                                    ForEach(0..<24) { hour in
-                                                        Text("\(hour)h").tag(hour)
-                                                    }
-                                                }
-                                                .pickerStyle(.wheel)
-                                                
-                                                Picker("Minutes", selection: $countdownMinutes) {
-                                                    ForEach(0..<60) { minute in
-                                                        Text("\(minute)m").tag(minute)
-                                                    }
-                                                }
-                                                .pickerStyle(.wheel)
-                                                
-                                                Picker("Seconds", selection: $countdownSeconds) {
-                                                    ForEach(0..<60) { second in
-                                                        Text("\(second)s").tag(second)
-                                                    }
-                                                }
-                                                .pickerStyle(.wheel)
-                                            }
-                                            .frame(height: 100)
-                                        }
-                                    }
-                                    .padding(TickerSpacing.md)
-                                }
+                                field: .countdown
                             )
-                            
+
                             pillButton(icon: "bell.badge", title: "Snooze", isActive: enableSnooze) {
                                 TickerHaptics.selection()
                                 enableSnooze.toggle()
                             }
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        // Show expanded content below the flow layout
+
+                        // Show expanded content below all pills
                         if let field = expandedField {
                             expandedContentForField(field)
                                 .transition(.asymmetric(
-                                    insertion: .scale(scale: 0.95).combined(with: .opacity),
-                                    removal: .scale(scale: 0.95).combined(with: .opacity)
+                                    insertion: .move(edge: .top).combined(with: .opacity),
+                                    removal: .move(edge: .top).combined(with: .opacity)
                                 ))
                         }
                     }
@@ -275,29 +211,6 @@ struct AddTickerView: View {
             }
         }
         .navigationTransition(.zoom(sourceID: "addButton", in: namespace))
-        .overlay(alignment: .topTrailing) {
-            // Repeat Menu Overlay
-            Menu {
-                ForEach(RepeatOption.allCases, id: \.self) { option in
-                    Button {
-                        TickerHaptics.selection()
-                        repeatOption = option
-                    } label: {
-                        HStack {
-                            Text(option.rawValue)
-                            if repeatOption == option {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                Color.clear
-                    .frame(width: 100, height: 100)
-            }
-            .opacity(0)
-            .allowsHitTesting(false)
-        }
     }
     
     // MARK: - Time Picker Section
@@ -334,11 +247,10 @@ struct AddTickerView: View {
     // MARK: - Pill Button Component
     
     @ViewBuilder
-    private func expandablePillButton<Content: View>(
+    private func expandablePillButton(
         icon: String,
         title: String,
-        field: ExpandableField,
-        @ViewBuilder content: @escaping () -> Content
+        field: ExpandableField
     ) -> some View {
         Button {
             toggleField(field)
@@ -357,14 +269,42 @@ struct AddTickerView: View {
                         .padding(TickerSpacing.sm)
                         .background(TickerColors.surface(for: colorScheme))
                         .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
-                    
+
+                case .repeat:
+                    HStack(spacing: TickerSpacing.xs) {
+                        ForEach(RepeatOption.allCases, id: \.self) { option in
+                            Button {
+                                TickerHaptics.selection()
+                                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                    repeatOption = option
+                                }
+                            } label: {
+                                HStack(spacing: TickerSpacing.xxs) {
+                                    Image(systemName: option.icon)
+                                        .font(.system(size: 14))
+                                    Text(option.rawValue)
+                                        .cabinetSubheadline()
+                                }
+                                .foregroundStyle(repeatOption == option ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
+                                .padding(.horizontal, TickerSpacing.md)
+                                .padding(.vertical, TickerSpacing.sm)
+                                .frame(maxWidth: .infinity)
+                                .background(repeatOption == option ? TickerColors.primary : TickerColors.surface(for: colorScheme).opacity(0.5))
+                                .clipShape(RoundedRectangle(cornerRadius: TickerRadius.small))
+                            }
+                        }
+                    }
+                    .padding(TickerSpacing.sm)
+                    .background(TickerColors.surface(for: colorScheme))
+                    .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+
                 case .label:
                     TextField("Enter label", text: $tickerLabel)
                         .cabinetBody()
                         .padding(TickerSpacing.md)
                         .background(TickerColors.surface(for: colorScheme))
                         .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
-                    
+
                 case .notes:
                     TextEditor(text: Binding(
                         get: { tickerNotes ?? "" },
@@ -376,13 +316,13 @@ struct AddTickerView: View {
                     .padding(TickerSpacing.sm)
                     .background(TickerColors.surface(for: colorScheme))
                     .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
-                    
+
                 case .countdown:
                     VStack(spacing: TickerSpacing.sm) {
                         Toggle("Enable Countdown", isOn: $enableCountdown)
                             .cabinetFootnote()
                             .tint(TickerColors.primary)
-                        
+
                         if enableCountdown {
                             HStack(spacing: 0) {
                                 Picker("Hours", selection: $countdownHours) {
@@ -391,14 +331,14 @@ struct AddTickerView: View {
                                     }
                                 }
                                 .pickerStyle(.wheel)
-                                
+
                                 Picker("Minutes", selection: $countdownMinutes) {
                                     ForEach(0..<60) { minute in
                                         Text("\(minute)m").tag(minute)
                                     }
                                 }
                                 .pickerStyle(.wheel)
-                                
+
                                 Picker("Seconds", selection: $countdownSeconds) {
                                     ForEach(0..<60) { second in
                                         Text("\(second)s").tag(second)
@@ -414,6 +354,7 @@ struct AddTickerView: View {
                     .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private func pillButton(icon: String, title: String, isActive: Bool, isMenu: Bool = false, action: @escaping () -> Void) -> some View {
