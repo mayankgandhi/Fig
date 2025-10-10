@@ -155,7 +155,7 @@ struct ClockView: View {
 
                 // Second Hand
                 RoundedRectangle(cornerRadius: 1)
-                    .fill(TickerColors.criticalRed)
+                    .fill(TickerColors.primary)
                     .frame(width: 1.5, height: radius * 0.8)
                     .offset(y: -radius * 0.4)
                     .rotationEffect(Angle(degrees: secondAngle))
@@ -189,7 +189,7 @@ struct ClockView: View {
                 }
 
                 Circle()
-                    .fill(TickerColors.criticalRed)
+                    .fill(TickerColors.primary)
                     .frame(width: radius * 0.02, height: radius * 0.02)
                 }
                 .frame(

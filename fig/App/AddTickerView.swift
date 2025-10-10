@@ -15,13 +15,17 @@ struct AddTickerView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var selectedDate = Date()
+    @State private var selectedHour = Calendar.current.component(.hour, from: Date())
+    @State private var selectedMinute = Calendar.current.component(.minute, from: Date())
     @State private var tickerLabel = ""
     @State private var tickerNotes: String?
     @State private var repeatOption: RepeatOption = .noRepeat
-    @State private var showingAdvanced = false
     @State private var isSaving = false
     @State private var errorMessage: String?
     @State private var showingError = false
+
+    // Expandable fields state
+    @State private var expandedField: ExpandableField? = nil
 
     // Countdown options
     @State private var enableCountdown = false
@@ -32,6 +36,15 @@ struct AddTickerView: View {
     // Presentation options
     @State private var tintColorHex: String?
     @State private var secondaryButtonType: TickerPresentation.SecondaryButtonType = .none
+    @State private var enableSnooze = true
+    @State private var enableVibrate = true
+
+    enum ExpandableField: Hashable {
+        case calendar
+        case label
+        case notes
+        case countdown
+    }
 
     enum RepeatOption: String, CaseIterable {
         case noRepeat = "No repeat"
@@ -45,166 +58,95 @@ struct AddTickerView: View {
         }
     }
 
+    private var displayDate: String {
+        let calendar = Calendar.current
+        if calendar.isDateInToday(selectedDate) {
+            return "Today"
+        } else if calendar.isDateInTomorrow(selectedDate) {
+            return "Tomorrow"
+        } else {
+            return selectedDate.formatted(.dateTime.month(.abbreviated).day())
+        }
+    }
+
+    private var displayLabel: String {
+        tickerLabel.isEmpty ? "Label" : tickerLabel
+    }
+
+    private var displayNotes: String {
+        if let notes = tickerNotes, !notes.isEmpty {
+            return String(notes.prefix(15)) + (notes.count > 15 ? "..." : "")
+        }
+        return "Notes"
+    }
+
+    private var displayCountdown: String {
+        enableCountdown ? "\(countdownHours)h \(countdownMinutes)m" : "Countdown"
+    }
+
     var body: some View {
         NavigationStack {
-            ZStack {
-                Color(.systemBackground)
-                    .ignoresSafeArea()
+            VStack(spacing: 0) {
+                // Main Content
+                VStack(spacing: TickerSpacing.md) {
+                    // Time Picker
+                    timePickerSection
+                        .padding(.top, TickerSpacing.sm)
 
-                VStack(spacing: 0) {
-                    // Calendar & Time Section
-                    VStack(spacing: 24) {
-                        // Month/Year Header with Navigation
-                        HStack {
-                            Text(selectedDate.formatted(.dateTime.month(.wide).year()))
-                                .cabinetTitle2()
-                                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
-
-                            Image(systemName: "chevron.right")
-                                .cabinetBody()
-                                .foregroundStyle(TickerColors.criticalRed)
-
-                            Spacer()
-
-                            HStack(spacing: TickerSpacing.md) {
-                                Button {
-                                    TickerHaptics.selection()
-                                    withAnimation(TickerAnimation.quick) {
-                                        selectedDate = Calendar.current.date(byAdding: .month, value: -1, to: selectedDate) ?? selectedDate
-                                    }
-                                } label: {
-                                    Image(systemName: "chevron.left")
-                                        .cabinetBody()
-                                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
-                                }
-
-                                Button {
-                                    TickerHaptics.selection()
-                                    withAnimation(TickerAnimation.quick) {
-                                        selectedDate = Calendar.current.date(byAdding: .month, value: 1, to: selectedDate) ?? selectedDate
-                                    }
-                                } label: {
-                                    Image(systemName: "chevron.right")
-                                        .cabinetBody()
-                                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
-                                }
-                            }
+                    // Compact Pill Buttons Grid
+                    FlowLayout(spacing: TickerSpacing.xs) {
+                        pillButton(icon: "calendar", title: displayDate, isActive: expandedField == .calendar) {
+                            toggleField(.calendar)
                         }
-                        .padding(.horizontal, TickerSpacing.md)
-                        .padding(.top, TickerSpacing.md)
 
-                        // Calendar Grid
-                        CalendarGrid(selectedDate: $selectedDate)
-                            .padding(.horizontal, 20)
-
-                        // Time Section
-                        VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                            Text("Time")
-                                .cabinetCaption2()
-                                .textCase(.uppercase)
-                                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
-
-                            DatePicker("", selection: $selectedDate, displayedComponents: .hourAndMinute)
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
+                        pillButton(icon: repeatOption.icon, title: repeatOption.rawValue, isActive: false, isMenu: true) {
+                            // Menu handled separately
                         }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, TickerSpacing.md)
+
+                        pillButton(icon: "tag", title: displayLabel, isActive: expandedField == .label) {
+                            toggleField(.label)
+                        }
+
+                        pillButton(icon: "note.text", title: displayNotes, isActive: expandedField == .notes) {
+                            toggleField(.notes)
+                        }
+
+                        pillButton(icon: "timer", title: displayCountdown, isActive: expandedField == .countdown) {
+                            toggleField(.countdown)
+                        }
+
+                        pillButton(icon: "bell.badge", title: "Snooze", isActive: enableSnooze) {
+                            TickerHaptics.selection()
+                            enableSnooze.toggle()
+                        }
+
+                        pillButton(icon: "speaker.wave.2", title: "Sound", isActive: true) {
+                            // Sound picker
+                        }
+
+                        pillButton(icon: "iphone.radiowaves.left.and.right", title: "Vibrate", isActive: enableVibrate) {
+                            TickerHaptics.selection()
+                            enableVibrate.toggle()
+                        }
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, TickerSpacing.md)
 
-                    Spacer()
-
-                    // Bottom Controls
-                    VStack(spacing: TickerSpacing.md) {
-                        // Date & Time / Repeat Options
-                        HStack(spacing: TickerSpacing.sm) {
-                            // Date & Time Button
-                            Button {
-                                TickerHaptics.selection()
-                                // Toggle date picker or advanced options
-                            } label: {
-                                HStack(spacing: TickerSpacing.xs) {
-                                    Image(systemName: "clock")
-                                        .cabinetSubheadline()
-                                    Text("Date & time")
-                                        .cabinetSubheadline()
-                                }
-                                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
-                                .padding(.horizontal, TickerSpacing.md)
-                                .padding(.vertical, TickerSpacing.sm)
-                                .background(TickerColors.surface(for: colorScheme))
-                                .clipShape(Capsule())
-                            }
-
-                            // Repeat Button
-                            Menu {
-                                ForEach(RepeatOption.allCases, id: \.self) { option in
-                                    Button {
-                                        TickerHaptics.selection()
-                                        repeatOption = option
-                                    } label: {
-                                        HStack {
-                                            Text(option.rawValue)
-                                            if repeatOption == option {
-                                                Image(systemName: "checkmark")
-                                            }
-                                        }
-                                    }
-                                }
-                            } label: {
-                                HStack(spacing: TickerSpacing.xs) {
-                                    Image(systemName: repeatOption.icon)
-                                        .cabinetSubheadline()
-                                    Text(repeatOption.rawValue)
-                                        .cabinetSubheadline()
-                                }
-                                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
-                                .padding(.horizontal, TickerSpacing.md)
-                                .padding(.vertical, TickerSpacing.sm)
-                                .background(TickerColors.surface(for: colorScheme))
-                                .clipShape(Capsule())
-                            }
-
-                            Spacer()
+                    // Expanded Content Area (Fixed Height)
+                    ZStack {
+                        if expandedField != nil {
+                            expandedContentView
+                                .transition(.opacity)
                         }
-                        .padding(.horizontal, TickerSpacing.md)
-
-                        // Bottom Action Bar
-                        HStack(spacing: TickerSpacing.md) {
-                            // Advanced Button
-                            Button {
-                                TickerHaptics.selection()
-                                showingAdvanced.toggle()
-                            } label: {
-                                Image(systemName: "slider.horizontal.3")
-                                    .cabinetTitle3()
-                                    .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
-                                    .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
-                                    .background(TickerColors.surface(for: colorScheme))
-                                    .clipShape(Circle())
-                            }
-
-                            // Done Button
-                            Button {
-                                Task {
-                                    await saveTicker()
-                                }
-                            } label: {
-                                HStack {
-                                    if isSaving {
-                                        ProgressView()
-                                            .tint(TickerColors.absoluteWhite)
-                                    }
-                                    Text(isSaving ? "Saving..." : "Done")
-                                }
-                            }
-                            .tickerPrimaryButton()
-                            .disabled(isSaving)
-                        }
-                        .padding(.horizontal, TickerSpacing.md)
-                        .padding(.bottom, TickerSpacing.md)
                     }
+                    .frame(height: 280)
+
+                    Spacer(minLength: 0)
                 }
+                .background(TickerColors.background(for: colorScheme))
+
+                // Bottom Action Bar
+                bottomActionBar
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -214,18 +156,6 @@ struct AddTickerView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingAdvanced) {
-                AdvancedOptionsView(
-                    tickerLabel: $tickerLabel,
-                    tickerNotes: $tickerNotes,
-                    enableCountdown: $enableCountdown,
-                    countdownHours: $countdownHours,
-                    countdownMinutes: $countdownMinutes,
-                    countdownSeconds: $countdownSeconds,
-                    tintColorHex: $tintColorHex,
-                    secondaryButtonType: $secondaryButtonType
-                )
-            }
             .alert("Error", isPresented: $showingError) {
                 Button("OK", role: .cancel) { }
             } message: {
@@ -233,8 +163,249 @@ struct AddTickerView: View {
                     Text(errorMessage)
                 }
             }
+            .onChange(of: selectedHour) { _, _ in updateSmartDate() }
+            .onChange(of: selectedMinute) { _, _ in updateSmartDate() }
+            .onAppear {
+                updateSmartDate()
+            }
+        }
+        .overlay(alignment: .topTrailing) {
+            // Repeat Menu Overlay
+            Menu {
+                ForEach(RepeatOption.allCases, id: \.self) { option in
+                    Button {
+                        TickerHaptics.selection()
+                        repeatOption = option
+                    } label: {
+                        HStack {
+                            Text(option.rawValue)
+                            if repeatOption == option {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                Color.clear
+                    .frame(width: 100, height: 100)
+            }
+            .opacity(0)
+            .allowsHitTesting(false)
         }
     }
+
+    // MARK: - Time Picker Section
+
+    private var timePickerSection: some View {
+        HStack(spacing: 0) {
+            Picker("Hour", selection: $selectedHour) {
+                ForEach(0..<24) { hour in
+                    Text(String(format: "%02d", hour))
+                        .font(.system(size: 40, weight: .medium, design: .rounded))
+                        .tag(hour)
+                }
+            }
+            .pickerStyle(.wheel)
+            .frame(maxWidth: 100)
+
+            Text(":")
+                .font(.system(size: 40, weight: .medium, design: .rounded))
+                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+
+            Picker("Minute", selection: $selectedMinute) {
+                ForEach(0..<60) { minute in
+                    Text(String(format: "%02d", minute))
+                        .font(.system(size: 40, weight: .medium, design: .rounded))
+                        .tag(minute)
+                }
+            }
+            .pickerStyle(.wheel)
+            .frame(maxWidth: 100)
+        }
+        .frame(height: 140)
+    }
+
+    // MARK: - Pill Button Component
+
+    private func pillButton(icon: String, title: String, isActive: Bool, isMenu: Bool = false, action: @escaping () -> Void) -> some View {
+        Group {
+            if isMenu {
+                Menu {
+                    ForEach(RepeatOption.allCases, id: \.self) { option in
+                        Button {
+                            TickerHaptics.selection()
+                            repeatOption = option
+                        } label: {
+                            HStack {
+                                Text(option.rawValue)
+                                if repeatOption == option {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                    }
+                } label: {
+                    pillButtonContent(icon: icon, title: title, isActive: isActive)
+                }
+            } else {
+                Button(action: action) {
+                    pillButtonContent(icon: icon, title: title, isActive: isActive)
+                }
+            }
+        }
+    }
+
+    private func pillButtonContent(icon: String, title: String, isActive: Bool) -> some View {
+        HStack(spacing: TickerSpacing.xxs) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+            Text(title)
+                .cabinetCaption2()
+                .lineLimit(1)
+        }
+        .foregroundStyle(isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
+        .padding(.horizontal, TickerSpacing.sm)
+        .padding(.vertical, TickerSpacing.xs)
+        .background(isActive ? TickerColors.primary : TickerColors.surface(for: colorScheme))
+        .clipShape(Capsule())
+    }
+
+    // MARK: - Expanded Content View
+
+    @ViewBuilder
+    private var expandedContentView: some View {
+        VStack(spacing: 0) {
+            switch expandedField {
+            case .calendar:
+                CalendarGrid(selectedDate: $selectedDate)
+                    .padding(TickerSpacing.sm)
+                    .background(TickerColors.surface(for: colorScheme))
+                    .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+                    .padding(.horizontal, TickerSpacing.md)
+
+            case .label:
+                TextField("Enter label", text: $tickerLabel)
+                    .cabinetBody()
+                    .padding(TickerSpacing.md)
+                    .background(TickerColors.surface(for: colorScheme))
+                    .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+                    .padding(.horizontal, TickerSpacing.md)
+
+            case .notes:
+                TextEditor(text: Binding(
+                    get: { tickerNotes ?? "" },
+                    set: { tickerNotes = $0.isEmpty ? nil : $0 }
+                ))
+                .cabinetBody()
+                .frame(height: 100)
+                .scrollContentBackground(.hidden)
+                .padding(TickerSpacing.sm)
+                .background(TickerColors.surface(for: colorScheme))
+                .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+                .padding(.horizontal, TickerSpacing.md)
+
+            case .countdown:
+                VStack(spacing: TickerSpacing.sm) {
+                    Toggle("Enable Countdown", isOn: $enableCountdown)
+                        .cabinetFootnote()
+                        .tint(TickerColors.primary)
+
+                    if enableCountdown {
+                        HStack(spacing: 0) {
+                            Picker("Hours", selection: $countdownHours) {
+                                ForEach(0..<24) { hour in
+                                    Text("\(hour)h").tag(hour)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+
+                            Picker("Minutes", selection: $countdownMinutes) {
+                                ForEach(0..<60) { minute in
+                                    Text("\(minute)m").tag(minute)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+
+                            Picker("Seconds", selection: $countdownSeconds) {
+                                ForEach(0..<60) { second in
+                                    Text("\(second)s").tag(second)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                        }
+                        .frame(height: 100)
+                    }
+                }
+                .padding(TickerSpacing.md)
+                .background(TickerColors.surface(for: colorScheme))
+                .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+                .padding(.horizontal, TickerSpacing.md)
+
+            case .none:
+                EmptyView()
+            }
+        }
+    }
+
+    // MARK: - Helper Methods
+
+    private func toggleField(_ field: ExpandableField) {
+        TickerHaptics.selection()
+        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            if expandedField == field {
+                expandedField = nil
+            } else {
+                expandedField = field
+            }
+        }
+    }
+
+    // MARK: - Bottom Action Bar
+
+    private var bottomActionBar: some View {
+        Button {
+            Task {
+                await saveTicker()
+            }
+        } label: {
+            HStack {
+                if isSaving {
+                    ProgressView()
+                        .tint(TickerColors.absoluteWhite)
+                }
+                Text(isSaving ? "Saving..." : "Set Alarm")
+            }
+        }
+        .tickerPrimaryButton()
+        .disabled(isSaving)
+        .padding(.horizontal, TickerSpacing.md)
+        .padding(.vertical, TickerSpacing.sm)
+        .background(
+            TickerColors.background(for: colorScheme)
+                .shadow(color: Color.black.opacity(0.1), radius: 10, y: -5)
+        )
+    }
+
+    // MARK: - Smart Date Logic
+
+    private func updateSmartDate() {
+        let calendar = Calendar.current
+        let now = Date()
+
+        var components = calendar.dateComponents([.year, .month, .day], from: now)
+        components.hour = selectedHour
+        components.minute = selectedMinute
+
+        guard let todayWithSelectedTime = calendar.date(from: components) else { return }
+
+        if todayWithSelectedTime < now {
+            selectedDate = calendar.date(byAdding: .day, value: 1, to: todayWithSelectedTime) ?? todayWithSelectedTime
+        } else {
+            selectedDate = todayWithSelectedTime
+        }
+    }
+
+    // MARK: - Save Logic
 
     private func saveTicker() async {
         guard !isSaving else { return }
@@ -243,20 +414,27 @@ struct AddTickerView: View {
         defer { isSaving = false }
 
         let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: selectedDate)
 
-        // Build schedule
+        var components = calendar.dateComponents([.year, .month, .day], from: selectedDate)
+        components.hour = selectedHour
+        components.minute = selectedMinute
+
+        guard let finalDate = calendar.date(from: components) else {
+            errorMessage = "Invalid date configuration"
+            showingError = true
+            return
+        }
+
         let schedule: TickerSchedule
         if repeatOption == .daily {
             schedule = .daily(time: TickerSchedule.TimeOfDay(
-                hour: components.hour ?? 0,
-                minute: components.minute ?? 0
+                hour: selectedHour,
+                minute: selectedMinute
             ))
         } else {
-            schedule = .oneTime(date: selectedDate)
+            schedule = .oneTime(date: finalDate)
         }
 
-        // Build countdown (if enabled)
         let countdown: TickerCountdown?
         if enableCountdown {
             let duration = TickerCountdown.CountdownDuration(
@@ -269,13 +447,11 @@ struct AddTickerView: View {
             countdown = nil
         }
 
-        // Build presentation
         let presentation = TickerPresentation(
             tintColorHex: tintColorHex,
             secondaryButtonType: secondaryButtonType
         )
 
-        // Build Ticker
         let ticker = Ticker(
             label: tickerLabel.isEmpty ? "Ticker" : tickerLabel,
             isEnabled: true,
@@ -287,7 +463,6 @@ struct AddTickerView: View {
         )
 
         do {
-            // Use AlarmService to schedule the ticker
             try await alarmService.scheduleAlarm(from: ticker, context: modelContext)
             TickerHaptics.success()
             dismiss()
@@ -303,10 +478,19 @@ struct AddTickerView: View {
 
 struct CalendarGrid: View {
     @Binding var selectedDate: Date
+    @Environment(\.colorScheme) private var colorScheme
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 7)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
     private let calendar = Calendar.current
-    private let weekdaySymbols = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+    private let weekdaySymbols = [
+        (id: "sun", label: "S"),
+        (id: "mon", label: "M"),
+        (id: "tue", label: "T"),
+        (id: "wed", label: "W"),
+        (id: "thu", label: "T"),
+        (id: "fri", label: "F"),
+        (id: "sat", label: "S")
+    ]
 
     private var monthDays: [Date?] {
         guard let monthInterval = calendar.dateInterval(of: .month, for: selectedDate),
@@ -317,7 +501,7 @@ struct CalendarGrid: View {
         var days: [Date?] = []
         var currentDate = monthFirstWeek.start
 
-        while days.count < 42 { // 6 weeks
+        while days.count < 42 {
             if calendar.isDate(currentDate, equalTo: selectedDate, toGranularity: .month) {
                 days.append(currentDate)
             } else {
@@ -330,20 +514,46 @@ struct CalendarGrid: View {
     }
 
     var body: some View {
-        VStack(spacing: 12) {
-            // Weekday Headers
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(weekdaySymbols, id: \.self) { symbol in
-                    Text(symbol)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
+        VStack(spacing: 8) {
+            HStack {
+                Button {
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        selectedDate = calendar.date(byAdding: .month, value: -1, to: selectedDate) ?? selectedDate
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                }
+
+                Text(selectedDate.formatted(.dateTime.month(.wide).year()))
+                    .cabinetBody()
+                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .frame(maxWidth: .infinity)
+
+                Button {
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        selectedDate = calendar.date(byAdding: .month, value: 1, to: selectedDate) ?? selectedDate
+                    }
+                } label: {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                }
+            }
+
+            LazyVGrid(columns: columns, spacing: 4) {
+                ForEach(weekdaySymbols, id: \.id) { symbol in
+                    Text(symbol.label)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                         .frame(maxWidth: .infinity)
                 }
             }
 
-            // Calendar Days
-            LazyVGrid(columns: columns, spacing: 12) {
+            LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(monthDays.indices, id: \.self) { index in
                     if let date = monthDays[index] {
                         CalendarDayCell(
@@ -351,11 +561,12 @@ struct CalendarGrid: View {
                             isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
                             isToday: calendar.isDateInToday(date)
                         ) {
+                            TickerHaptics.selection()
                             selectedDate = date
                         }
                     } else {
                         Color.clear
-                            .frame(height: 44)
+                            .frame(height: 32)
                     }
                 }
             }
@@ -379,164 +590,78 @@ struct CalendarDayCell: View {
     }
 
     var body: some View {
-        Button(action: {
-            TickerHaptics.selection()
-            onTap()
-        }) {
+        Button(action: onTap) {
             Text(dayNumber)
-                .cabinetTitle3()
-                .fontWeight(isSelected ? .bold : .regular)
+                .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
                 .foregroundStyle(isSelected ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
                 .frame(maxWidth: .infinity)
-                .frame(height: TickerSpacing.tapTargetMin)
+                .frame(height: 32)
                 .background(
                     Circle()
-                        .fill(isSelected ? TickerColors.criticalRed : .clear)
+                        .fill(isSelected ? TickerColors.primary : .clear)
                 )
                 .overlay(
                     Circle()
-                        .strokeBorder(isToday && !isSelected ? TickerColors.criticalRed : .clear, lineWidth: 2)
+                        .strokeBorder(isToday && !isSelected ? TickerColors.primary : .clear, lineWidth: 1.5)
                 )
         }
         .buttonStyle(.plain)
     }
 }
 
-// MARK: - Advanced Options View
+// MARK: - Flow Layout
 
-struct AdvancedOptionsView: View {
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.colorScheme) private var colorScheme
+struct FlowLayout: Layout {
+    var spacing: CGFloat = 8
 
-    @Binding var tickerLabel: String
-    @Binding var tickerNotes: String?
-    @Binding var enableCountdown: Bool
-    @Binding var countdownHours: Int
-    @Binding var countdownMinutes: Int
-    @Binding var countdownSeconds: Int
-    @Binding var tintColorHex: String?
-    @Binding var secondaryButtonType: TickerPresentation.SecondaryButtonType
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let result = FlowResult(
+            in: proposal.replacingUnspecifiedDimensions().width,
+            subviews: subviews,
+            spacing: spacing
+        )
+        return result.size
+    }
 
-    var body: some View {
-        NavigationStack {
-            Form {
-                // Name Section
-                Section {
-                    TextField("Ticker name", text: $tickerLabel)
-                        .cabinetBody()
-                } header: {
-                    Text("Name")
-                        .cabinetCaption2()
-                        .textCase(.uppercase)
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = FlowResult(
+            in: bounds.width,
+            subviews: subviews,
+            spacing: spacing
+        )
+        for (index, subview) in subviews.enumerated() {
+            subview.place(at: CGPoint(x: bounds.minX + result.frames[index].minX, y: bounds.minY + result.frames[index].minY), proposal: .unspecified)
+        }
+    }
+
+    struct FlowResult {
+        var frames: [CGRect] = []
+        var size: CGSize = .zero
+
+        init(in containerWidth: CGFloat, subviews: Subviews, spacing: CGFloat) {
+            var currentX: CGFloat = 0
+            var currentY: CGFloat = 0
+            var lineHeight: CGFloat = 0
+            var maxX: CGFloat = 0
+
+            for subview in subviews {
+                let size = subview.sizeThatFits(.unspecified)
+
+                if currentX + size.width > containerWidth && currentX > 0 {
+                    // Move to next line
+                    currentX = 0
+                    currentY += lineHeight + spacing
+                    lineHeight = 0
                 }
 
-                // Notes Section
-                Section {
-                    TextEditor(text: Binding(
-                        get: { tickerNotes ?? "" },
-                        set: { tickerNotes = $0.isEmpty ? nil : $0 }
-                    ))
-                    .cabinetBody()
-                    .frame(minHeight: 80)
-                } header: {
-                    Text("Notes")
-                        .cabinetCaption2()
-                        .textCase(.uppercase)
-                }
+                frames.append(CGRect(x: currentX, y: currentY, width: size.width, height: size.height))
 
-                // Countdown Section
-                Section {
-                    Toggle("Enable Countdown", isOn: $enableCountdown)
-                        .cabinetSubheadline()
-
-                    if enableCountdown {
-                        HStack {
-                            Picker("Hours", selection: $countdownHours) {
-                                ForEach(0..<24) { hour in
-                                    Text("\(hour)h").tag(hour)
-                                }
-                            }
-                            .pickerStyle(.wheel)
-
-                            Picker("Minutes", selection: $countdownMinutes) {
-                                ForEach(0..<60) { minute in
-                                    Text("\(minute)m").tag(minute)
-                                }
-                            }
-                            .pickerStyle(.wheel)
-
-                            Picker("Seconds", selection: $countdownSeconds) {
-                                ForEach(0..<60) { second in
-                                    Text("\(second)s").tag(second)
-                                }
-                            }
-                            .pickerStyle(.wheel)
-                        }
-                        .frame(height: 120)
-                    }
-                } header: {
-                    Text("Countdown Timer")
-                        .cabinetCaption2()
-                        .textCase(.uppercase)
-                } footer: {
-                    Text("Start a countdown before the alarm goes off")
-                        .cabinetFootnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
-                }
-
-                // Presentation Section
-                Section {
-                    Picker("Secondary Button", selection: $secondaryButtonType) {
-                        Text("None").tag(TickerPresentation.SecondaryButtonType.none)
-                        Text("Countdown").tag(TickerPresentation.SecondaryButtonType.countdown)
-                        Text("Open App").tag(TickerPresentation.SecondaryButtonType.openApp)
-                    }
-                    .cabinetSubheadline()
-                } header: {
-                    Text("Alert Options")
-                        .cabinetCaption2()
-                        .textCase(.uppercase)
-                }
-
-                // Sound & Vibration Section
-                Section {
-                    NavigationLink {
-                        Text("Sound picker")
-                    } label: {
-                        HStack {
-                            Text("Sound")
-                                .cabinetSubheadline()
-                            Spacer()
-                            Text("Default")
-                                .cabinetFootnote()
-                                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
-                        }
-                    }
-
-                    Toggle("Vibrate", isOn: .constant(true))
-                        .cabinetSubheadline()
-                }
-
-                // Snooze Section
-                Section {
-                    Toggle("Snooze", isOn: .constant(true))
-                        .cabinetSubheadline()
-                } footer: {
-                    Text("Allow snoozing when alarm goes off")
-                        .cabinetFootnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
-                }
+                lineHeight = max(lineHeight, size.height)
+                currentX += size.width + spacing
+                maxX = max(maxX, currentX - spacing)
             }
-            .navigationTitle("Advanced")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") {
-                        TickerHaptics.selection()
-                        dismiss()
-                    }
-                }
-            }
+
+            self.size = CGSize(width: maxX, height: currentY + lineHeight)
         }
     }
 }
@@ -544,17 +669,4 @@ struct AdvancedOptionsView: View {
 #Preview {
     AddTickerView()
         .modelContainer(for: [Ticker.self])
-}
-
-#Preview("Advanced Options") {
-    AdvancedOptionsView(
-        tickerLabel: .constant("Wake Up"),
-        tickerNotes: .constant("Morning alarm"),
-        enableCountdown: .constant(false),
-        countdownHours: .constant(0),
-        countdownMinutes: .constant(5),
-        countdownSeconds: .constant(0),
-        tintColorHex: .constant(nil),
-        secondaryButtonType: .constant(.none)
-    )
 }

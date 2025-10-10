@@ -43,6 +43,7 @@ struct ContentView: View {
             showAddSheet = false
         }) {
             AddTickerView()
+                .presentationDetents([.height(620)])
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
         }
@@ -53,7 +54,7 @@ struct ContentView: View {
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
         })
-        .tint(TickerColors.criticalRed)
+        .tint(TickerColors.primary)
     }
     
     var menuButton: some View {

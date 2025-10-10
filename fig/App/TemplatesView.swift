@@ -44,7 +44,7 @@ struct CategoryHeader: View {
     var body: some View {
         HStack(spacing: TickerSpacing.xs) {
             Image(systemName: category.icon)
-                .foregroundStyle(Color(hex: category.colorHex) ?? TickerColors.criticalRed)
+                .foregroundStyle(Color(hex: category.colorHex) ?? TickerColors.primary)
 
             Text(category.name)
                 .textCase(.uppercase)
@@ -72,12 +72,12 @@ struct TemplateRow: View {
                 // Icon
                 ZStack {
                     Circle()
-                        .fill(Color(hex: categoryColor)?.opacity(0.15) ?? TickerColors.criticalRed.opacity(0.15))
+                        .fill(Color(hex: categoryColor)?.opacity(0.15) ?? TickerColors.primary.opacity(0.15))
                         .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
                     Image(systemName: template.icon)
                         .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(Color(hex: categoryColor) ?? TickerColors.criticalRed)
+                        .foregroundStyle(Color(hex: categoryColor) ?? TickerColors.primary)
                 }
 
                 // Content

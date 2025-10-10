@@ -11,7 +11,7 @@ import SwiftUI
 
 enum TickerColors {
 
-    // MARK: Base Colors (High Contrast)
+    // MARK: Base Colors
 
     /// Pure black for dark mode backgrounds and text on light
     static let absoluteBlack = Color(red: 0.0, green: 0.0, blue: 0.0)
@@ -19,36 +19,50 @@ enum TickerColors {
     /// Pure white for light mode backgrounds and text on dark
     static let absoluteWhite = Color(red: 1.0, green: 1.0, blue: 1.0)
 
-    /// Deep charcoal for elevated surfaces in dark mode
-    static let surfaceDark = Color(red: 0.08, green: 0.08, blue: 0.08)
+    /// Elevated surface dark mode - subtle elevation
+    static let surfaceDark = Color(red: 0.11, green: 0.11, blue: 0.12) // #1C1C1E
 
-    /// Bright off-white for elevated surfaces in light mode
-    static let surfaceLight = Color(red: 0.98, green: 0.98, blue: 0.98)
+    /// Elevated surface light mode - soft background
+    static let surfaceLight = Color(red: 0.96, green: 0.96, blue: 0.97) // #F5F5F7
 
-    // MARK: Critical Accent (Electric Red)
+    // MARK: Primary Brand Colors
 
-    /// Primary action color - electric red for maximum urgency
-    static let criticalRed = Color(red: 1.0, green: 0.17, blue: 0.33) // #FF2B55
+    /// Primary action color - electric violet
+    static let primary = Color(red: 0.545, green: 0.361, blue: 0.965) // #8B5CF6
 
-    /// Active state - pulsing alarm indicator
-    static let alertActive = Color(red: 1.0, green: 0.27, blue: 0.0) // #FF4500
+    /// Primary hover/pressed state
+    static let primaryDark = Color(red: 0.467, green: 0.278, blue: 0.871) // #7747DE
 
-    /// Danger/destructive actions
-    static let danger = Color(red: 0.92, green: 0.0, blue: 0.0) // #EB0000
+    /// Accent color - bright cyan
+    static let accent = Color(red: 0.024, green: 0.714, blue: 0.831) // #06B6D4
 
-    // MARK: Semantic States
+    // MARK: Semantic Actions
 
-    /// Scheduled state - cool blue for reliability
-    static let scheduled = Color(red: 0.0, green: 0.48, blue: 1.0) // #007AFF
+    /// Success state - vibrant lime
+    static let success = Color(red: 0.518, green: 0.800, blue: 0.086) // #84CC16
 
-    /// Running state - electric green for active countdowns
-    static let running = Color(red: 0.2, green: 0.84, blue: 0.29) // #34D64A
+    /// Warning state - bright amber
+    static let warning = Color(red: 0.965, green: 0.620, blue: 0.043) // #F59E0B
 
-    /// Paused state - amber warning
-    static let paused = Color(red: 1.0, green: 0.6, blue: 0.0) // #FF9900
+    /// Danger/destructive - hot pink (less aggressive than red)
+    static let danger = Color(red: 0.925, green: 0.247, blue: 0.600) // #EC4899
+
+    // MARK: Alarm States
+
+    /// Scheduled - sky blue
+    static let scheduled = Color(red: 0.055, green: 0.647, blue: 0.914) // #0EA5E9
+
+    /// Running - electric lime
+    static let running = Color(red: 0.518, green: 0.800, blue: 0.086) // #84CC16
+
+    /// Paused - warm orange
+    static let paused = Color(red: 0.984, green: 0.573, blue: 0.235) // #FB923C
+
+    /// Alerting - bright fuchsia
+    static let alerting = Color(red: 0.851, green: 0.275, blue: 0.937) // #D946EF
 
     /// Disabled state - neutral gray
-    static let disabled = Color(red: 0.56, green: 0.56, blue: 0.58) // #8E8E93
+    static let disabled = Color(red: 0.584, green: 0.584, blue: 0.596) // #959598
 
     // MARK: Text Hierarchy
 
@@ -202,23 +216,24 @@ enum TickerAnimation {
     static let spring = Animation.spring(response: 0.3, dampingFraction: 0.7)
 }
 
-// MARK: - View Modifiers
+// MARK: - Button Styles
 
-struct TickerPrimaryButton: ViewModifier {
+struct TickerPrimaryButtonStyle: ButtonStyle {
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.isEnabled) var isEnabled
     let isDestructive: Bool
 
     init(isDestructive: Bool = false) {
         self.isDestructive = isDestructive
     }
 
-    func body(content: Content) -> some View {
-        content
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
             .cabinetSubheadline()
             .foregroundStyle(TickerColors.absoluteWhite)
             .frame(maxWidth: .infinity)
             .frame(height: TickerSpacing.buttonHeightLarge)
-            .background(isDestructive ? TickerColors.danger : TickerColors.criticalRed)
+            .background(backgroundColor)
             .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
             .shadow(
                 color: TickerShadow.critical.color,
@@ -226,16 +241,27 @@ struct TickerPrimaryButton: ViewModifier {
                 x: TickerShadow.critical.x,
                 y: TickerShadow.critical.y
             )
+            .opacity(configuration.isPressed ? 0.85 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(TickerAnimation.quick, value: configuration.isPressed)
+    }
+
+    private var backgroundColor: Color {
+        if !isEnabled {
+            return TickerColors.disabled
+        }
+        return isDestructive ? TickerColors.danger : TickerColors.primary
     }
 }
 
-struct TickerSecondaryButton: ViewModifier {
+struct TickerSecondaryButtonStyle: ButtonStyle {
     @Environment(\.colorScheme) var colorScheme
+    @Environment(\.isEnabled) var isEnabled
 
-    func body(content: Content) -> some View {
-        content
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
             .cabinetSubheadline()
-            .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+            .foregroundStyle(isEnabled ? TickerColors.textPrimary(for: colorScheme) : TickerColors.disabled)
             .frame(maxWidth: .infinity)
             .frame(height: TickerSpacing.buttonHeightStandard)
             .background(TickerColors.surface(for: colorScheme))
@@ -243,12 +269,34 @@ struct TickerSecondaryButton: ViewModifier {
             .overlay(
                 RoundedRectangle(cornerRadius: TickerRadius.medium)
                     .strokeBorder(
-                        TickerColors.textTertiary(for: colorScheme),
+                        isEnabled ? TickerColors.textTertiary(for: colorScheme) : TickerColors.disabled,
                         lineWidth: 2
                     )
             )
+            .opacity(configuration.isPressed ? 0.7 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.98 : 1.0)
+            .animation(TickerAnimation.quick, value: configuration.isPressed)
     }
 }
+
+struct TickerTertiaryButtonStyle: ButtonStyle {
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.isEnabled) var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .cabinetSubheadline()
+            .foregroundStyle(isEnabled ? TickerColors.textPrimary(for: colorScheme) : TickerColors.disabled)
+            .padding(.horizontal, TickerSpacing.md)
+            .padding(.vertical, TickerSpacing.sm)
+            .contentShape(Rectangle())
+            .opacity(configuration.isPressed ? 0.5 : 1.0)
+            .scaleEffect(configuration.isPressed ? 0.96 : 1.0)
+            .animation(TickerAnimation.quick, value: configuration.isPressed)
+    }
+}
+
+// MARK: - View Modifiers
 
 struct TickerStatusBadge: ViewModifier {
     let color: Color
@@ -285,16 +333,6 @@ struct TickerCard: ViewModifier {
 
 extension View {
 
-    /// Apply primary button style
-    func tickerPrimaryButton(isDestructive: Bool = false) -> some View {
-        modifier(TickerPrimaryButton(isDestructive: isDestructive))
-    }
-
-    /// Apply secondary button style
-    func tickerSecondaryButton() -> some View {
-        modifier(TickerSecondaryButton())
-    }
-
     /// Apply status badge style
     func tickerStatusBadge(color: Color) -> some View {
         modifier(TickerStatusBadge(color: color))
@@ -303,6 +341,26 @@ extension View {
     /// Apply card style
     func tickerCard() -> some View {
         modifier(TickerCard())
+    }
+}
+
+// MARK: - Button Extensions
+
+extension Button {
+
+    /// Apply primary button style with optional destructive variant
+    func tickerPrimaryButton(isDestructive: Bool = false) -> some View {
+        self.buttonStyle(TickerPrimaryButtonStyle(isDestructive: isDestructive))
+    }
+
+    /// Apply secondary button style
+    func tickerSecondaryButton() -> some View {
+        self.buttonStyle(TickerSecondaryButtonStyle())
+    }
+
+    /// Apply tertiary button style (text-only button)
+    func tickerTertiaryButton() -> some View {
+        self.buttonStyle(TickerTertiaryButtonStyle())
     }
 }
 

@@ -14,28 +14,43 @@ struct ColorSystemPreview: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: TickerSpacing.xl) { 
-                // Critical Colors
+            VStack(spacing: TickerSpacing.xl) {
+                // Brand Colors
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
-                    Text("CRITICAL ACCENT")
+                    Text("BRAND COLORS")
                         .cabinetTitle2()
 
                     HStack(spacing: TickerSpacing.sm) {
-                        colorSwatch(color: TickerColors.criticalRed, name: "Critical Red")
-                        colorSwatch(color: TickerColors.alertActive, name: "Alert Active")
+                        colorSwatch(color: TickerColors.primary, name: "Primary")
+                        colorSwatch(color: TickerColors.primaryDark, name: "Primary Dark")
+                        colorSwatch(color: TickerColors.accent, name: "Accent")
+                    }
+                }
+
+                // Semantic Actions
+                VStack(alignment: .leading, spacing: TickerSpacing.md) {
+                    Text("SEMANTIC ACTIONS")
+                        .cabinetTitle2()
+
+                    HStack(spacing: TickerSpacing.sm) {
+                        colorSwatch(color: TickerColors.success, name: "Success")
+                        colorSwatch(color: TickerColors.warning, name: "Warning")
                         colorSwatch(color: TickerColors.danger, name: "Danger")
                     }
                 }
 
-                // Semantic States
+                // Alarm States
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
-                    Text("SEMANTIC STATES")
+                    Text("ALARM STATES")
                         .cabinetTitle2()
 
                     HStack(spacing: TickerSpacing.sm) {
                         colorSwatch(color: TickerColors.scheduled, name: "Scheduled")
                         colorSwatch(color: TickerColors.running, name: "Running")
+                    }
+                    HStack(spacing: TickerSpacing.sm) {
                         colorSwatch(color: TickerColors.paused, name: "Paused")
+                        colorSwatch(color: TickerColors.alerting, name: "Alerting")
                         colorSwatch(color: TickerColors.disabled, name: "Disabled")
                     }
                 }
@@ -180,6 +195,7 @@ struct TypographyScalePreview: View {
 
 struct ButtonSystemPreview: View {
     @Environment(\.colorScheme) var colorScheme
+    @State private var isButtonDisabled = false
 
     var body: some View {
         ScrollView {
@@ -193,7 +209,6 @@ struct ButtonSystemPreview: View {
                         TickerHaptics.criticalAction()
                     } label: {
                         Text("SET ALARM")
-                            .frame(maxWidth: .infinity)
                     }
                     .tickerPrimaryButton()
 
@@ -201,9 +216,16 @@ struct ButtonSystemPreview: View {
                         TickerHaptics.error()
                     } label: {
                         Text("DELETE ALARM")
-                            .frame(maxWidth: .infinity)
                     }
                     .tickerPrimaryButton(isDestructive: true)
+
+                    Button {
+                        // Disabled button
+                    } label: {
+                        Text("DISABLED STATE")
+                    }
+                    .tickerPrimaryButton()
+                    .disabled(true)
                 }
 
                 // Secondary Buttons
@@ -215,7 +237,6 @@ struct ButtonSystemPreview: View {
                         TickerHaptics.standardAction()
                     } label: {
                         Text("Edit Details")
-                            .frame(maxWidth: .infinity)
                     }
                     .tickerSecondaryButton()
 
@@ -223,26 +244,73 @@ struct ButtonSystemPreview: View {
                         TickerHaptics.standardAction()
                     } label: {
                         Text("Cancel")
-                            .frame(maxWidth: .infinity)
                     }
                     .tickerSecondaryButton()
+
+                    Button {
+                        // Disabled button
+                    } label: {
+                        Text("Disabled State")
+                    }
+                    .tickerSecondaryButton()
+                    .disabled(true)
                 }
 
-                // Button Sizes
+                // Tertiary Buttons
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
-                    Text("BUTTON SIZES")
+                    Text("TERTIARY BUTTONS")
                         .cabinetTitle2()
 
-                    VStack(spacing: TickerSpacing.xs) {
-                        Text("Primary: 64pt height")
+                    HStack {
+                        Button {
+                            TickerHaptics.selection()
+                        } label: {
+                            Text("Skip")
+                        }
+                        .tickerTertiaryButton()
+
+                        Spacer()
+
+                        Button {
+                            TickerHaptics.selection()
+                        } label: {
+                            Text("Learn More")
+                        }
+                        .tickerTertiaryButton()
+                    }
+
+                    Button {
+                        // Disabled button
+                    } label: {
+                        Text("Disabled Action")
+                    }
+                    .tickerTertiaryButton()
+                    .disabled(true)
+                }
+
+                // Button Sizes & States
+                VStack(alignment: .leading, spacing: TickerSpacing.md) {
+                    Text("BUTTON INFO")
+                        .cabinetTitle2()
+
+                    VStack(alignment: .leading, spacing: TickerSpacing.xs) {
+                        Text("• Primary: 64pt height")
                             .cabinetFootnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
-                        Text("Secondary: 48pt height")
+                        Text("• Secondary: 48pt height")
                             .cabinetFootnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
-                        Text("Minimum tap target: 44×44pt")
+                        Text("• Tertiary: Flexible padding")
+                            .cabinetFootnote()
+                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+
+                        Text("• Minimum tap target: 44×44pt")
+                            .cabinetFootnote()
+                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+
+                        Text("• Press feedback: Scale + opacity")
                             .cabinetFootnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                     }
@@ -266,7 +334,7 @@ struct StatusBadgePreview: View {
                 badgeRow(text: "SCHEDULED", color: TickerColors.scheduled, description: "Blue - Future alarm")
                 badgeRow(text: "RUNNING", color: TickerColors.running, description: "Green - Active countdown")
                 badgeRow(text: "PAUSED", color: TickerColors.paused, description: "Amber - Needs attention")
-                badgeRow(text: "ALERTING", color: TickerColors.alertActive, description: "Red - Currently ringing")
+                badgeRow(text: "ALERTING", color: TickerColors.alerting, description: "Red - Currently ringing")
                 badgeRow(text: "DISABLED", color: TickerColors.disabled, description: "Gray - Inactive")
             }
 
@@ -334,12 +402,12 @@ struct AlarmCellPreview: View {
                 // Alerting
                 mockAlarmCell(
                     icon: "bell.badge.fill",
-                    iconColor: TickerColors.alertActive,
+                    iconColor: TickerColors.alerting,
                     label: "Meeting Reminder",
                     time: "19:30",
                     schedule: "Once only",
                     status: "ALERTING",
-                    statusColor: TickerColors.alertActive
+                    statusColor: TickerColors.alerting
                 )
             }
             .padding(TickerSpacing.md)
@@ -430,7 +498,6 @@ struct EmptyStatePreview: View {
                 TickerHaptics.criticalAction()
             } label: {
                 Text("ADD ALARM")
-                    .frame(maxWidth: .infinity)
             }
             .tickerPrimaryButton()
             .padding(.horizontal, TickerSpacing.xxl)
@@ -507,11 +574,11 @@ struct IconSystemPreview: View {
         VStack(spacing: TickerSpacing.xs) {
             Image(systemName: name)
                 .font(.system(size: 32))
-                .foregroundStyle(TickerColors.criticalRed)
+                .foregroundStyle(TickerColors.primary)
                 .frame(width: 60, height: 60)
 
             Text(label)
-                        .cabinetCaption2()
+                .cabinetCaption2()
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 .multilineTextAlignment(.center)
         }
@@ -560,7 +627,7 @@ struct SpacingSystemPreview: View {
     private func spacingBar(size: CGFloat, label: String) -> some View {
         HStack(spacing: TickerSpacing.md) {
             RoundedRectangle(cornerRadius: TickerRadius.tight)
-                .fill(TickerColors.criticalRed)
+                .fill(TickerColors.primary)
                 .frame(width: size, height: 24)
 
             Text(label)
@@ -580,7 +647,7 @@ struct SpacingSystemPreview: View {
                 .frame(height: height)
                 .overlay(
                     RoundedRectangle(cornerRadius: TickerRadius.medium)
-                        .strokeBorder(TickerColors.criticalRed, lineWidth: 2)
+                        .strokeBorder(TickerColors.primary, lineWidth: 2)
                 )
         }
     }
