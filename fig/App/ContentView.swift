@@ -25,6 +25,17 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             content
+                .background(
+                    ZStack {
+                        TickerColors.liquidGlassGradient(for: colorScheme)
+                            .ignoresSafeArea()
+
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+.opacity(0.1)
+                            .ignoresSafeArea()
+                    }
+                )
                 .navigationTitle(Text("Alarms"))
                 .toolbarTitleDisplayMode(.inlineLarge)
                 .toolbar {
@@ -47,7 +58,15 @@ struct ContentView: View {
                 .presentationDetents([.height(620)])
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
-                .presentationBackground(.ultraThinMaterial)
+                .presentationBackground {
+                    ZStack {
+                        TickerColors.liquidGlassGradient(for: colorScheme)
+
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.5)
+                    }
+                }
         }
         .sheet(isPresented: $showTemplates, onDismiss: {
             showTemplates = false
@@ -88,10 +107,26 @@ struct ContentView: View {
                         TickerHaptics.criticalAction()
                         showAddSheet = true
                     } label: {
-                        Text("Add Alarm")
+                        HStack(spacing: TickerSpacing.xs) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Add Alarm")
+                                .font(.system(size: 16, weight: .bold))
+                        }
+                        .foregroundStyle(TickerColors.absoluteWhite)
+                        .padding(.horizontal, TickerSpacing.xl)
+                        .padding(.vertical, TickerSpacing.md)
+                        .background(
+                            Capsule()
+                                .fill(TickerColors.primary)
+                        )
+                        .shadow(
+                            color: TickerColors.primary.opacity(0.3),
+                            radius: 8,
+                            x: 0,
+                            y: 4
+                        )
                     }
-                    .tickerPrimaryButton()
-                    .padding(.horizontal, TickerSpacing.xl)
                 }
             }
         }
@@ -104,6 +139,7 @@ struct ContentView: View {
             }
             .onDelete(perform: deleteAlarms)
         }
+        .scrollContentBackground(.hidden)
     }
 
     private func deleteAlarms(at offsets: IndexSet) {
@@ -117,5 +153,6 @@ struct ContentView: View {
 
 #Preview {
     return ContentView()
+        .environment(AlarmService())
         .modelContainer(for: Ticker.self, inMemory: true)
 }

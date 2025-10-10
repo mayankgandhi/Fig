@@ -158,7 +158,18 @@ struct AddTickerView: View {
                     Spacer(minLength: 0)
                 }
             }
-            .background(.ultraThinMaterial)
+            .background(
+                ZStack {
+                    TickerColors.liquidGlassGradient(for: colorScheme)
+                        .ignoresSafeArea()
+
+                    // Subtle overlay for glass effect
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.1)
+                        .ignoresSafeArea()
+                }
+            )
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

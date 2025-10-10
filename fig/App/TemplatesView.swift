@@ -32,6 +32,19 @@ struct TemplatesView: View {
                 }
             }
             .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(
+                ZStack {
+                    TickerColors.liquidGlassGradient(for: colorScheme)
+                        .ignoresSafeArea()
+
+                    // Subtle overlay for glass effect
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+.opacity(0.1)
+                        .ignoresSafeArea()
+                }
+            )
             .navigationTitle("Templates")
         }
     }

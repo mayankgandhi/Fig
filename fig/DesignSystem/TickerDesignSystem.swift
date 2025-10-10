@@ -94,6 +94,140 @@ enum TickerColors {
     static func surface(for colorScheme: ColorScheme) -> Color {
         colorScheme == .dark ? surfaceDark : surfaceLight
     }
+
+    // MARK: Liquid Glass Background Gradient
+
+    static func liquidGlassGradient(for colorScheme: ColorScheme) -> some View {
+        if colorScheme == .dark {
+            return ZStack {
+                // Base gradient - Deep dimensional blues and purples
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.01, green: 0.02, blue: 0.08),  // Midnight blue
+                        Color(red: 0.04, green: 0.02, blue: 0.10),  // Deep indigo
+                        Color(red: 0.06, green: 0.03, blue: 0.14),  // Rich purple
+                        Color(red: 0.02, green: 0.03, blue: 0.11),  // Navy depth
+                        Color(red: 0.03, green: 0.02, blue: 0.09)   // Dark violet
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                // Mid-layer gradient - Diagonal accent
+                LinearGradient(
+                    colors: [
+                        Color.clear,
+                        primary.opacity(0.12),
+                        Color.clear,
+                        accent.opacity(0.08),
+                        Color.clear
+                    ],
+                    startPoint: .topTrailing,
+                    endPoint: .bottomLeading
+                )
+
+                // Radial depth overlay - Center glow
+                RadialGradient(
+                    colors: [
+                        primary.opacity(0.06),
+                        Color.clear,
+                        Color.clear
+                    ],
+                    center: .center,
+                    startRadius: 50,
+                    endRadius: 400
+                )
+
+                // Top shimmer - Light reflection
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.05),
+                        Color.white.opacity(0.02),
+                        Color.clear,
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .center
+                )
+
+                // Bottom glow - Subtle depth
+                LinearGradient(
+                    colors: [
+                        Color.clear,
+                        Color.clear,
+                        primary.opacity(0.08),
+                        primaryDark.opacity(0.06)
+                    ],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
+            }
+        } else {
+            return ZStack {
+                // Base gradient - Soft ethereal whites with color tints
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.92, green: 0.94, blue: 0.99),  // Cool blue-white
+                        Color(red: 0.95, green: 0.94, blue: 0.99),  // Lavender-white
+                        Color(red: 0.93, green: 0.96, blue: 0.99),  // Sky-white
+                        Color(red: 0.96, green: 0.95, blue: 0.98),  // Soft purple-white
+                        Color(red: 0.94, green: 0.95, blue: 0.99)   // Periwinkle-white
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+
+                // Mid-layer gradient - Diagonal color wash
+                LinearGradient(
+                    colors: [
+                        Color.clear,
+                        primary.opacity(0.06),
+                        Color.clear,
+                        Color.blue.opacity(0.04),
+                        Color.clear
+                    ],
+                    startPoint: .topTrailing,
+                    endPoint: .bottomLeading
+                )
+
+                // Radial depth overlay - Subtle center highlight
+                RadialGradient(
+                    colors: [
+                        Color.white.opacity(0.4),
+                        Color.clear,
+                        Color.clear
+                    ],
+                    center: .center,
+                    startRadius: 100,
+                    endRadius: 500
+                )
+
+                // Top luminance - Bright edge
+                LinearGradient(
+                    colors: [
+                        Color.white.opacity(0.3),
+                        Color.white.opacity(0.1),
+                        Color.clear,
+                        Color.clear
+                    ],
+                    startPoint: .top,
+                    endPoint: .center
+                )
+
+                // Bottom color tint - Subtle depth
+                LinearGradient(
+                    colors: [
+                        Color.clear,
+                        Color.clear,
+                        primary.opacity(0.04),
+                        Color.blue.opacity(0.03)
+                    ],
+                    startPoint: .center,
+                    endPoint: .bottom
+                )
+            }
+        }
+    }
 }
 
 // MARK: - Spacing System

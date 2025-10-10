@@ -117,6 +117,18 @@ struct TodayClockView: View {
                     .padding(.bottom, 24)
                 }
             }
+            .background(
+                ZStack {
+                    TickerColors.liquidGlassGradient(for: colorScheme)
+                        .ignoresSafeArea()
+
+                    // Subtle overlay for glass effect
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+.opacity(0.1)
+                        .ignoresSafeArea()
+                }
+            )
             .navigationTitle("Today")
             .toolbarTitleDisplayMode(.inlineLarge)
             .toolbar {
