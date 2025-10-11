@@ -442,15 +442,15 @@ struct AddTickerView: View {
 
         return HStack(spacing: TickerSpacing.xxs) {
             Image(systemName: icon)
-                .font(.system(size: 12))
+                .font(.system(size: 14))
                 .foregroundStyle(iconColor ?? (isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme)))
             Text(title)
                 .cabinetCaption2()
                 .lineLimit(1)
         }
         .foregroundStyle(isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
-        .padding(.horizontal, TickerSpacing.sm)
-        .padding(.vertical, TickerSpacing.xs)
+        .padding(.horizontal, TickerSpacing.md)
+        .padding(.vertical, TickerSpacing.sm)
         .background(isActive ? TickerColors.primary : TickerColors.surface(for: colorScheme))
         .overlay(
             Capsule()
@@ -472,6 +472,10 @@ struct AddTickerView: View {
             case "bell.badge":
                 return enableSnooze
             default:
+                // For icon selection button, always show it has a value
+                if title == "Icon" {
+                    return true
+                }
                 return false
         }
     }

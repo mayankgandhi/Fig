@@ -17,18 +17,6 @@ struct IconPickerView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
-            // Category tabs
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: TickerSpacing.xs) {
-                    ForEach(IconColorPair.IconCategory.allCases, id: \.self) { category in
-                        CategoryTab(
-                            category: category,
-                            isSelected: false
-                        )
-                    }
-                }
-            }
-
             // Icons grid
             ScrollView {
                 LazyVGrid(columns: columns, spacing: TickerSpacing.sm) {
@@ -42,7 +30,7 @@ struct IconPickerView: View {
                     }
                 }
             }
-            .frame(height: 200)
+            .frame(height: 280)
         }
         .padding(TickerSpacing.md)
         .background(TickerColors.surface(for: colorScheme))
@@ -55,24 +43,6 @@ struct IconPickerView: View {
             selectedIcon = iconPair.symbol
             selectedColorHex = iconPair.colorHex
         }
-    }
-}
-
-// MARK: - Category Tab
-
-private struct CategoryTab: View {
-    let category: IconColorPair.IconCategory
-    let isSelected: Bool
-    @Environment(\.colorScheme) private var colorScheme
-
-    var body: some View {
-        Text(category.rawValue)
-            .cabinetCaption2()
-            .foregroundStyle(isSelected ? TickerColors.absoluteWhite : TickerColors.textSecondary(for: colorScheme))
-            .padding(.horizontal, TickerSpacing.sm)
-            .padding(.vertical, TickerSpacing.xs)
-            .background(isSelected ? TickerColors.primary : TickerColors.surface(for: colorScheme).opacity(0.5))
-            .clipShape(Capsule())
     }
 }
 

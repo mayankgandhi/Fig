@@ -156,7 +156,7 @@ struct ClockView: View {
                         .frame(width: 1.5, height: radius * 0.8)
                         .offset(y: -radius * 0.4)
                         .rotationEffect(Angle(degrees: secondAngle))
-                        .animation(.none, value: secondAngle)                    
+                        .animation(.none, value: secondAngle)
                     
                     Circle()
                         .fill(TickerColors.primary)

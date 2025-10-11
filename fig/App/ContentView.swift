@@ -18,7 +18,12 @@ struct ContentView: View {
     @State private var showAddSheet = false
     @State private var showTemplates: Bool = false
     @State private var displayAlarms: [Ticker] = []
+    @State private var alarmToEdit: Ticker?
+    @State private var alarmToDelete: Ticker?
+    @State private var showDeleteAlert = false
+    @State private var searchText = ""
     @Namespace private var addButtonNamespace
+    @Namespace private var editButtonNamespace
     
     var body: some View {
         NavigationStack {
@@ -48,6 +53,7 @@ struct ContentView: View {
                         }
                     }
                 }
+                .searchable(text: $searchText, prompt: "Search by name or time")
         }
         .sheet(isPresented: $showAddSheet, onDismiss: {
             showAddSheet = false
@@ -73,6 +79,39 @@ struct ContentView: View {
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
         })
+        .sheet(item: $alarmToEdit) { ticker in
+            AddTickerView(namespace: editButtonNamespace, prefillTemplate: ticker, isEditMode: true)
+                .presentationDetents([.height(620)])
+                .presentationCornerRadius(TickerRadius.large)
+                .presentationDragIndicator(.visible)
+                .presentationBackground {
+                    ZStack {
+                        TickerColors.liquidGlassGradient(for: colorScheme)
+
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.5)
+                    }
+                }
+        }
+        .alert("Delete Alarm", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {
+                alarmToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let ticker = alarmToDelete {
+                    TickerHaptics.warning()
+                    if let index = displayAlarms.firstIndex(where: { $0.id == ticker.id }) {
+                        deleteAlarms(at: IndexSet(integer: index))
+                    }
+                }
+                alarmToDelete = nil
+            }
+        } message: {
+            if let ticker = alarmToDelete {
+                Text("Are you sure you want to delete \"\(ticker.label)\"? This action cannot be undone.")
+            }
+        }
         .tint(TickerColors.primary)
         .onAppear {
             loadAlarms()
@@ -85,7 +124,44 @@ struct ContentView: View {
     private func loadAlarms() {
         displayAlarms = alarmService.getAlarmsWithMetadata(context: modelContext)
     }
-    
+
+    private var filteredAlarms: [Ticker] {
+        guard !searchText.isEmpty else {
+            return displayAlarms
+        }
+
+        let lowercasedSearch = searchText.lowercased()
+
+        return displayAlarms.filter { ticker in
+            // Search by label
+            if ticker.label.lowercased().contains(lowercasedSearch) {
+                return true
+            }
+
+            // Search by time
+            if let schedule = ticker.schedule {
+                let timeString: String
+                switch schedule {
+                case .oneTime(let date):
+                    // Format as "HH:mm" for one-time alarms
+                    let formatter = DateFormatter()
+                    formatter.dateFormat = "HH:mm"
+                    timeString = formatter.string(from: date)
+
+                case .daily(let time):
+                    // Format as "HH:mm" for daily alarms
+                    timeString = String(format: "%02d:%02d", time.hour, time.minute)
+                }
+
+                if timeString.contains(lowercasedSearch) {
+                    return true
+                }
+            }
+
+            return false
+        }
+    }
+
     var menuButton: some View {
         Button {
             TickerHaptics.selection()
@@ -99,8 +175,20 @@ struct ContentView: View {
     @ViewBuilder
     var content: some View {
         VStack {
-            if !displayAlarms.isEmpty {
+            if !filteredAlarms.isEmpty {
                 alarmList
+            } else if !displayAlarms.isEmpty && searchText.isEmpty {
+                alarmList
+            } else if !searchText.isEmpty {
+                ContentUnavailableView {
+                    Text("No Results")
+                        .cabinetTitle()
+                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                } description: {
+                    Text("No alarms match '\(searchText)'")
+                        .cabinetBody()
+                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                }
             } else {
                 ContentUnavailableView {
                     Text("No Alarms")
@@ -142,11 +230,32 @@ struct ContentView: View {
 
     var alarmList: some View {
         List {
-            ForEach(displayAlarms, id: \.id) { ticker in
+            ForEach(filteredAlarms, id: \.id) { ticker in
                 AlarmCell(alarmItem: ticker)
+                    .listRowInsets(EdgeInsets(top: TickerSpacing.xs, leading: 20, bottom: TickerSpacing.xs, trailing: 20))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button {
+                            TickerHaptics.selection()
+                            alarmToEdit = ticker
+                        } label: {
+                            Label("Edit", systemImage: "pencil")
+                        }
+                        .tint(TickerColors.primary)
+
+                        Button(role: .destructive) {
+                            TickerHaptics.selection()
+                            alarmToDelete = ticker
+                            showDeleteAlert = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                        .tint(.red)
+                    }
             }
-            .onDelete(perform: deleteAlarms)
         }
+        .listStyle(.plain)
         .scrollContentBackground(.hidden)
     }
 

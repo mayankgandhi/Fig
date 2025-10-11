@@ -22,12 +22,7 @@ struct IconColorPair: Identifiable, Hashable {
     }
 
     enum IconCategory: String, CaseIterable {
-        case time = "Time & Scheduling"
-        case fitness = "Fitness & Health"
-        case work = "Work & Productivity"
-        case wellness = "Wellness & Self-care"
-        case food = "Food & Nutrition"
-        case communication = "Communication"
+        case general = "General"
     }
 }
 
@@ -35,61 +30,60 @@ struct IconColorPair: Identifiable, Hashable {
 
 extension IconColorPair {
 
-    /// Curated collection of icon-color pairs organized by category
+    /// Curated collection of icon-color pairs
     static let allIcons: [IconColorPair] = [
+        // Alarms & Time
+        IconColorPair(symbol: "alarm", colorHex: "#8B5CF6", category: .general),
+        IconColorPair(symbol: "alarm.fill", colorHex: "#8B5CF6", category: .general),
+        IconColorPair(symbol: "clock", colorHex: "#3B82F6", category: .general),
+        IconColorPair(symbol: "clock.fill", colorHex: "#3B82F6", category: .general),
+        IconColorPair(symbol: "calendar", colorHex: "#0EA5E9", category: .general),
+        IconColorPair(symbol: "calendar.circle.fill", colorHex: "#0EA5E9", category: .general),
+        IconColorPair(symbol: "timer", colorHex: "#F59E0B", category: .general),
+        IconColorPair(symbol: "hourglass", colorHex: "#F59E0B", category: .general),
 
-        // MARK: Time & Scheduling
-        IconColorPair(symbol: "alarm", colorHex: "#8B5CF6", category: .time),
-        IconColorPair(symbol: "alarm.fill", colorHex: "#8B5CF6", category: .time),
-        IconColorPair(symbol: "clock", colorHex: "#3B82F6", category: .time),
-        IconColorPair(symbol: "clock.fill", colorHex: "#3B82F6", category: .time),
-        IconColorPair(symbol: "calendar", colorHex: "#0EA5E9", category: .time),
-        IconColorPair(symbol: "calendar.circle.fill", colorHex: "#0EA5E9", category: .time),
-        IconColorPair(symbol: "timer", colorHex: "#F59E0B", category: .time),
-        IconColorPair(symbol: "hourglass", colorHex: "#F59E0B", category: .time),
+        // Activities
+        IconColorPair(symbol: "figure.run", colorHex: "#FF6B35", category: .general),
+        IconColorPair(symbol: "figure.run.circle.fill", colorHex: "#FF6B35", category: .general),
+        IconColorPair(symbol: "figure.yoga", colorHex: "#84CC16", category: .general),
+        IconColorPair(symbol: "figure.walk", colorHex: "#10B981", category: .general),
+        IconColorPair(symbol: "heart.fill", colorHex: "#E91E63", category: .general),
+        IconColorPair(symbol: "waveform.path.ecg", colorHex: "#EF4444", category: .general),
+        IconColorPair(symbol: "drop.fill", colorHex: "#06B6D4", category: .general),
+        IconColorPair(symbol: "flame.fill", colorHex: "#F97316", category: .general),
+        IconColorPair(symbol: "figure.strengthtraining.traditional", colorHex: "#DC2626", category: .general),
 
-        // MARK: Fitness & Health
-        IconColorPair(symbol: "figure.run", colorHex: "#FF6B35", category: .fitness),
-        IconColorPair(symbol: "figure.run.circle.fill", colorHex: "#FF6B35", category: .fitness),
-        IconColorPair(symbol: "figure.yoga", colorHex: "#84CC16", category: .fitness),
-        IconColorPair(symbol: "figure.walk", colorHex: "#10B981", category: .fitness),
-        IconColorPair(symbol: "heart.fill", colorHex: "#E91E63", category: .fitness),
-        IconColorPair(symbol: "waveform.path.ecg", colorHex: "#EF4444", category: .fitness),
-        IconColorPair(symbol: "drop.fill", colorHex: "#06B6D4", category: .fitness),
-        IconColorPair(symbol: "flame.fill", colorHex: "#F97316", category: .fitness),
-        IconColorPair(symbol: "figure.strengthtraining.traditional", colorHex: "#DC2626", category: .fitness),
+        // Work & Tasks
+        IconColorPair(symbol: "briefcase.fill", colorHex: "#4CAF50", category: .general),
+        IconColorPair(symbol: "checkmark.circle.fill", colorHex: "#10B981", category: .general),
+        IconColorPair(symbol: "book.fill", colorHex: "#6366F1", category: .general),
+        IconColorPair(symbol: "lightbulb.fill", colorHex: "#F59E0B", category: .general),
+        IconColorPair(symbol: "pencil.circle.fill", colorHex: "#8B5CF6", category: .general),
+        IconColorPair(symbol: "laptopcomputer", colorHex: "#64748B", category: .general),
+        IconColorPair(symbol: "doc.text.fill", colorHex: "#3B82F6", category: .general),
 
-        // MARK: Work & Productivity
-        IconColorPair(symbol: "briefcase.fill", colorHex: "#4CAF50", category: .work),
-        IconColorPair(symbol: "checkmark.circle.fill", colorHex: "#10B981", category: .work),
-        IconColorPair(symbol: "book.fill", colorHex: "#6366F1", category: .work),
-        IconColorPair(symbol: "lightbulb.fill", colorHex: "#F59E0B", category: .work),
-        IconColorPair(symbol: "pencil.circle.fill", colorHex: "#8B5CF6", category: .work),
-        IconColorPair(symbol: "laptopcomputer", colorHex: "#64748B", category: .work),
-        IconColorPair(symbol: "doc.text.fill", colorHex: "#3B82F6", category: .work),
+        // Wellness
+        IconColorPair(symbol: "moon.stars.fill", colorHex: "#3B82F6", category: .general),
+        IconColorPair(symbol: "sun.max.fill", colorHex: "#FCD34D", category: .general),
+        IconColorPair(symbol: "leaf.fill", colorHex: "#22C55E", category: .general),
+        IconColorPair(symbol: "pills.fill", colorHex: "#14B8A6", category: .general),
+        IconColorPair(symbol: "cross.case.fill", colorHex: "#DC2626", category: .general),
+        IconColorPair(symbol: "sparkles", colorHex: "#D946EF", category: .general),
+        IconColorPair(symbol: "bed.double.fill", colorHex: "#6366F1", category: .general),
 
-        // MARK: Wellness & Self-care
-        IconColorPair(symbol: "moon.stars.fill", colorHex: "#3B82F6", category: .wellness),
-        IconColorPair(symbol: "sun.max.fill", colorHex: "#FCD34D", category: .wellness),
-        IconColorPair(symbol: "leaf.fill", colorHex: "#22C55E", category: .wellness),
-        IconColorPair(symbol: "pills.fill", colorHex: "#14B8A6", category: .wellness),
-        IconColorPair(symbol: "cross.case.fill", colorHex: "#DC2626", category: .wellness),
-        IconColorPair(symbol: "sparkles", colorHex: "#D946EF", category: .wellness),
-        IconColorPair(symbol: "bed.double.fill", colorHex: "#6366F1", category: .wellness),
+        // Food & Drink
+        IconColorPair(symbol: "fork.knife", colorHex: "#FB923C", category: .general),
+        IconColorPair(symbol: "cup.and.saucer.fill", colorHex: "#92400E", category: .general),
+        IconColorPair(symbol: "carrot.fill", colorHex: "#F97316", category: .general),
+        IconColorPair(symbol: "takeoutbag.and.cup.and.straw.fill", colorHex: "#DC2626", category: .general),
+        IconColorPair(symbol: "mug.fill", colorHex: "#78350F", category: .general),
 
-        // MARK: Food & Nutrition
-        IconColorPair(symbol: "fork.knife", colorHex: "#FB923C", category: .food),
-        IconColorPair(symbol: "cup.and.saucer.fill", colorHex: "#92400E", category: .food),
-        IconColorPair(symbol: "carrot.fill", colorHex: "#F97316", category: .food),
-        IconColorPair(symbol: "takeoutbag.and.cup.and.straw.fill", colorHex: "#DC2626", category: .food),
-        IconColorPair(symbol: "mug.fill", colorHex: "#78350F", category: .food),
-
-        // MARK: Communication
-        IconColorPair(symbol: "bell.fill", colorHex: "#D946EF", category: .communication),
-        IconColorPair(symbol: "phone.fill", colorHex: "#10B981", category: .communication),
-        IconColorPair(symbol: "message.fill", colorHex: "#3B82F6", category: .communication),
-        IconColorPair(symbol: "envelope.fill", colorHex: "#F59E0B", category: .communication),
-        IconColorPair(symbol: "bubble.left.and.bubble.right.fill", colorHex: "#06B6D4", category: .communication),
+        // Communication
+        IconColorPair(symbol: "bell.fill", colorHex: "#D946EF", category: .general),
+        IconColorPair(symbol: "phone.fill", colorHex: "#10B981", category: .general),
+        IconColorPair(symbol: "message.fill", colorHex: "#3B82F6", category: .general),
+        IconColorPair(symbol: "envelope.fill", colorHex: "#F59E0B", category: .general),
+        IconColorPair(symbol: "bubble.left.and.bubble.right.fill", colorHex: "#06B6D4", category: .general),
     ]
 
     /// Icons grouped by category for organized display
@@ -103,5 +97,5 @@ extension IconColorPair {
     }
 
     /// Default icon-color pair (alarm with purple)
-    static let defaultIcon = IconColorPair(symbol: "alarm", colorHex: "#8B5CF6", category: .time)
+    static let defaultIcon = IconColorPair(symbol: "alarm", colorHex: "#8B5CF6", category: .general)
 }
