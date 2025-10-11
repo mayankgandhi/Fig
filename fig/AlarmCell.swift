@@ -14,7 +14,7 @@ struct AlarmCell: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        HStack(spacing: TickerSpacing.md) {
+        HStack(spacing: TickerSpacing.sm) {
             // Leading: Category icon with colored background
             categoryIconView
 
@@ -26,7 +26,7 @@ struct AlarmCell: View {
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 // Secondary: Category name
-                if let tickerData = alarmItem.tickerData, let name = tickerData.name {
+                if let tickerData = alarmItem.tickerData, let name = tickerData.name, name != alarmItem.label {
                     Text(name)
                         .cabinetSubheadline()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
@@ -45,7 +45,7 @@ struct AlarmCell: View {
                 // Time display (large and prominent)
                 if let schedule = alarmItem.schedule {
                     scheduleText(for: schedule)
-                    .cabinetTitle3()
+                    .cabinetTitle()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } else if let countdown = alarmItem.countdown?.preAlert {
                     Text(formatDuration(countdown.interval))
@@ -57,7 +57,16 @@ struct AlarmCell: View {
                 tag
             }
         }
-        .padding(.vertical, TickerSpacing.sm)
+        .padding(TickerSpacing.sm)
+        .background(TickerColors.surface(for: colorScheme))
+        .background(.ultraThinMaterial.opacity(0.5))
+        .clipShape(RoundedRectangle(cornerRadius: TickerRadius.large))
+        .shadow(
+            color: TickerShadow.subtle.color,
+            radius: TickerShadow.subtle.radius,
+            x: TickerShadow.subtle.x,
+            y: TickerShadow.subtle.y
+        )
         .contentShape(Rectangle())
         .onTapGesture {
             TickerHaptics.selection()
@@ -173,5 +182,74 @@ struct AlarmCell: View {
         // If not in service
         return alarmItem.isEnabled ? TickerColors.scheduled : TickerColors.disabled
     }
+}
+
+// MARK: - Preview
+
+#Preview {
+    VStack(spacing: TickerSpacing.md) {
+        // Daily alarm example
+        AlarmCell(alarmItem: Ticker(
+            label: "Lunch Break",
+            isEnabled: true,
+            notes: "Time for lunch!",
+            schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 12, minute: 30)),
+            countdown: nil,
+            presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
+            tickerData: TickerData(
+                name: "Lunch Break",
+                icon: "fork.knife",
+                colorHex: "#06B6D4"
+            )
+        ))
+
+        // One-time alarm example
+        AlarmCell(alarmItem: Ticker(
+            label: "Morning Workout",
+            isEnabled: true,
+            notes: "Don't skip leg day",
+            schedule: .oneTime(date: Calendar.current.date(
+                bySettingHour: 6,
+                minute: 30,
+                second: 0,
+                of: Date()
+            )!),
+            countdown: nil,
+            presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
+            tickerData: TickerData(
+                name: "Fitness & Health",
+                icon: "figure.run",
+                colorHex: "#FF6B35"
+            )
+        ))
+
+        // Disabled alarm example
+        AlarmCell(alarmItem: Ticker(
+            label: "Bedtime Reminder",
+            isEnabled: false,
+            notes: nil,
+            schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 22, minute: 0)),
+            countdown: nil,
+            presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
+            tickerData: TickerData(
+                name: "Wellness & Self-care",
+                icon: "bed.double.fill",
+                colorHex: "#6366F1"
+            )
+        ))
+    }
+    .padding()
+    .background(
+        ZStack {
+            TickerColors.liquidGlassGradient(for: .dark)
+                .ignoresSafeArea()
+
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.1)
+                .ignoresSafeArea()
+        }
+    )
+    .environment(AlarmService())
 }
 

@@ -20,6 +20,8 @@ struct UpcomingAlarmPresentation: Identifiable {
     let color: Color
     let nextAlarmTime: Date
     let scheduleType: ScheduleType
+    let hour: Int
+    let minute: Int
 
     enum ScheduleType {
         case oneTime
@@ -53,6 +55,14 @@ struct UpcomingAlarmPresentation: Identifiable {
         } else {
             return "now"
         }
+    }
+
+    /// Clock angle for visualization (0° at 12, 90° at 3, 180° at 6, 270° at 9)
+    var angle: Double {
+        // Convert to 12-hour format for display
+        let hour12 = hour % 12
+        // Calculate angle: Each hour = 30°, each minute = 0.5°
+        return Double(hour12) * 30.0 + Double(minute) * 0.5
     }
 }
 
@@ -100,19 +110,6 @@ final class TodayViewModel {
             .map { createPresentation(from: $0, currentTime: now) }
     }
 
-    /// Clock events for visualization
-    var clockEvents: [ClockView.TimeBlock] {
-        upcomingAlarms.map { presentation in
-            ClockView.TimeBlock(
-                id: presentation.id,
-                city: presentation.displayName,
-                hour: calendar.component(.hour, from: presentation.nextAlarmTime),
-                minute: calendar.component(.minute, from: presentation.nextAlarmTime),
-                color: presentation.color
-            )
-        }
-    }
-
     /// Number of upcoming alarms
     var upcomingAlarmsCount: Int {
         upcomingAlarms.count
@@ -143,13 +140,19 @@ final class TodayViewModel {
             }
         }()
 
+        // Extract hour and minute for angle calculation
+        let hour = calendar.component(.hour, from: nextTime)
+        let minute = calendar.component(.minute, from: nextTime)
+
         return UpcomingAlarmPresentation(
             id: alarm.id,
             displayName: alarm.displayName,
             icon: alarm.tickerData?.icon ?? "alarm",
             color: extractColor(from: alarm),
             nextAlarmTime: nextTime,
-            scheduleType: scheduleType
+            scheduleType: scheduleType,
+            hour: hour,
+            minute: minute
         )
     }
 

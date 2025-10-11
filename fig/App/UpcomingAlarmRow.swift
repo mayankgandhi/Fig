@@ -55,7 +55,15 @@ struct UpcomingAlarmRow: View {
                     .tickerStatusBadge(color: presentation.scheduleType.badgeColor)
             }
             .padding(TickerSpacing.md)
-            .background(TickerColors.background(for: colorScheme))
+            .background(TickerColors.surface(for: colorScheme))
+            .background(.ultraThinMaterial.opacity(0.5))
+            .clipShape(RoundedRectangle(cornerRadius: TickerRadius.large))
+            .shadow(
+                color: TickerShadow.subtle.color,
+                radius: TickerShadow.subtle.radius,
+                x: TickerShadow.subtle.x,
+                y: TickerShadow.subtle.y
+            )
         }
     }
 }
