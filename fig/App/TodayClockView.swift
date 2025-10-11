@@ -17,6 +17,8 @@ struct TodayClockView: View {
 
     @State private var showSettings: Bool = false
     @State private var viewModel: TodayViewModel?
+    @State private var alarmToEdit: Ticker?
+    @Namespace private var editButtonNamespace
 
     var body: some View {
         NavigationStack {
@@ -68,6 +70,17 @@ struct TodayClockView: View {
                                     LazyVStack(spacing: 0) {
                                         ForEach(viewModel.upcomingAlarms) { presentation in
                                             UpcomingAlarmRow(presentation: presentation)
+                                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                                    Button {
+                                                        TickerHaptics.selection()
+                                                        if let ticker = getTicker(for: presentation.id) {
+                                                            alarmToEdit = ticker
+                                                        }
+                                                    } label: {
+                                                        Label("Edit", systemImage: "pencil")
+                                                    }
+                                                    .tint(TickerColors.primary)
+                                                }
                                         }
                                     }
                                     .background(Color(.secondarySystemBackground))
@@ -111,12 +124,34 @@ struct TodayClockView: View {
                     .presentationCornerRadius(TickerRadius.large)
                     .presentationDragIndicator(.visible)
             }
+            .sheet(item: $alarmToEdit) { ticker in
+                AddTickerView(namespace: editButtonNamespace, prefillTemplate: ticker, isEditMode: true)
+                    .presentationDetents([.height(620)])
+                    .presentationCornerRadius(TickerRadius.large)
+                    .presentationDragIndicator(.visible)
+                    .presentationBackground {
+                        ZStack {
+                            TickerColors.liquidGlassGradient(for: colorScheme)
+
+                            Rectangle()
+                                .fill(.ultraThinMaterial)
+                                .opacity(0.5)
+                        }
+                    }
+            }
             .onAppear {
                 if viewModel == nil {
                     viewModel = TodayViewModel(alarmService: alarmService, modelContext: modelContext)
                 }
             }
         }
+    }
+
+    // MARK: - Helper Methods
+
+    private func getTicker(for id: UUID) -> Ticker? {
+        let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
+        return try? modelContext.fetch(descriptor).first
     }
 }
 

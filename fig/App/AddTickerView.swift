@@ -11,6 +11,7 @@ import SwiftData
 struct AddTickerView: View {
     let namespace: Namespace.ID
     let prefillTemplate: Ticker?
+    let isEditMode: Bool
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -47,9 +48,10 @@ struct AddTickerView: View {
 
     // MARK: - Initialization
 
-    init(namespace: Namespace.ID, prefillTemplate: Ticker? = nil) {
+    init(namespace: Namespace.ID, prefillTemplate: Ticker? = nil, isEditMode: Bool = false) {
         self.namespace = namespace
         self.prefillTemplate = prefillTemplate
+        self.isEditMode = isEditMode
     }
 
     enum ExpandableField: Hashable {
@@ -340,14 +342,26 @@ struct AddTickerView: View {
                         .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
 
                 case .notes:
-                    TextEditor(text: Binding(
-                        get: { tickerNotes ?? "" },
-                        set: { tickerNotes = $0.isEmpty ? nil : $0 }
-                    ))
-                    .cabinetBody()
-                    .frame(height: 100)
-                    .scrollContentBackground(.hidden)
-                    .padding(TickerSpacing.sm)
+                    ZStack(alignment: .topLeading) {
+                        TextEditor(text: Binding(
+                            get: { tickerNotes ?? "" },
+                            set: { tickerNotes = $0.isEmpty ? nil : $0 }
+                        ))
+                        .cabinetBody()
+                        .frame(height: 100)
+                        .scrollContentBackground(.hidden)
+                        .padding(TickerSpacing.sm)
+
+                        // Placeholder text
+                        if tickerNotes == nil || tickerNotes!.isEmpty {
+                            Text("Add notes...")
+                                .cabinetBody()
+                                .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                                .padding(TickerSpacing.sm)
+                                .padding(.top, 8)
+                                .allowsHitTesting(false)
+                        }
+                    }
                     .background(TickerColors.surface(for: colorScheme))
                     .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
 
@@ -555,25 +569,25 @@ struct AddTickerView: View {
     }
     
     // MARK: - Save Logic
-    
+
     private func saveTicker() async {
         guard !isSaving else { return }
-        
+
         isSaving = true
         defer { isSaving = false }
-        
+
         let calendar = Calendar.current
-        
+
         var components = calendar.dateComponents([.year, .month, .day], from: selectedDate)
         components.hour = selectedHour
         components.minute = selectedMinute
-        
+
         guard let finalDate = calendar.date(from: components) else {
             errorMessage = "Invalid date configuration"
             showingError = true
             return
         }
-        
+
         let schedule: TickerSchedule
         if repeatOption == .daily {
             schedule = .daily(time: TickerSchedule.TimeOfDay(
@@ -583,7 +597,7 @@ struct AddTickerView: View {
         } else {
             schedule = .oneTime(date: finalDate)
         }
-        
+
         let countdown: TickerCountdown?
         if enableCountdown {
             let duration = TickerCountdown.CountdownDuration(
@@ -595,7 +609,7 @@ struct AddTickerView: View {
         } else {
             countdown = nil
         }
-        
+
         let presentation = TickerPresentation(
             tintColorHex: tintColorHex,
             secondaryButtonType: secondaryButtonType
@@ -608,18 +622,32 @@ struct AddTickerView: View {
             colorHex: selectedColorHex
         )
 
-        let ticker = Ticker(
-            label: tickerLabel.isEmpty ? "Ticker" : tickerLabel,
-            isEnabled: true,
-            notes: tickerNotes,
-            schedule: schedule,
-            countdown: countdown,
-            presentation: presentation,
-            tickerData: tickerData
-        )
-        
         do {
-            try await alarmService.scheduleAlarm(from: ticker, context: modelContext)
+            if isEditMode, let existingTicker = prefillTemplate {
+                // Edit mode: Update the existing ticker
+                existingTicker.label = tickerLabel.isEmpty ? "Ticker" : tickerLabel
+                existingTicker.notes = tickerNotes
+                existingTicker.schedule = schedule
+                existingTicker.countdown = countdown
+                existingTicker.presentation = presentation
+                existingTicker.tickerData = tickerData
+
+                try await alarmService.updateAlarm(existingTicker, context: modelContext)
+            } else {
+                // Create mode: Schedule a new alarm
+                let ticker = Ticker(
+                    label: tickerLabel.isEmpty ? "Ticker" : tickerLabel,
+                    isEnabled: true,
+                    notes: tickerNotes,
+                    schedule: schedule,
+                    countdown: countdown,
+                    presentation: presentation,
+                    tickerData: tickerData
+                )
+
+                try await alarmService.scheduleAlarm(from: ticker, context: modelContext)
+            }
+
             TickerHaptics.success()
             dismiss()
         } catch {

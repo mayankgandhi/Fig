@@ -9,11 +9,9 @@
 /* Begin PBXBuildFile section */
 		0577043153072121D761C245 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */; };
 		0DE2232E5A6ECEF8AEEEC88F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B25C5BBB7D27676FCC11A83 /* Assets.xcassets */; };
-		0DE68B5006586B79BCD5F652 /* CabinetGrotesk-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 435917DBE046BD256291CA42 /* CabinetGrotesk-Bold.otf */; };
 		0ECDE744DED25E6CE4DEDADB /* TimerConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */; };
 		0F0451CC0BA4579FAAA98143 /* StopIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F8F4849184746F46BC4D6 /* StopIntent.swift */; };
 		13450FD74A78F8AC05843A81 /* OpenAlarmAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */; };
-		15EEE9C931BDE3270EC82851 /* CabinetGrotesk-Extrabold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 3ADA2A6A9D58B1803DC3864A /* CabinetGrotesk-Extrabold.otf */; };
 		181A88713B6BB7BE4AB3AA65 /* TickerDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36BE6F3D3858AA0AB407ABD0 /* TickerDesignSystem.swift */; };
 		1AF0D5ED761EDEDD5859FDB1 /* TuistBundle+Fig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747BA24CF551C903AA062E5 /* TuistBundle+Fig.swift */; };
 		1F582D86B89A2AC099079D8A /* AlarmItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4642AFB704F6FDBC4AE0C63 /* AlarmItem.swift */; };
@@ -25,8 +23,6 @@
 		3C0A2B586F3574490F0D1A66 /* UpcomingAlarmRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF49B4A5608FC40E550E8929 /* UpcomingAlarmRow.swift */; };
 		3F0F0B2BE9960E90F7667281 /* WalnutDesignSystem.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		421137852596A8641935DB88 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */; };
-		4E30C36BB625FB416CA3A141 /* CabinetGrotesk-Light.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9229A3BFE3654C114C59D280 /* CabinetGrotesk-Light.otf */; };
-		4E5A7725991AC87508684F87 /* CabinetGrotesk-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0A0FBDB7ED85B994C89519FF /* CabinetGrotesk-Regular.otf */; };
 		5262EBB1626D6B0E44F46052 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB8F047C0EB0D58ADCE86B7 /* TodayViewModel.swift */; };
 		56945AD493359CE95E20E424 /* TuistAssets+Alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */; };
 		56A1DA96A53548851EBE69A1 /* StopIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F8F4849184746F46BC4D6 /* StopIntent.swift */; };
@@ -52,7 +48,6 @@
 		A127EFD732D5972C7E892457 /* RepeatIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */; };
 		A2736A71829B91A27A1ED3CA /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 347A310C2C1C4740678168EB /* AppIcon.icon */; };
 		A521A5F15FEAFA6B9739CCE5 /* PauseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */; };
-		A7A9A39DBC8108461CC55E65 /* Font+CabinetGrotesk.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFA81F0119B1B4ED035FEED8 /* Font+CabinetGrotesk.swift */; };
 		A9EB66320C7DD1D03BA39467 /* RepeatIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */; };
 		AC348F1BACF4EB1CB6F25DBC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01598E9F3022D964F45BA82A /* ContentView.swift */; };
 		ADDD1662D6B9BBABA6F743A6 /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9965479C5AFEA3F9141689FB /* FAQView.swift */; };
@@ -68,14 +63,10 @@
 		C3C2F6D4CB36C0350317B65A /* AlarmStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84262CCA4F1F2BA7C15293E6 /* AlarmStateManager.swift */; };
 		C3EE35C5851A3F5F6531CCAD /* DeleteAllDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */; };
 		C498E7D5CE723A52F130615C /* AlarmService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50EFC6CD879FBFE35D76A6F1 /* AlarmService.swift */; };
-		D09318E9B5B5FF55376AF8A3 /* CabinetGrotesk-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 50904A8D0E5D91EDC4432E09 /* CabinetGrotesk-Medium.otf */; };
-		D8A23A056BF8C1C09B34B400 /* TuistFonts+Fig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9D8CAED4F0EF662CBB8D75 /* TuistFonts+Fig.swift */; };
-		DA074603D8C71957CD6ABB72 /* CabinetGrotesk-Extralight.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4736CE5D2CA3E91A39453375 /* CabinetGrotesk-Extralight.otf */; };
+		CF1B05F275B83D4387837E82 /* Font+SFProRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8DA9F679131E53913DBFFB /* Font+SFProRounded.swift */; };
 		DB124E57D4C8824473C80A0A /* alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A7969B4F297ABA148F6928 /* alarm.swift */; };
 		DBE282BA5FE50B46D2363B6A /* ConfigurationAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */; };
 		E01A27428F40E88C5C7DE71F /* AddTickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587D0194C8F07CF8EC300A70 /* AddTickerView.swift */; };
-		E47DFDFB17FC5653F2C003D8 /* CabinetGrotesk-Thin.otf in Resources */ = {isa = PBXBuildFile; fileRef = 0D41124DD433A70170250E5B /* CabinetGrotesk-Thin.otf */; };
-		E7ABF7D158BD97A18E047C0D /* CabinetGrotesk-Black.otf in Resources */ = {isa = PBXBuildFile; fileRef = 1DE20B033C15E2B201DC6705 /* CabinetGrotesk-Black.otf */; };
 		F06305927069972E3B6181F8 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367C8CC5D5A5B19456CE0424 /* AppView.swift */; };
 		F3455D4B32EACC49305852C9 /* PauseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */; };
 		F89E11D0E19F1B2BAC5E7899 /* figUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC48BC4132C2E66AFDDE9E8 /* figUITests.swift */; };
@@ -166,29 +157,21 @@
 		0446BD41A68E48CC40E4DA49 /* AlarmLiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmLiveActivityBundle.swift; sourceTree = "<group>"; };
 		06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationAppIntent.swift; sourceTree = "<group>"; };
-		0A0FBDB7ED85B994C89519FF /* CabinetGrotesk-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Regular.otf"; sourceTree = "<group>"; };
-		0D41124DD433A70170250E5B /* CabinetGrotesk-Thin.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Thin.otf"; sourceTree = "<group>"; };
 		19763A9E52425E0C64DBAE2E /* alarm.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = alarm.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A5264B901040CA6F1EC1FAD /* ClockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockView.swift; sourceTree = "<group>"; };
-		1DE20B033C15E2B201DC6705 /* CabinetGrotesk-Black.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Black.otf"; sourceTree = "<group>"; };
 		24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerConfiguration.swift; sourceTree = "<group>"; };
 		26E623500F694DE819AE086E /* AlarmConfigurationBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmConfigurationBuilder.swift; sourceTree = "<group>"; };
 		27CFC00A0F8B7138C50EE947 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		2C9D8CAED4F0EF662CBB8D75 /* TuistFonts+Fig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistFonts+Fig.swift"; sourceTree = "<group>"; };
 		3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseIntent.swift; sourceTree = "<group>"; };
 		319190156414A5841EA8398A /* figTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figTests.swift; sourceTree = "<group>"; };
 		347A310C2C1C4740678168EB /* AppIcon.icon */ = {isa = PBXFileReference; path = AppIcon.icon; sourceTree = "<group>"; };
 		367C8CC5D5A5B19456CE0424 /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		36BE6F3D3858AA0AB407ABD0 /* TickerDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDesignSystem.swift; sourceTree = "<group>"; };
 		3A87E5D79D56B5902275FE4B /* IconColorPair.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconColorPair.swift; sourceTree = "<group>"; };
-		3ADA2A6A9D58B1803DC3864A /* CabinetGrotesk-Extrabold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Extrabold.otf"; sourceTree = "<group>"; };
 		3B25C5BBB7D27676FCC11A83 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3BF9050F7041276AFB5B1F69 /* TimePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePickerView.swift; sourceTree = "<group>"; };
 		3C197A26B818FC2A51015E70 /* alarm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "alarm-Info.plist"; sourceTree = "<group>"; };
-		435917DBE046BD256291CA42 /* CabinetGrotesk-Bold.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Bold.otf"; sourceTree = "<group>"; };
-		4736CE5D2CA3E91A39453375 /* CabinetGrotesk-Extralight.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Extralight.otf"; sourceTree = "<group>"; };
 		4FD3E80B49FDC6E4C1AD99BC /* alarmControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarmControl.swift; sourceTree = "<group>"; };
-		50904A8D0E5D91EDC4432E09 /* CabinetGrotesk-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Medium.otf"; sourceTree = "<group>"; };
 		50EFC6CD879FBFE35D76A6F1 /* AlarmService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmService.swift; sourceTree = "<group>"; };
 		587D0194C8F07CF8EC300A70 /* AddTickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTickerView.swift; sourceTree = "<group>"; };
 		5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatIntent.swift; sourceTree = "<group>"; };
@@ -202,7 +185,7 @@
 		85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartTimerIntent.swift; sourceTree = "<group>"; };
 		87DD47A739D2F84FC64EB2BB /* TemplateCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCategory.swift; sourceTree = "<group>"; };
 		8C8BF1BD88D869D8AD69D6B1 /* TuistBundle+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+Alarm.swift"; sourceTree = "<group>"; };
-		9229A3BFE3654C114C59D280 /* CabinetGrotesk-Light.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "CabinetGrotesk-Light.otf"; sourceTree = "<group>"; };
+		8E8DA9F679131E53913DBFFB /* Font+SFProRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+SFProRounded.swift"; sourceTree = "<group>"; };
 		9965479C5AFEA3F9141689FB /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
 		9C9C1CE08D7C6449E52D68C0 /* figUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = figUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30F8F4849184746F46BC4D6 /* StopIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopIntent.swift; sourceTree = "<group>"; };
@@ -230,7 +213,6 @@
 		EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAlarmAppIntent.swift; sourceTree = "<group>"; };
 		F747BA24CF551C903AA062E5 /* TuistBundle+Fig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+Fig.swift"; sourceTree = "<group>"; };
 		FD649D31635AFE8566E834E1 /* fig.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = fig.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		FFA81F0119B1B4ED035FEED8 /* Font+CabinetGrotesk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+CabinetGrotesk.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -379,7 +361,7 @@
 		9A52B43B782FBC92FB038D44 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				FFA81F0119B1B4ED035FEED8 /* Font+CabinetGrotesk.swift */,
+				8E8DA9F679131E53913DBFFB /* Font+SFProRounded.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -429,7 +411,6 @@
 				04360EDA2F7F6A6B0500A39D /* TuistAssets+Fig.swift */,
 				8C8BF1BD88D869D8AD69D6B1 /* TuistBundle+Alarm.swift */,
 				F747BA24CF551C903AA062E5 /* TuistBundle+Fig.swift */,
-				2C9D8CAED4F0EF662CBB8D75 /* TuistFonts+Fig.swift */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -505,14 +486,6 @@
 			children = (
 				347A310C2C1C4740678168EB /* AppIcon.icon */,
 				27CFC00A0F8B7138C50EE947 /* Assets.xcassets */,
-				1DE20B033C15E2B201DC6705 /* CabinetGrotesk-Black.otf */,
-				435917DBE046BD256291CA42 /* CabinetGrotesk-Bold.otf */,
-				3ADA2A6A9D58B1803DC3864A /* CabinetGrotesk-Extrabold.otf */,
-				4736CE5D2CA3E91A39453375 /* CabinetGrotesk-Extralight.otf */,
-				9229A3BFE3654C114C59D280 /* CabinetGrotesk-Light.otf */,
-				50904A8D0E5D91EDC4432E09 /* CabinetGrotesk-Medium.otf */,
-				0A0FBDB7ED85B994C89519FF /* CabinetGrotesk-Regular.otf */,
-				0D41124DD433A70170250E5B /* CabinetGrotesk-Thin.otf */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -665,14 +638,6 @@
 			files = (
 				A2736A71829B91A27A1ED3CA /* AppIcon.icon in Resources */,
 				8916B35FE36C4B1A0DC26741 /* Assets.xcassets in Resources */,
-				E7ABF7D158BD97A18E047C0D /* CabinetGrotesk-Black.otf in Resources */,
-				0DE68B5006586B79BCD5F652 /* CabinetGrotesk-Bold.otf in Resources */,
-				15EEE9C931BDE3270EC82851 /* CabinetGrotesk-Extrabold.otf in Resources */,
-				DA074603D8C71957CD6ABB72 /* CabinetGrotesk-Extralight.otf in Resources */,
-				4E30C36BB625FB416CA3A141 /* CabinetGrotesk-Light.otf in Resources */,
-				D09318E9B5B5FF55376AF8A3 /* CabinetGrotesk-Medium.otf in Resources */,
-				4E5A7725991AC87508684F87 /* CabinetGrotesk-Regular.otf in Resources */,
-				E47DFDFB17FC5653F2C003D8 /* CabinetGrotesk-Thin.otf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -738,7 +703,6 @@
 			files = (
 				37EC0012716CC915F4E3BCB8 /* TuistAssets+Fig.swift in Sources */,
 				1AF0D5ED761EDEDD5859FDB1 /* TuistBundle+Fig.swift in Sources */,
-				D8A23A056BF8C1C09B34B400 /* TuistFonts+Fig.swift in Sources */,
 				7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */,
 				BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */,
 				E01A27428F40E88C5C7DE71F /* AddTickerView.swift in Sources */,
@@ -762,7 +726,7 @@
 				79BE960F0B51758EE4F02DBC /* TemplateDataSeeder.swift in Sources */,
 				181A88713B6BB7BE4AB3AA65 /* TickerDesignSystem.swift in Sources */,
 				C1DD9C0DBD2C2C7BFD05301A /* TickerDesignSystemPreviews.swift in Sources */,
-				A7A9A39DBC8108461CC55E65 /* Font+CabinetGrotesk.swift in Sources */,
+				CF1B05F275B83D4387837E82 /* Font+SFProRounded.swift in Sources */,
 				1F582D86B89A2AC099079D8A /* AlarmItem.swift in Sources */,
 				61913BD951D48701AEC73A45 /* IconColorPair.swift in Sources */,
 				8A1E26BD84627E2978128EA1 /* TemplateCategory.swift in Sources */,

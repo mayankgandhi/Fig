@@ -7,17 +7,27 @@
 
 import SwiftUI
 
+extension UIFont {
+    /// Returns a rounded variant of the system font
+    func withRoundedDesign() -> UIFont {
+        if let descriptor = fontDescriptor.withDesign(.rounded) {
+            return UIFont(descriptor: descriptor, size: pointSize)
+        }
+        return self
+    }
+}
+
 struct AppView: View {
 
-     init() {
-        // For large titles
+    init() {
+        // For large titles - SF Pro Rounded Bold
         UINavigationBar.appearance().largeTitleTextAttributes = [
-            .font: UIFont(name: FigFontFamily.CabinetGrotesk.extrabold.name, size: 30)!
+            .font: UIFont.systemFont(ofSize: 30, weight: .bold).withRoundedDesign()
         ]
 
-        // For inline titles
+        // For inline titles - SF Pro Rounded Bold
         UINavigationBar.appearance().titleTextAttributes = [
-            .font: UIFont(name: FigFontFamily.CabinetGrotesk.extrabold.name, size: 20)!
+            .font: UIFont.systemFont(ofSize: 20, weight: .bold).withRoundedDesign()
         ]
     }
     

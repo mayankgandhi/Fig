@@ -11,17 +11,7 @@ let project = Project(
             bundleId: "m.fig",
             infoPlist: .extendingDefault(with: [
                 "UILaunchScreen": [:],
-                "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire.",
-                "UIAppFonts": [
-                    "CabinetGrotesk-Thin.otf",
-                    "CabinetGrotesk-Extralight.otf",
-                    "CabinetGrotesk-Light.otf",
-                    "CabinetGrotesk-Regular.otf",
-                    "CabinetGrotesk-Medium.otf",
-                    "CabinetGrotesk-Bold.otf",
-                    "CabinetGrotesk-Extrabold.otf",
-                    "CabinetGrotesk-Black.otf"
-                ]
+                "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire."
             ]),
             sources: [
                 "fig/**",
@@ -29,8 +19,7 @@ let project = Project(
             ],
             resources: [
                 .glob(pattern: "fig/Resources/Assets.xcassets"),
-                .glob(pattern: "fig/Resources/AppIcon.icon/**"),
-                .glob(pattern: "fig/Resources/*.otf")
+                .glob(pattern: "fig/Resources/AppIcon.icon/**")
             ],
             dependencies: [
                 .target(name: "alarm"),

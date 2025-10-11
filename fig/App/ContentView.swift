@@ -17,12 +17,8 @@ struct ContentView: View {
 
     @State private var showAddSheet = false
     @State private var showTemplates: Bool = false
+    @State private var displayAlarms: [Ticker] = []
     @Namespace private var addButtonNamespace
-
-    // Fetch alarms from AlarmKit (via AlarmService)
-    private var displayAlarms: [Ticker] {
-        alarmService.getAlarmsWithMetadata(context: modelContext)
-    }
     
     var body: some View {
         NavigationStack {
@@ -78,6 +74,16 @@ struct ContentView: View {
                 .presentationDragIndicator(.visible)
         })
         .tint(TickerColors.primary)
+        .onAppear {
+            loadAlarms()
+        }
+        .onChange(of: alarmService.alarms) { _, _ in
+            loadAlarms()
+        }
+    }
+
+    private func loadAlarms() {
+        displayAlarms = alarmService.getAlarmsWithMetadata(context: modelContext)
     }
     
     var menuButton: some View {
@@ -145,11 +151,18 @@ struct ContentView: View {
     }
 
     private func deleteAlarms(at offsets: IndexSet) {
-        offsets.forEach { index in
-            let alarmToDelete = displayAlarms[index]
-            TickerHaptics.warning()
-            try? alarmService.cancelAlarm(id: alarmToDelete.id, context: modelContext)
+        TickerHaptics.warning()
+
+        // Collect IDs first to avoid index issues
+        let alarmsToDelete = offsets.map { displayAlarms[$0] }
+
+        // Delete each alarm
+        for alarm in alarmsToDelete {
+            try? alarmService.cancelAlarm(id: alarm.id, context: modelContext)
         }
+
+        // Reload the list
+        loadAlarms()
     }
 }
 
