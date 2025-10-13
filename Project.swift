@@ -14,7 +14,7 @@ let project = Project(
     targets: [
         // Main app target
         .target(
-            name: "fig",
+            name: appName,
             destinations: [.iPhone, .iPad],
             product: .app,
             bundleId: mainBundleId,
@@ -74,25 +74,25 @@ let project = Project(
 
         // Unit tests
         .target(
-            name: "figTests",
+            name: "\(appName)Tests",
             destinations: [.iPhone, .iPad, .mac],
             product: .unitTests,
             bundleId: "com.mayankgandhi.figTests",
             sources: ["figTests/**"],
             dependencies: [
-                .target(name: "fig")
+                .target(name: appName)
             ]
         ),
 
         // UI tests
         .target(
-            name: "figUITests",
+            name: "\(appName)UITests",
             destinations: [.iPhone, .iPad, .mac],
             product: .uiTests,
             bundleId: "com.mayankgandhi.figUITests",
             sources: ["figUITests/**"],
             dependencies: [
-                .target(name: "fig")
+                .target(name: appName)
             ]
         )
     ]
