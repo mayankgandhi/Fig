@@ -7,7 +7,7 @@ A custom time picker view for selecting hours, minutes, and seconds.
 
 import SwiftUI
 
-struct TimePickerView: View {
+struct TimePicker: View {
     @Binding var hour: Int
     @Binding var min: Int
     @Binding var sec: Int
