@@ -33,8 +33,10 @@ struct IconPickerView: View {
             .frame(height: 280)
         }
         .padding(TickerSpacing.md)
-        .background(TickerColors.surface(for: colorScheme))
+        .background(TickerColors.surface(for: colorScheme).opacity(0.95))
+        .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 
     private func selectIcon(_ iconPair: IconColorPair) {
@@ -62,6 +64,13 @@ private struct IconCell: View {
                     .fill(iconPair.color.opacity(isSelected ? 0.2 : 0.1))
                     .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
+                // Glass effect layer
+                if isSelected {
+                    Circle()
+                        .fill(.ultraThinMaterial.opacity(0.5))
+                        .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
+                }
+
                 // Icon
                 Image(systemName: iconPair.symbol)
                     .font(.system(size: 20, weight: .medium))
@@ -74,6 +83,12 @@ private struct IconCell: View {
                         .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
                 }
             }
+            .shadow(
+                color: isSelected ? iconPair.color.opacity(0.3) : .clear,
+                radius: isSelected ? 4 : 0,
+                x: 0,
+                y: 2
+            )
         }
         .buttonStyle(.plain)
     }

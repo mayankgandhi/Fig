@@ -20,6 +20,7 @@ struct ContentView: View {
     @State private var displayAlarms: [Ticker] = []
     @State private var alarmToEdit: Ticker?
     @State private var alarmToDelete: Ticker?
+    @State private var alarmToShowDetail: Ticker?
     @State private var showDeleteAlert = false
     @State private var searchText = ""
     @Namespace private var addButtonNamespace
@@ -35,7 +36,7 @@ struct ContentView: View {
 
                         Rectangle()
                             .fill(.ultraThinMaterial)
-.opacity(0.1)
+                            .opacity(0.1)
                             .ignoresSafeArea()
                     }
                 )
@@ -93,6 +94,24 @@ struct ContentView: View {
                             .opacity(0.5)
                     }
                 }
+        }
+        .sheet(item: $alarmToShowDetail) { ticker in
+            AlarmDetailView(
+                alarm: ticker,
+                onEdit: {
+                    alarmToEdit = ticker
+                },
+                onDelete: {
+                    alarmToDelete = ticker
+                    showDeleteAlert = true
+                },
+                onToggleEnabled: {
+                    toggleAlarmEnabled(ticker)
+                }
+            )
+            .presentationDetents([.medium, .large])
+            .presentationCornerRadius(TickerRadius.large)
+            .presentationDragIndicator(.visible)
         }
         .alert("Delete Alarm", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {
@@ -231,11 +250,13 @@ struct ContentView: View {
     var alarmList: some View {
         List {
             ForEach(filteredAlarms, id: \.id) { ticker in
-                AlarmCell(alarmItem: ticker)
-                    .listRowInsets(EdgeInsets(top: TickerSpacing.xs, leading: 20, bottom: TickerSpacing.xs, trailing: 20))
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
-                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                AlarmCell(alarmItem: ticker) {
+                    alarmToShowDetail = ticker
+                }
+                .listRowInsets(EdgeInsets(top: TickerSpacing.xs, leading: 20, bottom: TickerSpacing.xs, trailing: 20))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                         Button {
                             TickerHaptics.selection()
                             alarmToEdit = ticker
@@ -272,6 +293,20 @@ struct ContentView: View {
 
         // Reload the list
         loadAlarms()
+    }
+
+    private func toggleAlarmEnabled(_ ticker: Ticker) {
+        ticker.isEnabled.toggle()
+
+        // Update in AlarmService
+        Task {
+            if ticker.isEnabled {
+                try? await alarmService.scheduleAlarm(from: ticker, context: modelContext)
+            } else {
+                try? alarmService.cancelAlarm(id: ticker.id, context: modelContext)
+            }
+            loadAlarms()
+        }
     }
 }
 

@@ -10,8 +10,14 @@ import SwiftUI
 struct AlarmCell: View {
 
     let alarmItem: Ticker
+    let onTap: (() -> Void)?
     @Environment(AlarmService.self) private var alarmService
     @Environment(\.colorScheme) private var colorScheme
+
+    init(alarmItem: Ticker, onTap: (() -> Void)? = nil) {
+        self.alarmItem = alarmItem
+        self.onTap = onTap
+    }
 
     var body: some View {
         HStack(spacing: TickerSpacing.sm) {
@@ -70,6 +76,7 @@ struct AlarmCell: View {
         .contentShape(Rectangle())
         .onTapGesture {
             TickerHaptics.selection()
+            onTap?()
         }
     }
 

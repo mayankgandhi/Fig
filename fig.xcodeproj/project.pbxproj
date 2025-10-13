@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 55;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -29,6 +29,8 @@
 		5731B66B61452F1AEA4CB6DE /* ConfigurationAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */; };
 		591D6326755CC012AB440AFC /* ClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5264B901040CA6F1EC1FAD /* ClockView.swift */; };
 		5B9759240C6176799171A0D6 /* figApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810B9E25B2ECEC713A4256E6 /* figApp.swift */; };
+		5C1FE2FD2E9A6A540003A948 /* CalendarGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1FE2FC2E9A6A540003A948 /* CalendarGrid.swift */; };
+		5C1FE2FF2E9A6AAD0003A948 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C1FE2FE2E9A6AAD0003A948 /* FlowLayout.swift */; };
 		61913BD951D48701AEC73A45 /* IconColorPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A87E5D79D56B5902275FE4B /* IconColorPair.swift */; };
 		6340667D37113B5F89A68DC9 /* WalnutDesignSystem.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */; };
 		6650D271B2FD05A10740CFF2 /* OpenAlarmAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */; };
@@ -67,6 +69,7 @@
 		DB124E57D4C8824473C80A0A /* alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A7969B4F297ABA148F6928 /* alarm.swift */; };
 		DBE282BA5FE50B46D2363B6A /* ConfigurationAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */; };
 		E01A27428F40E88C5C7DE71F /* AddTickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587D0194C8F07CF8EC300A70 /* AddTickerView.swift */; };
+		E955A8B9DB1E6BE8CAEB71CC /* AlarmDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AD0E3A014867F5E337E198 /* AlarmDetailView.swift */; };
 		F06305927069972E3B6181F8 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367C8CC5D5A5B19456CE0424 /* AppView.swift */; };
 		F3455D4B32EACC49305852C9 /* PauseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */; };
 		F89E11D0E19F1B2BAC5E7899 /* figUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC48BC4132C2E66AFDDE9E8 /* figUITests.swift */; };
@@ -164,7 +167,7 @@
 		27CFC00A0F8B7138C50EE947 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseIntent.swift; sourceTree = "<group>"; };
 		319190156414A5841EA8398A /* figTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figTests.swift; sourceTree = "<group>"; };
-		347A310C2C1C4740678168EB /* AppIcon.icon */ = {isa = PBXFileReference; path = AppIcon.icon; sourceTree = "<group>"; };
+		347A310C2C1C4740678168EB /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		367C8CC5D5A5B19456CE0424 /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		36BE6F3D3858AA0AB407ABD0 /* TickerDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDesignSystem.swift; sourceTree = "<group>"; };
 		3A87E5D79D56B5902275FE4B /* IconColorPair.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconColorPair.swift; sourceTree = "<group>"; };
@@ -175,6 +178,8 @@
 		50EFC6CD879FBFE35D76A6F1 /* AlarmService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmService.swift; sourceTree = "<group>"; };
 		587D0194C8F07CF8EC300A70 /* AddTickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTickerView.swift; sourceTree = "<group>"; };
 		5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatIntent.swift; sourceTree = "<group>"; };
+		5C1FE2FC2E9A6A540003A948 /* CalendarGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarGrid.swift; sourceTree = "<group>"; };
+		5C1FE2FE2E9A6AAD0003A948 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		6398EAEB39219B04DBC3923A /* TickerDesignSystemPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDesignSystemPreviews.swift; sourceTree = "<group>"; };
 		6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WalnutDesignSystem.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		679286D4139337BFA3D27277 /* IconPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconPickerView.swift; sourceTree = "<group>"; };
@@ -195,6 +200,7 @@
 		AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAllDataView.swift; sourceTree = "<group>"; };
 		AEB8F047C0EB0D58ADCE86B7 /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
 		AFE2039256D6A7516EFF1725 /* figUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figUITestsLaunchTests.swift; sourceTree = "<group>"; };
+		B3AD0E3A014867F5E337E198 /* AlarmDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmDetailView.swift; sourceTree = "<group>"; };
 		B4642AFB704F6FDBC4AE0C63 /* AlarmItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmItem.swift; sourceTree = "<group>"; };
 		B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+Alarm.swift"; sourceTree = "<group>"; };
 		B8913AF7FFC9E97CD18483FE /* HelpSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSupportView.swift; sourceTree = "<group>"; };
@@ -428,6 +434,9 @@
 			isa = PBXGroup;
 			children = (
 				587D0194C8F07CF8EC300A70 /* AddTickerView.swift */,
+				5C1FE2FE2E9A6AAD0003A948 /* FlowLayout.swift */,
+				5C1FE2FC2E9A6A540003A948 /* CalendarGrid.swift */,
+				B3AD0E3A014867F5E337E198 /* AlarmDetailView.swift */,
 				367C8CC5D5A5B19456CE0424 /* AppView.swift */,
 				1A5264B901040CA6F1EC1FAD /* ClockView.swift */,
 				01598E9F3022D964F45BA82A /* ContentView.swift */,
@@ -704,8 +713,10 @@
 				37EC0012716CC915F4E3BCB8 /* TuistAssets+Fig.swift in Sources */,
 				1AF0D5ED761EDEDD5859FDB1 /* TuistBundle+Fig.swift in Sources */,
 				7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */,
+				5C1FE2FD2E9A6A540003A948 /* CalendarGrid.swift in Sources */,
 				BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */,
 				E01A27428F40E88C5C7DE71F /* AddTickerView.swift in Sources */,
+				E955A8B9DB1E6BE8CAEB71CC /* AlarmDetailView.swift in Sources */,
 				F06305927069972E3B6181F8 /* AppView.swift in Sources */,
 				591D6326755CC012AB440AFC /* ClockView.swift in Sources */,
 				AC348F1BACF4EB1CB6F25DBC /* ContentView.swift in Sources */,
@@ -717,6 +728,7 @@
 				5B9759240C6176799171A0D6 /* figApp.swift in Sources */,
 				C2D0E7A2FE870F39E8B92AD5 /* StartTimerIntent.swift in Sources */,
 				7EF057A6C000AB61987DA80D /* TimerConfiguration.swift in Sources */,
+				5C1FE2FF2E9A6AAD0003A948 /* FlowLayout.swift in Sources */,
 				13450FD74A78F8AC05843A81 /* OpenAlarmAppIntent.swift in Sources */,
 				F3455D4B32EACC49305852C9 /* PauseIntent.swift in Sources */,
 				A127EFD732D5972C7E892457 /* RepeatIntent.swift in Sources */,
@@ -964,10 +976,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -998,10 +1007,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1030,10 +1036,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -1121,10 +1124,7 @@
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = (
-					"$(inherited)",
-					DEBUG,
-				);
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "$(inherited) DEBUG";
 				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
