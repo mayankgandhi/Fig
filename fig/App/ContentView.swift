@@ -15,7 +15,6 @@ struct ContentView: View {
     @Environment(AlarmService.self) private var alarmService
 
     @State private var showAddSheet = false
-    @State private var showTemplates: Bool = false
     @State private var displayAlarms: [Ticker] = []
     @State private var alarmToEdit: Ticker?
     @State private var alarmToDelete: Ticker?
@@ -44,13 +43,6 @@ struct ContentView: View {
                 .toolbar {
                     ToolbarItemGroup {
                         menuButton
-
-                    }
-                    ToolbarItem {
-                        Button("Templates", systemImage: "pencil.and.list.clipboard") {
-                            TickerHaptics.selection()
-                            showTemplates = true
-                        }
                     }
                 }
                 .searchable(text: $searchText, prompt: "Search by name or time")
@@ -73,13 +65,6 @@ struct ContentView: View {
                     }
                 }
         }
-        .sheet(isPresented: $showTemplates, onDismiss: {
-            showTemplates = false
-        }, content: {
-            TemplatesView()
-                .presentationCornerRadius(TickerRadius.large)
-                .presentationDragIndicator(.visible)
-        })
         .sheet(item: $alarmToEdit) { ticker in
             AddTickerView(namespace: editButtonNamespace, prefillTemplate: ticker, isEditMode: true)
                 .presentationDetents([.height(620)])

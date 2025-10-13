@@ -12,8 +12,7 @@ import SwiftData
 struct figApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Ticker.self,
-            TemplateCategory.self
+            Ticker.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -25,10 +24,6 @@ struct figApp: App {
     }()
 
     @State private var alarmService = AlarmService()
-
-    init() {
-        TemplateDataSeeder.seedTemplatesIfNeeded(modelContext: sharedModelContainer.mainContext)
-    }
 
     var body: some Scene {
         WindowGroup {

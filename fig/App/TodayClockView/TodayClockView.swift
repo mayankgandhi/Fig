@@ -167,5 +167,5 @@ struct TodayClockView: View {
 
 #Preview {
     TodayClockView()
-        .modelContainer(for: [Ticker.self, TemplateCategory.self])
+        .modelContainer(for: [Ticker.self])
 }

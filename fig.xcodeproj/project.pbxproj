@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0577043153072121D761C245 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */; };
 		05DADF405A844EDEC32B065C /* NotesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74A35F4B0360A035740026C /* NotesEditorView.swift */; };
 		0DE2232E5A6ECEF8AEEEC88F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B25C5BBB7D27676FCC11A83 /* Assets.xcassets */; };
 		0E347996C546828669887195 /* NativeMenuListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B0F8EE576D2FEE96D69BE5 /* NativeMenuListItem.swift */; };
@@ -40,7 +39,6 @@
 		6650D271B2FD05A10740CFF2 /* OpenAlarmAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */; };
 		6D850630BFC1D75183AD2D65 /* NotesEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F78599EAF881FE47E0E5DB /* NotesEditorViewModel.swift */; };
 		7685080A7AE66CB52D8CAD66 /* RepeatOptionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E302F34CE94F894CC9D378 /* RepeatOptionsViewModel.swift */; };
-		79BE960F0B51758EE4F02DBC /* TemplateDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28EAAAD66170BE91698DD42 /* TemplateDataSeeder.swift */; };
 		7A27524784ED5590022AFDC4 /* CalendarGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10EF02D5794EF7EBDBDD8F20 /* CalendarGrid.swift */; };
 		7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */; };
 		7ADA0CB3AEB3525BBAB38B73 /* AlarmConfigurationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E623500F694DE819AE086E /* AlarmConfigurationBuilder.swift */; };
@@ -56,7 +54,6 @@
 		88E55F9A417E3D907D371D81 /* AddTickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147D2DA34D21A3AF97D7EA5F /* AddTickerViewModel.swift */; };
 		8916B35FE36C4B1A0DC26741 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 27CFC00A0F8B7138C50EE947 /* Assets.xcassets */; };
 		8A12392DFB6B771BAFA14E0B /* figTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319190156414A5841EA8398A /* figTests.swift */; };
-		8A1E26BD84627E2978128EA1 /* TemplateCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87DD47A739D2F84FC64EB2BB /* TemplateCategory.swift */; };
 		93976426F0440DF8B3F3C4CA /* alarmControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD3E80B49FDC6E4C1AD99BC /* alarmControl.swift */; };
 		97D1227963D626600C357FC0 /* TodayClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9372352E42D7EF40708C3119 /* TodayClockView.swift */; };
 		A127EFD732D5972C7E892457 /* RepeatIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */; };
@@ -213,7 +210,6 @@
 		836FCBA1A8C6739671905496 /* CountdownConfigViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownConfigViewModel.swift; sourceTree = "<group>"; };
 		84262CCA4F1F2BA7C15293E6 /* AlarmStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmStateManager.swift; sourceTree = "<group>"; };
 		85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartTimerIntent.swift; sourceTree = "<group>"; };
-		87DD47A739D2F84FC64EB2BB /* TemplateCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCategory.swift; sourceTree = "<group>"; };
 		8C8BF1BD88D869D8AD69D6B1 /* TuistBundle+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+Alarm.swift"; sourceTree = "<group>"; };
 		8E8DA9F679131E53913DBFFB /* Font+SFProRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+SFProRounded.swift"; sourceTree = "<group>"; };
 		920BFC68AA33C1083637ACC5 /* CountdownConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownConfigView.swift; sourceTree = "<group>"; };
@@ -243,10 +239,8 @@
 		D4D2CF11F8EFE2126B79396C /* ExpandableField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableField.swift; sourceTree = "<group>"; };
 		D63B13EB0D3B5C1FE4ABE20F /* ResumeIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeIntent.swift; sourceTree = "<group>"; };
 		D8880F9DAD1539734778FBE2 /* OptionsPillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsPillsView.swift; sourceTree = "<group>"; };
-		DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesView.swift; sourceTree = "<group>"; };
 		DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmMetadata.swift; sourceTree = "<group>"; };
 		DD3093EEDE5F59D87D06E3B9 /* withRoundedDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = withRoundedDesign.swift; sourceTree = "<group>"; };
-		E28EAAAD66170BE91698DD42 /* TemplateDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDataSeeder.swift; sourceTree = "<group>"; };
 		E6D7D7B44B1F441D9E9A4CA3 /* fig-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "fig-Info.plist"; sourceTree = "<group>"; };
 		EC60CA85FEA246B2EA14A54F /* RepeatOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatOptionsView.swift; sourceTree = "<group>"; };
 		EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAlarmAppIntent.swift; sourceTree = "<group>"; };
@@ -321,14 +315,6 @@
 			path = alarm;
 			sourceTree = "<group>";
 		};
-		14D2FAFB9E39ACF5C614D8D7 /* Data */ = {
-			isa = PBXGroup;
-			children = (
-				E28EAAAD66170BE91698DD42 /* TemplateDataSeeder.swift */,
-			);
-			path = Data;
-			sourceTree = "<group>";
-		};
 		20E507DCF427D3CE2F480203 /* TodayClockView */ = {
 			isa = PBXGroup;
 			children = (
@@ -353,7 +339,6 @@
 			children = (
 				B4642AFB704F6FDBC4AE0C63 /* AlarmItem.swift */,
 				3A87E5D79D56B5902275FE4B /* IconColorPair.swift */,
-				87DD47A739D2F84FC64EB2BB /* TemplateCategory.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -460,7 +445,6 @@
 			children = (
 				CC3F06E4CD70F412077AEB7D /* App */,
 				EB73C8732AB0A1E9916C4392 /* AppIntents */,
-				14D2FAFB9E39ACF5C614D8D7 /* Data */,
 				70C2AC4387382F35D4CD526D /* DesignSystem */,
 				9A52B43B782FBC92FB038D44 /* Extensions */,
 				2D6DE505C568768F07302618 /* Models */,
@@ -550,7 +534,6 @@
 				367C8CC5D5A5B19456CE0424 /* AppView.swift */,
 				01598E9F3022D964F45BA82A /* ContentView.swift */,
 				810B9E25B2ECEC713A4256E6 /* figApp.swift */,
-				DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -890,7 +873,6 @@
 				E955A8B9DB1E6BE8CAEB71CC /* AlarmDetailView.swift in Sources */,
 				F06305927069972E3B6181F8 /* AppView.swift in Sources */,
 				AC348F1BACF4EB1CB6F25DBC /* ContentView.swift in Sources */,
-				0577043153072121D761C245 /* TemplatesView.swift in Sources */,
 				86CAFEE290AE4B43325CB685 /* ClockView.swift in Sources */,
 				97D1227963D626600C357FC0 /* TodayClockView.swift in Sources */,
 				A187C78ECD757493B8B81B27 /* TodayViewModel.swift in Sources */,
@@ -904,14 +886,12 @@
 				FB427EA64D8931F091C977F7 /* ResumeIntent.swift in Sources */,
 				0F0451CC0BA4579FAAA98143 /* StopIntent.swift in Sources */,
 				5731B66B61452F1AEA4CB6DE /* ConfigurationAppIntent.swift in Sources */,
-				79BE960F0B51758EE4F02DBC /* TemplateDataSeeder.swift in Sources */,
 				181A88713B6BB7BE4AB3AA65 /* TickerDesignSystem.swift in Sources */,
 				C1DD9C0DBD2C2C7BFD05301A /* TickerDesignSystemPreviews.swift in Sources */,
 				CF1B05F275B83D4387837E82 /* Font+SFProRounded.swift in Sources */,
 				1823A4A33D42DD4A421FE870 /* withRoundedDesign.swift in Sources */,
 				1F582D86B89A2AC099079D8A /* AlarmItem.swift in Sources */,
 				61913BD951D48701AEC73A45 /* IconColorPair.swift in Sources */,
-				8A1E26BD84627E2978128EA1 /* TemplateCategory.swift in Sources */,
 				7ADA0CB3AEB3525BBAB38B73 /* AlarmConfigurationBuilder.swift in Sources */,
 				C498E7D5CE723A52F130615C /* AlarmService.swift in Sources */,
 				C3C2F6D4CB36C0350317B65A /* AlarmStateManager.swift in Sources */,
