@@ -1,7 +1,8 @@
 import ProjectDescription
 
 // Centralized app configuration
-let appName = "Super Alarm - Ticker"
+let appName = "Ticker"
+let productName = "Super Alarm - Ticker"
 let version = "1.0.0"
 let buildNumber = "1"
 let mainBundleId = "m.fig"
@@ -19,7 +20,7 @@ let project = Project(
             product: .app,
             bundleId: mainBundleId,
             infoPlist: .extendingDefault(with: [
-                "CFBundleDisplayName": .string(appName),
+                "CFBundleDisplayName": .string(productName),
                 "CFBundleShortVersionString": .string(version),
                 "CFBundleVersion": .string(buildNumber),
                 "UILaunchScreen": [:],
