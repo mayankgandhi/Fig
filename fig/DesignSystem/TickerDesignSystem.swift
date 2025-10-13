@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Color System
 
-enum TickerColors {
+enum TickerColor {
 
     // MARK: Base Colors
 
@@ -364,7 +364,7 @@ struct TickerPrimaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .Subheadline()
-            .foregroundStyle(TickerColors.absoluteWhite)
+            .foregroundStyle(TickerColor.absoluteWhite)
             .frame(maxWidth: .infinity)
             .frame(height: TickerSpacing.buttonHeightLarge)
             .background(backgroundColor)
@@ -382,9 +382,9 @@ struct TickerPrimaryButtonStyle: ButtonStyle {
 
     private var backgroundColor: Color {
         if !isEnabled {
-            return TickerColors.disabled
+            return TickerColor.disabled
         }
-        return isDestructive ? TickerColors.danger : TickerColors.primary
+        return isDestructive ? TickerColor.danger : TickerColor.primary
     }
 }
 
@@ -395,15 +395,15 @@ struct TickerSecondaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .Subheadline()
-            .foregroundStyle(isEnabled ? TickerColors.textPrimary(for: colorScheme) : TickerColors.disabled)
+            .foregroundStyle(isEnabled ? TickerColor.textPrimary(for: colorScheme) : TickerColor.disabled)
             .frame(maxWidth: .infinity)
             .frame(height: TickerSpacing.buttonHeightStandard)
-            .background(TickerColors.surface(for: colorScheme))
+            .background(TickerColor.surface(for: colorScheme))
             .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
             .overlay(
                 RoundedRectangle(cornerRadius: TickerRadius.medium)
                     .strokeBorder(
-                        isEnabled ? TickerColors.textTertiary(for: colorScheme) : TickerColors.disabled,
+                        isEnabled ? TickerColor.textTertiary(for: colorScheme) : TickerColor.disabled,
                         lineWidth: 2
                     )
             )
@@ -420,7 +420,7 @@ struct TickerTertiaryButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .Subheadline()
-            .foregroundStyle(isEnabled ? TickerColors.textPrimary(for: colorScheme) : TickerColors.disabled)
+            .foregroundStyle(isEnabled ? TickerColor.textPrimary(for: colorScheme) : TickerColor.disabled)
             .padding(.horizontal, TickerSpacing.md)
             .padding(.vertical, TickerSpacing.sm)
             .contentShape(Rectangle())
@@ -439,7 +439,7 @@ struct TickerStatusBadge: ViewModifier {
         content
             .Caption()
             .textCase(.uppercase)
-            .foregroundStyle(TickerColors.absoluteWhite)
+            .foregroundStyle(TickerColor.absoluteWhite)
             .padding(.horizontal, TickerSpacing.sm)
             .padding(.vertical, TickerSpacing.xxs)
             .background(color)
@@ -452,7 +452,7 @@ struct TickerCard: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .background(TickerColors.surface(for: colorScheme))
+            .background(TickerColor.surface(for: colorScheme))
             .clipShape(RoundedRectangle(cornerRadius: TickerRadius.large))
             .shadow(
                 color: TickerShadow.subtle.color,

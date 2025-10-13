@@ -29,19 +29,19 @@ struct AlarmCell: View {
                 // Primary: Alarm label
                 Text(alarmItem.label)
                     .Title3()
-                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                 // Secondary: Category name
                 if let tickerData = alarmItem.tickerData, let name = tickerData.name, name != alarmItem.label {
                     Text(name)
                         .Subheadline()
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
 
                 // Tertiary: Schedule info
                 scheduleInfoView
                     .Footnote()
-                    .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
             }
 
             Spacer()
@@ -52,11 +52,11 @@ struct AlarmCell: View {
                 if let schedule = alarmItem.schedule {
                     scheduleText(for: schedule)
                     .Title()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 } else if let countdown = alarmItem.countdown?.preAlert {
                     Text(formatDuration(countdown.interval))
                         .Headline()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 }
 
                 // Status tag
@@ -64,7 +64,7 @@ struct AlarmCell: View {
             }
         }
         .padding(TickerSpacing.sm)
-        .background(TickerColors.surface(for: colorScheme))
+        .background(TickerColor.surface(for: colorScheme))
         .background(.ultraThinMaterial.opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: TickerRadius.large))
         .shadow(
@@ -87,23 +87,23 @@ struct AlarmCell: View {
         if let tickerData = alarmItem.tickerData, let icon = tickerData.icon {
             ZStack {
                 Circle()
-                    .fill(Color(hex: tickerData.colorHex ?? "") ?? TickerColors.scheduled)
+                    .fill(Color(hex: tickerData.colorHex ?? "") ?? TickerColor.scheduled)
                     .opacity(0.15)
                     .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
                 Image(systemName: icon)
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(Color(hex: tickerData.colorHex ?? "") ?? TickerColors.scheduled)
+                    .foregroundStyle(Color(hex: tickerData.colorHex ?? "") ?? TickerColor.scheduled)
             }
         } else {
             ZStack {
                 Circle()
-                    .fill(TickerColors.scheduled.opacity(0.15))
+                    .fill(TickerColor.scheduled.opacity(0.15))
                     .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
 
                 Image(systemName: "alarm")
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(TickerColors.scheduled)
+                    .foregroundStyle(TickerColor.scheduled)
             }
         }
     }
@@ -184,10 +184,10 @@ struct AlarmCell: View {
     var tagColor: Color {
         // If alarm is in service, it's active (scheduled color)
         if alarmService.getTicker(id: alarmItem.id) != nil {
-            return TickerColors.scheduled
+            return TickerColor.scheduled
         }
         // If not in service
-        return alarmItem.isEnabled ? TickerColors.scheduled : TickerColors.disabled
+        return alarmItem.isEnabled ? TickerColor.scheduled : TickerColor.disabled
     }
 }
 
@@ -248,7 +248,7 @@ struct AlarmCell: View {
     .padding()
     .background(
         ZStack {
-            TickerColors.liquidGlassGradient(for: .dark)
+            TickerColor.liquidGlassGradient(for: .dark)
                 .ignoresSafeArea()
 
             Rectangle()

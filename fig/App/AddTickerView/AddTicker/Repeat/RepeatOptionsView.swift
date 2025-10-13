@@ -26,11 +26,11 @@ struct RepeatOptionsView: View {
                         Text(option.rawValue)
                             .font(.system(size: 14, weight: .medium, design: .rounded))
                     }
-                    .foregroundStyle(viewModel.selectedOption == option ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(viewModel.selectedOption == option ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
                     .padding(.horizontal, TickerSpacing.md)
                     .padding(.vertical, TickerSpacing.sm)
                     .frame(maxWidth: .infinity)
-                    .background(viewModel.selectedOption == option ? TickerColors.primary : TickerColors.surface(for: colorScheme).opacity(0.5))
+                    .background(viewModel.selectedOption == option ? TickerColor.primary : TickerColor.surface(for: colorScheme).opacity(0.5))
                     .background(.ultraThinMaterial.opacity(0.2))
                     .clipShape(RoundedRectangle(cornerRadius: TickerRadius.small))
                 }
@@ -39,7 +39,7 @@ struct RepeatOptionsView: View {
         .padding(TickerSpacing.md)
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColors.surface(for: colorScheme).opacity(0.95))
+                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
         )
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.large)

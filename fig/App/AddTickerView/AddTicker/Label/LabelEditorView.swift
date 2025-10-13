@@ -17,7 +17,7 @@ struct LabelEditorView: View {
             .padding(TickerSpacing.md)
             .background(
                 RoundedRectangle(cornerRadius: TickerRadius.large)
-                    .fill(TickerColors.surface(for: colorScheme).opacity(0.95))
+                    .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
             )
             .background(
                 RoundedRectangle(cornerRadius: TickerRadius.large)

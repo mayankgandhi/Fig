@@ -15,7 +15,7 @@ struct CountdownConfigView: View {
         VStack(spacing: TickerSpacing.md) {
             Toggle("Enable Countdown", isOn: $viewModel.isEnabled)
                 .font(.system(size: 15, weight: .medium, design: .rounded))
-                .tint(TickerColors.primary)
+                .tint(TickerColor.primary)
 
             if viewModel.isEnabled {
                 HStack(spacing: 0) {
@@ -46,7 +46,7 @@ struct CountdownConfigView: View {
         .padding(TickerSpacing.md)
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColors.surface(for: colorScheme).opacity(0.95))
+                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
         )
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.large)

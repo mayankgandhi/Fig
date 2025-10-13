@@ -35,7 +35,7 @@ struct AlarmDetailView: View {
             }
             .background(
                 ZStack {
-                    TickerColors.liquidGlassGradient(for: colorScheme)
+                    TickerColor.liquidGlassGradient(for: colorScheme)
                         .ignoresSafeArea()
 
                     Rectangle()
@@ -61,7 +61,7 @@ struct AlarmDetailView: View {
                     } label: {
                         Image(systemName: "pencil")
                             .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     }
 
                     Button(role: .destructive) {
@@ -99,7 +99,7 @@ struct AlarmDetailView: View {
                 // Label
                 Text(alarm.label)
                     .Headline()
-                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                 // Status badge
                 Text(statusLabel)
@@ -114,7 +114,7 @@ struct AlarmDetailView: View {
             Spacer()
         }
         .padding(TickerSpacing.sm)
-        .background(TickerColors.surface(for: colorScheme).opacity(0.5))
+        .background(TickerColor.surface(for: colorScheme).opacity(0.5))
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
     }
@@ -126,7 +126,7 @@ struct AlarmDetailView: View {
             if let schedule = alarm.schedule {
                 Text(timeString(for: schedule))
                     .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                 HStack(spacing: TickerSpacing.xxs) {
                     Image(systemName: scheduleIcon(for: schedule))
@@ -134,12 +134,12 @@ struct AlarmDetailView: View {
                     Text(scheduleTypeLabel(for: schedule))
                         .font(.system(size: 13, weight: .medium, design: .rounded))
                 }
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, TickerSpacing.md)
-        .background(TickerColors.surface(for: colorScheme).opacity(0.5))
+        .background(TickerColor.surface(for: colorScheme).opacity(0.5))
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
     }
@@ -150,7 +150,7 @@ struct AlarmDetailView: View {
         VStack(alignment: .leading, spacing: TickerSpacing.xs) {
             Text("OPTIONS")
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
             FlowLayout(spacing: TickerSpacing.xs) {
                 // Calendar/Date option
@@ -201,16 +201,16 @@ struct AlarmDetailView: View {
         HStack(spacing: TickerSpacing.xxs) {
             Image(systemName: icon)
                 .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
             Text(title)
                 .font(.system(size: 13, weight: .medium, design: .rounded))
                 .lineLimit(1)
-                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
         }
         .padding(.horizontal, TickerSpacing.sm)
         .padding(.vertical, TickerSpacing.xs)
-        .background(TickerColors.surface(for: colorScheme).opacity(0.7))
+        .background(TickerColor.surface(for: colorScheme).opacity(0.7))
         .background(.ultraThinMaterial.opacity(0.3))
         .clipShape(Capsule())
     }
@@ -223,9 +223,9 @@ struct AlarmDetailView: View {
 
     private var iconColor: Color {
         if let colorHex = alarm.tickerData?.colorHex {
-            return Color(hex: colorHex) ?? TickerColors.primary
+            return Color(hex: colorHex) ?? TickerColor.primary
         }
-        return TickerColors.primary
+        return TickerColor.primary
     }
 
     private var statusLabel: String {
@@ -237,9 +237,9 @@ struct AlarmDetailView: View {
 
     private var statusColor: Color {
         if alarmService.getTicker(id: alarm.id) != nil {
-            return TickerColors.scheduled
+            return TickerColor.scheduled
         }
-        return alarm.isEnabled ? TickerColors.scheduled : TickerColors.disabled
+        return alarm.isEnabled ? TickerColor.scheduled : TickerColor.disabled
     }
 
     // MARK: - Helper Methods

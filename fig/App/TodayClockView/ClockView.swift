@@ -96,7 +96,7 @@ struct ClockView: View {
                             Text("\(time)")
                                 .rotationEffect(Angle(degrees: textAngle))
                                 .Title2()
-                                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                                 .offset(y: -radius * 0.7)
                                 .rotationEffect(Angle(degrees: hourmark.angle))
                         }
@@ -119,7 +119,7 @@ struct ClockView: View {
                                 .Caption2()
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.5)
-                                .foregroundColor(TickerColors.textPrimary(for: colorScheme))
+                                .foregroundColor(TickerColor.textPrimary(for: colorScheme))
                                 .padding(.horizontal, TickerSpacing.xs)
                                 .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
                                 .background(
@@ -135,30 +135,30 @@ struct ClockView: View {
                     
                     // Hour Hand
                     RoundedRectangle(cornerRadius: 2)
-                        .fill(TickerColors.textPrimary(for: colorScheme))
+                        .fill(TickerColor.textPrimary(for: colorScheme))
                         .frame(width: 4, height: radius * 0.5)
                         .offset(y: -radius * 0.25)
                         .rotationEffect(Angle(degrees: hourAngle))
-                        .shadow(color: TickerColors.textPrimary(for: colorScheme).opacity(0.3), radius: 2, x: 0, y: 1)
+                        .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.3), radius: 2, x: 0, y: 1)
                     
                     // Minute Hand
                     RoundedRectangle(cornerRadius: 1.5)
-                        .fill(TickerColors.textPrimary(for: colorScheme))
+                        .fill(TickerColor.textPrimary(for: colorScheme))
                         .frame(width: 3, height: radius * 0.7)
                         .offset(y: -radius * 0.35)
                         .rotationEffect(Angle(degrees: minuteAngle))
-                        .shadow(color: TickerColors.textPrimary(for: colorScheme).opacity(0.3), radius: 2, x: 0, y: 1)
+                        .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.3), radius: 2, x: 0, y: 1)
                     
                     // Second Hand
                     RoundedRectangle(cornerRadius: 1)
-                        .fill(TickerColors.primary)
+                        .fill(TickerColor.primary)
                         .frame(width: 1.5, height: radius * 0.8)
                         .offset(y: -radius * 0.4)
                         .rotationEffect(Angle(degrees: secondAngle))
                         .animation(.none, value: secondAngle)
                     
                     Circle()
-                        .fill(TickerColors.primary)
+                        .fill(TickerColor.primary)
                         .frame(width: radius * 0.02, height: radius * 0.02)
                 }
                 .frame(

@@ -17,7 +17,7 @@ struct OptionsPillsView: View {
         VStack(alignment: .leading, spacing: TickerSpacing.sm) {
             Text("OPTIONS")
                 .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                 .padding(.horizontal, TickerSpacing.md)
 
             FlowLayout(spacing: TickerSpacing.xs) {
@@ -118,31 +118,31 @@ struct OptionsPillsView: View {
         hasValue: Bool
     ) -> some View {
         let isIconField = title == "Icon"
-        let iconColor = isIconField ? (Color(hex: selectedColorHex) ?? TickerColors.primary) : nil
+        let iconColor = isIconField ? (Color(hex: selectedColorHex) ?? TickerColor.primary) : nil
 
         return HStack(spacing: TickerSpacing.xxs) {
             ZStack {
                 if isIconField {
                     // Icon field: Show colored circle background
                     Circle()
-                        .fill(iconColor ?? TickerColors.primary)
+                        .fill(iconColor ?? TickerColor.primary)
                         .frame(width: 24, height: 24)
 
                     Image(systemName: icon)
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(TickerColors.absoluteWhite)
+                        .foregroundStyle(TickerColor.absoluteWhite)
                 } else {
                     // Other fields: Show glow for active state
                     if isActive {
                         Circle()
-                            .fill(TickerColors.absoluteWhite.opacity(0.2))
+                            .fill(TickerColor.absoluteWhite.opacity(0.2))
                             .frame(width: 20, height: 20)
                             .blur(radius: 4)
                     }
 
                     Image(systemName: icon)
                         .font(.system(size: 14, weight: isActive ? .semibold : .medium))
-                        .foregroundStyle(isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(isActive ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
                 }
             }
 
@@ -151,7 +151,7 @@ struct OptionsPillsView: View {
                 .lineLimit(1)
         }
         .fixedSize()
-        .foregroundStyle(isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
+        .foregroundStyle(isActive ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
         .padding(.horizontal, TickerSpacing.md)
         .padding(.vertical, TickerSpacing.sm)
         .background(
@@ -160,15 +160,15 @@ struct OptionsPillsView: View {
                     // Active gradient background
                     LinearGradient(
                         colors: [
-                            TickerColors.primary,
-                            TickerColors.primary.opacity(0.9)
+                            TickerColor.primary,
+                            TickerColor.primary.opacity(0.9)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 } else {
                     // Inactive glass background
-                    TickerColors.surface(for: colorScheme)
+                    TickerColor.surface(for: colorScheme)
                         .opacity(0.7)
                 }
             }
@@ -180,8 +180,8 @@ struct OptionsPillsView: View {
                     hasValue && !isActive ?
                     LinearGradient(
                         colors: [
-                            TickerColors.primary.opacity(0.6),
-                            TickerColors.primary.opacity(0.3)
+                            TickerColor.primary.opacity(0.6),
+                            TickerColor.primary.opacity(0.3)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -196,7 +196,7 @@ struct OptionsPillsView: View {
         )
         .clipShape(Capsule())
         .shadow(
-            color: isActive ? TickerColors.primary.opacity(0.4) : Color.black.opacity(0.08),
+            color: isActive ? TickerColor.primary.opacity(0.4) : Color.black.opacity(0.08),
             radius: isActive ? 8 : 4,
             x: 0,
             y: isActive ? 4 : 2

@@ -16,7 +16,7 @@ struct TimePickerView: View {
             // Title
             Text("Set Time")
                 .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
             // Time Pickers
             HStack(spacing: 0) {
@@ -32,7 +32,7 @@ struct TimePickerView: View {
 
                 Text(":")
                     .font(.system(size: 44, weight: .semibold, design: .rounded))
-                    .foregroundStyle(TickerColors.primary)
+                    .foregroundStyle(TickerColor.primary)
                     .padding(.horizontal, TickerSpacing.xs)
 
                 Picker("Minute", selection: $viewModel.selectedMinute) {

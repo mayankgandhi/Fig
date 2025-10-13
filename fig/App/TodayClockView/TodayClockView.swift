@@ -37,7 +37,7 @@ struct TodayClockView: View {
                                 
                                         Text("Upcoming Tickers")
                                             .Title2()
-                                            .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                                        
 
                                     Spacer()
@@ -45,11 +45,11 @@ struct TodayClockView: View {
                                     HStack(alignment: .center, spacing: TickerSpacing.md) {
                                         Image(systemName: "clock.fill")
                                             .Body()
-                                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                                         
                                         Text("\(viewModel.upcomingAlarmsCount)")
                                             .Body()
-                                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                                         
                                     }
                                 }
@@ -60,15 +60,15 @@ struct TodayClockView: View {
                                     VStack(spacing: TickerSpacing.sm) {
                                         Image(systemName: "clock.badge.checkmark")
                                             .font(.system(size: 64))
-                                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                                         Text("No upcoming alarms")
                                             .Title2()
-                                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                                         Text("Alarms scheduled for the next 12 hours will appear here")
                                             .Footnote()
-                                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                                             .multilineTextAlignment(.center)
                                             .padding(.horizontal, TickerSpacing.xxl)
                                     }
@@ -87,7 +87,7 @@ struct TodayClockView: View {
                                                     } label: {
                                                         Label("Edit", systemImage: "pencil")
                                                     }
-                                                    .tint(TickerColors.primary)
+                                                    .tint(TickerColor.primary)
                                                 }
                                         }
                                     }
@@ -105,7 +105,7 @@ struct TodayClockView: View {
             }
             .background(
                 ZStack {
-                    TickerColors.liquidGlassGradient(for: colorScheme)
+                    TickerColor.liquidGlassGradient(for: colorScheme)
                         .ignoresSafeArea()
 
                     // Subtle overlay for glass effect
@@ -140,7 +140,7 @@ struct TodayClockView: View {
                     .interactiveDismissDisabled()
                     .presentationBackground {
                         ZStack {
-                            TickerColors.liquidGlassGradient(for: colorScheme)
+                            TickerColor.liquidGlassGradient(for: colorScheme)
 
                             Rectangle()
                                 .fill(.ultraThinMaterial)

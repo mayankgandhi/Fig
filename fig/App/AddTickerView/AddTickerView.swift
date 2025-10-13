@@ -79,7 +79,7 @@ struct AddTickerView: View {
         }
         .background(
             ZStack {
-                TickerColors.liquidGlassGradient(for: colorScheme)
+                TickerColor.liquidGlassGradient(for: colorScheme)
                     .ignoresSafeArea()
 
                 // Subtle overlay for glass effect
@@ -94,7 +94,7 @@ struct AddTickerView: View {
             ToolbarItem(placement: .principal) {
                 Text(isEditMode ? "Edit Ticker" : "New Ticker")
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
             }
 
             ToolbarItem(placement: .cancellationAction) {
@@ -104,7 +104,7 @@ struct AddTickerView: View {
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 22))
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme).opacity(0.7))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme).opacity(0.7))
                         .symbolRenderingMode(.hierarchical)
                 }
             }
@@ -122,7 +122,7 @@ struct AddTickerView: View {
                     HStack(spacing: TickerSpacing.xs) {
                         if viewModel.isSaving {
                             ProgressView()
-                                .tint(TickerColors.absoluteWhite)
+                                .tint(TickerColor.absoluteWhite)
                                 .scaleEffect(0.75)
                         } else {
                             Image(systemName: "checkmark")
@@ -131,7 +131,7 @@ struct AddTickerView: View {
                         Text(viewModel.isSaving ? "Saving..." : "Save")
                             .font(.system(size: 15, weight: .semibold, design: .rounded))
                     }
-                    .foregroundStyle(TickerColors.absoluteWhite)
+                    .foregroundStyle(TickerColor.absoluteWhite)
                     .padding(.horizontal, TickerSpacing.md)
                     .padding(.vertical, TickerSpacing.sm)
                     .background(
@@ -139,14 +139,14 @@ struct AddTickerView: View {
                             .fill(
                                 viewModel.isSaving ?
                                 LinearGradient(
-                                        colors: [TickerColors.primary.opacity(0.7)],
+                                        colors: [TickerColor.primary.opacity(0.7)],
                                         startPoint: .center,
                                         endPoint: .center
                                     ) :
                                     LinearGradient(
                                         colors: [
-                                            TickerColors.primary,
-                                            TickerColors.primary.opacity(0.9)
+                                            TickerColor.primary,
+                                            TickerColor.primary.opacity(0.9)
                                         ],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
@@ -154,7 +154,7 @@ struct AddTickerView: View {
                             )
                     )
                     .shadow(
-                        color: TickerColors.primary.opacity(viewModel.isSaving ? 0.2 : 0.4),
+                        color: TickerColor.primary.opacity(viewModel.isSaving ? 0.2 : 0.4),
                         radius: viewModel.isSaving ? 4 : 8,
                         x: 0,
                         y: 4
@@ -193,7 +193,7 @@ struct AddTickerView: View {
                 .padding(.vertical, TickerSpacing.lg)
                 .background(
                     RoundedRectangle(cornerRadius: TickerRadius.large)
-                        .fill(TickerColors.surface(for: colorScheme).opacity(0.6))
+                        .fill(TickerColor.surface(for: colorScheme).opacity(0.6))
                 )
                 .background(
                     RoundedRectangle(cornerRadius: TickerRadius.large)
@@ -201,7 +201,7 @@ struct AddTickerView: View {
                 )
                 .overlay(timePickerCardBorder)
                 .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 10)
-                .shadow(color: TickerColors.primary.opacity(0.1), radius: 30, x: 0, y: 15)
+                .shadow(color: TickerColor.primary.opacity(0.1), radius: 30, x: 0, y: 15)
                 .padding(.horizontal, TickerSpacing.md)
                 .padding(.top, TickerSpacing.md)
         }
@@ -212,8 +212,8 @@ struct AddTickerView: View {
             .strokeBorder(
                 LinearGradient(
                     colors: [
-                        TickerColors.primary.opacity(0.3),
-                        TickerColors.primary.opacity(0.1)
+                        TickerColor.primary.opacity(0.3),
+                        TickerColor.primary.opacity(0.1)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing

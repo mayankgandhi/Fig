@@ -18,7 +18,7 @@ struct IconColorPair: Identifiable, Hashable {
     let category: IconCategory
 
     var color: Color {
-        Color(hex: colorHex) ?? TickerColors.primary
+        Color(hex: colorHex) ?? TickerColor.primary
     }
 
     enum IconCategory: String, CaseIterable {

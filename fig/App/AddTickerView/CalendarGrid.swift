@@ -57,12 +57,12 @@ struct CalendarGrid: View {
                 } label: {
                     Image(systemName: "chevron.left")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
                 
                 Text(selectedDate.formatted(.dateTime.month(.wide).year()))
                     .Body()
-                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .frame(maxWidth: .infinity)
                 
                 Button {
@@ -73,7 +73,7 @@ struct CalendarGrid: View {
                 } label: {
                     Image(systemName: "chevron.right")
                         .font(.system(size: 12, weight: .semibold))
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
             }
             
@@ -81,7 +81,7 @@ struct CalendarGrid: View {
                 ForEach(weekdaySymbols, id: \.id) { symbol in
                     Text(symbol.label)
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .frame(maxWidth: .infinity)
                 }
             }
@@ -126,16 +126,16 @@ struct CalendarDayCell: View {
         Button(action: onTap) {
             Text(dayNumber)
                 .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
-                .foregroundStyle(isSelected ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
+                .foregroundStyle(isSelected ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
                 .frame(maxWidth: .infinity)
                 .frame(height: 32)
                 .background(
                     Circle()
-                        .fill(isSelected ? TickerColors.primary : .clear)
+                        .fill(isSelected ? TickerColor.primary : .clear)
                 )
                 .overlay(
                     Circle()
-                        .strokeBorder(isToday && !isSelected ? TickerColors.primary : .clear, lineWidth: 1.5)
+                        .strokeBorder(isToday && !isSelected ? TickerColor.primary : .clear, lineWidth: 1.5)
                 )
         }
         .buttonStyle(.plain)

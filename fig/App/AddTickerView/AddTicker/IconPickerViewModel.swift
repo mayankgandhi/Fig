@@ -15,7 +15,7 @@ final class IconPickerViewModel {
     // MARK: - Computed Properties
 
     var selectedColor: Color {
-        Color(hex: selectedColorHex) ?? TickerColors.primary
+        Color(hex: selectedColorHex) ?? TickerColor.primary
     }
 
     // MARK: - Methods

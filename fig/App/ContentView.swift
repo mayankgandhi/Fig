@@ -29,7 +29,7 @@ struct ContentView: View {
             content
                 .background(
                     ZStack {
-                        TickerColors.liquidGlassGradient(for: colorScheme)
+                        TickerColor.liquidGlassGradient(for: colorScheme)
                             .ignoresSafeArea()
 
                         Rectangle()
@@ -57,7 +57,7 @@ struct ContentView: View {
                 .interactiveDismissDisabled()
                 .presentationBackground {
                     ZStack {
-                        TickerColors.liquidGlassGradient(for: colorScheme)
+                        TickerColor.liquidGlassGradient(for: colorScheme)
 
                         Rectangle()
                             .fill(.ultraThinMaterial)
@@ -73,7 +73,7 @@ struct ContentView: View {
                 .interactiveDismissDisabled()
                 .presentationBackground {
                     ZStack {
-                        TickerColors.liquidGlassGradient(for: colorScheme)
+                        TickerColor.liquidGlassGradient(for: colorScheme)
 
                         Rectangle()
                             .fill(.ultraThinMaterial)
@@ -95,7 +95,7 @@ struct ContentView: View {
             .presentationCornerRadius(TickerRadius.large)
             .presentationBackground {
                 ZStack {
-                    TickerColors.liquidGlassGradient(for: colorScheme)
+                    TickerColor.liquidGlassGradient(for: colorScheme)
 
                     Rectangle()
                         .fill(.ultraThinMaterial)
@@ -121,7 +121,7 @@ struct ContentView: View {
                 Text("Are you sure you want to delete \"\(ticker.label)\"? This action cannot be undone.")
             }
         }
-        .tint(TickerColors.primary)
+        .tint(TickerColor.primary)
         .onAppear {
             loadAlarms()
         }
@@ -197,21 +197,21 @@ struct ContentView: View {
                 ContentUnavailableView {
                     Text("No Results")
                         .Title3()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 } description: {
                     Text("No tickers match '\(searchText)'")
                         .Body()
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
             } else {
                 ContentUnavailableView {
                     Text("No Tickers")
                         .Title3()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 } description: {
                     Text("Add a new ticker by tapping + button.")
                         .Body()
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 } actions: {
                     Button {
                         TickerHaptics.criticalAction()
@@ -223,15 +223,15 @@ struct ContentView: View {
                             Text("Add Ticker")
                                 .font(.system(size: 16, weight: .bold))
                         }
-                        .foregroundStyle(TickerColors.absoluteWhite)
+                        .foregroundStyle(TickerColor.absoluteWhite)
                         .padding(.horizontal, TickerSpacing.xl)
                         .padding(.vertical, TickerSpacing.md)
                         .background(
                             Capsule()
-                                .fill(TickerColors.primary)
+                                .fill(TickerColor.primary)
                         )
                         .shadow(
-                            color: TickerColors.primary.opacity(0.3),
+                            color: TickerColor.primary.opacity(0.3),
                             radius: 8,
                             x: 0,
                             y: 4
@@ -258,7 +258,7 @@ struct ContentView: View {
                         } label: {
                             Label("Edit", systemImage: "pencil")
                         }
-                        .tint(TickerColors.primary)
+                        .tint(TickerColor.primary)
 
                         Button(role: .destructive) {
                             TickerHaptics.selection()

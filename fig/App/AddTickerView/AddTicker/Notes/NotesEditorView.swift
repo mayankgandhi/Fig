@@ -30,7 +30,7 @@ struct NotesEditorView: View {
             if viewModel.notesText == nil || viewModel.notesText!.isEmpty {
                 Text("Add notes...")
                     .font(.system(size: 15, weight: .regular, design: .rounded))
-                    .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     .padding(TickerSpacing.sm)
                     .padding(.top, 8)
                     .allowsHitTesting(false)
@@ -38,7 +38,7 @@ struct NotesEditorView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColors.surface(for: colorScheme).opacity(0.95))
+                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
         )
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.large)

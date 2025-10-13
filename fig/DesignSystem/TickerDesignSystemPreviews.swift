@@ -21,9 +21,9 @@ struct ColorSystemPreview: View {
                         .Title2()
 
                     HStack(spacing: TickerSpacing.sm) {
-                        colorSwatch(color: TickerColors.primary, name: "Primary")
-                        colorSwatch(color: TickerColors.primaryDark, name: "Primary Dark")
-                        colorSwatch(color: TickerColors.accent, name: "Accent")
+                        colorSwatch(color: TickerColor.primary, name: "Primary")
+                        colorSwatch(color: TickerColor.primaryDark, name: "Primary Dark")
+                        colorSwatch(color: TickerColor.accent, name: "Accent")
                     }
                 }
 
@@ -33,9 +33,9 @@ struct ColorSystemPreview: View {
                         .Title2()
 
                     HStack(spacing: TickerSpacing.sm) {
-                        colorSwatch(color: TickerColors.success, name: "Success")
-                        colorSwatch(color: TickerColors.warning, name: "Warning")
-                        colorSwatch(color: TickerColors.danger, name: "Danger")
+                        colorSwatch(color: TickerColor.success, name: "Success")
+                        colorSwatch(color: TickerColor.warning, name: "Warning")
+                        colorSwatch(color: TickerColor.danger, name: "Danger")
                     }
                 }
 
@@ -45,13 +45,13 @@ struct ColorSystemPreview: View {
                         .Title2()
 
                     HStack(spacing: TickerSpacing.sm) {
-                        colorSwatch(color: TickerColors.scheduled, name: "Scheduled")
-                        colorSwatch(color: TickerColors.running, name: "Running")
+                        colorSwatch(color: TickerColor.scheduled, name: "Scheduled")
+                        colorSwatch(color: TickerColor.running, name: "Running")
                     }
                     HStack(spacing: TickerSpacing.sm) {
-                        colorSwatch(color: TickerColors.paused, name: "Paused")
-                        colorSwatch(color: TickerColors.alerting, name: "Alerting")
-                        colorSwatch(color: TickerColors.disabled, name: "Disabled")
+                        colorSwatch(color: TickerColor.paused, name: "Paused")
+                        colorSwatch(color: TickerColor.alerting, name: "Alerting")
+                        colorSwatch(color: TickerColor.disabled, name: "Disabled")
                     }
                 }
 
@@ -62,18 +62,18 @@ struct ColorSystemPreview: View {
 
                     VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                         Text("Primary Text")
-                            .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                         Text("Secondary Text")
-                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                         Text("Tertiary Text")
-                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     }
                     .Body()
                 }
             }
             .padding(TickerSpacing.md)
         }
-        .background(TickerColors.background(for: colorScheme))
+        .background(TickerColor.background(for: colorScheme))
     }
 
     private func colorSwatch(color: Color, name: String) -> some View {
@@ -83,12 +83,12 @@ struct ColorSystemPreview: View {
                 .frame(width: 60, height: 60)
                 .overlay(
                     RoundedRectangle(cornerRadius: TickerRadius.small)
-                        .strokeBorder(TickerColors.textTertiary(for: colorScheme), lineWidth: 1)
+                        .strokeBorder(TickerColor.textTertiary(for: colorScheme), lineWidth: 1)
                 )
 
             Text(name)
                 .Caption()
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .multilineTextAlignment(.center)
                 .frame(width: 60)
         }
@@ -107,29 +107,29 @@ struct TypographyScalePreview: View {
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("TIME DISPLAY")
                         .Caption2()
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                     Text("6:30")
                         .Caption2()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     Text("Hero - 72pt Heavy Mono")
                         .Footnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                     Text("7:45")
                         .Caption2()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     Text("Large - 56pt Bold Mono")
                         .Footnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                     Text("10:00")
                         .Caption2()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     
                     Text("Medium - 36pt Semibold")
                         .Footnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                 }
 
                 Divider()
@@ -138,28 +138,28 @@ struct TypographyScalePreview: View {
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("HEADERS")
                         .Caption2()
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                     Text("ALARMS")
                         .LargeTitle()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     Text("XL - 34pt Black")
                         .Footnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                     Text("Settings")
                         .Title()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     Text("Large - 28pt Heavy")
                         .Footnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                     Text("Notifications")
                         .Title2()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     Text("Medium - 22pt Bold")
                         .Footnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                 }
 
                 Divider()
@@ -168,26 +168,26 @@ struct TypographyScalePreview: View {
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("BODY TEXT")
                         .Caption2()
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                     Text("This is the primary body text size for main content.")
                         .Body()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     Text("Large - 17pt Regular")
                         .Footnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                     Text("This is for secondary information and details.")
                         .Subheadline()
-                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     Text("Medium - 15pt Regular")
                         .Footnote()
-                        .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                 }
             }
             .padding(TickerSpacing.md)
         }
-        .background(TickerColors.background(for: colorScheme))
+        .background(TickerColor.background(for: colorScheme))
     }
 }
 
@@ -296,29 +296,29 @@ struct ButtonSystemPreview: View {
                     VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                         Text("• Primary: 64pt height")
                             .Footnote()
-                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                         Text("• Secondary: 48pt height")
                             .Footnote()
-                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                         Text("• Tertiary: Flexible padding")
                             .Footnote()
-                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                         Text("• Minimum tap target: 44×44pt")
                             .Footnote()
-                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                         Text("• Press feedback: Scale + opacity")
                             .Footnote()
-                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     }
                 }
             }
             .padding(TickerSpacing.md)
         }
-        .background(TickerColors.background(for: colorScheme))
+        .background(TickerColor.background(for: colorScheme))
     }
 }
 
@@ -331,11 +331,11 @@ struct StatusBadgePreview: View {
                 .Title()
 
             VStack(alignment: .leading, spacing: TickerSpacing.lg) {
-                badgeRow(text: "SCHEDULED", color: TickerColors.scheduled, description: "Blue - Future alarm")
-                badgeRow(text: "RUNNING", color: TickerColors.running, description: "Green - Active countdown")
-                badgeRow(text: "PAUSED", color: TickerColors.paused, description: "Amber - Needs attention")
-                badgeRow(text: "ALERTING", color: TickerColors.alerting, description: "Red - Currently ringing")
-                badgeRow(text: "DISABLED", color: TickerColors.disabled, description: "Gray - Inactive")
+                badgeRow(text: "SCHEDULED", color: TickerColor.scheduled, description: "Blue - Future alarm")
+                badgeRow(text: "RUNNING", color: TickerColor.running, description: "Green - Active countdown")
+                badgeRow(text: "PAUSED", color: TickerColor.paused, description: "Amber - Needs attention")
+                badgeRow(text: "ALERTING", color: TickerColor.alerting, description: "Red - Currently ringing")
+                badgeRow(text: "DISABLED", color: TickerColor.disabled, description: "Gray - Inactive")
             }
 
             Spacer()
@@ -369,50 +369,50 @@ struct AlarmCellPreview: View {
                 // Scheduled
                 mockAlarmCell(
                     icon: "alarm",
-                    iconColor: TickerColors.scheduled,
+                    iconColor: TickerColor.scheduled,
                     label: "Wake Up Call",
                     time: "6:30",
                     schedule: "Every day",
                     status: "SCHEDULED",
-                    statusColor: TickerColors.scheduled
+                    statusColor: TickerColor.scheduled
                 )
 
                 // Running
                 mockAlarmCell(
                     icon: "figure.run",
-                    iconColor: TickerColors.running,
+                    iconColor: TickerColor.running,
                     label: "Gym Time",
                     time: "7:15",
                     schedule: "Mon-Fri",
                     status: "RUNNING",
-                    statusColor: TickerColors.running
+                    statusColor: TickerColor.running
                 )
 
                 // Paused
                 mockAlarmCell(
                     icon: "fork.knife",
-                    iconColor: TickerColors.paused,
+                    iconColor: TickerColor.paused,
                     label: "Breakfast",
                     time: "8:00",
                     schedule: "Paused",
                     status: "PAUSED",
-                    statusColor: TickerColors.paused
+                    statusColor: TickerColor.paused
                 )
 
                 // Alerting
                 mockAlarmCell(
                     icon: "bell.badge.fill",
-                    iconColor: TickerColors.alerting,
+                    iconColor: TickerColor.alerting,
                     label: "Meeting Reminder",
                     time: "19:30",
                     schedule: "Once only",
                     status: "ALERTING",
-                    statusColor: TickerColors.alerting
+                    statusColor: TickerColor.alerting
                 )
             }
             .padding(TickerSpacing.md)
         }
-        .background(TickerColors.background(for: colorScheme))
+        .background(TickerColor.background(for: colorScheme))
     }
 
     private func mockAlarmCell(
@@ -440,7 +440,7 @@ struct AlarmCellPreview: View {
             VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                 Text(label)
                     .Title3()
-                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
@@ -448,7 +448,7 @@ struct AlarmCellPreview: View {
                     Text(schedule)
                 }
                 .Footnote()
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
 
             Spacer()
@@ -457,7 +457,7 @@ struct AlarmCellPreview: View {
             VStack(alignment: .trailing, spacing: TickerSpacing.xs) {
                 Text(time)
                     .Title()
-                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .monospacedDigit()
 
                 Text(status)
@@ -482,16 +482,16 @@ struct EmptyStatePreview: View {
 
             Image(systemName: TickerIcons.alarmScheduled)
                 .font(.system(size: 128))
-                .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
             VStack(spacing: TickerSpacing.xs) {
                 Text("No Active Alarms")
                     .Title()
-                    .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                 Text("Tap + to create one")
                     .Subheadline()
-                    .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
 
             Button {
@@ -504,7 +504,7 @@ struct EmptyStatePreview: View {
 
             Spacer()
         }
-        .background(TickerColors.background(for: colorScheme))
+        .background(TickerColor.background(for: colorScheme))
     }
 }
 
@@ -552,7 +552,7 @@ struct IconSystemPreview: View {
             }
             .padding(TickerSpacing.md)
         }
-        .background(TickerColors.background(for: colorScheme))
+        .background(TickerColor.background(for: colorScheme))
     }
 
     private func iconSection(title: String, icons: [(String, String)]) -> some View {
@@ -574,12 +574,12 @@ struct IconSystemPreview: View {
         VStack(spacing: TickerSpacing.xs) {
             Image(systemName: name)
                 .font(.system(size: 32))
-                .foregroundStyle(TickerColors.primary)
+                .foregroundStyle(TickerColor.primary)
                 .frame(width: 60, height: 60)
 
             Text(label)
                 .Caption2()
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .multilineTextAlignment(.center)
         }
     }
@@ -621,18 +621,18 @@ struct SpacingSystemPreview: View {
             }
             .padding(TickerSpacing.md)
         }
-        .background(TickerColors.background(for: colorScheme))
+        .background(TickerColor.background(for: colorScheme))
     }
 
     private func spacingBar(size: CGFloat, label: String) -> some View {
         HStack(spacing: TickerSpacing.md) {
             RoundedRectangle(cornerRadius: TickerRadius.tight)
-                .fill(TickerColors.primary)
+                .fill(TickerColor.primary)
                 .frame(width: size, height: 24)
 
             Text(label)
                 .Subheadline()
-                .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
         }
     }
 
@@ -640,14 +640,14 @@ struct SpacingSystemPreview: View {
         VStack(alignment: .leading, spacing: TickerSpacing.xs) {
             Text(label)
                 .Footnote()
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
             RoundedRectangle(cornerRadius: TickerRadius.medium)
-                .fill(TickerColors.surface(for: colorScheme))
+                .fill(TickerColor.surface(for: colorScheme))
                 .frame(height: height)
                 .overlay(
                     RoundedRectangle(cornerRadius: TickerRadius.medium)
-                        .strokeBorder(TickerColors.primary, lineWidth: 2)
+                        .strokeBorder(TickerColor.primary, lineWidth: 2)
                 )
         }
     }

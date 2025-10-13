@@ -32,19 +32,19 @@ struct UpcomingAlarmRow: View {
                 VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                     Text(presentation.displayName)
                         .Title3()
-                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                     HStack(spacing: TickerSpacing.xs) {
                         Text(presentation.nextAlarmTime, style: .time)
                             .Subheadline()
-                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                         Text("•")
-                            .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                         Text(presentation.timeUntilAlarm(from: context.date))
                             .Subheadline()
-                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     }
                 }
 
@@ -55,7 +55,7 @@ struct UpcomingAlarmRow: View {
                     .tickerStatusBadge(color: presentation.scheduleType.badgeColor)
             }
             .padding(TickerSpacing.md)
-            .background(TickerColors.surface(for: colorScheme))
+            .background(TickerColor.surface(for: colorScheme))
             .background(.ultraThinMaterial.opacity(0.5))
             .clipShape(RoundedRectangle(cornerRadius: TickerRadius.large))
             .shadow(

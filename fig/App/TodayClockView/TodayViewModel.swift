@@ -36,8 +36,8 @@ struct UpcomingAlarmPresentation: Identifiable {
 
         var badgeColor: Color {
             switch self {
-            case .oneTime: return TickerColors.scheduled
-            case .daily: return TickerColors.running
+            case .oneTime: return TickerColor.scheduled
+            case .daily: return TickerColor.running
             }
         }
     }
