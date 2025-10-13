@@ -1,7 +1,7 @@
 import ProjectDescription
 
 let project = Project(
-    name: "fig",
+    name: "Ticker",
     targets: [
         // Main app target
         .target(
@@ -10,6 +10,7 @@ let project = Project(
             product: .app,
             bundleId: "m.fig",
             infoPlist: .extendingDefault(with: [
+                "CFBundleDisplayName": "Ticker",
                 "UILaunchScreen": [:],
                 "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire."
             ]),
