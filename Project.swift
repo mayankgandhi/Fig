@@ -1,16 +1,27 @@
 import ProjectDescription
 
+// Centralized app configuration
+let appName = "Ticker"
+let version = "1.0.0"
+let buildNumber = "1"
+let mainBundleId = "m.fig"
+let alarmBundleId = "\(mainBundleId).alarm"
+let developmentTeam = "Q7HVAVTGUP"
+let deploymentTarget = "26.0"
+
 let project = Project(
-    name: "Ticker",
+    name: appName,
     targets: [
         // Main app target
         .target(
             name: "fig",
             destinations: [.iPhone, .iPad],
             product: .app,
-            bundleId: "m.fig",
+            bundleId: mainBundleId,
             infoPlist: .extendingDefault(with: [
-                "CFBundleDisplayName": "Ticker",
+                "CFBundleDisplayName": .string(appName),
+                "CFBundleShortVersionString": .string(version),
+                "CFBundleVersion": .string(buildNumber),
                 "UILaunchScreen": [:],
                 "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire."
             ]),
@@ -27,8 +38,8 @@ let project = Project(
             ],
             settings: .settings(
                 base: [
-                    "IPHONEOS_DEPLOYMENT_TARGET": "26.0"
-                ].automaticCodeSigning(devTeam: "Q7HVAVTGUP"),
+                    "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget)
+                ].automaticCodeSigning(devTeam: developmentTeam),
                 configurations: []
             )
         ),
@@ -38,8 +49,10 @@ let project = Project(
             name: "alarm",
             destinations: [.iPhone, .iPad],
             product: .appExtension,
-            bundleId: "m.fig.alarm",
+            bundleId: alarmBundleId,
             infoPlist: .extendingDefault(with: [
+                "CFBundleShortVersionString": .string(version),
+                "CFBundleVersion": .string(buildNumber),
                 "NSExtension": [
                     "NSExtensionPointIdentifier": "com.apple.widgetkit-extension"
                 ]
@@ -53,8 +66,8 @@ let project = Project(
             dependencies: [],
             settings: .settings(
                 base: [
-                    "IPHONEOS_DEPLOYMENT_TARGET": "26.0"
-                ].automaticCodeSigning(devTeam: "Q7HVAVTGUP"),
+                    "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget)
+                ].automaticCodeSigning(devTeam: developmentTeam),
                 configurations: []
             )
         ),
