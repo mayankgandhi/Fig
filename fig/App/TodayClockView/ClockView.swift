@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import WalnutDesignSystem
 
 struct ClockView: View {
     @Environment(\.colorScheme) private var colorScheme
@@ -96,7 +95,7 @@ struct ClockView: View {
                         if let time = hourmark.time, let textAngle = hourmark.textAngle {
                             Text("\(time)")
                                 .rotationEffect(Angle(degrees: textAngle))
-                                .cabinetTitle2()
+                                .Title2()
                                 .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                                 .offset(y: -radius * 0.7)
                                 .rotationEffect(Angle(degrees: hourmark.angle))
@@ -117,7 +116,7 @@ struct ClockView: View {
                     ForEach(upcomingAlarms) { event in
                         VStack(spacing: .zero) {
                             Label(event.displayName, systemImage: event.icon)
-                                .cabinetCaption2()
+                                .Caption2()
                                 .lineLimit(1)
                                 .minimumScaleFactor(0.5)
                                 .foregroundColor(TickerColors.textPrimary(for: colorScheme))

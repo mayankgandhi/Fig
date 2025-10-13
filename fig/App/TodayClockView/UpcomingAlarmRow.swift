@@ -31,19 +31,19 @@ struct UpcomingAlarmRow: View {
                 // Alarm details
                 VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                     Text(presentation.displayName)
-                        .cabinetTitle3()
+                        .Title3()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                     HStack(spacing: TickerSpacing.xs) {
                         Text(presentation.nextAlarmTime, style: .time)
-                            .cabinetSubheadline()
+                            .Subheadline()
                             .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                         Text("•")
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                         Text(presentation.timeUntilAlarm(from: context.date))
-                            .cabinetSubheadline()
+                            .Subheadline()
                             .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                     }
                 }

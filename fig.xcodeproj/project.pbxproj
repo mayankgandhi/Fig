@@ -7,92 +7,90 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		04431A0232DF7D067665E814 /* OptionsPillsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8FF0DBB245F81B865FDA0992 /* OptionsPillsViewModel.swift */; };
 		0577043153072121D761C245 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */; };
-		0B2F99F8E270650923924D4B /* ExpandableField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 706183A8B6946999BBA8A274 /* ExpandableField.swift */; };
+		05DADF405A844EDEC32B065C /* NotesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74A35F4B0360A035740026C /* NotesEditorView.swift */; };
 		0DE2232E5A6ECEF8AEEEC88F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B25C5BBB7D27676FCC11A83 /* Assets.xcassets */; };
 		0E347996C546828669887195 /* NativeMenuListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B0F8EE576D2FEE96D69BE5 /* NativeMenuListItem.swift */; };
 		0ECDE744DED25E6CE4DEDADB /* TimerConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */; };
 		0F0451CC0BA4579FAAA98143 /* StopIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F8F4849184746F46BC4D6 /* StopIntent.swift */; };
 		13450FD74A78F8AC05843A81 /* OpenAlarmAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */; };
+		13B828EA8B7C69F0110D4A64 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB3A9D6C6324992D1697A9A3 /* FlowLayout.swift */; };
+		13F1206AE653229DE8F07343 /* TimePickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F55A20D11D1ECC55A1E8019 /* TimePickerViewModel.swift */; };
 		181A88713B6BB7BE4AB3AA65 /* TickerDesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 36BE6F3D3858AA0AB407ABD0 /* TickerDesignSystem.swift */; };
+		1823A4A33D42DD4A421FE870 /* withRoundedDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3093EEDE5F59D87D06E3B9 /* withRoundedDesign.swift */; };
 		1AF0D5ED761EDEDD5859FDB1 /* TuistBundle+Fig.swift in Sources */ = {isa = PBXBuildFile; fileRef = F747BA24CF551C903AA062E5 /* TuistBundle+Fig.swift */; };
 		1F582D86B89A2AC099079D8A /* AlarmItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = B4642AFB704F6FDBC4AE0C63 /* AlarmItem.swift */; };
+		22875B292130CC9857498580 /* CalendarPickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 070E7F80C4406524620890A0 /* CalendarPickerViewModel.swift */; };
+		245784439E2AEEE61EB37554 /* ExpandableField.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4D2CF11F8EFE2126B79396C /* ExpandableField.swift */; };
+		265BBDCDD07A3EF93FC149AB /* OptionsPillsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D8880F9DAD1539734778FBE2 /* OptionsPillsView.swift */; };
 		294B12B2F92A3AA9BEDDABA3 /* AlarmLiveActivity 2.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAC0C58D115112CDD8052BFC /* AlarmLiveActivity 2.swift */; };
+		2B30C7809C07E0519B1B11B6 /* ExpandableOverlayContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3111037B332F2F62DE340881 /* ExpandableOverlayContainer.swift */; };
 		2D55E9BF030501DDE08EF3F1 /* AlarmSyncCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4204F0AC1A3171771BF51C8 /* AlarmSyncCoordinator.swift */; };
 		34B12B1B0404464594236966 /* figUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFE2039256D6A7516EFF1725 /* figUITestsLaunchTests.swift */; };
-		356A01B9D09272CE28C98E1E /* CalendarPickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D660F7432BEBFCD3731A445 /* CalendarPickerViewModel.swift */; };
 		37EC0012716CC915F4E3BCB8 /* TuistAssets+Fig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04360EDA2F7F6A6B0500A39D /* TuistAssets+Fig.swift */; };
 		38E699A155E43050F9FAA40B /* StartTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */; };
-		393AC66C07440F2F648B6A5E /* LabelEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EBE0CB6E28288694CD261F4 /* LabelEditorView.swift */; };
-		3C0A2B586F3574490F0D1A66 /* UpcomingAlarmRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF49B4A5608FC40E550E8929 /* UpcomingAlarmRow.swift */; };
-		3F0F0B2BE9960E90F7667281 /* WalnutDesignSystem.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		39BACEAB1695FC99A8215441 /* AddTickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40566298EAF2956035DB2119 /* AddTickerView.swift */; };
 		421137852596A8641935DB88 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */; };
-		4447FE1AF7BA5334CE991270 /* CalendarPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 049D78AE8B90DCDD90D2DC21 /* CalendarPickerView.swift */; };
-		4493ADD792FBADE9895FFCCC /* RepeatOptionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 80BD2CC6D36DEFFEB85B3729 /* RepeatOptionsViewModel.swift */; };
-		44B28F24FCF7E37794845647 /* OptionsPillsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBA126FE43A1FD4C85D0F1A /* OptionsPillsView.swift */; };
-		5262EBB1626D6B0E44F46052 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEB8F047C0EB0D58ADCE86B7 /* TodayViewModel.swift */; };
+		568332E48B8A05937DA189D3 /* LabelEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458F044EFAAC5059A204F01D /* LabelEditorView.swift */; };
 		56945AD493359CE95E20E424 /* TuistAssets+Alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */; };
 		56A1DA96A53548851EBE69A1 /* StopIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F8F4849184746F46BC4D6 /* StopIntent.swift */; };
 		5731B66B61452F1AEA4CB6DE /* ConfigurationAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */; };
-		591D6326755CC012AB440AFC /* ClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1A5264B901040CA6F1EC1FAD /* ClockView.swift */; };
 		5B9759240C6176799171A0D6 /* figApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 810B9E25B2ECEC713A4256E6 /* figApp.swift */; };
-		5ED63A2DE09E98F2B2E6B58F /* CountdownConfigViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 316E9BE410E4E152B3CC997E /* CountdownConfigViewModel.swift */; };
-		607F91D3A3D2AB9BE55883FE /* CountdownConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10C629F2D27C271054E15E6E /* CountdownConfigView.swift */; };
-		61679B9224F34433B935ED79 /* NotesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3075A2F17ABF494274775D9 /* NotesEditorView.swift */; };
 		61913BD951D48701AEC73A45 /* IconColorPair.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A87E5D79D56B5902275FE4B /* IconColorPair.swift */; };
-		6340667D37113B5F89A68DC9 /* WalnutDesignSystem.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */; };
 		6650D271B2FD05A10740CFF2 /* OpenAlarmAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */; };
-		667102853DAB536757F1D768 /* TodayClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E16F93A499B517360B7FDA1E /* TodayClockView.swift */; };
-		68AB1F9C827BE7FC3FEAB150 /* ExpandableOverlayContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BEA7A2DCE9422514B58EFA4 /* ExpandableOverlayContainer.swift */; };
-		7438E23EAB91ACF52727D2AA /* CalendarGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6721030D428A1A700B24F73 /* CalendarGrid.swift */; };
-		761ED3453E7DC6AED5A0C01C /* LabelEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAD0F4B36F8D950C623E6CEB /* LabelEditorViewModel.swift */; };
+		6D850630BFC1D75183AD2D65 /* NotesEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F78599EAF881FE47E0E5DB /* NotesEditorViewModel.swift */; };
+		7685080A7AE66CB52D8CAD66 /* RepeatOptionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E302F34CE94F894CC9D378 /* RepeatOptionsViewModel.swift */; };
 		79BE960F0B51758EE4F02DBC /* TemplateDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = E28EAAAD66170BE91698DD42 /* TemplateDataSeeder.swift */; };
+		7A27524784ED5590022AFDC4 /* CalendarGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10EF02D5794EF7EBDBDD8F20 /* CalendarGrid.swift */; };
 		7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */; };
 		7ADA0CB3AEB3525BBAB38B73 /* AlarmConfigurationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E623500F694DE819AE086E /* AlarmConfigurationBuilder.swift */; };
 		7BDC50ED61FB1F235DBC8267 /* alarm.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 19763A9E52425E0C64DBAE2E /* alarm.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7C948883BD4E76ADE9A6BD20 /* AboutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7B5C6A80A2970206B46A4C82 /* AboutSheet.swift */; };
+		7CEDCFA382F12371E706C864 /* CountdownConfigViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 836FCBA1A8C6739671905496 /* CountdownConfigViewModel.swift */; };
 		7EF057A6C000AB61987DA80D /* TimerConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */; };
-		7FBE18BA850D1D63BE346E7A /* TimePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7D16E5A6F9722FABAD5F27D6 /* TimePicker.swift */; };
+		81129F70EBF7DF58907D11CC /* IconCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = D26872516E6B4E1B3D473D53 /* IconCell.swift */; };
+		8246C1DEC89DF010E336F72B /* TimePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB10ECEEE58616A9218E3E63 /* TimePickerView.swift */; };
+		86CAFEE290AE4B43325CB685 /* ClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11C9CD1D9B565D603BB0A6F7 /* ClockView.swift */; };
 		86F1D1F343EDDB7A34DE1DFD /* HelpSupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B8913AF7FFC9E97CD18483FE /* HelpSupportView.swift */; };
+		88DBA15270718D0FA0BAA49B /* CalendarPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 663A52857311594B6C4D36F9 /* CalendarPickerView.swift */; };
+		88E55F9A417E3D907D371D81 /* AddTickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 147D2DA34D21A3AF97D7EA5F /* AddTickerViewModel.swift */; };
 		8916B35FE36C4B1A0DC26741 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 27CFC00A0F8B7138C50EE947 /* Assets.xcassets */; };
 		8A12392DFB6B771BAFA14E0B /* figTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319190156414A5841EA8398A /* figTests.swift */; };
 		8A1E26BD84627E2978128EA1 /* TemplateCategory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87DD47A739D2F84FC64EB2BB /* TemplateCategory.swift */; };
 		93976426F0440DF8B3F3C4CA /* alarmControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD3E80B49FDC6E4C1AD99BC /* alarmControl.swift */; };
-		96F076B5167FD7EFA77F3840 /* AddTickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6778660E9EE6C7F7187A9C17 /* AddTickerViewModel.swift */; };
-		9C3843FEB47FE549EC33D4A9 /* NotesEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F3A1B272FB26981E56CB34CE /* NotesEditorViewModel.swift */; };
+		97D1227963D626600C357FC0 /* TodayClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9372352E42D7EF40708C3119 /* TodayClockView.swift */; };
 		A127EFD732D5972C7E892457 /* RepeatIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */; };
+		A187C78ECD757493B8B81B27 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313B4251721280016C95BFCA /* TodayViewModel.swift */; };
 		A2736A71829B91A27A1ED3CA /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 347A310C2C1C4740678168EB /* AppIcon.icon */; };
 		A521A5F15FEAFA6B9739CCE5 /* PauseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */; };
-		A55DC6BF61F7A1BC77DF8B4E /* TimePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44F071E2D85E86510EF4C68B /* TimePickerView.swift */; };
-		A8EC5FF8809CF05DD1885446 /* IconCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = C68EEA44E99E66F349DDD7AD /* IconCell.swift */; };
+		A8C57FEAE09E2DB4D0278FFE /* IconPickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 135DA481DEC9835EFC2FBB3A /* IconPickerViewModel.swift */; };
 		A9EB66320C7DD1D03BA39467 /* RepeatIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */; };
 		AC348F1BACF4EB1CB6F25DBC /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01598E9F3022D964F45BA82A /* ContentView.swift */; };
 		ADDD1662D6B9BBABA6F743A6 /* FAQView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9965479C5AFEA3F9141689FB /* FAQView.swift */; };
 		AFE0AA9DB577F5B67EE6B7ED /* AlarmMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */; };
 		B1FAD776C688BE1B7B8B7F0B /* TuistBundle+Alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C8BF1BD88D869D8AD69D6B1 /* TuistBundle+Alarm.swift */; };
 		B21F8344792390E26798F9AC /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6DF9ABECE20FE882137D936 /* AboutView.swift */; };
-		B327CC5DE2FF5C40AB179217 /* IconPickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BA69153DB70D5205012657B6 /* IconPickerViewModel.swift */; };
 		B46EBF1EC60FC5C36C81A7FF /* ResumeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63B13EB0D3B5C1FE4ABE20F /* ResumeIntent.swift */; };
 		B4F67619465FB19364281F7D /* AlarmLiveActivityBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0446BD41A68E48CC40E4DA49 /* AlarmLiveActivityBundle.swift */; };
-		B978B98DC6904937CF741FD6 /* TimePickerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 303ACD98188515BDECA823F2 /* TimePickerViewModel.swift */; };
-		BB333B1A25EB6B5FCF620839 /* IconPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 679286D4139337BFA3D27277 /* IconPickerView.swift */; };
 		BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = CFEC2A879826EEBE8656E231 /* AlarmCell.swift */; };
-		BFF1C01295B8803C2089B6F4 /* RepeatOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 37F878435B0BA57CDA87E211 /* RepeatOptionsView.swift */; };
+		C05F2C5F25864B0E842C4C9C /* CountdownConfigView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 920BFC68AA33C1083637ACC5 /* CountdownConfigView.swift */; };
 		C1DD9C0DBD2C2C7BFD05301A /* TickerDesignSystemPreviews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6398EAEB39219B04DBC3923A /* TickerDesignSystemPreviews.swift */; };
 		C2D0E7A2FE870F39E8B92AD5 /* StartTimerIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */; };
+		C2EA829853E21D63B29D8532 /* UpcomingAlarmRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B780491CAA71A5D54C1D916B /* UpcomingAlarmRow.swift */; };
 		C3C2F6D4CB36C0350317B65A /* AlarmStateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84262CCA4F1F2BA7C15293E6 /* AlarmStateManager.swift */; };
 		C3EE35C5851A3F5F6531CCAD /* DeleteAllDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */; };
 		C498E7D5CE723A52F130615C /* AlarmService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50EFC6CD879FBFE35D76A6F1 /* AlarmService.swift */; };
 		CF1B05F275B83D4387837E82 /* Font+SFProRounded.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8E8DA9F679131E53913DBFFB /* Font+SFProRounded.swift */; };
+		CF3BEAC2C44E12C99199B676 /* LabelEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = F40034639A055D482B4D7C9E /* LabelEditorViewModel.swift */; };
+		D3B503C30E63CF6A1A039E73 /* OptionsPillsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5857C895674743264218FD6F /* OptionsPillsViewModel.swift */; };
 		DB124E57D4C8824473C80A0A /* alarm.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A7969B4F297ABA148F6928 /* alarm.swift */; };
 		DBE282BA5FE50B46D2363B6A /* ConfigurationAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */; };
-		DD8B4B91437BA4700C46D762 /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3D9D707EE9B2D3EC2A2C3B89 /* FlowLayout.swift */; };
-		E01A27428F40E88C5C7DE71F /* AddTickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 587D0194C8F07CF8EC300A70 /* AddTickerView.swift */; };
+		E93F7C8E94503C7BFD5A5E8E /* RepeatOptionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC60CA85FEA246B2EA14A54F /* RepeatOptionsView.swift */; };
 		E955A8B9DB1E6BE8CAEB71CC /* AlarmDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3AD0E3A014867F5E337E198 /* AlarmDetailView.swift */; };
 		F06305927069972E3B6181F8 /* AppView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 367C8CC5D5A5B19456CE0424 /* AppView.swift */; };
 		F3455D4B32EACC49305852C9 /* PauseIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */; };
 		F89E11D0E19F1B2BAC5E7899 /* figUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC48BC4132C2E66AFDDE9E8 /* figUITests.swift */; };
+		F95FC7A4270316FB26511AC3 /* IconPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3A293896E008C1CFD15F4D3 /* IconPickerView.swift */; };
 		FB427EA64D8931F091C977F7 /* ResumeIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = D63B13EB0D3B5C1FE4ABE20F /* ResumeIntent.swift */; };
 /* End PBXBuildFile section */
 
@@ -167,7 +165,6 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				3F0F0B2BE9960E90F7667281 /* WalnutDesignSystem.framework in Embed Frameworks */,
 			);
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -178,86 +175,85 @@
 		01598E9F3022D964F45BA82A /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		04360EDA2F7F6A6B0500A39D /* TuistAssets+Fig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+Fig.swift"; sourceTree = "<group>"; };
 		0446BD41A68E48CC40E4DA49 /* AlarmLiveActivityBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmLiveActivityBundle.swift; sourceTree = "<group>"; };
-		049D78AE8B90DCDD90D2DC21 /* CalendarPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarPickerView.swift; sourceTree = "<group>"; };
 		06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		070E7F80C4406524620890A0 /* CalendarPickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarPickerViewModel.swift; sourceTree = "<group>"; };
 		09AA5BDC68C6E1D96A66A71D /* ConfigurationAppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigurationAppIntent.swift; sourceTree = "<group>"; };
-		10C629F2D27C271054E15E6E /* CountdownConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownConfigView.swift; sourceTree = "<group>"; };
+		10EF02D5794EF7EBDBDD8F20 /* CalendarGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarGrid.swift; sourceTree = "<group>"; };
+		11C9CD1D9B565D603BB0A6F7 /* ClockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockView.swift; sourceTree = "<group>"; };
+		135DA481DEC9835EFC2FBB3A /* IconPickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconPickerViewModel.swift; sourceTree = "<group>"; };
+		147D2DA34D21A3AF97D7EA5F /* AddTickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTickerViewModel.swift; sourceTree = "<group>"; };
 		19763A9E52425E0C64DBAE2E /* alarm.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = alarm.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		1A5264B901040CA6F1EC1FAD /* ClockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClockView.swift; sourceTree = "<group>"; };
+		20E302F34CE94F894CC9D378 /* RepeatOptionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatOptionsViewModel.swift; sourceTree = "<group>"; };
 		24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimerConfiguration.swift; sourceTree = "<group>"; };
 		26E623500F694DE819AE086E /* AlarmConfigurationBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmConfigurationBuilder.swift; sourceTree = "<group>"; };
 		27CFC00A0F8B7138C50EE947 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		303ACD98188515BDECA823F2 /* TimePickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePickerViewModel.swift; sourceTree = "<group>"; };
+		3111037B332F2F62DE340881 /* ExpandableOverlayContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableOverlayContainer.swift; sourceTree = "<group>"; };
+		313B4251721280016C95BFCA /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
 		3143E2B89E3C46CBBAE01643 /* PauseIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PauseIntent.swift; sourceTree = "<group>"; };
-		316E9BE410E4E152B3CC997E /* CountdownConfigViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownConfigViewModel.swift; sourceTree = "<group>"; };
 		319190156414A5841EA8398A /* figTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figTests.swift; sourceTree = "<group>"; };
 		347A310C2C1C4740678168EB /* AppIcon.icon */ = {isa = PBXFileReference; path = AppIcon.icon; sourceTree = "<group>"; };
 		367C8CC5D5A5B19456CE0424 /* AppView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppView.swift; sourceTree = "<group>"; };
 		36BE6F3D3858AA0AB407ABD0 /* TickerDesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDesignSystem.swift; sourceTree = "<group>"; };
-		37F878435B0BA57CDA87E211 /* RepeatOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatOptionsView.swift; sourceTree = "<group>"; };
 		3A87E5D79D56B5902275FE4B /* IconColorPair.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconColorPair.swift; sourceTree = "<group>"; };
 		3B25C5BBB7D27676FCC11A83 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		3C197A26B818FC2A51015E70 /* alarm-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "alarm-Info.plist"; sourceTree = "<group>"; };
-		3D9D707EE9B2D3EC2A2C3B89 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
-		44F071E2D85E86510EF4C68B /* TimePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePickerView.swift; sourceTree = "<group>"; };
+		40566298EAF2956035DB2119 /* AddTickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTickerView.swift; sourceTree = "<group>"; };
+		458F044EFAAC5059A204F01D /* LabelEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelEditorView.swift; sourceTree = "<group>"; };
+		4F55A20D11D1ECC55A1E8019 /* TimePickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePickerViewModel.swift; sourceTree = "<group>"; };
 		4FD3E80B49FDC6E4C1AD99BC /* alarmControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarmControl.swift; sourceTree = "<group>"; };
 		50EFC6CD879FBFE35D76A6F1 /* AlarmService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmService.swift; sourceTree = "<group>"; };
-		587D0194C8F07CF8EC300A70 /* AddTickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTickerView.swift; sourceTree = "<group>"; };
+		5857C895674743264218FD6F /* OptionsPillsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsPillsViewModel.swift; sourceTree = "<group>"; };
 		5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatIntent.swift; sourceTree = "<group>"; };
-		5BEA7A2DCE9422514B58EFA4 /* ExpandableOverlayContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableOverlayContainer.swift; sourceTree = "<group>"; };
+		62F78599EAF881FE47E0E5DB /* NotesEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesEditorViewModel.swift; sourceTree = "<group>"; };
 		6398EAEB39219B04DBC3923A /* TickerDesignSystemPreviews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickerDesignSystemPreviews.swift; sourceTree = "<group>"; };
-		6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = WalnutDesignSystem.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		6778660E9EE6C7F7187A9C17 /* AddTickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTickerViewModel.swift; sourceTree = "<group>"; };
-		679286D4139337BFA3D27277 /* IconPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconPickerView.swift; sourceTree = "<group>"; };
+		663A52857311594B6C4D36F9 /* CalendarPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarPickerView.swift; sourceTree = "<group>"; };
 		6913D397C7DEC3B1C61866FD /* figUITests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "figUITests-Info.plist"; sourceTree = "<group>"; };
-		706183A8B6946999BBA8A274 /* ExpandableField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableField.swift; sourceTree = "<group>"; };
 		7B5C6A80A2970206B46A4C82 /* AboutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSheet.swift; sourceTree = "<group>"; };
-		7D16E5A6F9722FABAD5F27D6 /* TimePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePicker.swift; sourceTree = "<group>"; };
-		7EBE0CB6E28288694CD261F4 /* LabelEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelEditorView.swift; sourceTree = "<group>"; };
-		80BD2CC6D36DEFFEB85B3729 /* RepeatOptionsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatOptionsViewModel.swift; sourceTree = "<group>"; };
 		810B9E25B2ECEC713A4256E6 /* figApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figApp.swift; sourceTree = "<group>"; };
+		836FCBA1A8C6739671905496 /* CountdownConfigViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownConfigViewModel.swift; sourceTree = "<group>"; };
 		84262CCA4F1F2BA7C15293E6 /* AlarmStateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmStateManager.swift; sourceTree = "<group>"; };
 		85F2BE77FFEF2EA7F67F4963 /* StartTimerIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StartTimerIntent.swift; sourceTree = "<group>"; };
 		87DD47A739D2F84FC64EB2BB /* TemplateCategory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCategory.swift; sourceTree = "<group>"; };
 		8C8BF1BD88D869D8AD69D6B1 /* TuistBundle+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+Alarm.swift"; sourceTree = "<group>"; };
-		8D660F7432BEBFCD3731A445 /* CalendarPickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarPickerViewModel.swift; sourceTree = "<group>"; };
 		8E8DA9F679131E53913DBFFB /* Font+SFProRounded.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Font+SFProRounded.swift"; sourceTree = "<group>"; };
-		8FF0DBB245F81B865FDA0992 /* OptionsPillsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsPillsViewModel.swift; sourceTree = "<group>"; };
+		920BFC68AA33C1083637ACC5 /* CountdownConfigView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownConfigView.swift; sourceTree = "<group>"; };
+		9372352E42D7EF40708C3119 /* TodayClockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayClockView.swift; sourceTree = "<group>"; };
 		9965479C5AFEA3F9141689FB /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
 		9C9C1CE08D7C6449E52D68C0 /* figUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = figUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B0F8EE576D2FEE96D69BE5 /* NativeMenuListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeMenuListItem.swift; sourceTree = "<group>"; };
 		A30F8F4849184746F46BC4D6 /* StopIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopIntent.swift; sourceTree = "<group>"; };
+		A3A293896E008C1CFD15F4D3 /* IconPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconPickerView.swift; sourceTree = "<group>"; };
 		A4204F0AC1A3171771BF51C8 /* AlarmSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSyncCoordinator.swift; sourceTree = "<group>"; };
 		A6DF9ABECE20FE882137D936 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
 		A6E69580B241822C037A795E /* figTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = figTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		AC8E87439896325DAEE9B5C8 /* DeleteAllDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteAllDataView.swift; sourceTree = "<group>"; };
-		AEB8F047C0EB0D58ADCE86B7 /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
 		AFE2039256D6A7516EFF1725 /* figUITestsLaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figUITestsLaunchTests.swift; sourceTree = "<group>"; };
 		B3AD0E3A014867F5E337E198 /* AlarmDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmDetailView.swift; sourceTree = "<group>"; };
 		B4642AFB704F6FDBC4AE0C63 /* AlarmItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmItem.swift; sourceTree = "<group>"; };
+		B780491CAA71A5D54C1D916B /* UpcomingAlarmRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingAlarmRow.swift; sourceTree = "<group>"; };
 		B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+Alarm.swift"; sourceTree = "<group>"; };
 		B8913AF7FFC9E97CD18483FE /* HelpSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSupportView.swift; sourceTree = "<group>"; };
-		BA69153DB70D5205012657B6 /* IconPickerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconPickerViewModel.swift; sourceTree = "<group>"; };
 		C0A7969B4F297ABA148F6928 /* alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarm.swift; sourceTree = "<group>"; };
-		C6721030D428A1A700B24F73 /* CalendarGrid.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarGrid.swift; sourceTree = "<group>"; };
-		C68EEA44E99E66F349DDD7AD /* IconCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconCell.swift; sourceTree = "<group>"; };
 		CAC0C58D115112CDD8052BFC /* AlarmLiveActivity 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AlarmLiveActivity 2.swift"; sourceTree = "<group>"; };
-		CAD0F4B36F8D950C623E6CEB /* LabelEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelEditorViewModel.swift; sourceTree = "<group>"; };
+		CB10ECEEE58616A9218E3E63 /* TimePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePickerView.swift; sourceTree = "<group>"; };
 		CDB0E58D4215AB2EAEFDB33C /* figTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "figTests-Info.plist"; sourceTree = "<group>"; };
 		CDC48BC4132C2E66AFDDE9E8 /* figUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = figUITests.swift; sourceTree = "<group>"; };
-		CF49B4A5608FC40E550E8929 /* UpcomingAlarmRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpcomingAlarmRow.swift; sourceTree = "<group>"; };
 		CFEC2A879826EEBE8656E231 /* AlarmCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmCell.swift; sourceTree = "<group>"; };
+		D26872516E6B4E1B3D473D53 /* IconCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconCell.swift; sourceTree = "<group>"; };
+		D4D2CF11F8EFE2126B79396C /* ExpandableField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpandableField.swift; sourceTree = "<group>"; };
 		D63B13EB0D3B5C1FE4ABE20F /* ResumeIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResumeIntent.swift; sourceTree = "<group>"; };
+		D8880F9DAD1539734778FBE2 /* OptionsPillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsPillsView.swift; sourceTree = "<group>"; };
 		DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatesView.swift; sourceTree = "<group>"; };
 		DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmMetadata.swift; sourceTree = "<group>"; };
-		DEBA126FE43A1FD4C85D0F1A /* OptionsPillsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsPillsView.swift; sourceTree = "<group>"; };
-		E16F93A499B517360B7FDA1E /* TodayClockView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayClockView.swift; sourceTree = "<group>"; };
+		DD3093EEDE5F59D87D06E3B9 /* withRoundedDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = withRoundedDesign.swift; sourceTree = "<group>"; };
 		E28EAAAD66170BE91698DD42 /* TemplateDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateDataSeeder.swift; sourceTree = "<group>"; };
 		E6D7D7B44B1F441D9E9A4CA3 /* fig-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "fig-Info.plist"; sourceTree = "<group>"; };
+		EC60CA85FEA246B2EA14A54F /* RepeatOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatOptionsView.swift; sourceTree = "<group>"; };
 		EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAlarmAppIntent.swift; sourceTree = "<group>"; };
-		F3075A2F17ABF494274775D9 /* NotesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesEditorView.swift; sourceTree = "<group>"; };
-		F3A1B272FB26981E56CB34CE /* NotesEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesEditorViewModel.swift; sourceTree = "<group>"; };
+		F40034639A055D482B4D7C9E /* LabelEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelEditorViewModel.swift; sourceTree = "<group>"; };
 		F747BA24CF551C903AA062E5 /* TuistBundle+Fig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+Fig.swift"; sourceTree = "<group>"; };
+		F74A35F4B0360A035740026C /* NotesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesEditorView.swift; sourceTree = "<group>"; };
+		FB3A9D6C6324992D1697A9A3 /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
 		FD649D31635AFE8566E834E1 /* fig.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = fig.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -280,7 +276,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6340667D37113B5F89A68DC9 /* WalnutDesignSystem.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,6 +289,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		03BFD27E63DD59695E53FBAA /* Countdown */ = {
+			isa = PBXGroup;
+			children = (
+				920BFC68AA33C1083637ACC5 /* CountdownConfigView.swift */,
+				836FCBA1A8C6739671905496 /* CountdownConfigViewModel.swift */,
+			);
+			path = Countdown;
+			sourceTree = "<group>";
+		};
 		0B5456DADD85F29388EB4C2A /* Services */ = {
 			isa = PBXGroup;
 			children = (
@@ -325,6 +329,17 @@
 			path = Data;
 			sourceTree = "<group>";
 		};
+		20E507DCF427D3CE2F480203 /* TodayClockView */ = {
+			isa = PBXGroup;
+			children = (
+				11C9CD1D9B565D603BB0A6F7 /* ClockView.swift */,
+				9372352E42D7EF40708C3119 /* TodayClockView.swift */,
+				313B4251721280016C95BFCA /* TodayViewModel.swift */,
+				B780491CAA71A5D54C1D916B /* UpcomingAlarmRow.swift */,
+			);
+			path = TodayClockView;
+			sourceTree = "<group>";
+		};
 		26F336FF38F8F1297A1A6ACD /* figTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -352,6 +367,15 @@
 			path = figUITests;
 			sourceTree = "<group>";
 		};
+		3FA1D94FA6E8D6D3EE3C94A6 /* OptionsPills */ = {
+			isa = PBXGroup;
+			children = (
+				D8880F9DAD1539734778FBE2 /* OptionsPillsView.swift */,
+				5857C895674743264218FD6F /* OptionsPillsViewModel.swift */,
+			);
+			path = OptionsPills;
+			sourceTree = "<group>";
+		};
 		50AF4329732A5211F6AFC8BB /* Widget */ = {
 			isa = PBXGroup;
 			children = (
@@ -371,6 +395,15 @@
 			path = InfoPlists;
 			sourceTree = "<group>";
 		};
+		67C7D287FD1454500CED1A51 /* Calendar */ = {
+			isa = PBXGroup;
+			children = (
+				663A52857311594B6C4D36F9 /* CalendarPickerView.swift */,
+				070E7F80C4406524620890A0 /* CalendarPickerViewModel.swift */,
+			);
+			path = Calendar;
+			sourceTree = "<group>";
+		};
 		70C2AC4387382F35D4CD526D /* DesignSystem */ = {
 			isa = PBXGroup;
 			children = (
@@ -380,13 +413,13 @@
 			path = DesignSystem;
 			sourceTree = "<group>";
 		};
-		73806EA3983114DCC0B3A4FC /* Calendar */ = {
+		7F31FD6C45849190A9F9E2F6 /* TimePicker */ = {
 			isa = PBXGroup;
 			children = (
-				049D78AE8B90DCDD90D2DC21 /* CalendarPickerView.swift */,
-				8D660F7432BEBFCD3731A445 /* CalendarPickerViewModel.swift */,
+				CB10ECEEE58616A9218E3E63 /* TimePickerView.swift */,
+				4F55A20D11D1ECC55A1E8019 /* TimePickerViewModel.swift */,
 			);
-			path = Calendar;
+			path = TimePicker;
 			sourceTree = "<group>";
 		};
 		811234830675F2849D4ECA1D /* MenuItems */ = {
@@ -417,6 +450,7 @@
 			isa = PBXGroup;
 			children = (
 				8E8DA9F679131E53913DBFFB /* Font+SFProRounded.swift */,
+				DD3093EEDE5F59D87D06E3B9 /* withRoundedDesign.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -434,7 +468,6 @@
 				0B5456DADD85F29388EB4C2A /* Services */,
 				E346A90FA828B16A8BBF0FCE /* Settings */,
 				CFEC2A879826EEBE8656E231 /* AlarmCell.swift */,
-				7D16E5A6F9722FABAD5F27D6 /* TimePicker.swift */,
 			);
 			path = fig;
 			sourceTree = "<group>";
@@ -446,18 +479,26 @@
 				FD649D31635AFE8566E834E1 /* fig.app */,
 				A6E69580B241822C037A795E /* figTests.xctest */,
 				9C9C1CE08D7C6449E52D68C0 /* figUITests.xctest */,
-				6542F35C1A9D34BA9FFF44D9 /* WalnutDesignSystem.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9D0D5F5676D9BA6D9998914A /* Shared */ = {
+		A1376EDDB3CFFABE29645A32 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				706183A8B6946999BBA8A274 /* ExpandableField.swift */,
-				5BEA7A2DCE9422514B58EFA4 /* ExpandableOverlayContainer.swift */,
+				D4D2CF11F8EFE2126B79396C /* ExpandableField.swift */,
+				3111037B332F2F62DE340881 /* ExpandableOverlayContainer.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		B6743A5CB7349E7373965C90 /* Label */ = {
+			isa = PBXGroup;
+			children = (
+				458F044EFAAC5059A204F01D /* LabelEditorView.swift */,
+				F40034639A055D482B4D7C9E /* LabelEditorViewModel.swift */,
+			);
+			path = Label;
 			sourceTree = "<group>";
 		};
 		B7A7DE99A334F50678DBE3DB /* Shared */ = {
@@ -479,15 +520,6 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
-		BE1ED2D160426F6E8BF433D6 /* Repeat */ = {
-			isa = PBXGroup;
-			children = (
-				37F878435B0BA57CDA87E211 /* RepeatOptionsView.swift */,
-				80BD2CC6D36DEFFEB85B3729 /* RepeatOptionsViewModel.swift */,
-			);
-			path = Repeat;
-			sourceTree = "<group>";
-		};
 		C44DFD95A11F67A5B267AD10 /* ControlWidget */ = {
 			isa = PBXGroup;
 			children = (
@@ -497,41 +529,28 @@
 			path = ControlWidget;
 			sourceTree = "<group>";
 		};
-		CA970DF9381A04852A7642D0 /* AddTicker */ = {
+		CBF5C8314B58F660CE680FFD /* AddTickerView */ = {
 			isa = PBXGroup;
 			children = (
-				73806EA3983114DCC0B3A4FC /* Calendar */,
-				F426ED9F64D983837501EE4A /* Countdown */,
-				CD06B06D994476C7CB9105E3 /* Label */,
-				DCA7439AAE487C341B0DCF7D /* Notes */,
-				E92AB3EBEB0A45C7B6737CA3 /* OptionsPills */,
-				BE1ED2D160426F6E8BF433D6 /* Repeat */,
-				9D0D5F5676D9BA6D9998914A /* Shared */,
-				E4383BF200B118A548160514 /* TimePicker */,
-				6778660E9EE6C7F7187A9C17 /* AddTickerViewModel.swift */,
-				C68EEA44E99E66F349DDD7AD /* IconCell.swift */,
-				BA69153DB70D5205012657B6 /* IconPickerViewModel.swift */,
+				FAE25C854C0F239D374B347D /* AddTicker */,
+				40566298EAF2956035DB2119 /* AddTickerView.swift */,
+				10EF02D5794EF7EBDBDD8F20 /* CalendarGrid.swift */,
+				FB3A9D6C6324992D1697A9A3 /* FlowLayout.swift */,
+				A3A293896E008C1CFD15F4D3 /* IconPickerView.swift */,
 			);
-			path = AddTicker;
+			path = AddTickerView;
 			sourceTree = "<group>";
 		};
 		CC3F06E4CD70F412077AEB7D /* App */ = {
 			isa = PBXGroup;
 			children = (
-				CA970DF9381A04852A7642D0 /* AddTicker */,
-				587D0194C8F07CF8EC300A70 /* AddTickerView.swift */,
+				CBF5C8314B58F660CE680FFD /* AddTickerView */,
+				20E507DCF427D3CE2F480203 /* TodayClockView */,
 				B3AD0E3A014867F5E337E198 /* AlarmDetailView.swift */,
 				367C8CC5D5A5B19456CE0424 /* AppView.swift */,
-				C6721030D428A1A700B24F73 /* CalendarGrid.swift */,
-				1A5264B901040CA6F1EC1FAD /* ClockView.swift */,
 				01598E9F3022D964F45BA82A /* ContentView.swift */,
 				810B9E25B2ECEC713A4256E6 /* figApp.swift */,
-				3D9D707EE9B2D3EC2A2C3B89 /* FlowLayout.swift */,
-				679286D4139337BFA3D27277 /* IconPickerView.swift */,
 				DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */,
-				E16F93A499B517360B7FDA1E /* TodayClockView.swift */,
-				AEB8F047C0EB0D58ADCE86B7 /* TodayViewModel.swift */,
-				CF49B4A5608FC40E550E8929 /* UpcomingAlarmRow.swift */,
 			);
 			path = App;
 			sourceTree = "<group>";
@@ -544,15 +563,6 @@
 			path = Components;
 			sourceTree = "<group>";
 		};
-		CD06B06D994476C7CB9105E3 /* Label */ = {
-			isa = PBXGroup;
-			children = (
-				7EBE0CB6E28288694CD261F4 /* LabelEditorView.swift */,
-				CAD0F4B36F8D950C623E6CEB /* LabelEditorViewModel.swift */,
-			);
-			path = Label;
-			sourceTree = "<group>";
-		};
 		DA8B16A8FD167FB89223E606 = {
 			isa = PBXGroup;
 			children = (
@@ -561,11 +571,11 @@
 			);
 			sourceTree = "<group>";
 		};
-		DCA7439AAE487C341B0DCF7D /* Notes */ = {
+		DAD206DA3B36AA63F9EA3D4C /* Notes */ = {
 			isa = PBXGroup;
 			children = (
-				F3075A2F17ABF494274775D9 /* NotesEditorView.swift */,
-				F3A1B272FB26981E56CB34CE /* NotesEditorViewModel.swift */,
+				F74A35F4B0360A035740026C /* NotesEditorView.swift */,
+				62F78599EAF881FE47E0E5DB /* NotesEditorViewModel.swift */,
 			);
 			path = Notes;
 			sourceTree = "<group>";
@@ -580,22 +590,13 @@
 			path = Settings;
 			sourceTree = "<group>";
 		};
-		E4383BF200B118A548160514 /* TimePicker */ = {
+		E8A7F5E4C44F66B340944A1E /* Repeat */ = {
 			isa = PBXGroup;
 			children = (
-				44F071E2D85E86510EF4C68B /* TimePickerView.swift */,
-				303ACD98188515BDECA823F2 /* TimePickerViewModel.swift */,
+				EC60CA85FEA246B2EA14A54F /* RepeatOptionsView.swift */,
+				20E302F34CE94F894CC9D378 /* RepeatOptionsViewModel.swift */,
 			);
-			path = TimePicker;
-			sourceTree = "<group>";
-		};
-		E92AB3EBEB0A45C7B6737CA3 /* OptionsPills */ = {
-			isa = PBXGroup;
-			children = (
-				DEBA126FE43A1FD4C85D0F1A /* OptionsPillsView.swift */,
-				8FF0DBB245F81B865FDA0992 /* OptionsPillsViewModel.swift */,
-			);
-			path = OptionsPills;
+			path = Repeat;
 			sourceTree = "<group>";
 		};
 		EB73C8732AB0A1E9916C4392 /* AppIntents */ = {
@@ -639,13 +640,22 @@
 			path = Derived;
 			sourceTree = "<group>";
 		};
-		F426ED9F64D983837501EE4A /* Countdown */ = {
+		FAE25C854C0F239D374B347D /* AddTicker */ = {
 			isa = PBXGroup;
 			children = (
-				10C629F2D27C271054E15E6E /* CountdownConfigView.swift */,
-				316E9BE410E4E152B3CC997E /* CountdownConfigViewModel.swift */,
+				67C7D287FD1454500CED1A51 /* Calendar */,
+				03BFD27E63DD59695E53FBAA /* Countdown */,
+				B6743A5CB7349E7373965C90 /* Label */,
+				DAD206DA3B36AA63F9EA3D4C /* Notes */,
+				3FA1D94FA6E8D6D3EE3C94A6 /* OptionsPills */,
+				E8A7F5E4C44F66B340944A1E /* Repeat */,
+				A1376EDDB3CFFABE29645A32 /* Shared */,
+				7F31FD6C45849190A9F9E2F6 /* TimePicker */,
+				147D2DA34D21A3AF97D7EA5F /* AddTickerViewModel.swift */,
+				D26872516E6B4E1B3D473D53 /* IconCell.swift */,
+				135DA481DEC9835EFC2FBB3A /* IconPickerViewModel.swift */,
 			);
-			path = Countdown;
+			path = AddTicker;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -854,37 +864,37 @@
 				1AF0D5ED761EDEDD5859FDB1 /* TuistBundle+Fig.swift in Sources */,
 				7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */,
 				BE936C652F1D4FC6AFE69D08 /* AlarmCell.swift in Sources */,
-				96F076B5167FD7EFA77F3840 /* AddTickerViewModel.swift in Sources */,
-				4447FE1AF7BA5334CE991270 /* CalendarPickerView.swift in Sources */,
-				356A01B9D09272CE28C98E1E /* CalendarPickerViewModel.swift in Sources */,
-				607F91D3A3D2AB9BE55883FE /* CountdownConfigView.swift in Sources */,
-				5ED63A2DE09E98F2B2E6B58F /* CountdownConfigViewModel.swift in Sources */,
-				A8EC5FF8809CF05DD1885446 /* IconCell.swift in Sources */,
-				B327CC5DE2FF5C40AB179217 /* IconPickerViewModel.swift in Sources */,
-				393AC66C07440F2F648B6A5E /* LabelEditorView.swift in Sources */,
-				761ED3453E7DC6AED5A0C01C /* LabelEditorViewModel.swift in Sources */,
-				61679B9224F34433B935ED79 /* NotesEditorView.swift in Sources */,
-				9C3843FEB47FE549EC33D4A9 /* NotesEditorViewModel.swift in Sources */,
-				44B28F24FCF7E37794845647 /* OptionsPillsView.swift in Sources */,
-				04431A0232DF7D067665E814 /* OptionsPillsViewModel.swift in Sources */,
-				BFF1C01295B8803C2089B6F4 /* RepeatOptionsView.swift in Sources */,
-				4493ADD792FBADE9895FFCCC /* RepeatOptionsViewModel.swift in Sources */,
-				0B2F99F8E270650923924D4B /* ExpandableField.swift in Sources */,
-				68AB1F9C827BE7FC3FEAB150 /* ExpandableOverlayContainer.swift in Sources */,
-				A55DC6BF61F7A1BC77DF8B4E /* TimePickerView.swift in Sources */,
-				B978B98DC6904937CF741FD6 /* TimePickerViewModel.swift in Sources */,
-				E01A27428F40E88C5C7DE71F /* AddTickerView.swift in Sources */,
+				88E55F9A417E3D907D371D81 /* AddTickerViewModel.swift in Sources */,
+				88DBA15270718D0FA0BAA49B /* CalendarPickerView.swift in Sources */,
+				22875B292130CC9857498580 /* CalendarPickerViewModel.swift in Sources */,
+				C05F2C5F25864B0E842C4C9C /* CountdownConfigView.swift in Sources */,
+				7CEDCFA382F12371E706C864 /* CountdownConfigViewModel.swift in Sources */,
+				81129F70EBF7DF58907D11CC /* IconCell.swift in Sources */,
+				A8C57FEAE09E2DB4D0278FFE /* IconPickerViewModel.swift in Sources */,
+				568332E48B8A05937DA189D3 /* LabelEditorView.swift in Sources */,
+				CF3BEAC2C44E12C99199B676 /* LabelEditorViewModel.swift in Sources */,
+				05DADF405A844EDEC32B065C /* NotesEditorView.swift in Sources */,
+				6D850630BFC1D75183AD2D65 /* NotesEditorViewModel.swift in Sources */,
+				265BBDCDD07A3EF93FC149AB /* OptionsPillsView.swift in Sources */,
+				D3B503C30E63CF6A1A039E73 /* OptionsPillsViewModel.swift in Sources */,
+				E93F7C8E94503C7BFD5A5E8E /* RepeatOptionsView.swift in Sources */,
+				7685080A7AE66CB52D8CAD66 /* RepeatOptionsViewModel.swift in Sources */,
+				245784439E2AEEE61EB37554 /* ExpandableField.swift in Sources */,
+				2B30C7809C07E0519B1B11B6 /* ExpandableOverlayContainer.swift in Sources */,
+				8246C1DEC89DF010E336F72B /* TimePickerView.swift in Sources */,
+				13F1206AE653229DE8F07343 /* TimePickerViewModel.swift in Sources */,
+				39BACEAB1695FC99A8215441 /* AddTickerView.swift in Sources */,
+				7A27524784ED5590022AFDC4 /* CalendarGrid.swift in Sources */,
+				13B828EA8B7C69F0110D4A64 /* FlowLayout.swift in Sources */,
+				F95FC7A4270316FB26511AC3 /* IconPickerView.swift in Sources */,
 				E955A8B9DB1E6BE8CAEB71CC /* AlarmDetailView.swift in Sources */,
 				F06305927069972E3B6181F8 /* AppView.swift in Sources */,
-				7438E23EAB91ACF52727D2AA /* CalendarGrid.swift in Sources */,
-				591D6326755CC012AB440AFC /* ClockView.swift in Sources */,
 				AC348F1BACF4EB1CB6F25DBC /* ContentView.swift in Sources */,
-				DD8B4B91437BA4700C46D762 /* FlowLayout.swift in Sources */,
-				BB333B1A25EB6B5FCF620839 /* IconPickerView.swift in Sources */,
 				0577043153072121D761C245 /* TemplatesView.swift in Sources */,
-				667102853DAB536757F1D768 /* TodayClockView.swift in Sources */,
-				5262EBB1626D6B0E44F46052 /* TodayViewModel.swift in Sources */,
-				3C0A2B586F3574490F0D1A66 /* UpcomingAlarmRow.swift in Sources */,
+				86CAFEE290AE4B43325CB685 /* ClockView.swift in Sources */,
+				97D1227963D626600C357FC0 /* TodayClockView.swift in Sources */,
+				A187C78ECD757493B8B81B27 /* TodayViewModel.swift in Sources */,
+				C2EA829853E21D63B29D8532 /* UpcomingAlarmRow.swift in Sources */,
 				5B9759240C6176799171A0D6 /* figApp.swift in Sources */,
 				C2D0E7A2FE870F39E8B92AD5 /* StartTimerIntent.swift in Sources */,
 				7EF057A6C000AB61987DA80D /* TimerConfiguration.swift in Sources */,
@@ -898,6 +908,7 @@
 				181A88713B6BB7BE4AB3AA65 /* TickerDesignSystem.swift in Sources */,
 				C1DD9C0DBD2C2C7BFD05301A /* TickerDesignSystemPreviews.swift in Sources */,
 				CF1B05F275B83D4387837E82 /* Font+SFProRounded.swift in Sources */,
+				1823A4A33D42DD4A421FE870 /* withRoundedDesign.swift in Sources */,
 				1F582D86B89A2AC099079D8A /* AlarmItem.swift in Sources */,
 				61913BD951D48701AEC73A45 /* IconColorPair.swift in Sources */,
 				8A1E26BD84627E2978128EA1 /* TemplateCategory.swift in Sources */,
@@ -912,7 +923,6 @@
 				ADDD1662D6B9BBABA6F743A6 /* FAQView.swift in Sources */,
 				86F1D1F343EDDB7A34DE1DFD /* HelpSupportView.swift in Sources */,
 				421137852596A8641935DB88 /* SettingsView.swift in Sources */,
-				7FBE18BA850D1D63BE346E7A /* TimePicker.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

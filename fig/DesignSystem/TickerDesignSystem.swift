@@ -363,7 +363,7 @@ struct TickerPrimaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .cabinetSubheadline()
+            .Subheadline()
             .foregroundStyle(TickerColors.absoluteWhite)
             .frame(maxWidth: .infinity)
             .frame(height: TickerSpacing.buttonHeightLarge)
@@ -394,7 +394,7 @@ struct TickerSecondaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .cabinetSubheadline()
+            .Subheadline()
             .foregroundStyle(isEnabled ? TickerColors.textPrimary(for: colorScheme) : TickerColors.disabled)
             .frame(maxWidth: .infinity)
             .frame(height: TickerSpacing.buttonHeightStandard)
@@ -419,7 +419,7 @@ struct TickerTertiaryButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .cabinetSubheadline()
+            .Subheadline()
             .foregroundStyle(isEnabled ? TickerColors.textPrimary(for: colorScheme) : TickerColors.disabled)
             .padding(.horizontal, TickerSpacing.md)
             .padding(.vertical, TickerSpacing.sm)
@@ -437,7 +437,7 @@ struct TickerStatusBadge: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .cabinetCaption()
+            .Caption()
             .textCase(.uppercase)
             .foregroundStyle(TickerColors.absoluteWhite)
             .padding(.horizontal, TickerSpacing.sm)

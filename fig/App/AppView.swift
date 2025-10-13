@@ -7,16 +7,6 @@
 
 import SwiftUI
 
-extension UIFont {
-    /// Returns a rounded variant of the system font
-    func withRoundedDesign() -> UIFont {
-        if let descriptor = fontDescriptor.withDesign(.rounded) {
-            return UIFont(descriptor: descriptor, size: pointSize)
-        }
-        return self
-    }
-}
-
 struct AppView: View {
 
     init() {
@@ -33,11 +23,11 @@ struct AppView: View {
     
     var body: some View {
         TabView {
-            Tab("Today", systemImage: "clock") {
+            Tab("Today", systemImage: "calendar.day.timeline.left") {
                 TodayClockView()
             }
 
-            Tab("Scheduled", systemImage: "clock") {
+            Tab("Scheduled", systemImage: "alarm") {
                 ContentView()
             }
         }

@@ -22,8 +22,7 @@ let project = Project(
                 .glob(pattern: "fig/Resources/AppIcon.icon/**")
             ],
             dependencies: [
-                .target(name: "alarm"),
-                .project(target: "WalnutDesignSystem", path: "../Walnut/WalnutDesignSystem")
+                .target(name: "alarm")
             ],
             settings: .settings(
                 base: [

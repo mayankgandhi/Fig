@@ -18,7 +18,7 @@ struct ColorSystemPreview: View {
                 // Brand Colors
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("BRAND COLORS")
-                        .cabinetTitle2()
+                        .Title2()
 
                     HStack(spacing: TickerSpacing.sm) {
                         colorSwatch(color: TickerColors.primary, name: "Primary")
@@ -30,7 +30,7 @@ struct ColorSystemPreview: View {
                 // Semantic Actions
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("SEMANTIC ACTIONS")
-                        .cabinetTitle2()
+                        .Title2()
 
                     HStack(spacing: TickerSpacing.sm) {
                         colorSwatch(color: TickerColors.success, name: "Success")
@@ -42,7 +42,7 @@ struct ColorSystemPreview: View {
                 // Alarm States
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("ALARM STATES")
-                        .cabinetTitle2()
+                        .Title2()
 
                     HStack(spacing: TickerSpacing.sm) {
                         colorSwatch(color: TickerColors.scheduled, name: "Scheduled")
@@ -58,7 +58,7 @@ struct ColorSystemPreview: View {
                 // Text Colors
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("TEXT HIERARCHY")
-                        .cabinetTitle2()
+                        .Title2()
 
                     VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                         Text("Primary Text")
@@ -68,7 +68,7 @@ struct ColorSystemPreview: View {
                         Text("Tertiary Text")
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                     }
-                    .cabinetBody()
+                    .Body()
                 }
             }
             .padding(TickerSpacing.md)
@@ -87,7 +87,7 @@ struct ColorSystemPreview: View {
                 )
 
             Text(name)
-                .cabinetCaption()
+                .Caption()
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 .multilineTextAlignment(.center)
                 .frame(width: 60)
@@ -106,29 +106,29 @@ struct TypographyScalePreview: View {
                 // Time Display
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("TIME DISPLAY")
-                        .cabinetCaption2()
+                        .Caption2()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                     Text("6:30")
-                        .cabinetCaption2()
+                        .Caption2()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     Text("Hero - 72pt Heavy Mono")
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                     Text("7:45")
-                        .cabinetCaption2()
+                        .Caption2()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     Text("Large - 56pt Bold Mono")
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                     Text("10:00")
-                        .cabinetCaption2()
+                        .Caption2()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     
                     Text("Medium - 36pt Semibold")
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                 }
 
@@ -137,28 +137,28 @@ struct TypographyScalePreview: View {
                 // Headers
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("HEADERS")
-                        .cabinetCaption2()
+                        .Caption2()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                     Text("ALARMS")
-                        .cabinetLargeTitle()
+                        .LargeTitle()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     Text("XL - 34pt Black")
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                     Text("Settings")
-                        .cabinetTitle()
+                        .Title()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     Text("Large - 28pt Heavy")
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                     Text("Notifications")
-                        .cabinetTitle2()
+                        .Title2()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     Text("Medium - 22pt Bold")
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                 }
 
@@ -167,21 +167,21 @@ struct TypographyScalePreview: View {
                 // Body Text
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("BODY TEXT")
-                        .cabinetCaption2()
+                        .Caption2()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                     Text("This is the primary body text size for main content.")
-                        .cabinetBody()
+                        .Body()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     Text("Large - 17pt Regular")
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                     Text("This is for secondary information and details.")
-                        .cabinetSubheadline()
+                        .Subheadline()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                     Text("Medium - 15pt Regular")
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                 }
             }
@@ -203,7 +203,7 @@ struct ButtonSystemPreview: View {
                 // Primary Buttons
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("PRIMARY BUTTONS")
-                        .cabinetTitle2()
+                        .Title2()
 
                     Button {
                         TickerHaptics.criticalAction()
@@ -231,7 +231,7 @@ struct ButtonSystemPreview: View {
                 // Secondary Buttons
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("SECONDARY BUTTONS")
-                        .cabinetTitle2()
+                        .Title2()
 
                     Button {
                         TickerHaptics.standardAction()
@@ -259,7 +259,7 @@ struct ButtonSystemPreview: View {
                 // Tertiary Buttons
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("TERTIARY BUTTONS")
-                        .cabinetTitle2()
+                        .Title2()
 
                     HStack {
                         Button {
@@ -291,27 +291,27 @@ struct ButtonSystemPreview: View {
                 // Button Sizes & States
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     Text("BUTTON INFO")
-                        .cabinetTitle2()
+                        .Title2()
 
                     VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                         Text("• Primary: 64pt height")
-                            .cabinetFootnote()
+                            .Footnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                         Text("• Secondary: 48pt height")
-                            .cabinetFootnote()
+                            .Footnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                         Text("• Tertiary: Flexible padding")
-                            .cabinetFootnote()
+                            .Footnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                         Text("• Minimum tap target: 44×44pt")
-                            .cabinetFootnote()
+                            .Footnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                         Text("• Press feedback: Scale + opacity")
-                            .cabinetFootnote()
+                            .Footnote()
                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                     }
                 }
@@ -328,7 +328,7 @@ struct StatusBadgePreview: View {
     var body: some View {
         VStack(spacing: TickerSpacing.xl) {
             Text("STATUS BADGES")
-                .cabinetTitle()
+                .Title()
 
             VStack(alignment: .leading, spacing: TickerSpacing.lg) {
                 badgeRow(text: "SCHEDULED", color: TickerColors.scheduled, description: "Blue - Future alarm")
@@ -349,7 +349,7 @@ struct StatusBadgePreview: View {
                 .tickerStatusBadge(color: color)
 
             Text(description)
-                .cabinetFootnote()
+                .Footnote()
                 .foregroundStyle(.secondary)
         }
     }
@@ -364,7 +364,7 @@ struct AlarmCellPreview: View {
         ScrollView {
             VStack(spacing: TickerSpacing.md) {
                 Text("ALARM CELLS")
-                    .cabinetTitle()
+                    .Title()
 
                 // Scheduled
                 mockAlarmCell(
@@ -439,7 +439,7 @@ struct AlarmCellPreview: View {
             // Content
             VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                 Text(label)
-                    .cabinetTitle3()
+                    .Title3()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 HStack(spacing: 4) {
@@ -447,7 +447,7 @@ struct AlarmCellPreview: View {
                         .font(.system(size: 11))
                     Text(schedule)
                 }
-                .cabinetFootnote()
+                .Footnote()
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
             }
 
@@ -456,7 +456,7 @@ struct AlarmCellPreview: View {
             // Time + Status
             VStack(alignment: .trailing, spacing: TickerSpacing.xs) {
                 Text(time)
-                    .cabinetTitle()
+                    .Title()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     .monospacedDigit()
 
@@ -486,11 +486,11 @@ struct EmptyStatePreview: View {
 
             VStack(spacing: TickerSpacing.xs) {
                 Text("No Active Alarms")
-                    .cabinetTitle()
+                    .Title()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 Text("Tap + to create one")
-                    .cabinetSubheadline()
+                    .Subheadline()
                     .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
             }
 
@@ -558,7 +558,7 @@ struct IconSystemPreview: View {
     private func iconSection(title: String, icons: [(String, String)]) -> some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             Text(title)
-                .cabinetTitle2()
+                .Title2()
 
             LazyVGrid(columns: [
                 GridItem(.adaptive(minimum: 80))
@@ -578,7 +578,7 @@ struct IconSystemPreview: View {
                 .frame(width: 60, height: 60)
 
             Text(label)
-                .cabinetCaption2()
+                .Caption2()
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 .multilineTextAlignment(.center)
         }
@@ -594,7 +594,7 @@ struct SpacingSystemPreview: View {
         ScrollView {
             VStack(alignment: .leading, spacing: TickerSpacing.xl) {
                 Text("SPACING SYSTEM")
-                    .cabinetTitle()
+                    .Title()
 
                 VStack(alignment: .leading, spacing: TickerSpacing.lg) {
                     spacingBar(size: TickerSpacing.xxs, label: "XXS - 4pt")
@@ -610,7 +610,7 @@ struct SpacingSystemPreview: View {
                 Divider()
 
                 Text("COMPONENT SIZING")
-                    .cabinetTitle2()
+                    .Title2()
 
                 VStack(alignment: .leading, spacing: TickerSpacing.md) {
                     componentSize(height: TickerSpacing.tapTargetMin, label: "Minimum Tap Target - 44pt")
@@ -631,7 +631,7 @@ struct SpacingSystemPreview: View {
                 .frame(width: size, height: 24)
 
             Text(label)
-                .cabinetSubheadline()
+                .Subheadline()
                 .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
         }
     }
@@ -639,7 +639,7 @@ struct SpacingSystemPreview: View {
     private func componentSize(height: CGFloat, label: String) -> some View {
         VStack(alignment: .leading, spacing: TickerSpacing.xs) {
             Text(label)
-                .cabinetFootnote()
+                .Footnote()
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
             RoundedRectangle(cornerRadius: TickerRadius.medium)

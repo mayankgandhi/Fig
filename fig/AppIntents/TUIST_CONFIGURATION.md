@@ -63,7 +63,7 @@ grep "fig/AppIntents" \
 ## Build Status
 
 ✅ **alarm target:** Builds successfully with all AppIntents included
-✅ **fig target:** Includes all AppIntents (WalnutDesignSystem dependency issue is unrelated)
+✅ **fig target:** Includes all AppIntents
 
 ## Adding New AppIntents
 

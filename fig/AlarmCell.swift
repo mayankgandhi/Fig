@@ -28,19 +28,19 @@ struct AlarmCell: View {
             VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                 // Primary: Alarm label
                 Text(alarmItem.label)
-                    .cabinetTitle3()
+                    .Title3()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 // Secondary: Category name
                 if let tickerData = alarmItem.tickerData, let name = tickerData.name, name != alarmItem.label {
                     Text(name)
-                        .cabinetSubheadline()
+                        .Subheadline()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 }
 
                 // Tertiary: Schedule info
                 scheduleInfoView
-                    .cabinetFootnote()
+                    .Footnote()
                     .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
             }
 
@@ -51,11 +51,11 @@ struct AlarmCell: View {
                 // Time display (large and prominent)
                 if let schedule = alarmItem.schedule {
                     scheduleText(for: schedule)
-                    .cabinetTitle()
+                    .Title()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } else if let countdown = alarmItem.countdown?.preAlert {
                     Text(formatDuration(countdown.interval))
-                        .cabinetHeadline()
+                        .Headline()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 }
 

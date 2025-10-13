@@ -5,7 +5,6 @@
 //  Created by Claude Code on 05/10/25.
 //
 
-import WalnutDesignSystem
 import SwiftUI
 
 struct AboutSheet: View {
@@ -21,9 +20,9 @@ struct AboutSheet: View {
 
     var body: some View {
         NavigationView {
-            VStack(spacing: Spacing.large) {
+            VStack(spacing: TickerSpacing.lg) {
 
-                VStack(spacing: Spacing.medium) {
+                VStack(spacing: TickerSpacing.md) {
                     Image(systemName: "alarm.fill")
                         .font(.system(size: 64))
                         .foregroundStyle(Color.blue)
@@ -37,8 +36,7 @@ struct AboutSheet: View {
                         .foregroundStyle(.secondary)
                 }
 
-                HealthCard {
-                    VStack(spacing: Spacing.medium) {
+                    VStack(spacing: TickerSpacing.md) {
                         HStack {
                             Text("Version")
                                 .foregroundStyle(.secondary)
@@ -55,11 +53,10 @@ struct AboutSheet: View {
                                 .fontWeight(.medium)
                         }
                     }
-                }
 
                 Spacer()
             }
-            .padding(Spacing.medium)
+            .padding(TickerSpacing.md)
             .navigationTitle(Text("About"))
             .toolbarTitleDisplayMode(.inlineLarge)
             .toolbar {

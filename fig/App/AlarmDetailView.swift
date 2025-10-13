@@ -98,7 +98,7 @@ struct AlarmDetailView: View {
             VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                 // Label
                 Text(alarm.label)
-                    .cabinetHeadline()
+                    .Headline()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 // Status badge

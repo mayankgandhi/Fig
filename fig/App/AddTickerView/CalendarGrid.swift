@@ -61,7 +61,7 @@ struct CalendarGrid: View {
                 }
                 
                 Text(selectedDate.formatted(.dateTime.month(.wide).year()))
-                    .cabinetBody()
+                    .Body()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     .frame(maxWidth: .infinity)
                 

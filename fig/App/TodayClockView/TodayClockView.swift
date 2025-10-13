@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import WalnutDesignSystem
 
 struct TodayClockView: View {
 
@@ -35,15 +34,24 @@ struct TodayClockView: View {
                             // Upcoming Alarms Section
                             VStack(alignment: .leading, spacing: TickerSpacing.md) {
                                 HStack {
-                                    Text("Next 12 Hours")
-                                        .cabinetTitle()
-                                        .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                                
+                                        Text("Upcoming Tickers")
+                                            .Title2()
+                                            .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
+                                       
 
                                     Spacer()
 
-                                    Text("\(viewModel.upcomingAlarmsCount)")
-                                        .cabinetTitle2()
-                                        .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                                    HStack(alignment: .center, spacing: TickerSpacing.md) {
+                                        Image(systemName: "clock.fill")
+                                            .Body()
+                                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                                        
+                                        Text("\(viewModel.upcomingAlarmsCount)")
+                                            .Body()
+                                            .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
+                                        
+                                    }
                                 }
                                 .padding(.horizontal, TickerSpacing.md)
                                 .padding(.top, TickerSpacing.lg)
@@ -55,11 +63,11 @@ struct TodayClockView: View {
                                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
 
                                         Text("No upcoming alarms")
-                                            .cabinetTitle2()
+                                            .Title2()
                                             .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
 
                                         Text("Alarms scheduled for the next 12 hours will appear here")
-                                            .cabinetFootnote()
+                                            .Footnote()
                                             .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                                             .multilineTextAlignment(.center)
                                             .padding(.horizontal, TickerSpacing.xxl)

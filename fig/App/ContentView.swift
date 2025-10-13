@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import WalnutDesignSystem
 
 struct ContentView: View {
 
@@ -212,21 +211,21 @@ struct ContentView: View {
             } else if !searchText.isEmpty {
                 ContentUnavailableView {
                     Text("No Results")
-                        .cabinetTitle()
+                        .Title3()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } description: {
                     Text("No tickers match '\(searchText)'")
-                        .cabinetBody()
+                        .Body()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 }
             } else {
                 ContentUnavailableView {
                     Text("No Tickers")
-                        .cabinetTitle()
+                        .Title3()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } description: {
                     Text("Add a new ticker by tapping + button.")
-                        .cabinetBody()
+                        .Body()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 } actions: {
                     Button {

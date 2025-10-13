@@ -183,17 +183,29 @@ final class AddTickerViewModel {
     // MARK: - Private Methods
 
     private func prefillFromTemplate(_ template: Ticker) {
+        print("🎨 Starting template prefill...")
+        print("   Template ID: \(template.id)")
+        print("   Template Label: \(template.label)")
+        print("   Template isEnabled: \(template.isEnabled)")
+        print("   Template schedule: \(String(describing: template.schedule))")
+        print("   Template notes: \(String(describing: template.notes))")
+        print("   Template countdown: \(String(describing: template.countdown))")
+        print("   Template tickerData: \(String(describing: template.tickerData))")
+
         let now = Date()
 
         // Populate schedule data
         if let schedule = template.schedule {
+            print("   ✅ Schedule found: \(schedule)")
             switch schedule {
             case .oneTime(let date):
+                print("      → Setting one-time schedule for: \(date)")
                 timePickerViewModel.setTimeFromDate(date)
                 calendarViewModel.selectedDate = date >= now ? date : now
                 repeatViewModel.selectOption(.noRepeat)
 
             case .daily(let time):
+                print("      → Setting daily schedule for: \(time.hour):\(time.minute)")
                 timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
                 repeatViewModel.selectOption(.daily)
 
@@ -201,7 +213,10 @@ final class AddTickerViewModel {
                 var components = calendar.dateComponents([.year, .month, .day], from: now)
                 components.hour = time.hour
                 components.minute = time.minute
-                guard let todayOccurrence = calendar.date(from: components) else { return }
+                guard let todayOccurrence = calendar.date(from: components) else {
+                    print("      ⚠️ Failed to create date from components")
+                    return
+                }
 
                 if todayOccurrence <= now {
                     calendarViewModel.selectedDate = calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence
@@ -209,28 +224,50 @@ final class AddTickerViewModel {
                     calendarViewModel.selectedDate = todayOccurrence
                 }
             }
+        } else {
+            print("   ⚠️ No schedule found in template - using defaults")
+            // Set default time to current time
+            let components = calendar.dateComponents([.hour, .minute], from: now)
+            timePickerViewModel.setTime(hour: components.hour ?? 12, minute: components.minute ?? 0)
+            calendarViewModel.selectedDate = now
+            repeatViewModel.selectOption(.noRepeat)
         }
 
         // Populate label and notes
+        print("   → Setting label: '\(template.label)'")
         labelViewModel.setText(template.label)
-        notesViewModel.setNotes(template.notes)
+
+        if let notes = template.notes {
+            print("   → Setting notes: '\(notes)'")
+            notesViewModel.setNotes(notes)
+        } else {
+            print("   → No notes to set")
+        }
 
         // Populate countdown
         if let countdown = template.countdown?.preAlert {
+            print("   ✅ Countdown found: \(countdown.hours)h \(countdown.minutes)m \(countdown.seconds)s")
             countdownViewModel.isEnabled = true
             countdownViewModel.setDuration(
                 hours: countdown.hours,
                 minutes: countdown.minutes,
                 seconds: countdown.seconds
             )
+        } else {
+            print("   → No countdown to set")
         }
 
         // Populate icon and color
         if let tickerData = template.tickerData {
-            iconPickerViewModel.selectIcon(
-                tickerData.icon ?? "alarm",
-                colorHex: tickerData.colorHex ?? "#8B5CF6"
-            )
+            let icon = tickerData.icon ?? "alarm"
+            let colorHex = tickerData.colorHex ?? "#8B5CF6"
+            print("   ✅ TickerData found - Icon: \(icon), Color: \(colorHex)")
+            iconPickerViewModel.selectIcon(icon, colorHex: colorHex)
+        } else {
+            print("   ⚠️ No tickerData found - using defaults")
+            iconPickerViewModel.selectIcon("alarm", colorHex: "#8B5CF6")
         }
+
+        print("🎨 Template prefill completed!")
     }
 }

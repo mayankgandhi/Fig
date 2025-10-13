@@ -23,18 +23,18 @@ struct TemplatesView: View {
                 if categories.isEmpty {
                     ContentUnavailableView {
                         Label("No Templates", systemImage: "doc.text.fill")
-                            .cabinetTitle()
+                            .Title3()
                             .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                     } description: {
                         Text("Templates will appear here once loaded")
-                            .cabinetBody()
+                            .Body()
                             .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                     } actions: {
                         Button {
                             TemplateDataSeeder.seedTemplatesIfNeeded(modelContext: modelContext)
                         } label: {
                             Text("Reload Templates")
-                                .cabinetSubheadline()
+                                .Subheadline()
                         }
                         .buttonStyle(.bordered)
                     }
@@ -44,7 +44,7 @@ struct TemplatesView: View {
                             Section {
                                 if category.templates.isEmpty {
                                     Text("No templates in this category")
-                                        .cabinetBody()
+                                        .Body()
                                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                                 } else {
                                     ForEach(category.templates) { template in
@@ -54,6 +54,12 @@ struct TemplatesView: View {
                                             categoryIcon: category.icon,
                                             categoryColor: category.colorHex,
                                             onTemplateSelected: { selectedTemplate in
+                                                print("📝 Template selected from gallery:")
+                                                print("   ID: \(selectedTemplate.id)")
+                                                print("   Label: \(selectedTemplate.label)")
+                                                print("   Schedule: \(String(describing: selectedTemplate.schedule))")
+                                                print("   Notes: \(String(describing: selectedTemplate.notes))")
+                                                print("   TickerData: \(String(describing: selectedTemplate.tickerData))")
                                                 self.selectedTemplate = selectedTemplate
                                                 self.showingAddTickerSheet = true
                                             }
@@ -121,7 +127,7 @@ struct CategoryHeader: View {
 
             Text(category.name)
                 .textCase(.uppercase)
-                .cabinetCaption2()
+                .Caption2()
                 .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
         }
     }
@@ -152,12 +158,12 @@ struct TemplateRow: View {
             // Content
             VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                 Text(template.label)
-                    .cabinetBody()
+                    .Body()
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
 
                 if let schedule = template.schedule {
                     Text(scheduleDescription(schedule))
-                        .cabinetFootnote()
+                        .Footnote()
                         .foregroundStyle(TickerColors.textTertiary(for: colorScheme))
                 }
             }
