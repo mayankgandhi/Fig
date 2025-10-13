@@ -117,27 +117,40 @@ struct OptionsPillsView: View {
         isActive: Bool,
         hasValue: Bool
     ) -> some View {
-        let iconColor = title == "Icon" ? (Color(hex: selectedColorHex) ?? TickerColors.primary) : nil
+        let isIconField = title == "Icon"
+        let iconColor = isIconField ? (Color(hex: selectedColorHex) ?? TickerColors.primary) : nil
 
         return HStack(spacing: TickerSpacing.xxs) {
             ZStack {
-                // Icon background glow for active state
-                if isActive {
+                if isIconField {
+                    // Icon field: Show colored circle background
                     Circle()
-                        .fill(TickerColors.absoluteWhite.opacity(0.2))
-                        .frame(width: 20, height: 20)
-                        .blur(radius: 4)
-                }
+                        .fill(iconColor ?? TickerColors.primary)
+                        .frame(width: 24, height: 24)
 
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: isActive ? .semibold : .medium))
-                    .foregroundStyle(iconColor ?? (isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme)))
+                    Image(systemName: icon)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(TickerColors.absoluteWhite)
+                } else {
+                    // Other fields: Show glow for active state
+                    if isActive {
+                        Circle()
+                            .fill(TickerColors.absoluteWhite.opacity(0.2))
+                            .frame(width: 20, height: 20)
+                            .blur(radius: 4)
+                    }
+
+                    Image(systemName: icon)
+                        .font(.system(size: 14, weight: isActive ? .semibold : .medium))
+                        .foregroundStyle(isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
+                }
             }
 
             Text(title)
                 .font(.system(size: 13, weight: isActive ? .semibold : .medium, design: .rounded))
                 .lineLimit(1)
         }
+        .fixedSize()
         .foregroundStyle(isActive ? TickerColors.absoluteWhite : TickerColors.textPrimary(for: colorScheme))
         .padding(.horizontal, TickerSpacing.md)
         .padding(.vertical, TickerSpacing.sm)

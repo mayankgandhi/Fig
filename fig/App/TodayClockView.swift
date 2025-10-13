@@ -129,6 +129,7 @@ struct TodayClockView: View {
                     .presentationDetents([.height(620)])
                     .presentationCornerRadius(TickerRadius.large)
                     .presentationDragIndicator(.visible)
+                    .interactiveDismissDisabled()
                     .presentationBackground {
                         ZStack {
                             TickerColors.liquidGlassGradient(for: colorScheme)

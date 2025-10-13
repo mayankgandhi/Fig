@@ -92,7 +92,7 @@ struct AddTickerView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text(isEditMode ? "Edit Alarm" : "New Alarm")
+                Text(isEditMode ? "Edit Ticker" : "New Ticker")
                     .font(.system(size: 17, weight: .semibold, design: .rounded))
                     .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
             }

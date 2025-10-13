@@ -40,7 +40,7 @@ struct ContentView: View {
                             .ignoresSafeArea()
                     }
                 )
-                .navigationTitle(Text("Alarms"))
+                .navigationTitle(Text("Tickers"))
                 .toolbarTitleDisplayMode(.inlineLarge)
                 .toolbar {
                     ToolbarItemGroup {
@@ -63,6 +63,7 @@ struct ContentView: View {
                 .presentationDetents([.height(620)])
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
                 .presentationBackground {
                     ZStack {
                         TickerColors.liquidGlassGradient(for: colorScheme)
@@ -85,6 +86,7 @@ struct ContentView: View {
                 .presentationDetents([.height(620)])
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
                 .presentationBackground {
                     ZStack {
                         TickerColors.liquidGlassGradient(for: colorScheme)
@@ -104,16 +106,20 @@ struct ContentView: View {
                 onDelete: {
                     alarmToDelete = ticker
                     showDeleteAlert = true
-                },
-                onToggleEnabled: {
-                    toggleAlarmEnabled(ticker)
                 }
             )
-            .presentationDetents([.medium, .large])
             .presentationCornerRadius(TickerRadius.large)
-            .presentationDragIndicator(.visible)
+            .presentationBackground {
+                ZStack {
+                    TickerColors.liquidGlassGradient(for: colorScheme)
+
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.5)
+                }
+            }
         }
-        .alert("Delete Alarm", isPresented: $showDeleteAlert) {
+        .alert("Delete Ticker", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {
                 alarmToDelete = nil
             }
@@ -204,17 +210,17 @@ struct ContentView: View {
                         .cabinetTitle()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } description: {
-                    Text("No alarms match '\(searchText)'")
+                    Text("No tickers match '\(searchText)'")
                         .cabinetBody()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 }
             } else {
                 ContentUnavailableView {
-                    Text("No Alarms")
+                    Text("No Tickers")
                         .cabinetTitle()
                         .foregroundStyle(TickerColors.textPrimary(for: colorScheme))
                 } description: {
-                    Text("Add a new alarm by tapping + button.")
+                    Text("Add a new ticker by tapping + button.")
                         .cabinetBody()
                         .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 } actions: {
@@ -225,7 +231,7 @@ struct ContentView: View {
                         HStack(spacing: TickerSpacing.xs) {
                             Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 16, weight: .semibold))
-                            Text("Add Alarm")
+                            Text("Add Ticker")
                                 .font(.system(size: 16, weight: .bold))
                         }
                         .foregroundStyle(TickerColors.absoluteWhite)

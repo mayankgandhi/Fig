@@ -21,10 +21,9 @@ struct ExpandableOverlayContainer<Content: View>: View {
                     .padding(.horizontal, TickerSpacing.md)
                     .padding(.bottom, TickerSpacing.lg)
                     .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .bottom).combined(with: .opacity).combined(with: .scale(scale: 0.95)),
-                            removal: .move(edge: .bottom).combined(with: .opacity)
-                        )
+                        .move(edge: .bottom)
+                        .combined(with: .opacity)
+                        .combined(with: .scale(scale: 0.95, anchor: .bottom))
                     )
             }
             .background(
