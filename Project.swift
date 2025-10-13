@@ -6,7 +6,7 @@ let project = Project(
         // Main app target
         .target(
             name: "fig",
-            destinations: [.iPhone, .iPad, .mac],
+            destinations: [.iPhone, .iPad],
             product: .app,
             bundleId: "m.fig",
             infoPlist: .extendingDefault(with: [

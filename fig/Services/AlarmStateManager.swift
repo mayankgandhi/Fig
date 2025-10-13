@@ -15,7 +15,7 @@ protocol AlarmStateManagerProtocol: Observable {
     var alarms: [UUID: Ticker] { get }
 
     func updateState(with remoteAlarms: [Alarm])
-    func updateState(from alarm: Alarm, ticker: Ticker) async
+    func updateState(ticker: Ticker) async
     func removeState(id: UUID) async
     func getState(id: UUID) -> Ticker?
 }
@@ -62,8 +62,8 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
     }
 
     @MainActor
-    func updateState(from alarm: Alarm, ticker: Ticker) {
-        alarms[alarm.id] = ticker
+    func updateState(ticker: Ticker) {
+        alarms[ticker.id] = ticker
     }
 
     @MainActor

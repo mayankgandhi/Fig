@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		05DADF405A844EDEC32B065C /* NotesEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F74A35F4B0360A035740026C /* NotesEditorView.swift */; };
+		0AEA08E7F511036318449B26 /* MockAlarmServiceDependencies.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF07DB913D249FE54FC182CE /* MockAlarmServiceDependencies.swift */; };
 		0DE2232E5A6ECEF8AEEEC88F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B25C5BBB7D27676FCC11A83 /* Assets.xcassets */; };
 		0E347996C546828669887195 /* NativeMenuListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B0F8EE576D2FEE96D69BE5 /* NativeMenuListItem.swift */; };
 		0ECDE744DED25E6CE4DEDADB /* TimerConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */; };
@@ -39,6 +40,7 @@
 		6650D271B2FD05A10740CFF2 /* OpenAlarmAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */; };
 		6D850630BFC1D75183AD2D65 /* NotesEditorViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F78599EAF881FE47E0E5DB /* NotesEditorViewModel.swift */; };
 		7685080A7AE66CB52D8CAD66 /* RepeatOptionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20E302F34CE94F894CC9D378 /* RepeatOptionsViewModel.swift */; };
+		78BEC8975C7FF6D216F16E3F /* AlarmServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = ED22858FE61FBDFAC2095822 /* AlarmServiceTests.swift */; };
 		7A27524784ED5590022AFDC4 /* CalendarGrid.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10EF02D5794EF7EBDBDD8F20 /* CalendarGrid.swift */; };
 		7AA2A8CEF0633E00559231D2 /* AlarmMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC6067C8A8EE636BEA50F3F4 /* AlarmMetadata.swift */; };
 		7ADA0CB3AEB3525BBAB38B73 /* AlarmConfigurationBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26E623500F694DE819AE086E /* AlarmConfigurationBuilder.swift */; };
@@ -56,6 +58,7 @@
 		8A12392DFB6B771BAFA14E0B /* figTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 319190156414A5841EA8398A /* figTests.swift */; };
 		93976426F0440DF8B3F3C4CA /* alarmControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FD3E80B49FDC6E4C1AD99BC /* alarmControl.swift */; };
 		97D1227963D626600C357FC0 /* TodayClockView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9372352E42D7EF40708C3119 /* TodayClockView.swift */; };
+		9AF558D5B228A6C5B3B3C8FF /* Color+Hex.swift in Sources */ = {isa = PBXBuildFile; fileRef = C6C4724B60B090B55036EF05 /* Color+Hex.swift */; };
 		A127EFD732D5972C7E892457 /* RepeatIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B95C80EDDF07C5E91EA092B /* RepeatIntent.swift */; };
 		A187C78ECD757493B8B81B27 /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 313B4251721280016C95BFCA /* TodayViewModel.swift */; };
 		A2736A71829B91A27A1ED3CA /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 347A310C2C1C4740678168EB /* AppIcon.icon */; };
@@ -230,6 +233,7 @@
 		B79FC771F669947C3CF9D2F9 /* TuistAssets+Alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistAssets+Alarm.swift"; sourceTree = "<group>"; };
 		B8913AF7FFC9E97CD18483FE /* HelpSupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HelpSupportView.swift; sourceTree = "<group>"; };
 		C0A7969B4F297ABA148F6928 /* alarm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = alarm.swift; sourceTree = "<group>"; };
+		C6C4724B60B090B55036EF05 /* Color+Hex.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Color+Hex.swift"; sourceTree = "<group>"; };
 		CAC0C58D115112CDD8052BFC /* AlarmLiveActivity 2.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "AlarmLiveActivity 2.swift"; sourceTree = "<group>"; };
 		CB10ECEEE58616A9218E3E63 /* TimePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimePickerView.swift; sourceTree = "<group>"; };
 		CDB0E58D4215AB2EAEFDB33C /* figTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "figTests-Info.plist"; sourceTree = "<group>"; };
@@ -243,7 +247,9 @@
 		DD3093EEDE5F59D87D06E3B9 /* withRoundedDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = withRoundedDesign.swift; sourceTree = "<group>"; };
 		E6D7D7B44B1F441D9E9A4CA3 /* fig-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "fig-Info.plist"; sourceTree = "<group>"; };
 		EC60CA85FEA246B2EA14A54F /* RepeatOptionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepeatOptionsView.swift; sourceTree = "<group>"; };
+		ED22858FE61FBDFAC2095822 /* AlarmServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmServiceTests.swift; sourceTree = "<group>"; };
 		EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAlarmAppIntent.swift; sourceTree = "<group>"; };
+		EF07DB913D249FE54FC182CE /* MockAlarmServiceDependencies.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockAlarmServiceDependencies.swift; sourceTree = "<group>"; };
 		F40034639A055D482B4D7C9E /* LabelEditorViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelEditorViewModel.swift; sourceTree = "<group>"; };
 		F747BA24CF551C903AA062E5 /* TuistBundle+Fig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TuistBundle+Fig.swift"; sourceTree = "<group>"; };
 		F74A35F4B0360A035740026C /* NotesEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesEditorView.swift; sourceTree = "<group>"; };
@@ -329,6 +335,8 @@
 		26F336FF38F8F1297A1A6ACD /* figTests */ = {
 			isa = PBXGroup;
 			children = (
+				DAF82B312E560E3FEF2B6407 /* Mocks */,
+				ED22858FE61FBDFAC2095822 /* AlarmServiceTests.swift */,
 				319190156414A5841EA8398A /* figTests.swift */,
 			);
 			path = figTests;
@@ -434,6 +442,7 @@
 		9A52B43B782FBC92FB038D44 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				C6C4724B60B090B55036EF05 /* Color+Hex.swift */,
 				8E8DA9F679131E53913DBFFB /* Font+SFProRounded.swift */,
 				DD3093EEDE5F59D87D06E3B9 /* withRoundedDesign.swift */,
 			);
@@ -561,6 +570,14 @@
 				62F78599EAF881FE47E0E5DB /* NotesEditorViewModel.swift */,
 			);
 			path = Notes;
+			sourceTree = "<group>";
+		};
+		DAF82B312E560E3FEF2B6407 /* Mocks */ = {
+			isa = PBXGroup;
+			children = (
+				EF07DB913D249FE54FC182CE /* MockAlarmServiceDependencies.swift */,
+			);
+			path = Mocks;
 			sourceTree = "<group>";
 		};
 		E346A90FA828B16A8BBF0FCE /* Settings */ = {
@@ -826,6 +843,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				78BEC8975C7FF6D216F16E3F /* AlarmServiceTests.swift in Sources */,
+				0AEA08E7F511036318449B26 /* MockAlarmServiceDependencies.swift in Sources */,
 				8A12392DFB6B771BAFA14E0B /* figTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -888,6 +907,7 @@
 				5731B66B61452F1AEA4CB6DE /* ConfigurationAppIntent.swift in Sources */,
 				181A88713B6BB7BE4AB3AA65 /* TickerDesignSystem.swift in Sources */,
 				C1DD9C0DBD2C2C7BFD05301A /* TickerDesignSystemPreviews.swift in Sources */,
+				9AF558D5B228A6C5B3B3C8FF /* Color+Hex.swift in Sources */,
 				CF1B05F275B83D4387837E82 /* Font+SFProRounded.swift in Sources */,
 				1823A4A33D42DD4A421FE870 /* withRoundedDesign.swift in Sources */,
 				1F582D86B89A2AC099079D8A /* AlarmItem.swift in Sources */,
@@ -935,6 +955,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q7HVAVTGUP;
 				ENABLE_PREVIEWS = YES;
@@ -944,14 +965,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = m.fig;
 				PRODUCT_NAME = fig;
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
@@ -1263,6 +1279,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Q7HVAVTGUP;
 				ENABLE_PREVIEWS = YES;
@@ -1272,14 +1289,9 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
 				PRODUCT_BUNDLE_IDENTIFIER = m.fig;
 				PRODUCT_NAME = fig;
-				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SDKROOT = iphoneos;
 				SUPPORTS_MACCATALYST = NO;
 				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
 				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;

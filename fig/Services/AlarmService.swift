@@ -95,7 +95,7 @@ final class AlarmService: AlarmServiceProtocol {
 
     // Private AlarmKit manager
     @ObservationIgnored
-    private let alarmManager = AlarmManager.shared
+    private let alarmManager: AlarmManager
 
     // Configuration builder
     @ObservationIgnored
@@ -112,14 +112,15 @@ final class AlarmService: AlarmServiceProtocol {
     // MARK: - Initialization
 
     init(
+        alarmManager: AlarmManager = AlarmManager.shared,
         configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
         stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
         syncCoordinator: AlarmSyncCoordinatorProtocol = AlarmSyncCoordinator()
     ) {
+        self.alarmManager = alarmManager
         self.configurationBuilder = configurationBuilder
         self.stateManager = stateManager
         self.syncCoordinator = syncCoordinator
-        observeAlarmUpdates()
     }
 
     // MARK: - Authorization
@@ -159,10 +160,10 @@ final class AlarmService: AlarmServiceProtocol {
 
         // 3. Schedule with AlarmKit
         do {
-            let alarm = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
+            _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
 
             // 4. Update alarmKitID for tracking
-            alarmItem.alarmKitID = alarm.id
+            alarmItem.alarmKitID = alarmItem.id
             alarmItem.isEnabled = true
 
             // 5. Save to SwiftData
@@ -170,7 +171,7 @@ final class AlarmService: AlarmServiceProtocol {
             try context.save()
 
             // 6. Update local state
-            await stateManager.updateState(from: alarm, ticker: alarmItem)
+            await stateManager.updateState(ticker: alarmItem)
 
         } catch let error as AlarmServiceError {
             throw error
@@ -207,11 +208,11 @@ final class AlarmService: AlarmServiceProtocol {
             }
 
             do {
-                let alarm = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
-                alarmItem.alarmKitID = alarm.id
+                _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
+                alarmItem.alarmKitID = alarmItem.id
                 try context.save()
 
-                await stateManager.updateState(from: alarm, ticker: alarmItem)
+                await stateManager.updateState(ticker: alarmItem)
             } catch {
                 throw AlarmServiceError.schedulingFailed(underlying: error)
             }
@@ -309,16 +310,6 @@ final class AlarmService: AlarmServiceProtocol {
             stateManager: stateManager,
             context: context
         )
-    }
-
-    // MARK: - Private Helpers
-
-    private func observeAlarmUpdates() {
-        Task {
-            for await incomingAlarms in alarmManager.alarmUpdates {
-                stateManager.updateState(with: incomingAlarms)
-            }
-        }
     }
 }
 

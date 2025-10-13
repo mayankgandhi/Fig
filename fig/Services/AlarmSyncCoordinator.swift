@@ -77,7 +77,7 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
             }
 
             // Update local state
-            await stateManager.updateState(from: alarm, ticker: tickerToUse)
+            await stateManager.updateState(ticker: tickerToUse)
 
             print("✅ Loaded alarm: \(tickerToUse.label)")
         }
