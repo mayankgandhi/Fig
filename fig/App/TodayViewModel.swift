@@ -80,11 +80,13 @@ final class TodayViewModel {
     // MARK: - Computed Properties
 
     /// All enabled alarms from AlarmService
+    @MainActor
     private var allEnabledAlarms: [Ticker] {
         alarmService.getAlarmsWithMetadata(context: modelContext).filter { $0.isEnabled }
     }
 
     /// Alarms scheduled within the next 12 hours, sorted by time
+    @MainActor
     var upcomingAlarms: [UpcomingAlarmPresentation] {
         let now = Date()
         let next12Hours = now.addingTimeInterval(12 * 60 * 60)
@@ -111,11 +113,13 @@ final class TodayViewModel {
     }
 
     /// Number of upcoming alarms
+    @MainActor
     var upcomingAlarmsCount: Int {
         upcomingAlarms.count
     }
 
     /// Whether there are any upcoming alarms
+    @MainActor
     var hasUpcomingAlarms: Bool {
         !upcomingAlarms.isEmpty
     }

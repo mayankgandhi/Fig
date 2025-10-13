@@ -144,6 +144,7 @@ final class AlarmService: AlarmServiceProtocol {
 
     // MARK: - Schedule Management
 
+    @MainActor
     func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws {
         // 1. Request authorization
         let authStatus = try await requestAuthorization()
@@ -180,6 +181,7 @@ final class AlarmService: AlarmServiceProtocol {
         }
     }
 
+    @MainActor
     func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         // Cancel existing alarm
         if let alarmKitID = alarmItem.alarmKitID {
@@ -230,10 +232,12 @@ final class AlarmService: AlarmServiceProtocol {
 
         // Delete from SwiftData if context provided
         if let context = context {
-            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
-            if let alarmItem = try? context.fetch(descriptor).first {
-                context.delete(alarmItem)
-                try? context.save()
+            Task { @MainActor in
+                let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
+                if let alarmItem = try? context.fetch(descriptor).first {
+                    context.delete(alarmItem)
+                    try? context.save()
+                }
             }
         }
     }
@@ -289,16 +293,16 @@ final class AlarmService: AlarmServiceProtocol {
         stateManager.getState(id: id)
     }
 
+    @MainActor
     func getAlarmsWithMetadata(context: ModelContext) -> [Ticker] {
-        // Get all tickers from state manager
-        let tickers = Array(alarms.values)
-
-        // Sort by creation date
-        return tickers.sorted { $0.createdAt > $1.createdAt }
+        // Get all tickers from state manager (main thread access to Observable state)
+        // Note: This is fast - just copying references from a dictionary
+        return Array(alarms.values).sorted { $0.createdAt > $1.createdAt }
     }
 
     // MARK: - Synchronization
 
+    @MainActor
     func synchronizeAlarmsOnLaunch(context: ModelContext) async {
         await syncCoordinator.synchronizeOnLaunch(
             alarmManager: alarmManager,

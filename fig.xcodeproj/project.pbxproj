@@ -11,6 +11,7 @@
 		0577043153072121D761C245 /* TemplatesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBF4C4F214D5B8ED7EC8C5B1 /* TemplatesView.swift */; };
 		0B2F99F8E270650923924D4B /* ExpandableField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 706183A8B6946999BBA8A274 /* ExpandableField.swift */; };
 		0DE2232E5A6ECEF8AEEEC88F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3B25C5BBB7D27676FCC11A83 /* Assets.xcassets */; };
+		0E347996C546828669887195 /* NativeMenuListItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B0F8EE576D2FEE96D69BE5 /* NativeMenuListItem.swift */; };
 		0ECDE744DED25E6CE4DEDADB /* TimerConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24E3643CAD6B9793F629A709 /* TimerConfiguration.swift */; };
 		0F0451CC0BA4579FAAA98143 /* StopIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30F8F4849184746F46BC4D6 /* StopIntent.swift */; };
 		13450FD74A78F8AC05843A81 /* OpenAlarmAppIntent.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF5154D4F73A551D893F363 /* OpenAlarmAppIntent.swift */; };
@@ -224,6 +225,7 @@
 		8FF0DBB245F81B865FDA0992 /* OptionsPillsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OptionsPillsViewModel.swift; sourceTree = "<group>"; };
 		9965479C5AFEA3F9141689FB /* FAQView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FAQView.swift; sourceTree = "<group>"; };
 		9C9C1CE08D7C6449E52D68C0 /* figUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = figUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A1B0F8EE576D2FEE96D69BE5 /* NativeMenuListItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeMenuListItem.swift; sourceTree = "<group>"; };
 		A30F8F4849184746F46BC4D6 /* StopIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StopIntent.swift; sourceTree = "<group>"; };
 		A4204F0AC1A3171771BF51C8 /* AlarmSyncCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AlarmSyncCoordinator.swift; sourceTree = "<group>"; };
 		A6DF9ABECE20FE882137D936 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
@@ -534,6 +536,14 @@
 			path = App;
 			sourceTree = "<group>";
 		};
+		CC429E4CE14022D502BF0B57 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A1B0F8EE576D2FEE96D69BE5 /* NativeMenuListItem.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 		CD06B06D994476C7CB9105E3 /* Label */ = {
 			isa = PBXGroup;
 			children = (
@@ -563,6 +573,7 @@
 		E346A90FA828B16A8BBF0FCE /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				CC429E4CE14022D502BF0B57 /* Components */,
 				811234830675F2849D4ECA1D /* MenuItems */,
 				06EA4FB14C9FAB673C7A7727 /* SettingsView.swift */,
 			);
@@ -894,6 +905,7 @@
 				C498E7D5CE723A52F130615C /* AlarmService.swift in Sources */,
 				C3C2F6D4CB36C0350317B65A /* AlarmStateManager.swift in Sources */,
 				2D55E9BF030501DDE08EF3F1 /* AlarmSyncCoordinator.swift in Sources */,
+				0E347996C546828669887195 /* NativeMenuListItem.swift in Sources */,
 				7C948883BD4E76ADE9A6BD20 /* AboutSheet.swift in Sources */,
 				B21F8344792390E26798F9AC /* AboutView.swift in Sources */,
 				C3EE35C5851A3F5F6531CCAD /* DeleteAllDataView.swift in Sources */,

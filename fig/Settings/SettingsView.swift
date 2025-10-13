@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import WalnutDesignSystem
 import AlarmKit
 
 struct SettingsView: View {
@@ -15,20 +14,21 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: TickerSpacing.md) {
+                VStack(spacing: 16) {
 
                     // App Settings Section
                     appSettingsSection
-                        .padding(.horizontal, TickerSpacing.md)
+                        .padding(.horizontal, 16)
 
                     // Data Section
                     dataSection
-                        .padding(.horizontal, TickerSpacing.md)
+                        .padding(.horizontal, 16)
 
-                    Spacer(minLength: TickerSpacing.xl)
+                    Spacer(minLength: 32)
                 }
-                .padding(.vertical, TickerSpacing.xl)
+                .padding(.vertical, 24)
             }
+            .background(Color(.systemGroupedBackground))
             .presentationCompactAdaptation(.sheet)
             .presentationDragIndicator(.visible)
             .navigationTitle("Settings")
@@ -40,14 +40,15 @@ struct SettingsView: View {
     // MARK: - View Components
 
     private var appSettingsSection: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
-            Text("App Settings")
-                .cabinetCaption2()
+        VStack(alignment: .leading, spacing: 12) {
+            Text("APP SETTINGS")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 4)
 
-            VStack(spacing: TickerSpacing.xs) {
+            VStack(spacing: 8) {
                 AboutView()
                 FAQView()
                 HelpSupportView()
@@ -56,14 +57,15 @@ struct SettingsView: View {
     }
 
     private var dataSection: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
-            Text("Data")
-                .cabinetCaption2()
+        VStack(alignment: .leading, spacing: 12) {
+            Text("DATA")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.secondary)
                 .textCase(.uppercase)
-                .foregroundStyle(TickerColors.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 4)
 
-            VStack(spacing: TickerSpacing.xs) {
+            VStack(spacing: 8) {
                 DeleteAllDataView()
             }
         }

@@ -6,13 +6,12 @@
 //
 
 import SwiftUI
-import WalnutDesignSystem
 
 struct FAQView: View {
     @State private var showFAQ = false
 
     var body: some View {
-        MenuListItem(
+        NativeMenuListItem(
             icon: "questionmark.circle",
             title: "FAQ",
             subtitle: "Frequently asked questions",
@@ -75,13 +74,13 @@ struct FAQDetailView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: Spacing.medium) {
+                VStack(spacing: 16) {
                     ForEach(faqs) { faq in
                         FAQItemView(item: faq)
                     }
                 }
-                .padding(.horizontal, Spacing.medium)
-                .padding(.vertical, Spacing.large)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 24)
             }
             .navigationTitle("FAQ")
             .toolbarTitleDisplayMode(.inlineLarge)
@@ -102,39 +101,46 @@ struct FAQItemView: View {
     @State private var isExpanded = false
 
     var body: some View {
-        HealthCard {
-            VStack(alignment: .leading, spacing: Spacing.small) {
-                Button {
-                    withAnimation(.spring(response: 0.3)) {
-                        isExpanded.toggle()
-                    }
-                } label: {
-                    HStack(alignment: .top, spacing: Spacing.medium) {
-                        VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text(item.question)
-                                .font(.headline)
-                                .foregroundStyle(.primary)
-                                .multilineTextAlignment(.leading)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-
-                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                            .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                    }
+        VStack(alignment: .leading, spacing: 12) {
+            Button {
+                withAnimation(.spring(response: 0.3)) {
+                    isExpanded.toggle()
                 }
-                .buttonStyle(.plain)
+            } label: {
+                HStack(alignment: .top, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(item.question)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
 
-                if isExpanded {
-                    Text(item.answer)
-                        .font(.body)
+                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                        .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .transition(.opacity.combined(with: .move(edge: .top)))
                 }
             }
+            .buttonStyle(.plain)
+
+            if isExpanded {
+                Text(item.answer)
+                    .font(.body)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .strokeBorder(Color(.systemGray5), lineWidth: 0.5)
+        )
     }
 }
 

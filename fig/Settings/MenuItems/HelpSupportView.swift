@@ -6,14 +6,13 @@
 //
 
 import SwiftUI
-import WalnutDesignSystem
 import MessageUI
 
 struct HelpSupportView: View {
     @State private var showMailCompose = false
 
     var body: some View {
-        MenuListItem(
+        NativeMenuListItem(
             icon: "envelope",
             title: "Help & Support",
             subtitle: "Get help or send feedback",

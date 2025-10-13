@@ -87,6 +87,7 @@ final class AddTickerViewModel {
         )
     }
 
+    @MainActor
     func saveTicker() async {
         guard !isSaving else { return }
         guard canSave else {

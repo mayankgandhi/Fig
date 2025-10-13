@@ -6,13 +6,12 @@
 //
 
 import SwiftUI
-import WalnutDesignSystem
 
 struct AboutView: View {
     @State private var showAboutSheet = false
 
     var body: some View {
-        MenuListItem(
+        NativeMenuListItem(
             icon: "info.circle",
             title: "About",
             subtitle: "App version and information",
@@ -23,7 +22,7 @@ struct AboutView: View {
         .sheet(isPresented: $showAboutSheet) {
             AboutSheet()
                 .presentationDetents([.medium])
-                .presentationCornerRadius(Spacing.large)
+                .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
         }
     }

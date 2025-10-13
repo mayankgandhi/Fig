@@ -146,8 +146,11 @@ struct ContentView: View {
         }
     }
 
+    @MainActor
     private func loadAlarms() {
-        displayAlarms = alarmService.getAlarmsWithMetadata(context: modelContext)
+        displayAlarms = alarmService.getAlarmsWithMetadata(context: modelContext).sorted { ticker1, ticker2 in
+            sortByScheduledTime(ticker1, ticker2)
+        }
     }
 
     private var filteredAlarms: [Ticker] {
@@ -184,6 +187,8 @@ struct ContentView: View {
             }
 
             return false
+        }.sorted { ticker1, ticker2 in
+            sortByScheduledTime(ticker1, ticker2)
         }
     }
 
@@ -305,13 +310,53 @@ struct ContentView: View {
         ticker.isEnabled.toggle()
 
         // Update in AlarmService
-        Task {
+        Task { @MainActor in
             if ticker.isEnabled {
                 try? await alarmService.scheduleAlarm(from: ticker, context: modelContext)
             } else {
                 try? alarmService.cancelAlarm(id: ticker.id, context: modelContext)
             }
             loadAlarms()
+        }
+    }
+
+    // MARK: - Sorting Helper
+
+    private func sortByScheduledTime(_ ticker1: Ticker, _ ticker2: Ticker) -> Bool {
+        // Extract time components for comparison
+        guard let schedule1 = ticker1.schedule, let schedule2 = ticker2.schedule else {
+            // If either ticker doesn't have a schedule, keep original order
+            if ticker1.schedule != nil { return true }
+            if ticker2.schedule != nil { return false }
+            return false
+        }
+
+        let time1 = getComparableTime(from: schedule1)
+        let time2 = getComparableTime(from: schedule2)
+
+        // For one-time schedules, also compare dates
+        if case .oneTime(let date1) = schedule1, case .oneTime(let date2) = schedule2 {
+            // Sort by full date and time for one-time schedules
+            return date1 < date2
+        }
+
+        // For mixed or daily schedules, just compare time of day
+        return time1 < time2
+    }
+
+    private func getComparableTime(from schedule: TickerSchedule) -> TimeInterval {
+        switch schedule {
+        case .oneTime(let date):
+            // Get the time portion of the date as seconds from midnight
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.hour, .minute, .second], from: date)
+            let seconds = (components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60 + (components.second ?? 0)
+            return TimeInterval(seconds)
+
+        case .daily(let time):
+            // Convert time to seconds from midnight
+            let seconds = time.hour * 3600 + time.minute * 60
+            return TimeInterval(seconds)
         }
     }
 }

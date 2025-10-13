@@ -7,7 +7,6 @@
 
 import SwiftUI
 import SwiftData
-import WalnutDesignSystem
 
 struct DeleteAllDataView: View {
     @Environment(AlarmService.self) private var alarmService
@@ -16,21 +15,21 @@ struct DeleteAllDataView: View {
     @State private var showDeleteConfirmation = false
 
     var body: some View {
-        MenuListItem(
+        NativeMenuListItem(
             icon: "trash",
             title: "Delete All Data",
-            subtitle: "Clear all scheduled alarms",
+            subtitle: "Clear all scheduled tickers",
             iconColor: .red
         ) {
             showDeleteConfirmation = true
         }
-        .alert("Delete All Alarms?", isPresented: $showDeleteConfirmation) {
+        .alert("Delete All Tickers?", isPresented: $showDeleteConfirmation) {
             Button("Cancel", role: .cancel) {}
             Button("Delete All", role: .destructive) {
                 deleteAllAlarms()
             }
         } message: {
-            Text("This will permanently delete all your scheduled alarms. This action cannot be undone.")
+            Text("This will permanently delete all your scheduled tickers. This action cannot be undone.")
         }
     }
 
