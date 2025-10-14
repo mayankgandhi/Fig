@@ -4,41 +4,102 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a SwiftUI macOS/iOS application using SwiftData for persistence. The app uses the modern SwiftUI app lifecycle with `@main` and SwiftData's `ModelContainer` for data management.
+**Ticker** (formerly "fig") is a SwiftUI iOS/iPadOS alarm application using SwiftData for persistence and AlarmKit for system alarm integration. The app features Live Activities, widgets, control center integration, and follows modern iOS 26+ Liquid Glass design patterns.
+
+**Product Name**: Super Alarm - Ticker
+**Bundle ID**: m.fig
+**Deployment Target**: iOS 26.0+
+**Build System**: Tuist (for project generation)
 
 ## Architecture
 
-- **App Entry Point**: `fig/figApp.swift` - Defines the main app structure and sets up the SwiftData `ModelContainer` with the `Item` model
-- **Data Models**: `fig/Item.swift` - SwiftData models using the `@Model` macro
-- **Views**: `fig/ContentView.swift` - SwiftUI views that use `@Query` to fetch SwiftData objects and `@Environment(\.modelContext)` to access the model context
-- **Tests**:
-  - `figTests/` - Unit tests
-  - `figUITests/` - UI tests
+### Core Structure
+- **App Entry Point**: `fig/App/figApp.swift` - Defines the main app structure, sets up SwiftData `ModelContainer` with `Ticker` model, and initializes `AlarmService`
+- **Main View**: `fig/App/AppView.swift` - Root view coordinating navigation and primary UI
+- **Data Models**:
+  - `fig/Models/AlarmItem.swift` - Core `Ticker` SwiftData model with schedule, countdown, and presentation configuration
+  - `Shared/AlarmMetadata.swift` - Shared data structures for alarm state synchronization
+- **Services**:
+  - `fig/Services/AlarmService.swift` - Main service coordinating alarm operations
+  - `fig/Services/AlarmStateManager.swift` - Manages alarm state and lifecycle
+  - `fig/Services/AlarmSyncCoordinator.swift` - Synchronizes alarms with AlarmKit
+  - `fig/Services/AlarmConfigurationBuilder.swift` - Builds AlarmKit configurations from Ticker models
 
-## Common Commands
+### Key Views
+- `fig/App/ContentView.swift` - Main alarm list interface
+- `fig/App/AddTickerView/` - Add/edit alarm flow with modular components
+- `fig/App/TodayClockView/` - Today view showing clock and upcoming alarms
+- `fig/App/AlarmDetailView.swift` - Detailed alarm view
+- `fig/AlarmCell.swift` - Alarm list cell component
+- `fig/Settings/SettingsView.swift` - Settings interface
 
-Build and run the app:
+### App Extensions
+- `alarm/` - Widget and Live Activity extension bundle
+  - `alarm/alarm.swift` - Widget implementations
+  - `alarm/alarmControl.swift` - Control Center widget
+  - `alarm/AlarmLiveActivity.swift` - Live Activity for running alarms
+- `fig/AppIntents/` - App Intents for Shortcuts and widget interactivity
+
+### Design System
+- `fig/DesignSystem/TickerDesignSystem.swift` - Centralized design tokens and Liquid Glass components
+- `fig/DesignSystem/TickerDesignSystemPreviews.swift` - SwiftUI previews for design system
+- `fig/Extensions/` - Font, color, and UI extensions
+
+### Tests
+- `figTests/` - Unit tests including `AlarmServiceTests.swift`
+- `figUITests/` - UI automation tests
+
+## Project Management
+
+This project uses **Tuist** for Xcode project generation:
+
+### Tuist Commands
 ```bash
-xcodebuild -project fig.xcodeproj -scheme fig build
+# Generate Xcode project from Project.swift
+tuist generate
+
+# Clean generated files
+tuist clean
+
+# Edit project configuration
+tuist edit
 ```
 
-Run tests:
+### Build Commands
 ```bash
-xcodebuild test -project fig.xcodeproj -scheme fig
+# Build with xcodebuild (after tuist generate)
+xcodebuild -project Ticker.xcodeproj -scheme Ticker build
+
+# Run tests
+xcodebuild test -project Ticker.xcodeproj -scheme Ticker
+
+# Open in Xcode
+open Ticker.xcodeproj
 ```
 
-Alternatively, open the project in Xcode:
-```bash
-open fig.xcodeproj
-```
+**Important**: Always run `tuist generate` after modifying `Project.swift` to regenerate the Xcode project.
 
 ## SwiftData Usage
 
-The app uses SwiftData for persistence:
-- Models are defined with the `@Model` macro
+The app uses SwiftData for persistent alarm storage:
+- Primary model: `Ticker` (defined in `fig/Models/AlarmItem.swift`)
+- Models use the `@Model` macro
 - The `ModelContainer` is configured in `figApp.swift` with persistent storage (not in-memory)
+- Schema: `Schema([Ticker.self])`
 - Views access data using `@Query` for fetching and `@Environment(\.modelContext)` for mutations
-- The schema is registered in the `ModelContainer` initialization
+- AlarmKit integration via `alarmKitID` property for bidirectional sync
+
+## AlarmKit Integration
+
+The app integrates with iOS AlarmKit framework for system-level alarm functionality:
+- `Ticker` models convert to `Alarm` configurations via extensions
+- `AlarmService` manages the bridge between SwiftData and AlarmKit
+- Supports:
+  - One-time and recurring (daily) alarms
+  - Pre-alert countdowns
+  - Post-alert behaviors (snooze, repeat, custom actions)
+  - Live Activities during alarm execution
+  - Custom presentation with tint colors and secondary buttons
 
 ## Liquid Glass Design System
 
