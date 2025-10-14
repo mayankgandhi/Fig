@@ -61,7 +61,11 @@ let project = Project(
             sources: [
                 "alarm/**",
                 "Shared/**",
-                "fig/AppIntents/**"  // Share AppIntents with widget extension
+                "fig/AppIntents/**",  // Share AppIntents with widget extension
+                "fig/App/TodayClockView/ClockView.swift",  // Clock view for widget
+                "fig/DesignSystem/**",  // Design system for styling
+                "fig/Extensions/**",  // Extensions for Color, Font, etc.
+                "fig/Models/AlarmItem.swift"  // Ticker model for SwiftData
             ],
             resources: ["alarm/Assets.xcassets"],
             dependencies: [],

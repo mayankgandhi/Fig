@@ -31,7 +31,9 @@ final class Ticker {
     var tickerData: TickerData?
 
     // AlarmKit Integration
-    var alarmKitID: UUID?
+    var alarmKitID: UUID? // Legacy: Single alarm ID for simple schedules
+    var generatedAlarmKitIDs: [UUID] // Multiple alarm IDs for composite schedules
+    var generationWindow: Int // Days ahead to generate alarms (default 60)
 
     init(
         id: UUID = UUID(),
@@ -40,7 +42,8 @@ final class Ticker {
         schedule: TickerSchedule? = nil,
         countdown: TickerCountdown? = nil,
         presentation: TickerPresentation = .init(),
-        tickerData: TickerData? = nil
+        tickerData: TickerData? = nil,
+        generationWindow: Int = 60
     ) {
         self.id = id
         self.label = label
@@ -50,6 +53,8 @@ final class Ticker {
         self.countdown = countdown
         self.presentation = presentation
         self.tickerData = tickerData
+        self.generatedAlarmKitIDs = []
+        self.generationWindow = generationWindow
     }
 
     var displayName: String {
@@ -66,6 +71,11 @@ final class Ticker {
 enum TickerSchedule: Codable, Hashable {
     case oneTime(date: Date)
     case daily(time: TimeOfDay)
+    case hourly(interval: Int, startTime: Date, endTime: Date?)
+    case weekdays(time: TimeOfDay, days: Set<Weekday>)
+    case biweekly(time: TimeOfDay, weekdays: Set<Weekday>, anchorDate: Date)
+    case monthly(day: MonthlyDay, time: TimeOfDay)
+    case yearly(month: Int, day: Int, time: TimeOfDay)
 
     struct TimeOfDay: Codable, Hashable {
         var hour: Int // 0-23
@@ -103,6 +113,98 @@ enum TickerSchedule: Codable, Hashable {
             case .saturday: return .saturday
             }
         }
+
+        var displayName: String {
+            switch self {
+            case .sunday: return "Sunday"
+            case .monday: return "Monday"
+            case .tuesday: return "Tuesday"
+            case .wednesday: return "Wednesday"
+            case .thursday: return "Thursday"
+            case .friday: return "Friday"
+            case .saturday: return "Saturday"
+            }
+        }
+
+        var shortDisplayName: String {
+            switch self {
+            case .sunday: return "Sun"
+            case .monday: return "Mon"
+            case .tuesday: return "Tue"
+            case .wednesday: return "Wed"
+            case .thursday: return "Thu"
+            case .friday: return "Fri"
+            case .saturday: return "Sat"
+            }
+        }
+    }
+
+    enum MonthlyDay: Codable, Hashable {
+        case fixed(Int) // 1-31
+        case firstWeekday(Weekday)
+        case lastWeekday(Weekday)
+        case firstOfMonth
+        case lastOfMonth
+    }
+
+    // MARK: - Display Summary
+
+    var displaySummary: String {
+        switch self {
+        case .oneTime(let date):
+            let formatter = DateFormatter()
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .short
+            return formatter.string(from: date)
+
+        case .daily(let time):
+            return "Daily at \(formatTime(time))"
+
+        case .hourly(let interval, _, let endTime):
+            if let endTime = endTime {
+                let formatter = DateFormatter()
+                formatter.timeStyle = .short
+                return "Every \(interval)h until \(formatter.string(from: endTime))"
+            } else {
+                return "Every \(interval) hour\(interval == 1 ? "" : "s")"
+            }
+
+        case .weekdays(let time, let days):
+            let sortedDays = days.sorted { $0.rawValue < $1.rawValue }
+            let dayNames = sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
+            return "\(dayNames) at \(formatTime(time))"
+
+        case .biweekly(let time, let weekdays, _):
+            let sortedDays = weekdays.sorted { $0.rawValue < $1.rawValue }
+            let dayNames = sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
+            return "Biweekly \(dayNames) at \(formatTime(time))"
+
+        case .monthly(let day, let time):
+            let dayDesc: String
+            switch day {
+            case .fixed(let d):
+                dayDesc = "Day \(d)"
+            case .firstWeekday(let weekday):
+                dayDesc = "First \(weekday.displayName)"
+            case .lastWeekday(let weekday):
+                dayDesc = "Last \(weekday.displayName)"
+            case .firstOfMonth:
+                dayDesc = "1st"
+            case .lastOfMonth:
+                dayDesc = "Last day"
+            }
+            return "Monthly \(dayDesc) at \(formatTime(time))"
+
+        case .yearly(let month, let day, let time):
+            let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            return "Yearly \(monthNames[month - 1]) \(day) at \(formatTime(time))"
+        }
+    }
+
+    private func formatTime(_ time: TimeOfDay) -> String {
+        let hour = time.hour % 12 == 0 ? 12 : time.hour % 12
+        let period = time.hour < 12 ? "AM" : "PM"
+        return String(format: "%d:%02d %@", hour, time.minute, period)
     }
 }
 
@@ -262,6 +364,11 @@ extension Ticker {
             return .relative(
                 .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
             )
+
+        case .hourly, .weekdays, .biweekly, .monthly, .yearly:
+            // Composite schedules are expanded into multiple one-time alarms
+            // by the TickerService, so they don't need direct AlarmKit mapping
+            return nil
         }
     }
 

@@ -39,29 +39,53 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
 
         print("⏰ Found \(alarmKitAlarms.count) alarms in AlarmKit")
 
-        // 2. Clean up template alarms that shouldn't be scheduled
-        // Fetch all Tickers to check which ones are disabled templates
+        // 2. Fetch all Tickers from SwiftData
         let allItemsDescriptor = FetchDescriptor<Ticker>()
         let allItems = (try? context.fetch(allItemsDescriptor)) ?? []
         let disabledItemIds = Set(allItems.filter { !$0.isEnabled }.map { $0.id })
 
+        // Build a map of all AlarmKit IDs (both single and composite generated)
+        var alarmKitIDsToTicker: [UUID: Ticker] = [:]
+        for ticker in allItems {
+            if let alarmKitID = ticker.alarmKitID {
+                alarmKitIDsToTicker[alarmKitID] = ticker
+            }
+            for generatedID in ticker.generatedAlarmKitIDs {
+                alarmKitIDsToTicker[generatedID] = ticker
+            }
+        }
+
+        // 3. Clean up disabled alarms and orphaned composite alarms
         var alarmsToKeep: [Alarm] = []
         for alarm in alarmKitAlarms {
-            // If this alarm corresponds to a disabled template, cancel it
+            // Check if this alarm belongs to a disabled ticker
             if disabledItemIds.contains(alarm.id) {
-                print("🗑️ Canceling template alarm: \(alarm.id)")
+                print("🗑️ Canceling disabled ticker alarm: \(alarm.id)")
                 try? alarmManager.cancel(id: alarm.id)
-            } else {
+                continue
+            }
+
+            // Check if this is an orphaned composite alarm (generated ID without parent ticker)
+            if let parentTicker = alarmKitIDsToTicker[alarm.id] {
+                // This alarm belongs to a known ticker
                 alarmsToKeep.append(alarm)
+            } else {
+                // Check if this could be a legacy simple alarm
+                if allItems.contains(where: { $0.id == alarm.id }) {
+                    alarmsToKeep.append(alarm)
+                } else {
+                    print("🗑️ Canceling orphaned alarm: \(alarm.id)")
+                    try? alarmManager.cancel(id: alarm.id)
+                }
             }
         }
 
         print("✅ Kept \(alarmsToKeep.count) valid alarms")
 
-        // 3. Update local TickerService state with valid alarms only
+        // 4. Update local TickerService state with valid alarms only
         for alarm in alarmsToKeep {
             // Look up metadata from SwiftData
-            let ticker = allItems.first { $0.id == alarm.id }
+            let ticker = alarmKitIDsToTicker[alarm.id] ?? allItems.first { $0.id == alarm.id }
 
             // If we have a ticker, use it; otherwise create a minimal one
             let tickerToUse: Ticker
@@ -82,11 +106,10 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
             print("✅ Loaded alarm: \(tickerToUse.label)")
         }
 
-        // 4. Ensure SwiftData entries exist for all AlarmKit alarms
-        // (This handles orphaned alarms that exist in AlarmKit but not SwiftData)
+        // 5. Ensure SwiftData entries exist for all AlarmKit alarms
         for alarm in alarmsToKeep {
             // If no SwiftData entry exists, create one
-            if !allItems.contains(where: { $0.id == alarm.id }) {
+            if !allItems.contains(where: { $0.id == alarm.id || $0.generatedAlarmKitIDs.contains(alarm.id) }) {
                 print("📝 Creating SwiftData entry for orphaned alarm: \(alarm.id)")
 
                 let alarmItem = Ticker(

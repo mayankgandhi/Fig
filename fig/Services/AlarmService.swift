@@ -109,18 +109,24 @@ final class TickerService: TickerServiceProtocol {
     @ObservationIgnored
     private let syncCoordinator: AlarmSyncCoordinatorProtocol
 
+    // Schedule expander
+    @ObservationIgnored
+    private let scheduleExpander: TickerScheduleExpanderProtocol
+
     // MARK: - Initialization
 
     init(
         alarmManager: AlarmManager = AlarmManager.shared,
         configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
         stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
-        syncCoordinator: AlarmSyncCoordinatorProtocol = AlarmSyncCoordinator()
+        syncCoordinator: AlarmSyncCoordinatorProtocol = AlarmSyncCoordinator(),
+        scheduleExpander: TickerScheduleExpanderProtocol = TickerScheduleExpander()
     ) {
         self.alarmManager = alarmManager
         self.configurationBuilder = configurationBuilder
         self.stateManager = stateManager
         self.syncCoordinator = syncCoordinator
+        self.scheduleExpander = scheduleExpander
     }
 
     // MARK: - Authorization
@@ -153,24 +159,45 @@ final class TickerService: TickerServiceProtocol {
             throw TickerServiceError.notAuthorized
         }
 
-        // 2. Build AlarmKit configuration
+        // 2. Determine if this is a simple or composite schedule
+        guard let schedule = alarmItem.schedule else {
+            throw TickerServiceError.invalidConfiguration
+        }
+
+        let isSimpleSchedule = isSimple(schedule)
+
+        if isSimpleSchedule {
+            // Simple schedule: 1:1 AlarmKit mapping (backward compatible)
+            try await scheduleSimpleAlarm(alarmItem, context: context)
+        } else {
+            // Composite schedule: Generate multiple AlarmKit alarms
+            try await scheduleCompositeAlarm(alarmItem, context: context)
+        }
+    }
+
+    // MARK: - Private Scheduling Methods
+
+    @MainActor
+    private func scheduleSimpleAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
+        // Build AlarmKit configuration
         guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
             throw TickerServiceError.invalidConfiguration
         }
 
-        // 3. Schedule with AlarmKit
+        // Schedule with AlarmKit
         do {
             _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
 
-            // 4. Update alarmKitID for tracking
+            // Update alarmKitID for tracking
             alarmItem.alarmKitID = alarmItem.id
             alarmItem.isEnabled = true
+            alarmItem.generatedAlarmKitIDs = []
 
-            // 5. Save to SwiftData
+            // Save to SwiftData
             context.insert(alarmItem)
             try context.save()
 
-            // 6. Update local state
+            // Update local state
             await stateManager.updateState(ticker: alarmItem)
 
         } catch let error as TickerServiceError {
@@ -183,10 +210,90 @@ final class TickerService: TickerServiceProtocol {
     }
 
     @MainActor
+    private func scheduleCompositeAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
+        guard let schedule = alarmItem.schedule else {
+            throw TickerServiceError.invalidConfiguration
+        }
+
+        // 1. Expand schedule into concrete dates
+        let now = Date()
+        let dates = scheduleExpander.expandSchedule(schedule, startingFrom: now, days: alarmItem.generationWindow)
+
+        guard !dates.isEmpty else {
+            throw TickerServiceError.invalidConfiguration
+        }
+
+        // 2. Generate alarm configurations for each date
+        var scheduledIDs: [UUID] = []
+
+        do {
+            for date in dates {
+                // Create a temporary one-time schedule for this occurrence
+                let oneTimeSchedule = TickerSchedule.oneTime(date: date)
+                let tempAlarmItem = createTemporaryAlarmItem(from: alarmItem, with: oneTimeSchedule)
+
+                guard let configuration = configurationBuilder.buildConfiguration(from: tempAlarmItem) else {
+                    continue
+                }
+
+                // Generate unique ID for this occurrence
+                let occurrenceID = UUID()
+                _ = try await alarmManager.schedule(id: occurrenceID, configuration: configuration)
+                scheduledIDs.append(occurrenceID)
+            }
+
+            // 3. Update ticker with generated IDs
+            alarmItem.generatedAlarmKitIDs = scheduledIDs
+            alarmItem.alarmKitID = nil // Clear legacy ID
+            alarmItem.isEnabled = true
+
+            // 4. Save to SwiftData
+            context.insert(alarmItem)
+            try context.save()
+
+            // 5. Update local state
+            await stateManager.updateState(ticker: alarmItem)
+
+        } catch {
+            // Rollback: cancel any scheduled alarms
+            for id in scheduledIDs {
+                try? alarmManager.cancel(id: id)
+            }
+            context.delete(alarmItem)
+            throw TickerServiceError.schedulingFailed(underlying: error)
+        }
+    }
+
+    private func isSimple(_ schedule: TickerSchedule) -> Bool {
+        switch schedule {
+        case .oneTime, .daily:
+            return true
+        case .hourly, .weekdays, .biweekly, .monthly, .yearly:
+            return false
+        }
+    }
+
+    private func createTemporaryAlarmItem(from original: Ticker, with schedule: TickerSchedule) -> Ticker {
+        let temp = Ticker(
+            id: original.id,
+            label: original.label,
+            isEnabled: true,
+            schedule: schedule,
+            countdown: original.countdown,
+            presentation: original.presentation,
+            tickerData: original.tickerData
+        )
+        return temp
+    }
+
+    @MainActor
     func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
-        // Cancel existing alarm
+        // Cancel all existing alarms (both legacy single and composite)
         if let alarmKitID = alarmItem.alarmKitID {
             try? alarmManager.cancel(id: alarmKitID)
+        }
+        for id in alarmItem.generatedAlarmKitIDs {
+            try? alarmManager.cancel(id: id)
         }
 
         // Save to SwiftData first
@@ -203,15 +310,46 @@ final class TickerService: TickerServiceProtocol {
                 throw TickerServiceError.notAuthorized
             }
 
-            guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
+            guard let schedule = alarmItem.schedule else {
                 throw TickerServiceError.invalidConfiguration
             }
 
-            do {
-                _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
-                alarmItem.alarmKitID = alarmItem.id
-                try context.save()
+            let isSimpleSchedule = isSimple(schedule)
 
+            do {
+                if isSimpleSchedule {
+                    // Simple schedule
+                    guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
+                        throw TickerServiceError.invalidConfiguration
+                    }
+
+                    _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
+                    alarmItem.alarmKitID = alarmItem.id
+                    alarmItem.generatedAlarmKitIDs = []
+                } else {
+                    // Composite schedule
+                    let now = Date()
+                    let dates = scheduleExpander.expandSchedule(schedule, startingFrom: now, days: alarmItem.generationWindow)
+
+                    var scheduledIDs: [UUID] = []
+                    for date in dates {
+                        let oneTimeSchedule = TickerSchedule.oneTime(date: date)
+                        let tempAlarmItem = createTemporaryAlarmItem(from: alarmItem, with: oneTimeSchedule)
+
+                        guard let configuration = configurationBuilder.buildConfiguration(from: tempAlarmItem) else {
+                            continue
+                        }
+
+                        let occurrenceID = UUID()
+                        _ = try await alarmManager.schedule(id: occurrenceID, configuration: configuration)
+                        scheduledIDs.append(occurrenceID)
+                    }
+
+                    alarmItem.generatedAlarmKitIDs = scheduledIDs
+                    alarmItem.alarmKitID = nil
+                }
+
+                try context.save()
                 await stateManager.updateState(ticker: alarmItem)
             } catch {
                 throw TickerServiceError.schedulingFailed(underlying: error)
@@ -223,23 +361,34 @@ final class TickerService: TickerServiceProtocol {
     }
 
     func cancelAlarm(id: UUID, context: ModelContext?) throws {
-        // Cancel with AlarmKit
-        try? alarmManager.cancel(id: id)
-
-        // Remove from local state
-        Task {
-            await stateManager.removeState(id: id)
-        }
-
-        // Delete from SwiftData if context provided
+        // Fetch the alarm to get all generated IDs
         if let context = context {
             Task { @MainActor in
                 let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
                 if let alarmItem = try? context.fetch(descriptor).first {
+                    // Cancel legacy single alarm
+                    if let alarmKitID = alarmItem.alarmKitID {
+                        try? alarmManager.cancel(id: alarmKitID)
+                    }
+
+                    // Cancel all generated composite alarms
+                    for generatedID in alarmItem.generatedAlarmKitIDs {
+                        try? alarmManager.cancel(id: generatedID)
+                    }
+
+                    // Delete from SwiftData
                     context.delete(alarmItem)
                     try? context.save()
                 }
             }
+        } else {
+            // Fallback: just try to cancel the main ID
+            try? alarmManager.cancel(id: id)
+        }
+
+        // Remove from local state
+        Task {
+            await stateManager.removeState(id: id)
         }
     }
 

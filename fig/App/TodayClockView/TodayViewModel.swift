@@ -10,62 +10,6 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-// MARK: - Presentation Model
-
-/// View-ready representation of an upcoming alarm with pre-calculated values
-struct UpcomingAlarmPresentation: Identifiable {
-    let id: UUID
-    let displayName: String
-    let icon: String
-    let color: Color
-    let nextAlarmTime: Date
-    let scheduleType: ScheduleType
-    let hour: Int
-    let minute: Int
-
-    enum ScheduleType {
-        case oneTime
-        case daily
-
-        var badgeText: String {
-            switch self {
-            case .oneTime: return "Once"
-            case .daily: return "Daily"
-            }
-        }
-
-        var badgeColor: Color {
-            switch self {
-            case .oneTime: return TickerColor.scheduled
-            case .daily: return TickerColor.running
-            }
-        }
-    }
-
-    /// Dynamically formatted time until alarm
-    func timeUntilAlarm(from currentDate: Date) -> String {
-        let interval = nextAlarmTime.timeIntervalSince(currentDate)
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
-
-        if hours > 0 {
-            return "in \(hours)h \(minutes)m"
-        } else if minutes > 0 {
-            return "in \(minutes)m"
-        } else {
-            return "now"
-        }
-    }
-
-    /// Clock angle for visualization (0° at 12, 90° at 3, 180° at 6, 270° at 9)
-    var angle: Double {
-        // Convert to 12-hour format for display
-        let hour12 = hour % 12
-        // Calculate angle: Each hour = 30°, each minute = 0.5°
-        return Double(hour12) * 30.0 + Double(minute) * 0.5
-    }
-}
-
 // MARK: - TodayViewModel
 
 @Observable
@@ -102,6 +46,10 @@ final class TodayViewModel {
                 case .daily(let time):
                     let nextOccurrence = getNextOccurrence(for: time, from: now)
                     return nextOccurrence <= next12Hours
+
+                case .hourly, .weekdays, .biweekly, .monthly, .yearly:
+                    // Composite schedules are not shown in the Today view for simplicity
+                    return false
                 }
             }
             .sorted { alarm1, alarm2 in
@@ -141,6 +89,8 @@ final class TodayViewModel {
             switch schedule {
             case .oneTime: return .oneTime
             case .daily: return .daily
+            case .hourly, .weekdays, .biweekly, .monthly, .yearly:
+                return .daily // Treat composite schedules as daily for display
             }
         }()
 
@@ -190,6 +140,9 @@ final class TodayViewModel {
             return alarmDate
         case .daily(let time):
             return getNextOccurrence(for: time, from: date)
+        case .hourly, .weekdays, .biweekly, .monthly, .yearly:
+            // Composite schedules are not shown in the Today view
+            return Date.distantFuture
         }
     }
 

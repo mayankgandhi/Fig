@@ -107,14 +107,68 @@ final class AddTickerViewModel {
             return
         }
 
+        let time = TickerSchedule.TimeOfDay(
+            hour: timePickerViewModel.selectedHour,
+            minute: timePickerViewModel.selectedMinute
+        )
+
         let schedule: TickerSchedule
-        if repeatViewModel.isDailyRepeat {
-            schedule = .daily(time: TickerSchedule.TimeOfDay(
-                hour: timePickerViewModel.selectedHour,
-                minute: timePickerViewModel.selectedMinute
-            ))
-        } else {
+        switch repeatViewModel.selectedOption {
+        case .noRepeat:
             schedule = .oneTime(date: finalDate)
+
+        case .daily:
+            schedule = .daily(time: time)
+
+        case .weekdays:
+            guard !repeatViewModel.selectedWeekdays.isEmpty else {
+                errorMessage = "Please select at least one weekday"
+                showingError = true
+                return
+            }
+            schedule = .weekdays(time: time, days: repeatViewModel.selectedWeekdays)
+
+        case .hourly:
+            schedule = .hourly(
+                interval: repeatViewModel.hourlyInterval,
+                startTime: repeatViewModel.hourlyStartTime,
+                endTime: repeatViewModel.hourlyEndTime
+            )
+
+        case .biweekly:
+            guard !repeatViewModel.biweeklyWeekdays.isEmpty else {
+                errorMessage = "Please select at least one weekday for biweekly repeat"
+                showingError = true
+                return
+            }
+            schedule = .biweekly(
+                time: time,
+                weekdays: repeatViewModel.biweeklyWeekdays,
+                anchorDate: repeatViewModel.biweeklyAnchorDate
+            )
+
+        case .monthly:
+            let monthlyDay: TickerSchedule.MonthlyDay
+            switch repeatViewModel.monthlyDayType {
+            case .fixed:
+                monthlyDay = .fixed(repeatViewModel.monthlyFixedDay)
+            case .firstWeekday:
+                monthlyDay = .firstWeekday(repeatViewModel.monthlyWeekday)
+            case .lastWeekday:
+                monthlyDay = .lastWeekday(repeatViewModel.monthlyWeekday)
+            case .firstOfMonth:
+                monthlyDay = .firstOfMonth
+            case .lastOfMonth:
+                monthlyDay = .lastOfMonth
+            }
+            schedule = .monthly(day: monthlyDay, time: time)
+
+        case .yearly:
+            schedule = .yearly(
+                month: repeatViewModel.yearlyMonth,
+                day: repeatViewModel.yearlyDay,
+                time: time
+            )
         }
 
         // Build countdown

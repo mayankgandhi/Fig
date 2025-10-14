@@ -127,16 +127,16 @@ struct AlarmCell: View {
         switch schedule {
         case .oneTime: return "calendar"
         case .daily: return "repeat"
+        case .hourly: return "clock"
+        case .weekdays: return "calendar.badge.clock"
+        case .biweekly: return "calendar.badge.clock"
+        case .monthly: return "calendar.circle"
+        case .yearly: return "calendar.badge.exclamationmark"
         }
     }
 
     private func scheduleDescription(for schedule: TickerSchedule) -> String {
-        switch schedule {
-        case .oneTime(let date):
-            return date.formatted(date: .abbreviated, time: .omitted)
-        case .daily:
-            return "Every day"
-        }
+        return schedule.displaySummary
     }
 
     @ViewBuilder
@@ -144,8 +144,11 @@ struct AlarmCell: View {
         switch schedule {
         case .oneTime(let date):
             Text(date, style: .time)
-        case .daily(let time):
+        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _, _), .monthly(_, let time), .yearly(_, _, let time):
             Text(formatTime(time))
+        case .hourly:
+            Image(systemName: "clock")
+                .font(.system(size: 20, weight: .medium))
         }
     }
 

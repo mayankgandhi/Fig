@@ -1,5 +1,5 @@
 /*
-See the LICENSE.txt file for this sample’s licensing information.
+See the LICENSE.txt file for this sample's licensing information.
 
 Abstract:
 The entry point for the app's widget (and Live Activity).
@@ -12,5 +12,6 @@ import SwiftUI
 struct AlarmLiveActivityBundle: WidgetBundle {
     var body: some Widget {
         AlarmLiveActivity()
+        ClockWidget()
     }
 }
