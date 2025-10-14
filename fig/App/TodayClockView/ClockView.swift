@@ -9,22 +9,22 @@ import SwiftUI
 
 struct ClockView: View {
     @Environment(\.colorScheme) private var colorScheme
-    
+
     struct MinuteMark: Identifiable {
         var id: Double {
             angle
         }
         var angle: Double
     }
-    
-    
+
+
     struct HourMark: Identifiable {
         var id: Int
         var time: Int?
         var angle: Double
         var textAngle: Double?
     }
-    
+
     var upcomingAlarms: [UpcomingAlarmPresentation]
     @State private var currentTime = Date()
     
@@ -127,7 +127,7 @@ struct ClockView: View {
                                         .fill(event.color.opacity(1))
                                         .frame(width: handLength * 0.15, height: handLength)
                                 )
-                            
+
                         }
                         .offset(y: -handLength * 0.50)
                         .rotationEffect(Angle(degrees: event.angle))

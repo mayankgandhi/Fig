@@ -8,59 +8,69 @@
 import SwiftUI
 
 struct IntroView: View {
-    
+
     @Environment(\.colorScheme) var colorScheme
-    
-    @State var showDetails = false
-    
+    let onContinue: () -> Void
+
     var body: some View {
-        VStack(alignment: .center, spacing: TickerSpacing.md) {
-            Image("AppIconImage")
-                .resizable()
-                .frame(width: 100, height: 100)
-            VStack(alignment: .leading, spacing: TickerSpacing.xs) {
-                Text("Welcome To Ticker")
-                    .Title()
-                Text("Never Forget What Matters Most")
-                    .Headline()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-            }
-            
+        VStack(spacing: TickerSpacing.xxxl) {
             Spacer()
 
-            if showDetails {
-                // Moves in from the bottom
-                Text("Details go here.")
-                    .transition(.move(edge: .bottom))
-    
-            } else {
-                Button("Proceed") {
-                    withAnimation {
-                        showDetails.toggle()
-                    }
-                }
-                .tickerPrimaryButton()
-                .transition(.move(edge: .top))
-                
-            }
-            
-        }
-        .padding(.horizontal, TickerSpacing.md)
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-        .background(
-            ZStack {
-                TickerColor.liquidGlassGradient(for: colorScheme)
-                    .ignoresSafeArea()
+            VStack(alignment: .center, spacing: TickerSpacing.lg) {
+                // App Icon
+                Image("AppIconImage")
+                    .resizable()
+                    .frame(width: 120, height: 120)
+                    .clipShape(RoundedRectangle(cornerRadius: 26))
+                    .shadow(
+                        color: TickerShadow.elevated.color,
+                        radius: TickerShadow.elevated.radius,
+                        x: TickerShadow.elevated.x,
+                        y: TickerShadow.elevated.y
+                    )
 
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .opacity(0.1)
-                        .ignoresSafeArea()
+                // Title and subtitle
+                VStack(spacing: TickerSpacing.xs) {
+                    Text("Welcome To Ticker")
+                        .Title()
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                        .multilineTextAlignment(.center)
+
+                    Text("Never Forget What Matters Most")
+                        .Headline()
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                        .multilineTextAlignment(.center)
                 }
-            )
+            }
+
+            Spacer()
+
+            // Continue button
+            Button {
+                TickerHaptics.standardAction()
+                onContinue()
+            } label: {
+                HStack(spacing: TickerSpacing.xs) {
+                    Text("Continue")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 16, weight: .bold))
+                }
+            }
+            .tickerPrimaryButton()
+            .padding(.horizontal, TickerSpacing.lg)
+
+            Spacer()
+                .frame(height: TickerSpacing.xxxl)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(.horizontal, TickerSpacing.lg)
     }
 }
 
 #Preview {
-    IntroView()
+    IntroView(onContinue: {
+        print("Continue tapped")
+    })
 }

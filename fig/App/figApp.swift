@@ -10,6 +10,8 @@ import SwiftData
 
 @main
 struct figApp: App {
+    @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Ticker.self
@@ -27,12 +29,21 @@ struct figApp: App {
 
     var body: some Scene {
         WindowGroup {
-            AppView()
-                .environment(alarmService)
-                .task {
-                    // Synchronize alarms on app launch
-                    await alarmService.synchronizeAlarmsOnLaunch(context: sharedModelContainer.mainContext)
+            Group {
+                if hasCompletedOnboarding {
+                    // Main app
+                    AppView()
+                        .environment(alarmService)
+                        .task {
+                            // Synchronize alarms on app launch
+                            await alarmService.synchronizeAlarmsOnLaunch(context: sharedModelContainer.mainContext)
+                        }
+                } else {
+                    // Onboarding flow
+                    OnboardingContainerView()
                 }
+            }
+            .animation(.easeInOut(duration: 0.3), value: hasCompletedOnboarding)
         }
         .modelContainer(sharedModelContainer)
     }
