@@ -18,34 +18,43 @@ struct ExpandableOverlayContainer<Content: View>: View {
             VStack(spacing: 0) {
                 Spacer()
 
-                content()
-                    .padding(.horizontal, TickerSpacing.md)
-                    .padding(.bottom, TickerSpacing.lg)
-                    .background(
-                        RoundedRectangle(cornerRadius: TickerRadius.large, style: .continuous)
-                            .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
-                            .background(.ultraThinMaterial.opacity(0.8))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: TickerRadius.large, style: .continuous)
-                                    .strokeBorder(
-                                        LinearGradient(
-                                            colors: [
-                                                TickerColor.primary.opacity(0.3),
-                                                TickerColor.primary.opacity(0.1)
-                                            ],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        ),
-                                        lineWidth: 1
-                                    )
-                            )
-                            .shadow(
-                                color: Color.black.opacity(0.15),
-                                radius: 20,
-                                x: 0,
-                                y: -10
-                            )
-                    )
+                VStack(spacing: 0) {
+                    // Handle
+                    RoundedRectangle(cornerRadius: 2, style: .continuous)
+                        .fill(TickerColor.textTertiary(for: colorScheme))
+                        .frame(width: 36, height: 4)
+                        .padding(.top, TickerSpacing.md)
+                        .padding(.bottom, TickerSpacing.sm)
+
+                    content()
+                        .padding(.horizontal, TickerSpacing.md)
+                        .padding(.bottom, TickerSpacing.lg)
+                }
+                .background(
+                    RoundedRectangle(cornerRadius: TickerRadius.large, style: .continuous)
+                        .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
+                        .background(.ultraThinMaterial.opacity(0.8))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: TickerRadius.large, style: .continuous)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            TickerColor.primary.opacity(0.3),
+                                            TickerColor.primary.opacity(0.1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
+                        )
+                        .shadow(
+                            color: Color.black.opacity(0.15),
+                            radius: 20,
+                            x: 0,
+                            y: -10
+                        )
+                )
                     .transition(
                         .asymmetric(
                             insertion: .move(edge: .bottom)

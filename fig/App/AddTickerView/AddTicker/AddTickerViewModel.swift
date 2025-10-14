@@ -72,7 +72,7 @@ final class AddTickerViewModel {
     // MARK: - Computed Properties
 
     var canSave: Bool {
-        labelViewModel.isValid && countdownViewModel.isValid && !hasDateWeekdayMismatch
+        labelViewModel.isValid && countdownViewModel.isValid && repeatConfigIsValid && !hasDateWeekdayMismatch
     }
     
     /// Checks if the selected date conflicts with the selected weekdays
@@ -100,6 +100,74 @@ final class AddTickerViewModel {
         
         let selectedDayNames = repeatViewModel.selectedWeekdays.map { $0.displayName }.joined(separator: ", ")
         return "Selected date (\(tickerWeekday.displayName)) doesn't match selected days (\(selectedDayNames))"
+    }
+
+    /// Validates configuration specific to the selected repeat option
+    var repeatConfigIsValid: Bool {
+        switch repeatViewModel.selectedOption {
+        case .noRepeat, .daily:
+            return true
+        case .weekdays:
+            return !repeatViewModel.selectedWeekdays.isEmpty
+        case .hourly:
+            if repeatViewModel.hourlyInterval < 1 { return false }
+            if let end = repeatViewModel.hourlyEndTime {
+                return end > repeatViewModel.hourlyStartTime
+            }
+            return true
+        case .biweekly:
+            return !repeatViewModel.biweeklyWeekdays.isEmpty
+        case .monthly:
+            if repeatViewModel.monthlyDayType == .fixed {
+                return (1...31).contains(repeatViewModel.monthlyFixedDay)
+            }
+            return true
+        case .yearly:
+            return (1...12).contains(repeatViewModel.yearlyMonth) && (1...31).contains(repeatViewModel.yearlyDay)
+        }
+    }
+
+    /// Aggregated validation messages for inline UI presentation
+    var validationMessages: [String] {
+        var messages: [String] = []
+
+        if !labelViewModel.isValid {
+            messages.append("Label must be 50 characters or fewer")
+        }
+        if !countdownViewModel.isValid {
+            messages.append("Countdown must be greater than 0 seconds")
+        }
+        if let mismatch = dateWeekdayMismatchMessage { messages.append(mismatch) }
+
+        switch repeatViewModel.selectedOption {
+        case .weekdays:
+            if repeatViewModel.selectedWeekdays.isEmpty {
+                messages.append("Select at least one weekday")
+            }
+        case .biweekly:
+            if repeatViewModel.biweeklyWeekdays.isEmpty {
+                messages.append("Select at least one weekday for biweekly repeat")
+            }
+        case .hourly:
+            if repeatViewModel.hourlyInterval < 1 {
+                messages.append("Hourly interval must be at least 1 hour")
+            }
+            if let end = repeatViewModel.hourlyEndTime, end <= repeatViewModel.hourlyStartTime {
+                messages.append("Hourly end time must be after start time")
+            }
+        case .monthly:
+            if repeatViewModel.monthlyDayType == .fixed && !(1...31).contains(repeatViewModel.monthlyFixedDay) {
+                messages.append("Monthly day must be between 1 and 31")
+            }
+        case .yearly:
+            if !(1...12).contains(repeatViewModel.yearlyMonth) || !(1...31).contains(repeatViewModel.yearlyDay) {
+                messages.append("Select a valid month and day")
+            }
+        default:
+            break
+        }
+
+        return messages
     }
 
     // MARK: - Methods
@@ -193,6 +261,17 @@ final class AddTickerViewModel {
             schedule = .weekdays(time: time, days: repeatViewModel.selectedWeekdays, startDate: calendarViewModel.selectedDate)
 
         case .hourly:
+            // Validate hourly configuration
+            guard repeatViewModel.hourlyInterval >= 1 else {
+                errorMessage = "Hourly interval must be at least 1 hour"
+                showingError = true
+                return
+            }
+            if let end = repeatViewModel.hourlyEndTime, end <= repeatViewModel.hourlyStartTime {
+                errorMessage = "Hourly end time must be after start time"
+                showingError = true
+                return
+            }
             schedule = .hourly(
                 interval: repeatViewModel.hourlyInterval,
                 startTime: repeatViewModel.hourlyStartTime,
