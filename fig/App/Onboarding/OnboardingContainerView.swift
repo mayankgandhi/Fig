@@ -9,12 +9,13 @@ import SwiftUI
 
 struct OnboardingContainerView: View {
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(AlarmService.self) private var alarmService
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
     @State private var currentPage: Int = 0
     @State private var animationComplete: Bool = false
 
-    private let totalPages = 3
+    private let totalPages = 4
 
     var body: some View {
         ZStack {
@@ -37,17 +38,33 @@ struct OnboardingContainerView: View {
                     // Auto-advance after animation completes
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                            currentPage = 2
+                            // Check if we need to show AlarmKit permission page
+                            if alarmService.authorizationStatus == .notDetermined {
+                                currentPage = 2
+                            } else {
+                                // Skip to Get Started if already authorized
+                                currentPage = 3
+                            }
                         }
                     }
                 })
                 .tag(1)
 
-                // Page 3: Get Started
+                // Page 3: AlarmKit Permission (conditional)
+                if alarmService.authorizationStatus == .notDetermined {
+                    AlarmKitPermissionView(onContinue: {
+                        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                            currentPage = 3
+                        }
+                    })
+                    .tag(2)
+                }
+
+                // Page 4: Get Started
                 GetStartedView(onGetStarted: {
                     completeOnboarding()
                 })
-                .tag(2)
+                .tag(3)
             }
             .tabViewStyle(.page(indexDisplayMode: .never))
             .ignoresSafeArea()
@@ -56,6 +73,8 @@ struct OnboardingContainerView: View {
             VStack {
                 Spacer()
 
+                // Show page indicators on Welcome and Animation screens
+                // Hide on AlarmKit Permission and Get Started screens
                 if currentPage < 2 {
                     PageIndicator(currentPage: currentPage, totalPages: totalPages)
                         .padding(.bottom, TickerSpacing.xxxl)
@@ -111,4 +130,5 @@ struct PageIndicator: View {
 
 #Preview("Onboarding Flow") {
     OnboardingContainerView()
+        .environment(AlarmService())
 }

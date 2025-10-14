@@ -41,6 +41,7 @@ struct figApp: App {
                 } else {
                     // Onboarding flow
                     OnboardingContainerView()
+                        .environment(alarmService)
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: hasCompletedOnboarding)
