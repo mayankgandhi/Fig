@@ -81,12 +81,12 @@ final class Ticker {
 
 enum TickerSchedule: Codable, Hashable {
     case oneTime(date: Date)
-    case daily(time: TimeOfDay)
+    case daily(time: TimeOfDay, startDate: Date)
     case hourly(interval: Int, startTime: Date, endTime: Date?)
-    case weekdays(time: TimeOfDay, days: Array<Weekday>)
+    case weekdays(time: TimeOfDay, days: Array<Weekday>, startDate: Date)
     case biweekly(time: TimeOfDay, weekdays: Array<Weekday>, anchorDate: Date)
-    case monthly(day: MonthlyDay, time: TimeOfDay)
-    case yearly(month: Int, day: Int, time: TimeOfDay)
+    case monthly(day: MonthlyDay, time: TimeOfDay, startDate: Date)
+    case yearly(month: Int, day: Int, time: TimeOfDay, startDate: Date)
 
     struct TimeOfDay: Codable, Hashable {
         var hour: Int // 0-23
@@ -174,7 +174,7 @@ extension TickerSchedule {
             formatter.timeStyle = .short
             return formatter.string(from: date)
 
-        case .daily(let time):
+        case .daily(let time, _):
             return "Daily at \(formatTime(time))"
 
         case .hourly(let interval, _, let endTime):
@@ -186,7 +186,7 @@ extension TickerSchedule {
                 return "Every \(interval) hour\(interval == 1 ? "" : "s")"
             }
 
-        case .weekdays(let time, let days):
+        case .weekdays(let time, let days, _):
             let sortedDays = days.sorted { $0.rawValue < $1.rawValue }
             let dayNames = sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
             return "\(dayNames) at \(formatTime(time))"
@@ -196,7 +196,7 @@ extension TickerSchedule {
             let dayNames = sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
             return "Biweekly \(dayNames) at \(formatTime(time))"
 
-        case .monthly(let day, let time):
+        case .monthly(let day, let time, _):
             let dayDesc: String
             switch day {
             case .fixed(let d):
@@ -212,7 +212,7 @@ extension TickerSchedule {
             }
             return "Monthly \(dayDesc) at \(formatTime(time))"
 
-        case .yearly(let month, let day, let time):
+        case .yearly(let month, let day, let time, _):
             let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
             return "Yearly \(monthNames[month - 1]) \(day) at \(formatTime(time))"
         }
@@ -376,7 +376,7 @@ extension Ticker {
         case .oneTime(let date):
             return .fixed(date)
 
-        case .daily(let time):
+        case .daily(let time, _):
             let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
             return .relative(
                 .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))

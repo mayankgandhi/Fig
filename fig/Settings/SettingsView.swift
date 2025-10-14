@@ -14,45 +14,84 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
+                VStack(spacing: TickerSpacing.lg) {
+                    
+                    // Header Section
+                    headerSection
+                        .padding(.horizontal, TickerSpacing.md)
 
                     // App Settings Section
                     appSettingsSection
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, TickerSpacing.md)
 
                     // Customization Section
                     customizationSection
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, TickerSpacing.md)
 
                     // Data Section
                     dataSection
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, TickerSpacing.md)
 
-                    Spacer(minLength: 32)
+                    Spacer(minLength: TickerSpacing.xxl)
                 }
-                .padding(.vertical, 24)
+                .padding(.vertical, TickerSpacing.lg)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(
+                ZStack {
+                    TickerColor.liquidGlassGradient(for: colorScheme)
+                        .ignoresSafeArea()
+                    
+                    // Subtle overlay for glass effect
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.1)
+                        .ignoresSafeArea()
+                }
+            )
             .presentationCompactAdaptation(.sheet)
             .presentationDragIndicator(.visible)
             .navigationTitle("Settings")
             .toolbarTitleDisplayMode(.inlineLarge)
-
         }
     }
 
     // MARK: - View Components
+    
+    private var headerSection: some View {
+        VStack(spacing: TickerSpacing.sm) {
+            HStack {
+                VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
+                    Text("Configure Your Experience")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                    
+                    Text("Customize alarms, manage data, and get support")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                }
+                
+                Spacer()
+                
+                // App icon or decorative element
+                ZStack {
+                    Circle()
+                        .fill(TickerColor.primary.opacity(0.1))
+                        .frame(width: 60, height: 60)
+                    
+                    Image(systemName: "gearshape.2.fill")
+                        .font(.system(size: 24, weight: .semibold))
+                        .foregroundStyle(TickerColor.primary)
+                }
+            }
+        }
+        .padding(.vertical, TickerSpacing.md)
+    }
 
     private var appSettingsSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("APP SETTINGS")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 4)
-
-            VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            sectionHeader(title: "App Settings", icon: "app.badge")
+            
+            VStack(spacing: TickerSpacing.xs) {
                 AboutView()
                 FAQView()
                 HelpSupportView()
@@ -61,33 +100,46 @@ struct SettingsView: View {
     }
 
     private var customizationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("CUSTOMIZATION")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 4)
-
-            VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            sectionHeader(title: "Customization", icon: "paintbrush.fill")
+            
+            VStack(spacing: TickerSpacing.xs) {
                 AlarmTypesView()
             }
         }
     }
 
     private var dataSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("DATA")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .textCase(.uppercase)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.leading, 4)
-
-            VStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            sectionHeader(title: "Data Management", icon: "externaldrive.fill")
+            
+            VStack(spacing: TickerSpacing.xs) {
                 DeleteAllDataView()
             }
         }
+    }
+    
+    private func sectionHeader(title: String, icon: String) -> some View {
+        HStack(spacing: TickerSpacing.sm) {
+            ZStack {
+                Circle()
+                    .fill(TickerColor.primary.opacity(0.1))
+                    .frame(width: 24, height: 24)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(TickerColor.primary)
+            }
+            
+            Text(title)
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                .textCase(.uppercase)
+                .tracking(0.5)
+            
+            Spacer()
+        }
+        .padding(.leading, TickerSpacing.xs)
     }
 }
 

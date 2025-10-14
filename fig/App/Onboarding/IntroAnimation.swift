@@ -128,7 +128,7 @@ struct IntroAnimation: View {
                     // Clock View - constrained size
                     if showClock {
                         VStack(spacing: TickerSpacing.sm) {
-                            ClockView(upcomingAlarms: scheduledAlarms)
+                            ClockView(upcomingAlarms: scheduledAlarms, shouldAnimateAlarms: false)
                                 .frame(height: min(280, geometry.size.height * 0.45))
                                 .padding(.horizontal, TickerSpacing.lg)
                                 .transition(

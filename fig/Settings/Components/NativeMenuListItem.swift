@@ -15,6 +15,7 @@ struct NativeMenuListItem: View {
     let action: () -> Void
 
     @Environment(\.colorScheme) private var colorScheme
+    @State private var isPressed = false
 
     init(
         icon: String,
@@ -31,124 +32,176 @@ struct NativeMenuListItem: View {
     }
 
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                // Icon with circular background
+        Button(action: {
+            TickerHaptics.selection()
+            action()
+        }) {
+            HStack(spacing: TickerSpacing.md) {
+                // Enhanced icon with gradient background
                 ZStack {
                     Circle()
-                        .fill(iconColor)
-                        .frame(width: 32, height: 32)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    iconColor,
+                                    iconColor.opacity(0.8)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 40, height: 40)
+                        .shadow(
+                            color: iconColor.opacity(0.3),
+                            radius: 4,
+                            x: 0,
+                            y: 2
+                        )
 
                     Image(systemName: icon)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(.white)
                 }
 
-                // Title and subtitle
-                VStack(alignment: .leading, spacing: 2) {
+                // Title and subtitle with improved typography
+                VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                     Text(title)
-                        .font(.system(size: 17, weight: .regular))
-                        .foregroundStyle(.primary)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                     if let subtitle = subtitle {
                         Text(subtitle)
-                            .font(.system(size: 13, weight: .regular))
-                            .foregroundStyle(.secondary)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     }
                 }
 
                 Spacer()
 
-                // Chevron indicator
+                // Enhanced chevron with subtle animation
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                    .scaleEffect(isPressed ? 0.9 : 1.0)
+                    .animation(TickerAnimation.quick, value: isPressed)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, TickerSpacing.md)
+            .padding(.vertical, TickerSpacing.md)
             .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(colorScheme == .dark ? Color(.systemGray6) : Color(.systemBackground))
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .fill(TickerColor.surface(for: colorScheme))
+                    .shadow(
+                        color: TickerShadow.subtle.color,
+                        radius: TickerShadow.subtle.radius,
+                        x: TickerShadow.subtle.x,
+                        y: TickerShadow.subtle.y
+                    )
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10)
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
                     .strokeBorder(
-                        colorScheme == .dark ? Color(.systemGray5) : Color(.systemGray5),
+                        TickerColor.textTertiary(for: colorScheme).opacity(0.2),
                         lineWidth: 0.5
                     )
             )
+            .scaleEffect(isPressed ? 0.98 : 1.0)
+            .opacity(isPressed ? 0.8 : 1.0)
+            .animation(TickerAnimation.quick, value: isPressed)
         }
         .buttonStyle(.plain)
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            isPressed = pressing
+        }, perform: {})
     }
 }
 
 // MARK: - Preview
 
 #Preview("Light Mode") {
-    VStack(spacing: 8) {
+    VStack(spacing: TickerSpacing.xs) {
         NativeMenuListItem(
             icon: "info.circle",
             title: "About",
             subtitle: "App version and information",
-            iconColor: .blue
+            iconColor: TickerColor.primary
         ) {}
 
         NativeMenuListItem(
             icon: "questionmark.circle",
             title: "FAQ",
             subtitle: "Frequently asked questions",
-            iconColor: .purple
+            iconColor: TickerColor.accent
         ) {}
 
         NativeMenuListItem(
             icon: "envelope",
             title: "Help & Support",
             subtitle: "Get help or send feedback",
-            iconColor: .green
+            iconColor: TickerColor.success
         ) {}
 
         NativeMenuListItem(
             icon: "trash",
             title: "Delete All Data",
             subtitle: "Clear all scheduled alarms",
-            iconColor: .red
+            iconColor: TickerColor.danger
         ) {}
     }
-    .padding()
-    .background(Color(.systemGroupedBackground))
+    .padding(TickerSpacing.md)
+    .background(
+        ZStack {
+            TickerColor.liquidGlassGradient(for: .light)
+                .ignoresSafeArea()
+            
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.1)
+                .ignoresSafeArea()
+        }
+    )
 }
 
 #Preview("Dark Mode") {
-    VStack(spacing: 8) {
+    VStack(spacing: TickerSpacing.xs) {
         NativeMenuListItem(
             icon: "info.circle",
             title: "About",
             subtitle: "App version and information",
-            iconColor: .blue
+            iconColor: TickerColor.primary
         ) {}
 
         NativeMenuListItem(
             icon: "questionmark.circle",
             title: "FAQ",
             subtitle: "Frequently asked questions",
-            iconColor: .purple
+            iconColor: TickerColor.accent
         ) {}
 
         NativeMenuListItem(
             icon: "envelope",
             title: "Help & Support",
             subtitle: "Get help or send feedback",
-            iconColor: .green
+            iconColor: TickerColor.success
         ) {}
 
         NativeMenuListItem(
             icon: "trash",
             title: "Delete All Data",
             subtitle: "Clear all scheduled alarms",
-            iconColor: .red
+            iconColor: TickerColor.danger
         ) {}
     }
-    .padding()
-    .background(Color(.systemGroupedBackground))
+    .padding(TickerSpacing.md)
+    .background(
+        ZStack {
+            TickerColor.liquidGlassGradient(for: .dark)
+                .ignoresSafeArea()
+            
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.1)
+                .ignoresSafeArea()
+        }
+    )
     .preferredColorScheme(.dark)
 }

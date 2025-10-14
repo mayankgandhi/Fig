@@ -144,7 +144,7 @@ struct AlarmCell: View {
         switch schedule {
         case .oneTime(let date):
             Text(date, style: .time)
-        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _, _), .monthly(_, let time), .yearly(_, _, let time):
+        case .daily(let time, _), .weekdays(let time, _, _), .biweekly(let time, _, _), .monthly(_, let time, _), .yearly(_, _, let time, _):
             Text(formatTime(time))
         case .hourly:
             Image(systemName: "clock")
@@ -199,10 +199,15 @@ struct AlarmCell: View {
 #Preview {
     VStack(spacing: TickerSpacing.md) {
         // Daily alarm example
-        AlarmCell(alarmItem: Ticker(
+        AlarmCell(
+alarmItem: Ticker(
             label: "Lunch Break",
             isEnabled: true,
-            schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 12, minute: 30)),
+            schedule: 
+                    .daily(
+                        time: TickerSchedule.TimeOfDay(hour: 12, minute: 30),
+                        startDate: .now
+                    ),
             countdown: nil,
             presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
             tickerData: TickerData(
@@ -210,7 +215,8 @@ struct AlarmCell: View {
                 icon: "fork.knife",
                 colorHex: "#06B6D4"
             )
-        ))
+        )
+)
 
         // One-time alarm example
         AlarmCell(alarmItem: Ticker(
@@ -232,10 +238,15 @@ struct AlarmCell: View {
         ))
 
         // Disabled alarm example
-        AlarmCell(alarmItem: Ticker(
+        AlarmCell(
+alarmItem: Ticker(
             label: "Bedtime Reminder",
             isEnabled: false,
-            schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 22, minute: 0)),
+            schedule: 
+                    .daily(
+                        time: TickerSchedule.TimeOfDay(hour: 22, minute: 0),
+                        startDate: .now
+                    ),
             countdown: nil,
             presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
             tickerData: TickerData(
@@ -243,7 +254,8 @@ struct AlarmCell: View {
                 icon: "bed.double.fill",
                 colorHex: "#6366F1"
             )
-        ))
+        )
+)
     }
     .padding()
     .background(

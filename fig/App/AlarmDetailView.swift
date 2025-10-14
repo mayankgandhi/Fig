@@ -243,7 +243,7 @@ struct AlarmDetailView: View {
             formatter.timeStyle = .short
             return formatter.string(from: date)
 
-        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _, _), .monthly(_, let time), .yearly(_, _, let time):
+        case .daily(let time, _), .weekdays(let time, _, _), .biweekly(let time, _, _), .monthly(_, let time, _), .yearly(_, _, let time, _):
             let formatter = DateFormatter()
             formatter.timeStyle = .short
             var components = DateComponents()
@@ -292,13 +292,13 @@ struct AlarmDetailView: View {
             return "Every day"
         case .hourly(let interval, _, _):
             return "Every \(interval)h"
-        case .weekdays(_, let days):
+        case .weekdays(_, let days, _):
             let sortedDays = days.sorted { $0.rawValue < $1.rawValue }
             return sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
         case .biweekly(_, let weekdays, _):
             let sortedDays = weekdays.sorted { $0.rawValue < $1.rawValue }
             return "Biweekly " + sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
-        case .monthly(let day, _):
+        case .monthly(let day, _, _):
             switch day {
             case .fixed(let d): return "Day \(d)"
             case .firstWeekday(let weekday): return "First \(weekday.shortDisplayName)"
@@ -306,7 +306,7 @@ struct AlarmDetailView: View {
             case .firstOfMonth: return "1st of month"
             case .lastOfMonth: return "Last of month"
             }
-        case .yearly(let month, let day, _):
+        case .yearly(let month, let day, _, _):
             let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
             return "\(monthNames[month - 1]) \(day)"
         }
@@ -357,7 +357,11 @@ struct AlarmDetailView: View {
         alarm: Ticker(
             label: "Morning Workout",
             isEnabled: true,
-            schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)),
+            schedule: 
+                    .daily(
+                        time: TickerSchedule.TimeOfDay(hour: 6, minute: 30),
+                        startDate: .now
+                    ),
             countdown: TickerCountdown(
                 preAlert: TickerCountdown.CountdownDuration(hours: 0, minutes: 5, seconds: 0),
                 postAlert: nil
@@ -368,7 +372,8 @@ struct AlarmDetailView: View {
                 colorHex: "#FF6B35"
             )
         ),
-        onEdit: {},
+        onEdit: {
+},
         onDelete: {}
     )
     .environment(tickerService)

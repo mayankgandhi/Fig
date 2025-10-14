@@ -99,7 +99,7 @@ struct ClockWidgetProvider: TimelineProvider {
                 guard date >= now && date <= next12Hours else { return nil }
                 nextAlarmTime = date
 
-            case .daily(let time):
+            case .daily(let time, _):
                 let nextOccurrence = getNextOccurrence(for: time, from: now, calendar: calendar)
                 guard nextOccurrence <= next12Hours else { return nil }
                 nextAlarmTime = nextOccurrence
@@ -188,7 +188,7 @@ struct ClockWidgetView: View {
                 .ignoresSafeArea()
 
             // Clock view
-            ClockView(upcomingAlarms: entry.upcomingAlarms)
+            ClockView(upcomingAlarms: entry.upcomingAlarms, shouldAnimateAlarms: false)
                 .padding()
         }
         .containerBackground(for: .widget) {

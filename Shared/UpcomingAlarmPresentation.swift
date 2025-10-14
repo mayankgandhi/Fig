@@ -12,7 +12,7 @@ import SwiftUI
 // MARK: - Presentation Model
 
 /// View-ready representation of an upcoming alarm with pre-calculated values
-struct UpcomingAlarmPresentation: Identifiable {
+struct UpcomingAlarmPresentation: Identifiable, Equatable {
     let id: UUID
     let displayName: String
     let icon: String

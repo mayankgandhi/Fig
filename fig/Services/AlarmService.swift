@@ -221,7 +221,26 @@ final class TickerService: TickerServiceProtocol {
 
         // 1. Expand schedule into concrete dates
         let now = Date()
-        let dates = scheduleExpander.expandSchedule(schedule, startingFrom: now, days: alarmItem.generationWindow)
+        
+        // Use the start date from the schedule for expansion
+        let expansionStartDate: Date
+        switch schedule {
+        case .hourly(_, let startTime, _):
+            // Use the start time if it's in the future, otherwise use now
+            expansionStartDate = startTime > now ? startTime : now
+        case .daily(_, let startDate):
+            expansionStartDate = max(startDate, now)
+        case .weekdays(_, _, let startDate):
+            expansionStartDate = max(startDate, now)
+        case .monthly(_, _, let startDate):
+            expansionStartDate = max(startDate, now)
+        case .yearly(_, _, _, let startDate):
+            expansionStartDate = max(startDate, now)
+        default:
+            expansionStartDate = now
+        }
+        
+        let dates = scheduleExpander.expandSchedule(schedule, startingFrom: expansionStartDate, days: alarmItem.generationWindow)
 
         guard !dates.isEmpty else {
             throw TickerServiceError.invalidConfiguration
@@ -336,7 +355,18 @@ final class TickerService: TickerServiceProtocol {
                 } else {
                     // Composite schedule
                     let now = Date()
-                    let dates = scheduleExpander.expandSchedule(schedule, startingFrom: now, days: alarmItem.generationWindow)
+                    
+                    // For hourly schedules, use the start time from the schedule if it's in the future
+                    let expansionStartDate: Date
+                    switch schedule {
+                    case .hourly(_, let startTime, _):
+                        // Use the start time if it's in the future, otherwise use now
+                        expansionStartDate = startTime > now ? startTime : now
+                    default:
+                        expansionStartDate = now
+                    }
+                    
+                    let dates = scheduleExpander.expandSchedule(schedule, startingFrom: expansionStartDate, days: alarmItem.generationWindow)
 
                     var scheduledIDs: [UUID] = []
                     for date in dates {

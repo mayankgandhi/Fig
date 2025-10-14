@@ -18,6 +18,7 @@ struct TodayClockView: View {
     @State private var showAddSheet: Bool = false
     @State private var viewModel: TodayViewModel?
     @State private var alarmToEdit: Ticker?
+    @State private var shouldAnimateAlarms: Bool = false
     @Namespace private var editButtonNamespace
     @Namespace private var addButtonNamespace
     
@@ -28,7 +29,7 @@ struct TodayClockView: View {
                     ScrollView {
                         VStack(spacing: 0) {
                             // Clock View
-                            ClockView(upcomingAlarms: viewModel.upcomingAlarms)
+                            ClockView(upcomingAlarms: viewModel.upcomingAlarms, shouldAnimateAlarms: shouldAnimateAlarms)
                                 .frame(height: UIScreen.main.bounds.width)
                                 .padding(.horizontal, 20)
                                 .padding(.top, 8)
@@ -175,6 +176,12 @@ struct TodayClockView: View {
             .onAppear {
                 if viewModel == nil {
                     viewModel = TodayViewModel(tickerService: tickerService, modelContext: modelContext)
+                }
+                
+                // Reset and trigger animation when view appears
+                shouldAnimateAlarms = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    shouldAnimateAlarms = true
                 }
             }
         }

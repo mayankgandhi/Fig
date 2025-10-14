@@ -31,23 +31,23 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         case .oneTime(let date):
             return expandOneTime(date: date, within: window)
 
-        case .daily(let time):
-            return expandDaily(time: time, within: window)
+        case .daily(let time, let startDate):
+            return expandDaily(time: time, startDate: startDate, within: window)
 
         case .hourly(let interval, let startTime, let endTime):
             return expandHourly(interval: interval, startTime: startTime, endTime: endTime, within: window)
 
-        case .weekdays(let time, let days):
-            return expandWeekdays(time: time, days: days, within: window)
+        case .weekdays(let time, let days, let startDate):
+            return expandWeekdays(time: time, days: days, startDate: startDate, within: window)
 
         case .biweekly(let time, let weekdays, let anchorDate):
             return expandBiweekly(time: time, weekdays: weekdays, anchorDate: anchorDate, within: window)
 
-        case .monthly(let day, let time):
-            return expandMonthly(day: day, time: time, within: window)
+        case .monthly(let day, let time, let startDate):
+            return expandMonthly(day: day, time: time, startDate: startDate, within: window)
 
-        case .yearly(let month, let day, let time):
-            return expandYearly(month: month, day: day, time: time, within: window)
+        case .yearly(let month, let day, let time, let startDate):
+            return expandYearly(month: month, day: day, time: time, startDate: startDate, within: window)
         }
     }
 
@@ -65,9 +65,9 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return window.contains(date) ? [date] : []
     }
 
-    private func expandDaily(time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+    private func expandDaily(time: TickerSchedule.TimeOfDay, startDate: Date, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        var currentDate = window.start
+        var currentDate = max(startDate, window.start)
 
         while currentDate <= window.end {
             if let alarmDate = createDate(from: currentDate, with: time) {
@@ -102,9 +102,9 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandWeekdays(time: TickerSchedule.TimeOfDay, days: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
+    private func expandWeekdays(time: TickerSchedule.TimeOfDay, days: Array<TickerSchedule.Weekday>, startDate: Date, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        var currentDate = window.start
+        var currentDate = max(startDate, window.start)
 
         while currentDate <= window.end {
             let weekday = calendar.component(.weekday, from: currentDate)
@@ -172,9 +172,10 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandMonthly(day: TickerSchedule.MonthlyDay, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+    private func expandMonthly(day: TickerSchedule.MonthlyDay, time: TickerSchedule.TimeOfDay, startDate: Date, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        let startComponents = calendar.dateComponents([.year, .month], from: window.start)
+        let effectiveStartDate = max(startDate, window.start)
+        let startComponents = calendar.dateComponents([.year, .month], from: effectiveStartDate)
         let endComponents = calendar.dateComponents([.year, .month], from: window.end)
 
         guard let startYear = startComponents.year,
@@ -206,9 +207,10 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandYearly(month: Int, day: Int, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+    private func expandYearly(month: Int, day: Int, time: TickerSchedule.TimeOfDay, startDate: Date, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        let startYear = calendar.component(.year, from: window.start)
+        let effectiveStartDate = max(startDate, window.start)
+        let startYear = calendar.component(.year, from: effectiveStartDate)
         let endYear = calendar.component(.year, from: window.end)
 
         for year in startYear...endYear {

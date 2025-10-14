@@ -19,7 +19,7 @@ struct DeleteAllDataView: View {
             icon: "trash",
             title: "Delete All Data",
             subtitle: "Clear all scheduled tickers",
-            iconColor: .red
+            iconColor: TickerColor.danger
         ) {
             showDeleteConfirmation = true
         }

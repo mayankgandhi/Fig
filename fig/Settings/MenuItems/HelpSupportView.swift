@@ -16,7 +16,7 @@ struct HelpSupportView: View {
             icon: "envelope",
             title: "Help & Support",
             subtitle: "Get help or send feedback",
-            iconColor: .green
+            iconColor: TickerColor.success
         ) {
             showMailCompose = true
         }

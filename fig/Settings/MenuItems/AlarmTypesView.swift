@@ -15,7 +15,7 @@ struct AlarmTypesView: View {
             icon: "tag.circle",
             title: "Alarm Types",
             subtitle: "Create and manage custom alarm types",
-            iconColor: .purple
+            iconColor: TickerColor.accent
         ) {
             showAlarmTypesSheet = true
         }

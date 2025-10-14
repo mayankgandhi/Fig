@@ -15,7 +15,7 @@ struct FAQView: View {
             icon: "questionmark.circle",
             title: "FAQ",
             subtitle: "Frequently asked questions",
-            iconColor: .purple
+            iconColor: TickerColor.warning
         ) {
             showFAQ = true
         }

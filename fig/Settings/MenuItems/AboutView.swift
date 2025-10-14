@@ -15,7 +15,7 @@ struct AboutView: View {
             icon: "info.circle",
             title: "About",
             subtitle: "App version and information",
-            iconColor: .blue
+            iconColor: TickerColor.primary
         ) {
             showAboutSheet = true
         }

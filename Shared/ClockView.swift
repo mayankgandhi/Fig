@@ -26,7 +26,9 @@ struct ClockView: View {
     }
 
     var upcomingAlarms: [UpcomingAlarmPresentation]
+    var shouldAnimateAlarms: Bool = false
     @State private var currentTime = Date()
+    @State private var alarmAnimationStates: [UUID: Bool] = [:]
     
     let hourMarks: [HourMark] = [
         HourMark(id: 0, time: 12, angle: 0, textAngle: 0),
@@ -113,7 +115,7 @@ struct ClockView: View {
                             .rotationEffect(Angle(degrees: hourmark.angle))
                     }
                     
-                    ForEach(upcomingAlarms) { event in
+                    ForEach(Array(upcomingAlarms.enumerated()), id: \.element.id) { index, event in
                         VStack(spacing: .zero) {
                             Label(event.displayName, systemImage: event.icon)
                                 .Caption2()
@@ -131,6 +133,13 @@ struct ClockView: View {
                         }
                         .offset(y: -handLength * 0.50)
                         .rotationEffect(Angle(degrees: event.angle))
+                        .scaleEffect(alarmAnimationStates[event.id] == true ? 1.0 : 0.1)
+                        .opacity(alarmAnimationStates[event.id] == true ? 1.0 : 0.0)
+                        .animation(
+                            .spring(response: 0.6, dampingFraction: 0.8, blendDuration: 0)
+                            .delay(Double(index) * 0.1),
+                            value: alarmAnimationStates[event.id]
+                        )
                     }
                     
                     // Hour Hand
@@ -168,11 +177,48 @@ struct ClockView: View {
                 )
             }
         }
+        .onChange(of: shouldAnimateAlarms) { _, newValue in
+            if newValue {
+                // Initialize all alarm animation states to false
+                for alarm in upcomingAlarms {
+                    alarmAnimationStates[alarm.id] = false
+                }
+                
+                // Trigger staggered animation
+                for (index, alarm) in upcomingAlarms.enumerated() {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
+                        alarmAnimationStates[alarm.id] = true
+                    }
+                }
+            }
+        }
+        .onChange(of: upcomingAlarms) { _, newAlarms in
+            // If we have alarms and should animate, trigger animation
+            if !newAlarms.isEmpty && shouldAnimateAlarms {
+                // Initialize all alarm animation states to false
+                for alarm in newAlarms {
+                    alarmAnimationStates[alarm.id] = false
+                }
+                
+                // Trigger staggered animation
+                for (index, alarm) in newAlarms.enumerated() {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
+                        alarmAnimationStates[alarm.id] = true
+                    }
+                }
+            }
+        }
+        .onAppear {
+            // Initialize animation states when view appears
+            for alarm in upcomingAlarms {
+                alarmAnimationStates[alarm.id] = shouldAnimateAlarms
+            }
+        }
     }
 }
 
 #Preview("Empty Clock") {
-    ClockView(upcomingAlarms: [])
+    ClockView(upcomingAlarms: [], shouldAnimateAlarms: false)
         .padding()
         .background(Color.black)
 }
@@ -257,7 +303,7 @@ struct ClockView: View {
             hasCountdown: true,
             tickerDataTitle: "Exercise"
         )
-    ])
+    ], shouldAnimateAlarms: false)
     .padding()
     .background(Color.clear)
 }
