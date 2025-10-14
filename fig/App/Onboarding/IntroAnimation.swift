@@ -88,17 +88,17 @@ struct IntroAnimation: View {
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
-                    // Top space for dialogues (increased space)
+                    // Top space for dialogues - reduced
                     Spacer()
-                        .frame(height: geometry.size.height * 0.05)
+                        .frame(height: geometry.size.height * 0.08)
 
-                    // App Icon section with more space
+                    // App Icon section - scaled down
                     ZStack {
-                        // App Icon
+                        // App Icon - smaller
                         Image("AppIconImage")
                             .resizable()
-                            .frame(width: 120, height: 120)
-                            .clipShape(RoundedRectangle(cornerRadius: 26))
+                            .frame(width: 100, height: 100)
+                            .clipShape(RoundedRectangle(cornerRadius: 22))
                             .shadow(
                                 color: TickerShadow.elevated.color,
                                 radius: TickerShadow.elevated.radius,
@@ -117,28 +117,32 @@ struct IntroAnimation: View {
                                 .frame(maxWidth: geometry.size.width * 0.75)
                         }
                     }
-                    .frame(height: 280)
+                    .frame(height: min(220, geometry.size.height * 0.30))
 
-                    // Clock View
+                    // Spacing between icon and clock
+                    Spacer()
+                        .frame(height: TickerSpacing.md)
+
+                    // Clock View - constrained size
                     if showClock {
-                        VStack(spacing: TickerSpacing.md) {
+                        VStack(spacing: TickerSpacing.sm) {
                             ClockView(upcomingAlarms: scheduledAlarms)
-                                .padding(.horizontal, TickerSpacing.md)
-                            .transition(
-                                .asymmetric(
-                                    insertion: .scale(scale: 0.8).combined(with: .opacity),
-                                    removal: .scale(scale: 0.8).combined(with: .opacity)
+                                .frame(height: min(280, geometry.size.height * 0.45))
+                                .padding(.horizontal, TickerSpacing.lg)
+                                .transition(
+                                    .asymmetric(
+                                        insertion: .scale(scale: 0.8).combined(with: .opacity),
+                                        removal: .scale(scale: 0.8).combined(with: .opacity)
+                                    )
                                 )
-                            )
-                            Text("Your reminders, visualized")
-                                .Headline()
-                                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                                .multilineTextAlignment(.center)
-                                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+
                         }
-                        .padding(.horizontal, TickerSpacing.lg)
+                        .padding(.horizontal, TickerSpacing.md)
                     }
 
+                    // Bottom spacer
+                    Spacer()
+                        .frame(height: geometry.size.height * 0.08)
                 }
             }
         }

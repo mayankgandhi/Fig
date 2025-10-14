@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct OnboardingContainerView: View {
+
     @Environment(\.colorScheme) private var colorScheme
     @Environment(AlarmService.self) private var alarmService
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
