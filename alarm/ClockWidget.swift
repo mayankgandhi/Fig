@@ -39,14 +39,14 @@ struct ClockWidgetProvider: TimelineProvider {
             // Generate timeline entries
             var entries: [Entry] = []
 
-            // Create entries for the next 6 hours, updating every 15 minutes
-            for minuteOffset in stride(from: 0, through: 360, by: 15) {
+            // Create entries for the next 2 hours, updating every 5 minutes
+            for minuteOffset in stride(from: 0, through: 120, by: 5) {
                 let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
                 let entry = Entry(date: entryDate, upcomingAlarms: upcomingAlarms)
                 entries.append(entry)
             }
 
-            // Update policy: Refresh after the last entry
+            // Update policy: Refresh after the last entry, but also allow for more frequent updates
             let timeline = Timeline(entries: entries, policy: .atEnd)
             completion(timeline)
         }
@@ -56,9 +56,17 @@ struct ClockWidgetProvider: TimelineProvider {
 
     @MainActor
     private func fetchUpcomingAlarms() async -> [UpcomingAlarmPresentation] {
-        // Create ModelContainer for SwiftData access
+        // Create ModelContainer for SwiftData access with App Groups support
+        // This ensures we get the latest data from the shared container
         let schema = Schema([Ticker.self])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        
+        // Try to use shared container first, fallback to local if not available
+        let modelConfiguration: ModelConfiguration
+        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.m.fig") {
+            modelConfiguration = ModelConfiguration(schema: schema, url: sharedURL.appendingPathComponent("Ticker.sqlite"))
+        } else {
+            modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
+        }
 
         guard let modelContainer = try? ModelContainer(for: schema, configurations: [modelConfiguration]) else {
             return []

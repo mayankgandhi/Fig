@@ -7,6 +7,12 @@
 
 import Foundation
 
+extension Array {
+    subscript(safe index: Int) -> Element? {
+        return indices.contains(index) ? self[index] : nil
+    }
+}
+
 enum RepeatOption: String, CaseIterable {
     case noRepeat = "No repeat"
     case daily = "Daily"
@@ -82,7 +88,51 @@ final class RepeatOptionsViewModel {
     }
 
     var displayText: String {
-        selectedOption.rawValue
+        switch selectedOption {
+        case .noRepeat:
+            return "No repeat"
+        case .daily:
+            return "Repeats every day"
+        case .weekdays:
+            if selectedWeekdays.isEmpty {
+                return "Weekdays (not configured)"
+            } else if selectedWeekdays.count == 5 && selectedWeekdays.allSatisfy({ [.monday, .tuesday, .wednesday, .thursday, .friday].contains($0) }) {
+                return "Repeats on weekdays (Mon-Fri)"
+            } else {
+                let weekdayNames = selectedWeekdays.map { $0.displayName }.joined(separator: ", ")
+                return "Repeats on \(weekdayNames)"
+            }
+        case .hourly:
+            if hourlyInterval == 1 {
+                return "Repeats every hour"
+            } else {
+                return "Repeats every \(hourlyInterval) hours"
+            }
+        case .biweekly:
+            if biweeklyWeekdays.isEmpty {
+                return "Biweekly (not configured)"
+            } else {
+                let weekdayNames = biweeklyWeekdays.map { $0.displayName }.joined(separator: ", ")
+                return "Repeats every 2 weeks on \(weekdayNames)"
+            }
+        case .monthly:
+            switch monthlyDayType {
+            case .fixed:
+                return "Repeats on day \(monthlyFixedDay) of every month"
+            case .firstWeekday:
+                return "Repeats on first \(monthlyWeekday.displayName) of every month"
+            case .lastWeekday:
+                return "Repeats on last \(monthlyWeekday.displayName) of every month"
+            case .firstOfMonth:
+                return "Repeats on 1st of every month"
+            case .lastOfMonth:
+                return "Repeats on last day of every month"
+            }
+        case .yearly:
+            let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            let monthName = monthNames[safe: yearlyMonth - 1] ?? "Unknown"
+            return "Repeats on \(monthName) \(yearlyDay) every year"
+        }
     }
 
     var needsConfiguration: Bool {

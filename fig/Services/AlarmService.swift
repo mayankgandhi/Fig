@@ -11,6 +11,7 @@ import SwiftUI
 import SwiftData
 import AlarmKit
 import AppIntents
+import WidgetKit
 
 // MARK: - TickerService Error Types
 
@@ -200,6 +201,9 @@ final class TickerService: TickerServiceProtocol {
             // Update local state
             await stateManager.updateState(ticker: alarmItem)
 
+            // Refresh widget timelines
+            refreshWidgetTimelines()
+
         } catch let error as TickerServiceError {
             throw error
         } catch {
@@ -253,6 +257,9 @@ final class TickerService: TickerServiceProtocol {
 
             // 5. Update local state
             await stateManager.updateState(ticker: alarmItem)
+
+            // 6. Refresh widget timelines
+            refreshWidgetTimelines()
 
         } catch {
             // Rollback: cancel any scheduled alarms
@@ -351,12 +358,18 @@ final class TickerService: TickerServiceProtocol {
 
                 try context.save()
                 await stateManager.updateState(ticker: alarmItem)
+                
+                // Refresh widget timelines
+                refreshWidgetTimelines()
             } catch {
                 throw TickerServiceError.schedulingFailed(underlying: error)
             }
         } else {
             // If disabled, just remove from local state
             await stateManager.removeState(id: alarmItem.id)
+            
+            // Refresh widget timelines
+            refreshWidgetTimelines()
         }
     }
 
@@ -390,6 +403,9 @@ final class TickerService: TickerServiceProtocol {
         Task {
             await stateManager.removeState(id: id)
         }
+        
+        // Refresh widget timelines
+        refreshWidgetTimelines()
     }
 
     // MARK: - Alarm Control
@@ -399,6 +415,8 @@ final class TickerService: TickerServiceProtocol {
     func pauseAlarm(id: UUID) throws {
         do {
             try alarmManager.pause(id: id)
+            // Refresh widget timelines to show updated alarm state
+            refreshWidgetTimelines()
         } catch {
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
@@ -407,6 +425,8 @@ final class TickerService: TickerServiceProtocol {
     func resumeAlarm(id: UUID) throws {
         do {
             try alarmManager.resume(id: id)
+            // Refresh widget timelines to show updated alarm state
+            refreshWidgetTimelines()
         } catch {
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
@@ -415,6 +435,8 @@ final class TickerService: TickerServiceProtocol {
     func stopAlarm(id: UUID) throws {
         do {
             try alarmManager.stop(id: id)
+            // Refresh widget timelines to show updated alarm state
+            refreshWidgetTimelines()
         } catch {
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
@@ -423,6 +445,8 @@ final class TickerService: TickerServiceProtocol {
     func repeatCountdown(id: UUID) throws {
         do {
             try alarmManager.countdown(id: id)
+            // Refresh widget timelines to show updated alarm state
+            refreshWidgetTimelines()
         } catch {
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
@@ -448,6 +472,12 @@ final class TickerService: TickerServiceProtocol {
         // Get all tickers from state manager (main thread access to Observable state)
         // Note: This is fast - just copying references from a dictionary
         return Array(alarms.values).sorted { $0.createdAt > $1.createdAt }
+    }
+
+    // MARK: - Widget Refresh
+
+    private func refreshWidgetTimelines() {
+        WidgetCenter.shared.reloadAllTimelines()
     }
 
     // MARK: - Synchronization

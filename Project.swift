@@ -34,6 +34,9 @@ let project = Project(
                 .glob(pattern: "fig/Resources/Assets.xcassets"),
                 .glob(pattern: "fig/Resources/AppIcon.icon/**")
             ],
+            entitlements: .dictionary([
+                "com.apple.security.application-groups": .array([.string("group.m.fig")])
+            ]),
             dependencies: [
                 .target(name: "alarm")
             ],
@@ -68,6 +71,9 @@ let project = Project(
                 "fig/Models/AlarmItem.swift"  // Ticker model for SwiftData
             ],
             resources: ["alarm/Assets.xcassets"],
+            entitlements: .dictionary([
+                "com.apple.security.application-groups": .array([.string("group.m.fig")])
+            ]),
             dependencies: [],
             settings: .settings(
                 base: [

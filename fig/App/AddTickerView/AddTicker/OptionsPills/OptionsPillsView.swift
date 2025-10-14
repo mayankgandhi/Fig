@@ -83,7 +83,8 @@ struct OptionsPillsView: View {
                 icon: icon,
                 title: title,
                 isActive: viewModel.expandedField == field,
-                hasValue: viewModel.hasValue(for: field)
+                hasValue: viewModel.hasValue(for: field),
+                field: field
             )
         }
     }
@@ -100,7 +101,8 @@ struct OptionsPillsView: View {
                 icon: icon,
                 title: title,
                 isActive: isActive,
-                hasValue: false
+                hasValue: false,
+                field: nil
             )
         }
     }
@@ -109,7 +111,8 @@ struct OptionsPillsView: View {
         icon: String,
         title: String,
         isActive: Bool,
-        hasValue: Bool
+        hasValue: Bool,
+        field: ExpandableField?
     ) -> some View {
         let isIconField = title == "Icon"
         let iconColor = isIconField ? (Color(hex: selectedColorHex) ?? TickerColor.primary) : nil
@@ -144,7 +147,6 @@ struct OptionsPillsView: View {
                 .font(.system(size: 13, weight: isActive ? .semibold : .medium, design: .rounded))
                 .lineLimit(1)
         }
-        .fixedSize()
         .foregroundStyle(isActive ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
         .padding(.horizontal, TickerSpacing.md)
         .padding(.vertical, TickerSpacing.sm)
@@ -187,6 +189,25 @@ struct OptionsPillsView: View {
                         ),
                     lineWidth: 1.5
                 )
+        )
+        .overlay(
+            // Purple overlay border specifically for repeat field when it has a value
+            field == .repeat && hasValue && !isActive ?
+            Capsule()
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            TickerColor.primary.opacity(0.8),
+                            TickerColor.primary.opacity(0.6),
+                            TickerColor.primary.opacity(0.4)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 2.5
+                )
+                .blur(radius: 1)
+            : nil
         )
         .clipShape(Capsule())
         .shadow(

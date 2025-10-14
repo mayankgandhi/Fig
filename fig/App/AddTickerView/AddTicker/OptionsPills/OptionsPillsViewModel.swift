@@ -80,7 +80,8 @@ final class OptionsPillsViewModel {
         case .calendar: return hasCalendarValue
         case .label: return hasLabelValue
         case .countdown: return hasCountdownValue
-        case .repeat, .icon: return false
+        case .repeat: return repeatViewModel?.selectedOption != .noRepeat
+        case .icon: return false
         }
     }
 }
