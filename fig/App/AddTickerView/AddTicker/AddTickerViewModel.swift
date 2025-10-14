@@ -12,7 +12,7 @@ import SwiftData
 final class AddTickerViewModel {
     // MARK: - Dependencies
     private let modelContext: ModelContext
-    private let alarmService: AlarmService
+    private let tickerService: TickerService
     private let calendar: Calendar
 
     // MARK: - Child ViewModels
@@ -35,12 +35,12 @@ final class AddTickerViewModel {
 
     init(
         modelContext: ModelContext,
-        alarmService: AlarmService,
+        tickerService: TickerService,
         prefillTemplate: Ticker? = nil,
         isEditMode: Bool = false
     ) {
         self.modelContext = modelContext
-        self.alarmService = alarmService
+        self.tickerService = tickerService
         self.calendar = .current
         self.prefillTemplate = prefillTemplate
         self.isEditMode = isEditMode
@@ -152,7 +152,7 @@ final class AddTickerViewModel {
                 existingTicker.presentation = presentation
                 existingTicker.tickerData = tickerData
 
-                try await alarmService.updateAlarm(existingTicker, context: modelContext)
+                try await tickerService.updateAlarm(existingTicker, context: modelContext)
             } else {
                 // Create mode: Schedule new alarm
                 let ticker = Ticker(
@@ -164,7 +164,7 @@ final class AddTickerViewModel {
                     tickerData: tickerData
                 )
 
-                try await alarmService.scheduleAlarm(from: ticker, context: modelContext)
+                try await tickerService.scheduleAlarm(from: ticker, context: modelContext)
             }
 
             TickerHaptics.success()

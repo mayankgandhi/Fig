@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct DeleteAllDataView: View {
-    @Environment(AlarmService.self) private var alarmService
+    @Environment(TickerService.self) private var tickerService
     @Environment(\.modelContext) private var modelContext
     @Query private var alarmItems: [Ticker]
     @State private var showDeleteConfirmation = false
@@ -36,14 +36,14 @@ struct DeleteAllDataView: View {
     private func deleteAllAlarms() {
         // Cancel and delete all alarms
         for alarmItem in alarmItems {
-            try? alarmService.cancelAlarm(id: alarmItem.id, context: modelContext)
+            try? tickerService.cancelAlarm(id: alarmItem.id, context: modelContext)
         }
     }
 }
 
 #Preview {
-    let alarmService = AlarmService()
+    let tickerService = TickerService()
     return DeleteAllDataView()
         .modelContainer(for: Ticker.self, inMemory: true)
-        .environment(alarmService)
+        .environment(tickerService)
 }

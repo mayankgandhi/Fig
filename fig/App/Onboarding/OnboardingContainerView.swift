@@ -10,7 +10,7 @@ import SwiftUI
 struct OnboardingContainerView: View {
 
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(AlarmService.self) private var alarmService
+    @Environment(TickerService.self) private var tickerService
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
     @State private var currentPage: Int = 0
@@ -40,7 +40,7 @@ struct OnboardingContainerView: View {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                             // Check if we need to show AlarmKit permission page
-                            if alarmService.authorizationStatus == .notDetermined {
+                            if tickerService.authorizationStatus == .notDetermined {
                                 currentPage = 2
                             } else {
                                 // Skip to Get Started if already authorized
@@ -52,7 +52,7 @@ struct OnboardingContainerView: View {
                 .tag(1)
 
                 // Page 3: AlarmKit Permission (conditional)
-                if alarmService.authorizationStatus == .notDetermined {
+                if tickerService.authorizationStatus == .notDetermined {
                     AlarmKitPermissionView(onContinue: {
                         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
                             currentPage = 3
@@ -131,5 +131,5 @@ struct PageIndicator: View {
 
 #Preview("Onboarding Flow") {
     OnboardingContainerView()
-        .environment(AlarmService())
+        .environment(TickerService())
 }

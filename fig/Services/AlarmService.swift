@@ -1,5 +1,5 @@
 //
-//  AlarmService.swift
+//  TickerService.swift
 //  fig
 //
 //  Service layer that encapsulates all AlarmKit operations
@@ -12,9 +12,9 @@ import SwiftData
 import AlarmKit
 import AppIntents
 
-// MARK: - AlarmService Error Types
+// MARK: - TickerService Error Types
 
-enum AlarmServiceError: LocalizedError {
+enum TickerServiceError: LocalizedError {
     case notAuthorized
     case schedulingFailed(underlying: Error)
     case alarmNotFound(UUID)
@@ -39,9 +39,9 @@ enum AlarmServiceError: LocalizedError {
 
 
 
-// MARK: - AlarmService Protocol
+// MARK: - TickerService Protocol
 
-protocol AlarmServiceProtocol: Observable {
+protocol TickerServiceProtocol: Observable {
     var alarms: [UUID: Ticker] { get }
     var authorizationStatus: AlarmAuthorizationStatus { get }
 
@@ -78,10 +78,10 @@ enum AlarmAuthorizationStatus {
     }
 }
 
-// MARK: - AlarmService Implementation
+// MARK: - TickerService Implementation
 
 @Observable
-final class AlarmService: AlarmServiceProtocol {
+final class TickerService: TickerServiceProtocol {
     typealias AlarmConfiguration = AlarmManager.AlarmConfiguration<TickerData>
 
     // Public state (delegated to state manager)
@@ -132,7 +132,7 @@ final class AlarmService: AlarmServiceProtocol {
                 let state = try await alarmManager.requestAuthorization()
                 return AlarmAuthorizationStatus(from: state)
             } catch {
-                throw AlarmServiceError.schedulingFailed(underlying: error)
+                throw TickerServiceError.schedulingFailed(underlying: error)
             }
         case .denied:
             return .denied
@@ -150,12 +150,12 @@ final class AlarmService: AlarmServiceProtocol {
         // 1. Request authorization
         let authStatus = try await requestAuthorization()
         guard authStatus == .authorized else {
-            throw AlarmServiceError.notAuthorized
+            throw TickerServiceError.notAuthorized
         }
 
         // 2. Build AlarmKit configuration
         guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
-            throw AlarmServiceError.invalidConfiguration
+            throw TickerServiceError.invalidConfiguration
         }
 
         // 3. Schedule with AlarmKit
@@ -173,12 +173,12 @@ final class AlarmService: AlarmServiceProtocol {
             // 6. Update local state
             await stateManager.updateState(ticker: alarmItem)
 
-        } catch let error as AlarmServiceError {
+        } catch let error as TickerServiceError {
             throw error
         } catch {
             // Rollback: remove from SwiftData if scheduling failed
             context.delete(alarmItem)
-            throw AlarmServiceError.schedulingFailed(underlying: error)
+            throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
 
@@ -193,18 +193,18 @@ final class AlarmService: AlarmServiceProtocol {
         do {
             try context.save()
         } catch {
-            throw AlarmServiceError.swiftDataSaveFailed(underlying: error)
+            throw TickerServiceError.swiftDataSaveFailed(underlying: error)
         }
 
         // If alarm is enabled, reschedule with AlarmKit
         if alarmItem.isEnabled {
             let authStatus = try await requestAuthorization()
             guard authStatus == .authorized else {
-                throw AlarmServiceError.notAuthorized
+                throw TickerServiceError.notAuthorized
             }
 
             guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
-                throw AlarmServiceError.invalidConfiguration
+                throw TickerServiceError.invalidConfiguration
             }
 
             do {
@@ -214,7 +214,7 @@ final class AlarmService: AlarmServiceProtocol {
 
                 await stateManager.updateState(ticker: alarmItem)
             } catch {
-                throw AlarmServiceError.schedulingFailed(underlying: error)
+                throw TickerServiceError.schedulingFailed(underlying: error)
             }
         } else {
             // If disabled, just remove from local state
@@ -251,7 +251,7 @@ final class AlarmService: AlarmServiceProtocol {
         do {
             try alarmManager.pause(id: id)
         } catch {
-            throw AlarmServiceError.schedulingFailed(underlying: error)
+            throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
 
@@ -259,7 +259,7 @@ final class AlarmService: AlarmServiceProtocol {
         do {
             try alarmManager.resume(id: id)
         } catch {
-            throw AlarmServiceError.schedulingFailed(underlying: error)
+            throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
 
@@ -267,7 +267,7 @@ final class AlarmService: AlarmServiceProtocol {
         do {
             try alarmManager.stop(id: id)
         } catch {
-            throw AlarmServiceError.schedulingFailed(underlying: error)
+            throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
 
@@ -275,7 +275,7 @@ final class AlarmService: AlarmServiceProtocol {
         do {
             try alarmManager.countdown(id: id)
         } catch {
-            throw AlarmServiceError.schedulingFailed(underlying: error)
+            throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
 
@@ -286,7 +286,7 @@ final class AlarmService: AlarmServiceProtocol {
             let remoteAlarms = try alarmManager.alarms
             stateManager.updateState(with: remoteAlarms)
         } catch {
-            throw AlarmServiceError.schedulingFailed(underlying: error)
+            throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
 

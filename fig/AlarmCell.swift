@@ -11,7 +11,7 @@ struct AlarmCell: View {
 
     let alarmItem: Ticker
     let onTap: (() -> Void)?
-    @Environment(AlarmService.self) private var alarmService
+    @Environment(TickerService.self) private var tickerService
     @Environment(\.colorScheme) private var colorScheme
 
     init(alarmItem: Ticker, onTap: (() -> Void)? = nil) {
@@ -174,7 +174,7 @@ struct AlarmCell: View {
 
     var tagLabel: String {
         // If alarm is in service, it's active
-        if alarmService.getTicker(id: alarmItem.id) != nil {
+        if tickerService.getTicker(id: alarmItem.id) != nil {
             return "Active"
         }
         // If not in service, show based on isEnabled
@@ -183,7 +183,7 @@ struct AlarmCell: View {
 
     var tagColor: Color {
         // If alarm is in service, it's active (scheduled color)
-        if alarmService.getTicker(id: alarmItem.id) != nil {
+        if tickerService.getTicker(id: alarmItem.id) != nil {
             return TickerColor.scheduled
         }
         // If not in service
@@ -254,6 +254,6 @@ struct AlarmCell: View {
                 .ignoresSafeArea()
         }
     )
-    .environment(AlarmService())
+    .environment(TickerService())
 }
 

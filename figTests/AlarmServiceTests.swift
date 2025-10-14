@@ -1,8 +1,8 @@
 //
-//  AlarmServiceTests.swift
+//  TickerServiceTests.swift
 //  figTests
 //
-//  Comprehensive test suite for AlarmService
+//  Comprehensive test suite for TickerService
 //
 
 import Testing
@@ -11,15 +11,15 @@ import SwiftData
 import AlarmKit
 @testable import fig
 
-@Suite("AlarmService Tests")
-struct AlarmServiceTests {
+@Suite("TickerService Tests")
+struct TickerServiceTests {
 
     // MARK: - Helper Properties
 
     var mockConfigurationBuilder: MockConfigurationBuilder!
     var mockStateManager: MockStateManager!
     var mockSyncCoordinator: MockSyncCoordinator!
-    var alarmService: AlarmService!
+    var tickerService: TickerService!
     var modelContainer: ModelContainer!
 
     // MARK: - Setup
@@ -29,7 +29,7 @@ struct AlarmServiceTests {
         mockStateManager = MockStateManager()
         mockSyncCoordinator = MockSyncCoordinator()
 
-        alarmService = AlarmService(
+        tickerService = TickerService(
             configurationBuilder: mockConfigurationBuilder,
             stateManager: mockStateManager,
             syncCoordinator: mockSyncCoordinator
@@ -67,7 +67,7 @@ struct AlarmServiceTests {
     @Test("Authorization status reflects AlarmManager state")
     func testAuthorizationStatus() {
         // When
-        let status = alarmService.authorizationStatus
+        let status = tickerService.authorizationStatus
 
         // Then - AlarmManager.shared will have some authorization state
         #expect(status == .notDetermined || status == .denied || status == .authorized)
@@ -84,7 +84,7 @@ struct AlarmServiceTests {
 
         // When
         // Note: This may fail if authorization is denied, but that's okay for this test
-        _ = try? await alarmService.scheduleAlarm(from: ticker, context: context)
+        _ = try? await tickerService.scheduleAlarm(from: ticker, context: context)
 
         // Then - Configuration builder should have been called
         #expect(mockConfigurationBuilder.buildCallCount >= 0)
@@ -100,9 +100,9 @@ struct AlarmServiceTests {
 
         // When/Then
         do {
-            try await alarmService.scheduleAlarm(from: ticker, context: context)
+            try await tickerService.scheduleAlarm(from: ticker, context: context)
             Issue.record("Expected invalidConfiguration error to be thrown")
-        } catch let error as AlarmServiceError {
+        } catch let error as TickerServiceError {
             switch error {
             case .invalidConfiguration:
                 #expect(true) // Expected error
@@ -128,7 +128,7 @@ struct AlarmServiceTests {
         let context = createTestContext()
 
         // When
-        try await alarmService.updateAlarm(ticker, context: context)
+        try await tickerService.updateAlarm(ticker, context: context)
 
         // Then - Disabled alarm should be removed from state
         #expect(mockStateManager.removeStateCallCount == 1)
@@ -143,7 +143,7 @@ struct AlarmServiceTests {
         let alarmID = UUID()
 
         // When
-        try alarmService.cancelAlarm(id: alarmID, context: nil)
+        try tickerService.cancelAlarm(id: alarmID, context: nil)
 
         // Wait a bit for async Task to complete
         try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
@@ -161,7 +161,7 @@ struct AlarmServiceTests {
         mockStateManager.alarms[ticker.id] = ticker
 
         // When
-        let result = alarmService.getTicker(id: ticker.id)
+        let result = tickerService.getTicker(id: ticker.id)
 
         // Then
         #expect(result != nil)
@@ -175,7 +175,7 @@ struct AlarmServiceTests {
         let nonExistentID = UUID()
 
         // When
-        let result = alarmService.getTicker(id: nonExistentID)
+        let result = tickerService.getTicker(id: nonExistentID)
 
         // Then
         #expect(result == nil)
@@ -196,7 +196,7 @@ struct AlarmServiceTests {
         let context = createTestContext()
 
         // When
-        let result = alarmService.getAlarmsWithMetadata(context: context)
+        let result = tickerService.getAlarmsWithMetadata(context: context)
 
         // Then
         #expect(result.count == 2)
@@ -207,7 +207,7 @@ struct AlarmServiceTests {
     @Test("Fetch all alarms updates state")
     func testFetchAllAlarms() throws {
         // When
-        _ = try? alarmService.fetchAllAlarms()
+        _ = try? tickerService.fetchAllAlarms()
 
         // Then - State should be updated
         // (Count may be 0 or more depending on AlarmKit state)
@@ -223,7 +223,7 @@ struct AlarmServiceTests {
         mockStateManager.alarms[ticker.id] = ticker
 
         // When
-        let alarms = alarmService.alarms
+        let alarms = tickerService.alarms
 
         // Then
         #expect(alarms.count == 1)
@@ -244,7 +244,7 @@ struct AlarmServiceTests {
         mockStateManager.alarms[ticker2.id] = ticker2
 
         // Then
-        let alarms = alarmService.alarms
+        let alarms = tickerService.alarms
         #expect(alarms.count == 2)
         #expect(alarms[ticker1.id] != nil)
         #expect(alarms[ticker2.id] != nil)

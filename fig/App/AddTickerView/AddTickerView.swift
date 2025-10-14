@@ -15,7 +15,7 @@ struct AddTickerView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Environment(AlarmService.self) private var alarmService
+    @Environment(TickerService.self) private var tickerService
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var viewModel: AddTickerViewModel?
@@ -269,7 +269,7 @@ struct AddTickerView: View {
     private func initializeViewModel() {
         viewModel = AddTickerViewModel(
             modelContext: modelContext,
-            alarmService: alarmService,
+            tickerService: tickerService,
             prefillTemplate: prefillTemplate,
             isEditMode: isEditMode
         )

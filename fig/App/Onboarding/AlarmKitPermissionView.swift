@@ -9,7 +9,7 @@ import SwiftUI
 
 struct AlarmKitPermissionView: View {
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(AlarmService.self) private var alarmService
+    @Environment(TickerService.self) private var tickerService
 
     @State private var isRequesting = false
     @State private var permissionDenied = false
@@ -199,7 +199,7 @@ struct AlarmKitPermissionView: View {
 
         Task {
             do {
-                let status = try await alarmService.requestAuthorization()
+                let status = try await tickerService.requestAuthorization()
 
                 await MainActor.run {
                     isRequesting = false
@@ -241,5 +241,5 @@ struct AlarmKitPermissionView: View {
     AlarmKitPermissionView(onContinue: {
         print("Continue tapped")
     })
-    .environment(AlarmService())
+    .environment(TickerService())
 }

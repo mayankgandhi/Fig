@@ -73,16 +73,16 @@ final class TodayViewModel {
 
     // MARK: - Dependencies
 
-    private let alarmService: AlarmService
+    private let tickerService: TickerService
     private let modelContext: ModelContext
     private let calendar: Calendar
 
     // MARK: - Computed Properties
 
-    /// All enabled alarms from AlarmService
+    /// All enabled alarms from TickerService
     @MainActor
     private var allEnabledAlarms: [Ticker] {
-        alarmService.getAlarmsWithMetadata(context: modelContext).filter { $0.isEnabled }
+        tickerService.getAlarmsWithMetadata(context: modelContext).filter { $0.isEnabled }
     }
 
     /// Alarms scheduled within the next 12 hours, sorted by time
@@ -126,8 +126,8 @@ final class TodayViewModel {
 
     // MARK: - Initialization
 
-    init(alarmService: AlarmService, modelContext: ModelContext, calendar: Calendar = .current) {
-        self.alarmService = alarmService
+    init(tickerService: TickerService, modelContext: ModelContext, calendar: Calendar = .current) {
+        self.tickerService = tickerService
         self.modelContext = modelContext
         self.calendar = calendar
     }

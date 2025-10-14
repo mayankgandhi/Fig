@@ -25,7 +25,7 @@ struct figApp: App {
         }
     }()
 
-    @State private var alarmService = AlarmService()
+    @State private var tickerService = TickerService()
 
     var body: some Scene {
         WindowGroup {
@@ -33,15 +33,15 @@ struct figApp: App {
                 if hasCompletedOnboarding {
                     // Main app
                     AppView()
-                        .environment(alarmService)
+                        .environment(tickerService)
                         .task {
                             // Synchronize alarms on app launch
-                            await alarmService.synchronizeAlarmsOnLaunch(context: sharedModelContainer.mainContext)
+                            await tickerService.synchronizeAlarmsOnLaunch(context: sharedModelContainer.mainContext)
                         }
                 } else {
                     // Onboarding flow
                     OnboardingContainerView()
-                        .environment(alarmService)
+                        .environment(tickerService)
                 }
             }
             .animation(.easeInOut(duration: 0.3), value: hasCompletedOnboarding)

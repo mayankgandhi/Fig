@@ -1,8 +1,8 @@
 //
-//  MockAlarmServiceDependencies.swift
+//  MockTickerServiceDependencies.swift
 //  figTests
 //
-//  Mock implementations of AlarmService dependencies for testing
+//  Mock implementations of TickerService dependencies for testing
 //
 
 import Foundation

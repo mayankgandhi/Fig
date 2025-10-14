@@ -12,7 +12,7 @@ struct TodayClockView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(AlarmService.self) private var alarmService
+    @Environment(TickerService.self) private var tickerService
     
     @State private var showSettings: Bool = false
     @State private var showAddSheet: Bool = false
@@ -176,7 +176,7 @@ struct TodayClockView: View {
             }
             .onAppear {
                 if viewModel == nil {
-                    viewModel = TodayViewModel(alarmService: alarmService, modelContext: modelContext)
+                    viewModel = TodayViewModel(tickerService: tickerService, modelContext: modelContext)
                 }
             }
         }

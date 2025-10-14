@@ -58,7 +58,7 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
 
         print("✅ Kept \(alarmsToKeep.count) valid alarms")
 
-        // 3. Update local AlarmService state with valid alarms only
+        // 3. Update local TickerService state with valid alarms only
         for alarm in alarmsToKeep {
             // Look up metadata from SwiftData
             let ticker = allItems.first { $0.id == alarm.id }

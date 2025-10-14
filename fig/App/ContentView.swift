@@ -12,7 +12,7 @@ struct ContentView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(AlarmService.self) private var alarmService
+    @Environment(TickerService.self) private var tickerService
 
     @State private var showAddSheet = false
     @State private var displayAlarms: [Ticker] = []
@@ -125,14 +125,14 @@ struct ContentView: View {
         .onAppear {
             loadAlarms()
         }
-        .onChange(of: alarmService.alarms) { _, _ in
+        .onChange(of: tickerService.alarms) { _, _ in
             loadAlarms()
         }
     }
 
     @MainActor
     private func loadAlarms() {
-        displayAlarms = alarmService.getAlarmsWithMetadata(context: modelContext).sorted { ticker1, ticker2 in
+        displayAlarms = tickerService.getAlarmsWithMetadata(context: modelContext).sorted { ticker1, ticker2 in
             sortByScheduledTime(ticker1, ticker2)
         }
     }
@@ -301,7 +301,7 @@ struct ContentView: View {
 
         // Delete each alarm
         for alarm in alarmsToDelete {
-            try? alarmService.cancelAlarm(id: alarm.id, context: modelContext)
+            try? tickerService.cancelAlarm(id: alarm.id, context: modelContext)
         }
 
         // Reload the list
@@ -311,12 +311,12 @@ struct ContentView: View {
     private func toggleAlarmEnabled(_ ticker: Ticker) {
         ticker.isEnabled.toggle()
 
-        // Update in AlarmService
+        // Update in TickerService
         Task { @MainActor in
             if ticker.isEnabled {
-                try? await alarmService.scheduleAlarm(from: ticker, context: modelContext)
+                try? await tickerService.scheduleAlarm(from: ticker, context: modelContext)
             } else {
-                try? alarmService.cancelAlarm(id: ticker.id, context: modelContext)
+                try? tickerService.cancelAlarm(id: ticker.id, context: modelContext)
             }
             loadAlarms()
         }
@@ -365,6 +365,6 @@ struct ContentView: View {
 
 #Preview {
     return ContentView()
-        .environment(AlarmService())
+        .environment(TickerService())
         .modelContainer(for: Ticker.self, inMemory: true)
 }

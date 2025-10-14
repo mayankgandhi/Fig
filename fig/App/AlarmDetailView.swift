@@ -15,7 +15,7 @@ struct AlarmDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(AlarmService.self) private var alarmService
+    @Environment(TickerService.self) private var tickerService
 
     var body: some View {
         NavigationStack {
@@ -221,14 +221,14 @@ struct AlarmDetailView: View {
     }
 
     private var statusLabel: String {
-        if alarmService.getTicker(id: alarm.id) != nil {
+        if tickerService.getTicker(id: alarm.id) != nil {
             return "Active"
         }
         return alarm.isEnabled ? "Scheduled" : "Disabled"
     }
 
     private var statusColor: Color {
-        if alarmService.getTicker(id: alarm.id) != nil {
+        if tickerService.getTicker(id: alarm.id) != nil {
             return TickerColor.scheduled
         }
         return alarm.isEnabled ? TickerColor.scheduled : TickerColor.disabled
@@ -308,7 +308,7 @@ struct AlarmDetailView: View {
 // MARK: - Preview
 
 #Preview {
-    @Previewable @State var alarmService = AlarmService()
+    @Previewable @State var tickerService = TickerService()
 
     AlarmDetailView(
         alarm: Ticker(
@@ -328,5 +328,5 @@ struct AlarmDetailView: View {
         onEdit: {},
         onDelete: {}
     )
-    .environment(alarmService)
+    .environment(tickerService)
 }
