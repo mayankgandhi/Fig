@@ -183,13 +183,58 @@ struct ClockWidgetView: View {
 
     var body: some View {
         ZStack {
-            // Background gradient
+            // Enhanced background with glassmorphism
             TickerColor.liquidGlassGradient(for: colorScheme)
                 .ignoresSafeArea()
+            
+            // Subtle overlay for depth
+            LinearGradient(
+                colors: [
+                    Color.white.opacity(colorScheme == .dark ? 0.05 : 0.1),
+                    Color.clear,
+                    Color.black.opacity(colorScheme == .dark ? 0.1 : 0.05)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
 
-            // Clock view
-            ClockView(upcomingAlarms: entry.upcomingAlarms, shouldAnimateAlarms: false)
-                .padding()
+            VStack(spacing: 12) {
+                // Header with upcoming alarms count
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Upcoming Alarms")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                        
+                        Text("\(entry.upcomingAlarms.count) scheduled")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    }
+                    
+                    Spacer()
+                    
+                    // Next alarm indicator
+                    if let nextAlarm = entry.upcomingAlarms.first {
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("Next")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                            
+                            Text(nextAlarm.timeUntilAlarm(from: entry.date))
+                                .font(.system(size: 12, weight: .bold))
+                                .foregroundStyle(nextAlarm.color)
+                        }
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 12)
+
+                // Enhanced clock view
+                ClockView(upcomingAlarms: entry.upcomingAlarms, shouldAnimateAlarms: false)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 12)
+            }
         }
         .containerBackground(for: .widget) {
             TickerColor.liquidGlassGradient(for: colorScheme)

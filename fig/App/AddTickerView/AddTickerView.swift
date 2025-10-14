@@ -92,9 +92,17 @@ struct AddTickerView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .principal) {
-                Text(isEditMode ? "Edit Ticker" : "New Ticker")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
-                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                VStack(spacing: TickerSpacing.xxs) {
+                    Text(isEditMode ? "Edit Ticker" : "New Ticker")
+                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                    
+                        Text(viewModel.timePickerViewModel.formattedTime)
+                            .font(.system(size: 12, weight: .medium, design: .rounded))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                            .opacity(0.8)
+                    
+                }
             }
 
             ToolbarItem(placement: .cancellationAction) {
@@ -109,11 +117,25 @@ struct AddTickerView: View {
                         dismiss()
                     }
                 } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme).opacity(0.7))
-                        .symbolRenderingMode(.hierarchical)
+                    ZStack {
+                        // Background circle
+                        Circle()
+                            .fill(TickerColor.surface(for: colorScheme).opacity(0.8))
+                            .frame(width: 32, height: 32)
+                            .overlay(
+                                Circle()
+                                    .strokeBorder(
+                                        TickerColor.textTertiary(for: colorScheme).opacity(0.3),
+                                        lineWidth: 1
+                                    )
+                            )
+                        
+                        Image(systemName: "xmark")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                    }
                 }
+                .buttonStyle(PlainButtonStyle())
             }
 
             ToolbarItem(placement: .confirmationAction) {
@@ -126,7 +148,7 @@ struct AddTickerView: View {
                         }
                     } else {
                         Task {
-                            TickerHaptics.selection()
+                            TickerHaptics.criticalAction()
                             await viewModel.saveTicker()
                             if !viewModel.showingError {
                                 dismiss()
@@ -134,49 +156,89 @@ struct AddTickerView: View {
                         }
                     }
                 } label: {
-                    HStack(spacing: TickerSpacing.xs) {
+                    HStack(spacing: TickerSpacing.sm) {
                         if viewModel.isSaving {
                             ProgressView()
                                 .tint(TickerColor.absoluteWhite)
-                                .scaleEffect(0.75)
+                                .scaleEffect(0.8)
                         } else {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 13, weight: .bold))
+                                .font(.system(size: 14, weight: .bold))
                         }
                         Text(viewModel.isSaving ? "Saving..." : "Save")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .font(.system(size: 16, weight: .bold, design: .rounded))
                     }
                     .foregroundStyle(TickerColor.absoluteWhite)
-                    .padding(.horizontal, TickerSpacing.md)
-                    .padding(.vertical, TickerSpacing.sm)
+                    .padding(.horizontal, TickerSpacing.lg)
+                    .padding(.vertical, TickerSpacing.md)
                     .background(
-                        Capsule()
-                            .fill(
-                                viewModel.isSaving ?
-                                LinearGradient(
-                                        colors: [TickerColor.primary.opacity(0.7)],
-                                        startPoint: .center,
-                                        endPoint: .center
-                                    ) :
+                        ZStack {
+                            // Base gradient
+                            Capsule()
+                                .fill(
+                                    viewModel.isSaving ?
                                     LinearGradient(
-                                        colors: [
-                                            TickerColor.primary,
-                                            TickerColor.primary.opacity(0.9)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
+                                            colors: [
+                                                TickerColor.primary.opacity(0.8),
+                                                TickerColor.primary.opacity(0.6)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        ) :
+                                        LinearGradient(
+                                            colors: [
+                                                TickerColor.primary,
+                                                TickerColor.primary.opacity(0.95),
+                                                TickerColor.primary.opacity(0.9)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                )
+                            
+                            // Shimmer effect when saving
+                            if viewModel.isSaving {
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                Color.clear,
+                                                Color.white.opacity(0.2),
+                                                Color.clear
+                                            ],
+                                            startPoint: .leading,
+                                            endPoint: .trailing
+                                        )
                                     )
+                                    .offset(x: -50)
+                                    .animation(
+                                        .linear(duration: 1.5)
+                                        .repeatForever(autoreverses: false),
+                                        value: viewModel.isSaving
+                                    )
+                            }
+                        }
+                    )
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(
+                                TickerColor.absoluteWhite.opacity(0.2),
+                                lineWidth: 1
                             )
                     )
                     .shadow(
-                        color: TickerColor.primary.opacity(viewModel.isSaving ? 0.2 : 0.4),
-                        radius: viewModel.isSaving ? 4 : 8,
+                        color: TickerColor.primary.opacity(viewModel.isSaving ? 0.3 : 0.5),
+                        radius: viewModel.isSaving ? 6 : 12,
                         x: 0,
-                        y: 4
+                        y: viewModel.isSaving ? 3 : 6
                     )
+                    .scaleEffect(viewModel.isSaving ? 0.95 : 1.0)
+                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.isSaving)
                 }
                 .disabled(viewModel.isSaving || !viewModel.canSave)
-                .opacity(viewModel.hasDateWeekdayMismatch ? 0.6 : 1.0)
+                .opacity(viewModel.hasDateWeekdayMismatch ? 0.5 : (viewModel.canSave ? 1.0 : 0.6))
+                .animation(.easeInOut(duration: 0.2), value: viewModel.canSave)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.hasDateWeekdayMismatch)
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -190,10 +252,12 @@ struct AddTickerView: View {
                 Text(errorMessage)
             }
         }
-        .onChange(of: viewModel.timePickerViewModel.selectedHour) { _, _ in
+        .onChange(of: viewModel.timePickerViewModel.selectedHour) { _, newValue in
+            TickerHaptics.selection()
             viewModel.updateSmartDate()
         }
-        .onChange(of: viewModel.timePickerViewModel.selectedMinute) { _, _ in
+        .onChange(of: viewModel.timePickerViewModel.selectedMinute) { _, newValue in
+            TickerHaptics.selection()
             viewModel.updateSmartDate()
         }
         .onChange(of: viewModel.calendarViewModel.selectedDate) { _, _ in
@@ -215,17 +279,20 @@ struct AddTickerView: View {
                 .padding(.vertical, TickerSpacing.lg)
                 .background(
                     RoundedRectangle(cornerRadius: TickerRadius.large)
-                        .fill(TickerColor.surface(for: colorScheme).opacity(0.6))
+                        .fill(TickerColor.surface(for: colorScheme).opacity(0.7))
                 )
                 .background(
                     RoundedRectangle(cornerRadius: TickerRadius.large)
                         .fill(.ultraThinMaterial)
                 )
                 .overlay(timePickerCardBorder)
-                .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 10)
-                .shadow(color: TickerColor.primary.opacity(0.1), radius: 30, x: 0, y: 15)
+                .shadow(color: Color.black.opacity(0.1), radius: 25, x: 0, y: 12)
+                .shadow(color: TickerColor.primary.opacity(0.15), radius: 35, x: 0, y: 18)
                 .padding(.horizontal, TickerSpacing.md)
                 .padding(.top, TickerSpacing.md)
+                .scaleEffect(1.0)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.timePickerViewModel.selectedHour)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.timePickerViewModel.selectedMinute)
         }
     }
 
@@ -280,6 +347,7 @@ struct AddTickerView: View {
     // MARK: - Initialization
 
     private func initializeViewModel() {
+    
         viewModel = AddTickerViewModel(
             modelContext: modelContext,
             tickerService: tickerService,
@@ -295,4 +363,5 @@ struct AddTickerView: View {
     @Previewable @Namespace var namespace
     AddTickerView(namespace: namespace)
         .modelContainer(for: [Ticker.self])
+        .environment(TickerService())
 }

@@ -49,6 +49,10 @@ final class OptionsPillsViewModel {
         countdownViewModel?.isEnabled ?? false
     }
 
+    var hasAnyActiveOptions: Bool {
+        hasCalendarValue || hasLabelValue || hasCountdownValue || (repeatViewModel?.selectedOption != .noRepeat) || enableSnooze
+    }
+
     // MARK: - Methods
 
     func configure(

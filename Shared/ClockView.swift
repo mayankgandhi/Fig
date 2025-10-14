@@ -66,23 +66,42 @@ struct ClockView: View {
                 let secondAngle = Double(second) * 6
                 
                 ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(.secondarySystemBackground),
-                                    Color(.tertiarySystemBackground)
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                    // Enhanced clock face with glassmorphism
+                    ZStack {
+                                // Base gradient
+                                LinearGradient(
+                                    colors: [
+                                        Color(.secondarySystemBackground),
+                                        Color(.tertiarySystemBackground)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                                
+                                // Glassmorphism overlay
+                                Circle()
+                                    .fill(.ultraThinMaterial)
+                                    .opacity(0.3)
+                            }
+                    .clipShape(Circle())
                         .overlay(
                             Circle()
-                                .strokeBorder(Color(.separator).opacity(0.3), lineWidth: 1)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [
+                                            Color.white.opacity(0.2),
+                                            Color.clear,
+                                            Color.black.opacity(0.1)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1
+                                )
                         )
-                        .shadow(color: Color(.label).opacity(0.05), radius: 20, x: 0, y: 8)
-                        .shadow(color: Color(.label).opacity(0.03), radius: 5, x: 0, y: 2)
+                        .shadow(color: Color(.label).opacity(0.1), radius: 20, x: 0, y: 8)
+                        .shadow(color: Color(.label).opacity(0.05), radius: 5, x: 0, y: 2)
+                        .shadow(color: Color(.label).opacity(0.02), radius: 1, x: 0, y: 1)
                     
                     ForEach(hourMarks) { hourmark in
                         Rectangle()
@@ -117,21 +136,46 @@ struct ClockView: View {
                     
                     ForEach(Array(upcomingAlarms.enumerated()), id: \.element.id) { index, event in
                         VStack(spacing: .zero) {
-                            Label(event.displayName, systemImage: event.icon)
-                                .Caption2()
-                                .lineLimit(1)
-                                .minimumScaleFactor(0.5)
-                                .foregroundColor(TickerColor.textPrimary(for: colorScheme))
-                                .padding(.horizontal, TickerSpacing.xs)
+                            // Enhanced alarm indicator
+                            ZStack {
+                                // Background capsule with gradient
+                                Capsule()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                event.color.opacity(0.9),
+                                                event.color.opacity(0.7)
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: handLength * 0.18, height: handLength * 0.6)
+                                    .shadow(color: event.color.opacity(0.3), radius: 4, x: 0, y: 2)
+                                
+                                // Icon and text
+                                VStack(spacing: 2) {
+                                    Image(systemName: event.icon)
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .foregroundStyle(.white)
+                                    
+                                    Text(event.displayName)
+                                        .font(.system(size: 8, weight: .bold))
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.6)
+                                        .foregroundStyle(.white)
+                                        .padding(.horizontal, 4)
+                                }
                                 .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
-                                .background(
-                                    Capsule()
-                                        .fill(event.color.opacity(1))
-                                        .frame(width: handLength * 0.15, height: handLength)
-                                )
-
+                            }
+                            
+                            // Connection line to clock face
+                            Rectangle()
+                                .fill(event.color.opacity(0.6))
+                                .frame(width: 2, height: handLength * 0.15)
+                                .offset(y: -handLength * 0.075)
                         }
-                        .offset(y: -handLength * 0.50)
+                        .offset(y: -handLength * 0.45)
                         .rotationEffect(Angle(degrees: event.angle))
                         .scaleEffect(alarmAnimationStates[event.id] == true ? 1.0 : 0.1)
                         .opacity(alarmAnimationStates[event.id] == true ? 1.0 : 0.0)
@@ -142,33 +186,69 @@ struct ClockView: View {
                         )
                     }
                     
-                    // Hour Hand
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(TickerColor.textPrimary(for: colorScheme))
-                        .frame(width: 4, height: radius * 0.5)
+                    // Enhanced Hour Hand
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    TickerColor.textPrimary(for: colorScheme),
+                                    TickerColor.textPrimary(for: colorScheme).opacity(0.8)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 5, height: radius * 0.5)
                         .offset(y: -radius * 0.25)
                         .rotationEffect(Angle(degrees: hourAngle))
-                        .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.3), radius: 2, x: 0, y: 1)
+                        .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.4), radius: 3, x: 0, y: 2)
                     
-                    // Minute Hand
-                    RoundedRectangle(cornerRadius: 1.5)
-                        .fill(TickerColor.textPrimary(for: colorScheme))
-                        .frame(width: 3, height: radius * 0.7)
+                    // Enhanced Minute Hand
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    TickerColor.textPrimary(for: colorScheme),
+                                    TickerColor.textPrimary(for: colorScheme).opacity(0.7)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 4, height: radius * 0.7)
                         .offset(y: -radius * 0.35)
                         .rotationEffect(Angle(degrees: minuteAngle))
-                        .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.3), radius: 2, x: 0, y: 1)
+                        .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.4), radius: 3, x: 0, y: 2)
                     
-                    // Second Hand
+                    // Enhanced Second Hand
                     RoundedRectangle(cornerRadius: 1)
-                        .fill(TickerColor.primary)
-                        .frame(width: 1.5, height: radius * 0.8)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    TickerColor.primary,
+                                    TickerColor.accent
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 2, height: radius * 0.8)
                         .offset(y: -radius * 0.4)
                         .rotationEffect(Angle(degrees: secondAngle))
                         .animation(.none, value: secondAngle)
+                        .shadow(color: TickerColor.primary.opacity(0.5), radius: 2, x: 0, y: 1)
                     
-                    Circle()
-                        .fill(TickerColor.primary)
-                        .frame(width: radius * 0.02, height: radius * 0.02)
+                    // Enhanced center dot
+                    ZStack {
+                        Circle()
+                            .fill(TickerColor.primary)
+                            .frame(width: radius * 0.04, height: radius * 0.04)
+                            .shadow(color: TickerColor.primary.opacity(0.3), radius: 2, x: 0, y: 1)
+                        
+                        Circle()
+                            .fill(.white)
+                            .frame(width: radius * 0.02, height: radius * 0.02)
+                    }
                 }
                 .frame(
                     width: geometry.size.width,

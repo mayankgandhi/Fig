@@ -15,6 +15,17 @@ import WidgetKit
 // at fig/AppIntents/LiveActivity/
 
 struct AlarmLiveActivity: Widget {
+    
+    // Helper function to check if mode is countdown
+    private func isCountdownMode(_ mode: AlarmPresentationState.Mode) -> Bool {
+        switch mode {
+        case .countdown:
+            return true
+        case .paused, .alert:
+            return false
+        }
+    }
+    
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: AlarmAttributes<TickerData>.self) { context in
             // The Lock Screen presentation.
@@ -24,35 +35,77 @@ struct AlarmLiveActivity: Widget {
             DynamicIsland {
                 // The expanded Dynamic Island presentation.
                 DynamicIslandExpandedRegion(.leading) {
-                    alarmTitle(attributes: context.attributes, state: context.state)
+                    VStack(alignment: .leading, spacing: 4) {
+                        alarmTitle(attributes: context.attributes, state: context.state)
+                        
+                        // Status indicator for expanded view
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(context.attributes.tintColor)
+                                .frame(width: 6, height: 6)
+                                .scaleEffect(isCountdownMode(context.state.mode) ? 1.3 : 1.0)
+                                .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
+                            
+                            Text(isCountdownMode(context.state.mode) ? "Active" : "Paused")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    tickerCategory(metadata: context.attributes.metadata)
+                    VStack(alignment: .trailing, spacing: 4) {
+                        tickerCategory(metadata: context.attributes.metadata)
+                        
+                        // Quick countdown in expanded view
+                        countdown(state: context.state, maxWidth: 80)
+                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .foregroundStyle(context.attributes.tintColor)
+                    }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
                     bottomView(attributes: context.attributes, state: context.state)
                 }
             } compactLeading: {
                 // The compact leading presentation.
-                countdown(state: context.state, maxWidth: 44)
-                    .foregroundStyle(context.attributes.tintColor)
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(context.attributes.tintColor)
+                        .frame(width: 6, height: 6)
+                        .scaleEffect(isCountdownMode(context.state.mode) ? 1.2 : 1.0)
+                        .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
+                    
+                    countdown(state: context.state, maxWidth: 44)
+                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .foregroundStyle(context.attributes.tintColor)
+                }
             } compactTrailing: {
                 // The compact trailing presentation.
                 AlarmProgressView(tickerIcon: context.attributes.metadata?.icon,
                                   mode: context.state.mode,
                                   tint: context.attributes.tintColor)
             } minimal: {
-                // The minimal presentation.
-                AlarmProgressView(tickerIcon: context.attributes.metadata?.icon,
-                                  mode: context.state.mode,
-                                  tint: context.attributes.tintColor)
+                // The minimal presentation with enhanced styling.
+                ZStack {
+                    // Background circle with subtle glow
+                    Circle()
+                        .fill(context.attributes.tintColor.opacity(0.1))
+                        .frame(width: 20, height: 20)
+                        .scaleEffect(isCountdownMode(context.state.mode) ? 1.2 : 1.0)
+                        .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
+                    
+                    // Progress indicator
+                    AlarmProgressView(tickerIcon: context.attributes.metadata?.icon,
+                                      mode: context.state.mode,
+                                      tint: context.attributes.tintColor)
+                }
             }
             .keylineTint(context.attributes.tintColor)
         }
     }
     
     func lockScreenView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        VStack {
+        VStack(spacing: 16) {
             HStack(alignment: .top) {
                 alarmTitle(attributes: attributes, state: state)
                 Spacer()
@@ -61,14 +114,72 @@ struct AlarmLiveActivity: Widget {
 
             bottomView(attributes: attributes, state: state)
         }
-        .padding(.all, 12)
+        .padding(.all, 16)
+        .background(
+            ZStack {
+                // Glassmorphism background
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        Color.white.opacity(0.2),
+                                        Color.white.opacity(0.05)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+                
+                // Subtle gradient overlay
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                attributes.tintColor.opacity(0.1),
+                                Color.clear,
+                                attributes.tintColor.opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+        )
+        .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 8)
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 
     func bottomView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        HStack {
-            countdown(state: state, maxWidth: 150)
-                .font(.system(size: 40, design: .rounded))
+        HStack(spacing: 20) {
+            // Enhanced countdown display
+            VStack(alignment: .leading, spacing: 4) {
+                countdown(state: state, maxWidth: 150)
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundStyle(attributes.tintColor)
+                
+                // Status indicator
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(attributes.tintColor)
+                        .frame(width: 8, height: 8)
+                        .scaleEffect(isCountdownMode(state.mode) ? 1.2 : 1.0)
+                        .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(state.mode))
+                    
+                    Text(isCountdownMode(state.mode) ? "Running" : "Paused")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            
             Spacer()
+            
+            // Enhanced controls
             AlarmControls(presentation: attributes.presentation, state: state)
         }
     }
@@ -102,23 +213,42 @@ struct AlarmLiveActivity: Widget {
             nil
         }
         
-        Text(title ?? "")
-            .font(.title3)
-            .fontWeight(.semibold)
-            .lineLimit(1)
-            .padding(.leading, 6)
+        VStack(alignment: .leading, spacing: 2) {
+            Text(title ?? "")
+                .font(.title2)
+                .fontWeight(.bold)
+                .lineLimit(1)
+                .foregroundStyle(.primary)
+            
+            Text("Alarm")
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+        }
     }
     
     @ViewBuilder func tickerCategory(metadata: TickerData?) -> some View {
         if let name = metadata?.name, let icon = metadata?.icon {
-            HStack(spacing: 4) {
-                Text(name)
+            HStack(spacing: 6) {
                 Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundStyle(.primary)
+                
+                Text(name)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .lineLimit(1)
             }
-            .font(.body)
-            .fontWeight(.medium)
-            .lineLimit(1)
-            .padding(.trailing, 6)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        Capsule()
+                            .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                    )
+            )
         } else {
             EmptyView()
         }
@@ -134,30 +264,62 @@ struct AlarmProgressView: View {
         Group {
             switch mode {
             case .countdown(let countdown):
-                ProgressView(
-                    timerInterval: Date.now ... countdown.fireDate,
-                    countsDown: true,
-                    label: { EmptyView() },
-                    currentValueLabel: {
-                        Image(systemName: tickerIcon ?? "bell.fill")
-                            .scaleEffect(0.9)
-                    })
+                ZStack {
+                    // Background circle
+                    Circle()
+                        .stroke(tint.opacity(0.2), lineWidth: 2)
+                        .frame(width: 16, height: 16)
+                    
+                    // Progress circle
+                    Circle()
+                        .trim(from: 0, to: 0.75) // 3/4 progress for visual appeal
+                        .stroke(
+                            LinearGradient(
+                                colors: [tint, tint.opacity(0.7)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                        )
+                        .frame(width: 16, height: 16)
+                        .rotationEffect(.degrees(-90))
+                        .animation(.linear(duration: 1.0).repeatForever(autoreverses: false), value: countdown.fireDate)
+                    
+                    // Icon
+                    Image(systemName: tickerIcon ?? "bell.fill")
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundStyle(tint)
+                }
             case .paused(let pausedState):
-                let remaining = pausedState.totalCountdownDuration - pausedState.previouslyElapsedDuration
-                ProgressView(value: remaining,
-                             total: pausedState.totalCountdownDuration,
-                             label: { EmptyView() },
-                             currentValueLabel: {
+                ZStack {
+                    // Background circle
+                    Circle()
+                        .stroke(tint.opacity(0.2), lineWidth: 2)
+                        .frame(width: 16, height: 16)
+                    
+                    // Paused progress
+                    Circle()
+                        .trim(from: 0, to: 0.5) // Half progress for paused state
+                        .stroke(
+                            LinearGradient(
+                                colors: [tint.opacity(0.6), tint.opacity(0.4)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            style: StrokeStyle(lineWidth: 2, lineCap: .round)
+                        )
+                        .frame(width: 16, height: 16)
+                        .rotationEffect(.degrees(-90))
+                    
+                    // Pause icon
                     Image(systemName: "pause.fill")
-                        .scaleEffect(0.8)
-                })
+                        .font(.system(size: 8, weight: .semibold))
+                        .foregroundStyle(tint.opacity(0.7))
+                }
             default:
                 EmptyView()
             }
         }
-        .progressViewStyle(.circular)
-        .foregroundStyle(tint)
-        .tint(tint)
     }
 }
 
@@ -195,11 +357,25 @@ struct ButtonView<I>: View where I: AppIntent {
     
     var body: some View {
         Button(intent: intent) {
-            Label(config.text, systemImage: config.systemImageName)
-                .lineLimit(1)
+            HStack(spacing: 6) {
+                Image(systemName: config.systemImageName)
+                    .font(.system(size: 14, weight: .semibold))
+                
+                Text(config.text)
+                    .font(.system(size: 13, weight: .semibold))
+                    .lineLimit(1)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(tint)
+                    .shadow(color: tint.opacity(0.3), radius: 8, x: 0, y: 4)
+            )
         }
-        .tint(tint)
-        .buttonStyle(.borderedProminent)
-        .frame(width: 96, height: 30)
+        .buttonStyle(PlainButtonStyle())
+        .scaleEffect(1.0)
+        .animation(.easeInOut(duration: 0.1), value: false)
     }
 }

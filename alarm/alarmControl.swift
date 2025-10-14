@@ -21,15 +21,52 @@ struct alarmControl: ControlWidget {
             provider: Provider()
         ) { value in
             ControlWidgetToggle(
-                "Start Timer",
+                "Quick Timer",
                 isOn: value.isRunning,
                 action: StartTimerIntent(value.name)
             ) { isRunning in
-                Label(isRunning ? "On" : "Off", systemImage: "timer")
+                VStack(spacing: 4) {
+                    ZStack {
+                        // Background circle with gradient
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: isRunning ? [
+                                        Color.orange,
+                                        Color.red
+                                    ] : [
+                                        Color.gray.opacity(0.3),
+                                        Color.gray.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 32, height: 32)
+                            .shadow(
+                                color: isRunning ? Color.orange.opacity(0.3) : Color.clear,
+                                radius: isRunning ? 8 : 0,
+                                x: 0,
+                                y: 4
+                            )
+                        
+                        // Icon
+                        Image(systemName: isRunning ? "timer" : "timer")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(isRunning ? .white : .secondary)
+                            .scaleEffect(isRunning ? 1.1 : 1.0)
+                            .animation(.easeInOut(duration: 0.2), value: isRunning)
+                    }
+                    
+                    // Status text
+                    Text(isRunning ? "Running" : "Stopped")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundStyle(isRunning ? .primary : .secondary)
+                }
             }
         }
-        .displayName("Timer")
-        .description("A an example control that runs a timer.")
+        .displayName("Quick Timer")
+        .description("Start or stop a quick timer from Control Center")
     }
 }
 

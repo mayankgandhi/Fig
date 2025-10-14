@@ -52,4 +52,10 @@ final class TimePickerViewModel {
         selectedHour = Calendar.current.component(.hour, from: now)
         selectedMinute = Calendar.current.component(.minute, from: now)
     }
+    
+    // MARK: - Haptic Feedback
+    
+    private func triggerTimeChangeHaptic() {
+        TickerHaptics.selection()
+    }
 }

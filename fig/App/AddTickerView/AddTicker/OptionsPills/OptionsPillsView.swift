@@ -14,13 +14,29 @@ struct OptionsPillsView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-            Text("OPTIONS")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-                .padding(.horizontal, TickerSpacing.md)
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // Enhanced section header
+            HStack {
+                Text("OPTIONS")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                    .textCase(.uppercase)
+                    .tracking(0.8)
+                
+                Spacer()
+                
+                // Subtle indicator for active options
+                if viewModel.hasAnyActiveOptions {
+                    Circle()
+                        .fill(TickerColor.primary)
+                        .frame(width: 6, height: 6)
+                        .opacity(0.7)
+                }
+            }
+            .padding(.horizontal, TickerSpacing.md)
 
-            FlowLayout(spacing: TickerSpacing.xs) {
+            // Enhanced pill layout with better spacing
+            FlowLayout(spacing: TickerSpacing.sm) {
                 expandablePillButton(
                     icon: "calendar",
                     title: viewModel.displayDate,
@@ -57,7 +73,9 @@ struct OptionsPillsView: View {
                     isActive: viewModel.enableSnooze
                 ) {
                     TickerHaptics.selection()
-                    viewModel.enableSnooze.toggle()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        viewModel.enableSnooze.toggle()
+                    }
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -117,67 +135,99 @@ struct OptionsPillsView: View {
         let isIconField = title == "Icon"
         let iconColor = isIconField ? (Color(hex: selectedColorHex) ?? TickerColor.primary) : nil
 
-        return HStack(spacing: TickerSpacing.xxs) {
+        return HStack(spacing: TickerSpacing.xs) {
             ZStack {
                 if isIconField {
-                    // Icon field: Show colored circle background
+                    // Icon field: Enhanced colored circle background
                     Circle()
                         .fill(iconColor ?? TickerColor.primary)
-                        .frame(width: 24, height: 24)
+                        .frame(width: 26, height: 26)
+                        .overlay(
+                            Circle()
+                                .strokeBorder(
+                                    TickerColor.absoluteWhite.opacity(0.2),
+                                    lineWidth: 1
+                                )
+                        )
 
                     Image(systemName: icon)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(TickerColor.absoluteWhite)
                 } else {
-                    // Other fields: Show glow for active state
-                    if isActive {
-                        Circle()
-                            .fill(TickerColor.absoluteWhite.opacity(0.2))
-                            .frame(width: 20, height: 20)
-                            .blur(radius: 4)
-                    }
+                    // Other fields: Enhanced icon with better states
+                    ZStack {
+                        // Subtle background for better contrast
+                        if isActive {
+                            Circle()
+                                .fill(TickerColor.absoluteWhite.opacity(0.15))
+                                .frame(width: 24, height: 24)
+                        } else if hasValue {
+                            Circle()
+                                .fill(TickerColor.primary.opacity(0.1))
+                                .frame(width: 22, height: 22)
+                        }
 
-                    Image(systemName: icon)
-                        .font(.system(size: 14, weight: isActive ? .semibold : .medium))
-                        .foregroundStyle(isActive ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
+                        Image(systemName: icon)
+                            .font(.system(size: 15, weight: isActive ? .bold : .semibold))
+                            .foregroundStyle(
+                                isActive ? TickerColor.absoluteWhite : 
+                                hasValue ? TickerColor.primary : 
+                                TickerColor.textPrimary(for: colorScheme)
+                            )
+                    }
                 }
             }
 
             Text(title)
-                .font(.system(size: 13, weight: isActive ? .semibold : .medium, design: .rounded))
+                .font(.system(size: 14, weight: isActive ? .bold : .semibold, design: .rounded))
                 .lineLimit(1)
+                .foregroundStyle(
+                    isActive ? TickerColor.absoluteWhite : 
+                    hasValue ? TickerColor.textPrimary(for: colorScheme) : 
+                    TickerColor.textSecondary(for: colorScheme)
+                )
         }
-        .foregroundStyle(isActive ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
         .padding(.horizontal, TickerSpacing.md)
-        .padding(.vertical, TickerSpacing.sm)
+        .padding(.vertical, TickerSpacing.md)
         .background(
             ZStack {
                 if isActive {
-                    // Active gradient background
+                    // Enhanced active gradient background
                     LinearGradient(
                         colors: [
                             TickerColor.primary,
+                            TickerColor.primary.opacity(0.95),
                             TickerColor.primary.opacity(0.9)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
+                } else if hasValue {
+                    // Value state with subtle primary tint
+                    LinearGradient(
+                        colors: [
+                            TickerColor.surface(for: colorScheme),
+                            TickerColor.surface(for: colorScheme).opacity(0.8)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
                 } else {
-                    // Inactive glass background
+                    // Default inactive state
                     TickerColor.surface(for: colorScheme)
-                        .opacity(0.7)
+                        .opacity(0.6)
                 }
             }
         )
-        .background(.ultraThinMaterial.opacity(isActive ? 0.5 : 0.3))
+        .background(.ultraThinMaterial.opacity(isActive ? 0.6 : hasValue ? 0.4 : 0.2))
         .overlay(
             Capsule()
                 .strokeBorder(
                     hasValue && !isActive ?
                     LinearGradient(
                         colors: [
-                            TickerColor.primary.opacity(0.6),
-                            TickerColor.primary.opacity(0.3)
+                            TickerColor.primary.opacity(0.7),
+                            TickerColor.primary.opacity(0.4)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -187,34 +237,21 @@ struct OptionsPillsView: View {
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
-                    lineWidth: 1.5
+                    lineWidth: hasValue ? 1.5 : 0
                 )
-        )
-        .overlay(
-            // Purple overlay border specifically for repeat field when it has a value
-            field == .repeat && hasValue && !isActive ?
-            Capsule()
-                .strokeBorder(
-                    LinearGradient(
-                        colors: [
-                            TickerColor.primary.opacity(0.8),
-                            TickerColor.primary.opacity(0.6),
-                            TickerColor.primary.opacity(0.4)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 2.5
-                )
-                .blur(radius: 1)
-            : nil
         )
         .clipShape(Capsule())
         .shadow(
-            color: isActive ? TickerColor.primary.opacity(0.4) : Color.black.opacity(0.08),
-            radius: isActive ? 8 : 4,
+            color: isActive ? TickerColor.primary.opacity(0.5) : 
+                   hasValue ? TickerColor.primary.opacity(0.15) : 
+                   Color.black.opacity(0.06),
+            radius: isActive ? 10 : hasValue ? 6 : 3,
             x: 0,
-            y: isActive ? 4 : 2
+            y: isActive ? 5 : hasValue ? 3 : 1
         )
+        .scaleEffect(isActive ? 1.02 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hasValue)
     }
 }
+
