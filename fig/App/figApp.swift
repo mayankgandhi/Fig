@@ -14,7 +14,8 @@ struct figApp: App {
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Ticker.self
+            Ticker.self,
+            AlarmType.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

@@ -72,7 +72,34 @@ final class AddTickerViewModel {
     // MARK: - Computed Properties
 
     var canSave: Bool {
-        labelViewModel.isValid && countdownViewModel.isValid
+        labelViewModel.isValid && countdownViewModel.isValid && !hasDateWeekdayMismatch
+    }
+    
+    /// Checks if the selected date conflicts with the selected weekdays
+    var hasDateWeekdayMismatch: Bool {
+        guard repeatViewModel.selectedOption == .weekdays else { return false }
+        guard !repeatViewModel.selectedWeekdays.isEmpty else { return false }
+        
+        let selectedWeekday = calendar.component(.weekday, from: calendarViewModel.selectedDate)
+        // Convert Calendar weekday (1=Sunday) to our Weekday enum (0=Sunday)
+        let adjustedWeekday = (selectedWeekday == 1) ? 0 : selectedWeekday - 1
+        
+        guard let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday) else { return true }
+        
+        return !repeatViewModel.selectedWeekdays.contains(tickerWeekday)
+    }
+    
+    /// Returns a helpful message about the date/weekday mismatch
+    var dateWeekdayMismatchMessage: String? {
+        guard hasDateWeekdayMismatch else { return nil }
+        
+        let selectedWeekday = calendar.component(.weekday, from: calendarViewModel.selectedDate)
+        let adjustedWeekday = (selectedWeekday == 1) ? 0 : selectedWeekday - 1
+        
+        guard let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday) else { return nil }
+        
+        let selectedDayNames = repeatViewModel.selectedWeekdays.map { $0.displayName }.joined(separator: ", ")
+        return "Selected date (\(tickerWeekday.displayName)) doesn't match selected days (\(selectedDayNames))"
     }
 
     // MARK: - Methods
@@ -83,12 +110,49 @@ final class AddTickerViewModel {
             minute: timePickerViewModel.selectedMinute
         )
     }
+    
+    /// Automatically adjusts the selected date to the next occurrence of the selected weekdays
+    func adjustDateToMatchWeekdays() {
+        guard repeatViewModel.selectedOption == .weekdays else { return }
+        guard !repeatViewModel.selectedWeekdays.isEmpty else { return }
+        
+        let currentDate = calendarViewModel.selectedDate
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: currentDate)
+        
+        // Find the next occurrence of any selected weekday
+        var searchDate = currentDate
+        for _ in 0..<7 { // Check up to 7 days ahead
+            let weekday = calendar.component(.weekday, from: searchDate)
+            let adjustedWeekday = (weekday == 1) ? 0 : weekday - 1
+            
+            if let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday),
+               repeatViewModel.selectedWeekdays.contains(tickerWeekday) {
+                
+                // Set the time to match the selected time
+                var components = calendar.dateComponents([.year, .month, .day], from: searchDate)
+                components.hour = timePickerViewModel.selectedHour
+                components.minute = timePickerViewModel.selectedMinute
+                
+                if let adjustedDate = calendar.date(from: components) {
+                    calendarViewModel.selectedDate = adjustedDate
+                }
+                return
+            }
+            
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: searchDate) else { break }
+            searchDate = nextDate
+        }
+    }
 
     @MainActor
     func saveTicker() async {
         guard !isSaving else { return }
         guard canSave else {
-            errorMessage = "Please check your inputs"
+            if hasDateWeekdayMismatch {
+                errorMessage = dateWeekdayMismatchMessage ?? "Date and weekday selection don't match"
+            } else {
+                errorMessage = "Please check your inputs"
+            }
             showingError = true
             return
         }

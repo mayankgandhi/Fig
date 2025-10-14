@@ -20,6 +20,10 @@ struct SettingsView: View {
                     appSettingsSection
                         .padding(.horizontal, 16)
 
+                    // Customization Section
+                    customizationSection
+                        .padding(.horizontal, 16)
+
                     // Data Section
                     dataSection
                         .padding(.horizontal, 16)
@@ -52,6 +56,21 @@ struct SettingsView: View {
                 AboutView()
                 FAQView()
                 HelpSupportView()
+            }
+        }
+    }
+
+    private var customizationSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("CUSTOMIZATION")
+                .font(.system(size: 13, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.leading, 4)
+
+            VStack(spacing: 8) {
+                AlarmTypesView()
             }
         }
     }

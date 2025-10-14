@@ -176,6 +176,7 @@ struct AddTickerView: View {
                     )
                 }
                 .disabled(viewModel.isSaving || !viewModel.canSave)
+                .opacity(viewModel.hasDateWeekdayMismatch ? 0.6 : 1.0)
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
@@ -194,6 +195,12 @@ struct AddTickerView: View {
         }
         .onChange(of: viewModel.timePickerViewModel.selectedMinute) { _, _ in
             viewModel.updateSmartDate()
+        }
+        .onChange(of: viewModel.calendarViewModel.selectedDate) { _, _ in
+            // Trigger validation update when date changes
+        }
+        .onChange(of: viewModel.repeatViewModel.selectedWeekdays) { _, _ in
+            // Trigger validation update when weekdays change
         }
         }
     }
@@ -248,7 +255,13 @@ struct AddTickerView: View {
                     CalendarPickerView(viewModel: viewModel.calendarViewModel)
 
                 case .repeat:
-                    RepeatOptionsView(viewModel: viewModel.repeatViewModel)
+                    RepeatOptionsView(
+                        viewModel: viewModel.repeatViewModel,
+                        validationMessage: viewModel.dateWeekdayMismatchMessage,
+                        onFixMismatch: viewModel.hasDateWeekdayMismatch ? {
+                            viewModel.adjustDateToMatchWeekdays()
+                        } : nil
+                    )
 
                 case .label:
                     LabelEditorView(viewModel: viewModel.labelViewModel)
