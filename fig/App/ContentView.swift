@@ -248,12 +248,30 @@ struct ContentView: View {
                 AlarmCell(alarmItem: ticker) {
                     alarmToShowDetail = ticker
                 }
+                .contextMenu(menuItems: {
+                    Button {
+                        TickerHaptics.selection()
+                        alarmToEdit = ticker
+                    } label: {
+                        Label("Edit", systemImage: "pencil")
+                    }
+                    .tint(TickerColor.primary)
+                    
+                    Button(role: .destructive) {
+                        TickerHaptics.selection()
+                        alarmToDelete = ticker
+                        showDeleteAlert = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    .tint(.red)
+                })
                 .listRowInsets(EdgeInsets(top: TickerSpacing.xs, leading: 20, bottom: TickerSpacing.xs, trailing: 20))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                        Button {
-                            TickerHaptics.selection()
+                    Button {
+                        TickerHaptics.selection()
                             alarmToEdit = ticker
                         } label: {
                             Label("Edit", systemImage: "pencil")
