@@ -271,6 +271,91 @@ final class AddTickerViewModel {
                 } else {
                     calendarViewModel.selectedDate = todayOccurrence
                 }
+
+            case .hourly(let interval, let startTime, let endTime):
+                print("      → Setting hourly schedule: every \(interval)h")
+                timePickerViewModel.setTimeFromDate(startTime)
+                calendarViewModel.selectedDate = startTime
+                repeatViewModel.selectOption(.hourly)
+                repeatViewModel.hourlyInterval = interval
+                repeatViewModel.hourlyStartTime = startTime
+                repeatViewModel.hourlyEndTime = endTime
+
+            case .weekdays(let time, let days):
+                print("      → Setting weekdays schedule for: \(time.hour):\(time.minute)")
+                timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
+                repeatViewModel.selectOption(.weekdays)
+                repeatViewModel.selectedWeekdays = days
+                // Set selectedDate to next occurrence
+                var components = calendar.dateComponents([.year, .month, .day], from: now)
+                components.hour = time.hour
+                components.minute = time.minute
+                if let todayOccurrence = calendar.date(from: components) {
+                    calendarViewModel.selectedDate = todayOccurrence <= now ? calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence : todayOccurrence
+                } else {
+                    calendarViewModel.selectedDate = now
+                }
+
+            case .biweekly(let time, let weekdays, let anchorDate):
+                print("      → Setting biweekly schedule for: \(time.hour):\(time.minute)")
+                timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
+                repeatViewModel.selectOption(.biweekly)
+                repeatViewModel.biweeklyWeekdays = weekdays
+                repeatViewModel.biweeklyAnchorDate = anchorDate
+                // Set selectedDate to next occurrence
+                var components = calendar.dateComponents([.year, .month, .day], from: now)
+                components.hour = time.hour
+                components.minute = time.minute
+                if let todayOccurrence = calendar.date(from: components) {
+                    calendarViewModel.selectedDate = todayOccurrence <= now ? calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence : todayOccurrence
+                } else {
+                    calendarViewModel.selectedDate = now
+                }
+
+            case .monthly(let day, let time):
+                print("      → Setting monthly schedule for: \(time.hour):\(time.minute)")
+                timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
+                repeatViewModel.selectOption(.monthly)
+                switch day {
+                case .fixed(let d):
+                    repeatViewModel.monthlyDayType = .fixed
+                    repeatViewModel.monthlyFixedDay = d
+                case .firstWeekday(let weekday):
+                    repeatViewModel.monthlyDayType = .firstWeekday
+                    repeatViewModel.monthlyWeekday = weekday
+                case .lastWeekday(let weekday):
+                    repeatViewModel.monthlyDayType = .lastWeekday
+                    repeatViewModel.monthlyWeekday = weekday
+                case .firstOfMonth:
+                    repeatViewModel.monthlyDayType = .firstOfMonth
+                case .lastOfMonth:
+                    repeatViewModel.monthlyDayType = .lastOfMonth
+                }
+                // Set selectedDate to next occurrence
+                var components = calendar.dateComponents([.year, .month, .day], from: now)
+                components.hour = time.hour
+                components.minute = time.minute
+                if let todayOccurrence = calendar.date(from: components) {
+                    calendarViewModel.selectedDate = todayOccurrence <= now ? calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence : todayOccurrence
+                } else {
+                    calendarViewModel.selectedDate = now
+                }
+
+            case .yearly(let month, let day, let time):
+                print("      → Setting yearly schedule for: \(time.hour):\(time.minute)")
+                timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
+                repeatViewModel.selectOption(.yearly)
+                repeatViewModel.yearlyMonth = month
+                repeatViewModel.yearlyDay = day
+                // Set selectedDate to next occurrence
+                var components = calendar.dateComponents([.year, .month, .day], from: now)
+                components.hour = time.hour
+                components.minute = time.minute
+                if let todayOccurrence = calendar.date(from: components) {
+                    calendarViewModel.selectedDate = todayOccurrence <= now ? calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence : todayOccurrence
+                } else {
+                    calendarViewModel.selectedDate = now
+                }
             }
         } else {
             print("   ⚠️ No schedule found in template - using defaults")

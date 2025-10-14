@@ -102,7 +102,7 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandWeekdays(time: TickerSchedule.TimeOfDay, days: Set<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
+    private func expandWeekdays(time: TickerSchedule.TimeOfDay, days: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
         var currentDate = window.start
 
@@ -129,7 +129,7 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandBiweekly(time: TickerSchedule.TimeOfDay, weekdays: Set<TickerSchedule.Weekday>, anchorDate: Date, within window: DateInterval) -> [Date] {
+    private func expandBiweekly(time: TickerSchedule.TimeOfDay, weekdays: Array<TickerSchedule.Weekday>, anchorDate: Date, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
 
         // Calculate which weeks relative to anchor are "on" weeks

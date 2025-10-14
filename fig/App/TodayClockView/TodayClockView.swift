@@ -139,7 +139,6 @@ struct TodayClockView: View {
             }
             .sheet(isPresented: $showAddSheet) {
                 AddTickerView(namespace: addButtonNamespace)
-                    .presentationDetents([.height(620)])
                     .presentationCornerRadius(TickerRadius.large)
                     .presentationDragIndicator(.visible)
                     .interactiveDismissDisabled()
@@ -160,7 +159,6 @@ struct TodayClockView: View {
             }
             .sheet(item: $alarmToEdit) { ticker in
                 AddTickerView(namespace: editButtonNamespace, prefillTemplate: ticker, isEditMode: true)
-                    .presentationDetents([.height(620)])
                     .presentationCornerRadius(TickerRadius.large)
                     .presentationDragIndicator(.visible)
                     .interactiveDismissDisabled()

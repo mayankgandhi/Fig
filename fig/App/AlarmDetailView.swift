@@ -243,7 +243,7 @@ struct AlarmDetailView: View {
             formatter.timeStyle = .short
             return formatter.string(from: date)
 
-        case .daily(let time):
+        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _, _), .monthly(_, let time), .yearly(_, _, let time):
             let formatter = DateFormatter()
             formatter.timeStyle = .short
             var components = DateComponents()
@@ -253,6 +253,10 @@ struct AlarmDetailView: View {
                 return formatter.string(from: date)
             }
             return "\(time.hour):\(String(format: "%02d", time.minute))"
+
+        case .hourly:
+            // For hourly schedules, show a generic time indicator
+            return "Hourly"
         }
     }
 
@@ -260,6 +264,11 @@ struct AlarmDetailView: View {
         switch schedule {
         case .oneTime: return "calendar"
         case .daily: return "repeat"
+        case .hourly: return "clock"
+        case .weekdays: return "calendar.badge.clock"
+        case .biweekly: return "calendar.badge.clock"
+        case .monthly: return "calendar.circle"
+        case .yearly: return "calendar.badge.exclamationmark"
         }
     }
 
@@ -267,6 +276,11 @@ struct AlarmDetailView: View {
         switch schedule {
         case .oneTime: return "One-time ticker"
         case .daily: return "Daily ticker"
+        case .hourly: return "Hourly ticker"
+        case .weekdays: return "Weekly ticker"
+        case .biweekly: return "Biweekly ticker"
+        case .monthly: return "Monthly ticker"
+        case .yearly: return "Yearly ticker"
         }
     }
 
@@ -276,6 +290,25 @@ struct AlarmDetailView: View {
             return date.formatted(date: .abbreviated, time: .omitted)
         case .daily:
             return "Every day"
+        case .hourly(let interval, _, _):
+            return "Every \(interval)h"
+        case .weekdays(_, let days):
+            let sortedDays = days.sorted { $0.rawValue < $1.rawValue }
+            return sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
+        case .biweekly(_, let weekdays, _):
+            let sortedDays = weekdays.sorted { $0.rawValue < $1.rawValue }
+            return "Biweekly " + sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
+        case .monthly(let day, _):
+            switch day {
+            case .fixed(let d): return "Day \(d)"
+            case .firstWeekday(let weekday): return "First \(weekday.shortDisplayName)"
+            case .lastWeekday(let weekday): return "Last \(weekday.shortDisplayName)"
+            case .firstOfMonth: return "1st of month"
+            case .lastOfMonth: return "Last of month"
+            }
+        case .yearly(let month, let day, _):
+            let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            return "\(monthNames[month - 1]) \(day)"
         }
     }
 
@@ -285,6 +318,16 @@ struct AlarmDetailView: View {
             return "Once"
         case .daily:
             return "Daily"
+        case .hourly:
+            return "Hourly"
+        case .weekdays:
+            return "Weekdays"
+        case .biweekly:
+            return "Biweekly"
+        case .monthly:
+            return "Monthly"
+        case .yearly:
+            return "Yearly"
         }
     }
 

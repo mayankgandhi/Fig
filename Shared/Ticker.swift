@@ -18,8 +18,19 @@ final class Ticker {
     var createdAt: Date
     var isEnabled: Bool
 
-    // Schedule
-    var schedule: TickerSchedule?
+    // Schedule - stored as JSON Data to support complex enum with arrays
+    @Attribute(.externalStorage)
+    private var scheduleData: Data?
+
+    var schedule: TickerSchedule? {
+        get {
+            guard let data = scheduleData else { return nil }
+            return try? JSONDecoder().decode(TickerSchedule.self, from: data)
+        }
+        set {
+            scheduleData = try? JSONEncoder().encode(newValue)
+        }
+    }
 
     // Countdown/Pre-alert
     var countdown: TickerCountdown?
@@ -49,7 +60,7 @@ final class Ticker {
         self.label = label
         self.createdAt = Date.now
         self.isEnabled = isEnabled
-        self.schedule = schedule
+        self.scheduleData = try? JSONEncoder().encode(schedule)
         self.countdown = countdown
         self.presentation = presentation
         self.tickerData = tickerData
@@ -72,8 +83,8 @@ enum TickerSchedule: Codable, Hashable {
     case oneTime(date: Date)
     case daily(time: TimeOfDay)
     case hourly(interval: Int, startTime: Date, endTime: Date?)
-    case weekdays(time: TimeOfDay, days: Set<Weekday>)
-    case biweekly(time: TimeOfDay, weekdays: Set<Weekday>, anchorDate: Date)
+    case weekdays(time: TimeOfDay, days: Array<Weekday>)
+    case biweekly(time: TimeOfDay, weekdays: Array<Weekday>, anchorDate: Date)
     case monthly(day: MonthlyDay, time: TimeOfDay)
     case yearly(month: Int, day: Int, time: TimeOfDay)
 
@@ -101,42 +112,6 @@ enum TickerSchedule: Codable, Hashable {
         case thursday = 4
         case friday = 5
         case saturday = 6
-
-        var localeWeekday: Locale.Weekday {
-            switch self {
-            case .sunday: return .sunday
-            case .monday: return .monday
-            case .tuesday: return .tuesday
-            case .wednesday: return .wednesday
-            case .thursday: return .thursday
-            case .friday: return .friday
-            case .saturday: return .saturday
-            }
-        }
-
-        var displayName: String {
-            switch self {
-            case .sunday: return "Sunday"
-            case .monday: return "Monday"
-            case .tuesday: return "Tuesday"
-            case .wednesday: return "Wednesday"
-            case .thursday: return "Thursday"
-            case .friday: return "Friday"
-            case .saturday: return "Saturday"
-            }
-        }
-
-        var shortDisplayName: String {
-            switch self {
-            case .sunday: return "Sun"
-            case .monday: return "Mon"
-            case .tuesday: return "Tue"
-            case .wednesday: return "Wed"
-            case .thursday: return "Thu"
-            case .friday: return "Fri"
-            case .saturday: return "Sat"
-            }
-        }
     }
 
     enum MonthlyDay: Codable, Hashable {
@@ -146,9 +121,51 @@ enum TickerSchedule: Codable, Hashable {
         case firstOfMonth
         case lastOfMonth
     }
+}
 
-    // MARK: - Display Summary
+// MARK: - Weekday Display Extensions
 
+extension TickerSchedule.Weekday {
+    var localeWeekday: Locale.Weekday {
+        switch self {
+        case .sunday: return .sunday
+        case .monday: return .monday
+        case .tuesday: return .tuesday
+        case .wednesday: return .wednesday
+        case .thursday: return .thursday
+        case .friday: return .friday
+        case .saturday: return .saturday
+        }
+    }
+
+    var displayName: String {
+        switch self {
+        case .sunday: return "Sunday"
+        case .monday: return "Monday"
+        case .tuesday: return "Tuesday"
+        case .wednesday: return "Wednesday"
+        case .thursday: return "Thursday"
+        case .friday: return "Friday"
+        case .saturday: return "Saturday"
+        }
+    }
+
+    var shortDisplayName: String {
+        switch self {
+        case .sunday: return "Sun"
+        case .monday: return "Mon"
+        case .tuesday: return "Tue"
+        case .wednesday: return "Wed"
+        case .thursday: return "Thu"
+        case .friday: return "Fri"
+        case .saturday: return "Sat"
+        }
+    }
+}
+
+// MARK: - TickerSchedule Display Extensions
+
+extension TickerSchedule {
     var displaySummary: String {
         switch self {
         case .oneTime(let date):
@@ -380,3 +397,4 @@ extension Ticker {
         }
     }
 }
+

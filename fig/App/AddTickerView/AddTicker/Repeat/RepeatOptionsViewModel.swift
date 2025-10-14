@@ -43,7 +43,7 @@ final class RepeatOptionsViewModel {
     var selectedOption: RepeatOption = .noRepeat
 
     // Configuration for weekdays option
-    var selectedWeekdays: Set<TickerSchedule.Weekday> = []
+    var selectedWeekdays: Array<TickerSchedule.Weekday> = []
 
     // Configuration for hourly option
     var hourlyInterval: Int = 1
@@ -51,7 +51,7 @@ final class RepeatOptionsViewModel {
     var hourlyEndTime: Date?
 
     // Configuration for biweekly option
-    var biweeklyWeekdays: Set<TickerSchedule.Weekday> = []
+    var biweeklyWeekdays: Array<TickerSchedule.Weekday> = []
     var biweeklyAnchorDate: Date = Date()
 
     // Configuration for monthly option

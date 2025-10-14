@@ -98,7 +98,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
 
     func testWeekdaysSchedule_MondayWednesdayFriday() {
         let time = TickerSchedule.TimeOfDay(hour: 10, minute: 0)
-        let weekdays: Set<TickerSchedule.Weekday> = [.monday, .wednesday, .friday]
+        let weekdays: Array<TickerSchedule.Weekday> = [.monday, .wednesday, .friday]
         let schedule = TickerSchedule.weekdays(time: time, days: weekdays)
 
         // Jan 1, 2025 is a Wednesday

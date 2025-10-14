@@ -51,7 +51,6 @@ struct ContentView: View {
             showAddSheet = false
         }) {
             AddTickerView(namespace: addButtonNamespace)
-                .presentationDetents([.height(620)])
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
                 .interactiveDismissDisabled()
@@ -67,7 +66,6 @@ struct ContentView: View {
         }
         .sheet(item: $alarmToEdit) { ticker in
             AddTickerView(namespace: editButtonNamespace, prefillTemplate: ticker, isEditMode: true)
-                .presentationDetents([.height(620)])
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
                 .interactiveDismissDisabled()
@@ -160,9 +158,13 @@ struct ContentView: View {
                     formatter.dateFormat = "HH:mm"
                     timeString = formatter.string(from: date)
 
-                case .daily(let time):
-                    // Format as "HH:mm" for daily alarms
+                case .daily(let time), .weekdays(let time, _), .biweekly(let time, _, _), .monthly(_, let time), .yearly(_, _, let time):
+                    // Format as "HH:mm" for time-based alarms
                     timeString = String(format: "%02d:%02d", time.hour, time.minute)
+
+                case .hourly:
+                    // For hourly alarms, use a generic string
+                    timeString = "hourly"
                 }
 
                 if timeString.contains(lowercasedSearch) {
@@ -355,9 +357,16 @@ struct ContentView: View {
             let seconds = (components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60 + (components.second ?? 0)
             return TimeInterval(seconds)
 
-        case .daily(let time):
+        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _, _), .monthly(_, let time), .yearly(_, _, let time):
             // Convert time to seconds from midnight
             let seconds = time.hour * 3600 + time.minute * 60
+            return TimeInterval(seconds)
+
+        case .hourly(_, let startTime, _):
+            // For hourly alarms, use the start time
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.hour, .minute, .second], from: startTime)
+            let seconds = (components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60 + (components.second ?? 0)
             return TimeInterval(seconds)
         }
     }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct WeekdayPickerView: View {
-    @Binding var selectedWeekdays: Set<TickerSchedule.Weekday>
+    @Binding var selectedWeekdays: Array<TickerSchedule.Weekday>
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -50,10 +50,10 @@ struct WeekdayPickerView: View {
         Button {
             TickerHaptics.selection()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                if isSelected {
-                    selectedWeekdays.remove(weekday)
+                if isSelected, let index = selectedWeekdays.firstIndex(of: weekday) {
+                    selectedWeekdays.remove(at: index)
                 } else {
-                    selectedWeekdays.insert(weekday)
+                    selectedWeekdays.append(weekday)
                 }
             }
         } label: {
@@ -84,7 +84,7 @@ struct WeekdayPickerView: View {
 }
 
 #Preview {
-    @Previewable @State var selectedDays: Set<TickerSchedule.Weekday> = [.monday, .wednesday, .friday]
+    @Previewable @State var selectedDays: Array<TickerSchedule.Weekday> = [.monday, .wednesday, .friday]
     WeekdayPickerView(selectedWeekdays: $selectedDays)
         .padding()
 }

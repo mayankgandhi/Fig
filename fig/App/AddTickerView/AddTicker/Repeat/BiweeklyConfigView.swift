@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct BiweeklyConfigView: View {
-    @Binding var selectedWeekdays: Set<TickerSchedule.Weekday>
+    @Binding var selectedWeekdays: Array<TickerSchedule.Weekday>
     @Binding var anchorDate: Date
     @Environment(\.colorScheme) private var colorScheme
 
@@ -86,10 +86,12 @@ struct BiweeklyConfigView: View {
         Button {
             TickerHaptics.selection()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                if isSelected {
-                    selectedWeekdays.remove(weekday)
+                if isSelected, let index = selectedWeekdays.firstIndex(
+                    of: weekday
+                ) {
+                    selectedWeekdays.remove(at: index)
                 } else {
-                    selectedWeekdays.insert(weekday)
+                    selectedWeekdays.append(weekday)
                 }
             }
         } label: {
@@ -120,7 +122,7 @@ struct BiweeklyConfigView: View {
 }
 
 #Preview {
-    @Previewable @State var selectedDays: Set<TickerSchedule.Weekday> = [.monday, .wednesday, .friday]
+    @Previewable @State var selectedDays: Array<TickerSchedule.Weekday> = [.monday, .wednesday, .friday]
     @Previewable @State var anchorDate = Date()
 
     BiweeklyConfigView(selectedWeekdays: $selectedDays, anchorDate: $anchorDate)
