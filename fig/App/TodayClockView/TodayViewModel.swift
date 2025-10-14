@@ -37,20 +37,9 @@ final class TodayViewModel {
 
         return allEnabledAlarms
             .filter { alarm in
-                guard let schedule = alarm.schedule else { return false }
-
-                switch schedule {
-                case .oneTime(let date):
-                    return date >= now && date <= next12Hours
-
-                case .daily(let time):
-                    let nextOccurrence = getNextOccurrence(for: time, from: now)
-                    return nextOccurrence <= next12Hours
-
-                case .hourly, .weekdays, .biweekly, .monthly, .yearly:
-                    // Composite schedules are not shown in the Today view for simplicity
-                    return false
-                }
+                guard alarm.schedule != nil else { return false }
+                let nextTime = getNextAlarmTime(for: alarm, from: now)
+                return nextTime >= now && nextTime <= next12Hours
             }
             .sorted { alarm1, alarm2 in
                 let time1 = getNextAlarmTime(for: alarm1, from: now)
@@ -89,8 +78,13 @@ final class TodayViewModel {
             switch schedule {
             case .oneTime: return .oneTime
             case .daily: return .daily
-            case .hourly, .weekdays, .biweekly, .monthly, .yearly:
-                return .daily // Treat composite schedules as daily for display
+            case .weekdays(_, let days):
+                return .weekdays(days.map { $0.rawValue })
+            case .hourly(let interval, _, _):
+                return .hourly(interval: interval)
+            case .biweekly: return .biweekly
+            case .monthly: return .monthly
+            case .yearly: return .yearly
             }
         }()
 
@@ -106,7 +100,9 @@ final class TodayViewModel {
             nextAlarmTime: nextTime,
             scheduleType: scheduleType,
             hour: hour,
-            minute: minute
+            minute: minute,
+            hasCountdown: alarm.countdown?.preAlert != nil,
+            tickerDataTitle: alarm.tickerData?.name
         )
     }
 
@@ -138,12 +134,153 @@ final class TodayViewModel {
         switch schedule {
         case .oneTime(let alarmDate):
             return alarmDate
+
         case .daily(let time):
             return getNextOccurrence(for: time, from: date)
-        case .hourly, .weekdays, .biweekly, .monthly, .yearly:
-            // Composite schedules are not shown in the Today view
+
+        case .weekdays(let time, let days):
+            return getNextWeekdayOccurrence(for: time, days: days, from: date)
+
+        case .hourly(let interval, let startTime, let endTime):
+            return getNextHourlyOccurrence(interval: interval, startTime: startTime, endTime: endTime, from: date)
+
+        case .biweekly(let time, let weekdays, let anchorDate):
+            return getNextBiweeklyOccurrence(for: time, weekdays: weekdays, anchorDate: anchorDate, from: date)
+
+        case .monthly(let day, let time):
+            return getNextMonthlyOccurrence(day: day, time: time, from: date)
+
+        case .yearly(let month, let day, let time):
+            return getNextYearlyOccurrence(month: month, day: day, time: time, from: date)
+        }
+    }
+
+    /// Calculates the next occurrence for weekdays schedule
+    private func getNextWeekdayOccurrence(for time: TickerSchedule.TimeOfDay, days: [TickerSchedule.Weekday], from date: Date) -> Date {
+        var components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: date)
+        components.hour = time.hour
+        components.minute = time.minute
+        components.second = 0
+
+        // Check next 7 days
+        for dayOffset in 0..<7 {
+            guard let checkDate = calendar.date(byAdding: .day, value: dayOffset, to: date) else { continue }
+            let weekday = calendar.component(.weekday, from: checkDate) - 1 // 0 = Sunday
+
+            if days.contains(where: { $0.rawValue == weekday }) {
+                var checkComponents = calendar.dateComponents([.year, .month, .day], from: checkDate)
+                checkComponents.hour = time.hour
+                checkComponents.minute = time.minute
+                checkComponents.second = 0
+
+                if let occurrence = calendar.date(from: checkComponents), occurrence > date {
+                    return occurrence
+                }
+            }
+        }
+
+        return Date.distantFuture
+    }
+
+    /// Calculates the next occurrence for hourly schedule
+    private func getNextHourlyOccurrence(interval: Int, startTime: Date, endTime: Date?, from date: Date) -> Date {
+        var current = max(startTime, date)
+
+        while current < (endTime ?? Date.distantFuture) {
+            if current > date {
+                return current
+            }
+            current = calendar.date(byAdding: .hour, value: interval, to: current) ?? Date.distantFuture
+        }
+
+        return Date.distantFuture
+    }
+
+    /// Calculates the next occurrence for biweekly schedule
+    private func getNextBiweeklyOccurrence(for time: TickerSchedule.TimeOfDay, weekdays: [TickerSchedule.Weekday], anchorDate: Date, from date: Date) -> Date {
+        // Calculate which week we're in relative to anchor
+        let daysSinceAnchor = calendar.dateComponents([.day], from: anchorDate, to: date).day ?? 0
+        let weeksSinceAnchor = daysSinceAnchor / 7
+        let isActiveWeek = weeksSinceAnchor % 2 == 0
+
+        // If this is an active week, check remaining days
+        if isActiveWeek {
+        let nextOccurrence = getNextWeekdayOccurrence(for: time, days: weekdays, from: date)
+            if
+               nextOccurrence <= calendar.date(byAdding: .day, value: 7 - (daysSinceAnchor % 7), to: date) ?? Date.distantFuture {
+                return nextOccurrence
+            }
+        }
+
+        // Check next active week
+        let daysToNextActiveWeek = isActiveWeek ? 14 : 7
+        guard let nextActiveWeek = calendar.date(byAdding: .day, value: daysToNextActiveWeek, to: date) else {
             return Date.distantFuture
         }
+
+        return getNextWeekdayOccurrence(for: time, days: weekdays, from: nextActiveWeek)
+    }
+
+    /// Calculates the next occurrence for monthly schedule
+    private func getNextMonthlyOccurrence(day: TickerSchedule.MonthlyDay, time: TickerSchedule.TimeOfDay, from date: Date) -> Date {
+        // Simplified implementation - check current and next month
+        for monthOffset in 0..<2 {
+            guard let checkMonth = calendar.date(byAdding: .month, value: monthOffset, to: date) else { continue }
+
+            if let occurrence = getMonthlyDate(day: day, time: time, in: checkMonth), occurrence > date {
+                return occurrence
+            }
+        }
+
+        return Date.distantFuture
+    }
+
+    /// Helper to get specific day in a month
+    private func getMonthlyDate(day: TickerSchedule.MonthlyDay, time: TickerSchedule.TimeOfDay, in month: Date) -> Date? {
+        var components = calendar.dateComponents([.year, .month], from: month)
+        components.hour = time.hour
+        components.minute = time.minute
+        components.second = 0
+
+        switch day {
+        case .fixed(let dayNum):
+            components.day = dayNum
+            return calendar.date(from: components)
+
+        case .firstOfMonth:
+            components.day = 1
+            return calendar.date(from: components)
+
+        case .lastOfMonth:
+            guard let range = calendar.range(of: .day, in: .month, for: month) else { return nil }
+            components.day = range.count
+            return calendar.date(from: components)
+
+        case .firstWeekday(let weekday), .lastWeekday(let weekday):
+            // Simplified - would need full implementation for production
+            return nil
+        }
+    }
+
+    /// Calculates the next occurrence for yearly schedule
+    private func getNextYearlyOccurrence(month: Int, day: Int, time: TickerSchedule.TimeOfDay, from date: Date) -> Date {
+        let currentYear = calendar.component(.year, from: date)
+
+        for yearOffset in 0..<2 {
+            var components = DateComponents()
+            components.year = currentYear + yearOffset
+            components.month = month
+            components.day = day
+            components.hour = time.hour
+            components.minute = time.minute
+            components.second = 0
+
+            if let occurrence = calendar.date(from: components), occurrence > date {
+                return occurrence
+            }
+        }
+
+        return Date.distantFuture
     }
 
     /// Extracts display color from alarm with fallback hierarchy

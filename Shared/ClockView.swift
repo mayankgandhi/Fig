@@ -188,7 +188,9 @@ struct ClockView: View {
             nextAlarmTime: Date(),
             scheduleType: .daily,
             hour: 12,
-            minute: 0
+            minute: 0,
+            hasCountdown: false,
+            tickerDataTitle: nil
         ),
         // 3:00 PM - Should be at right (90°)
         UpcomingAlarmPresentation(
@@ -199,7 +201,9 @@ struct ClockView: View {
             nextAlarmTime: Date(),
             scheduleType: .daily,
             hour: 15,
-            minute: 0
+            minute: 0,
+            hasCountdown: true,
+            tickerDataTitle: "Coffee Break"
         ),
         // 6:00 PM - Should be at bottom (180°)
         UpcomingAlarmPresentation(
@@ -210,7 +214,9 @@ struct ClockView: View {
             nextAlarmTime: Date(),
             scheduleType: .daily,
             hour: 18,
-            minute: 0
+            minute: 0,
+            hasCountdown: false,
+            tickerDataTitle: nil
         ),
         // 9:00 PM - Should be at left (270°)
         UpcomingAlarmPresentation(
@@ -221,7 +227,9 @@ struct ClockView: View {
             nextAlarmTime: Date(),
             scheduleType: .daily,
             hour: 21,
-            minute: 0
+            minute: 0,
+            hasCountdown: false,
+            tickerDataTitle: nil
         ),
         // 12:30 AM - Should be slightly past top (15°)
         UpcomingAlarmPresentation(
@@ -232,7 +240,9 @@ struct ClockView: View {
             nextAlarmTime: Date(),
             scheduleType: .oneTime,
             hour: 0,
-            minute: 30
+            minute: 30,
+            hasCountdown: false,
+            tickerDataTitle: nil
         ),
         // 6:30 AM - Should be at bottom + offset (195°)
         UpcomingAlarmPresentation(
@@ -243,7 +253,9 @@ struct ClockView: View {
             nextAlarmTime: Date(),
             scheduleType: .daily,
             hour: 6,
-            minute: 30
+            minute: 30,
+            hasCountdown: true,
+            tickerDataTitle: "Exercise"
         )
     ])
     .padding()

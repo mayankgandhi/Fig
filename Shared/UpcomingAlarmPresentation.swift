@@ -22,21 +22,44 @@ struct UpcomingAlarmPresentation: Identifiable {
     let hour: Int
     let minute: Int
 
-    enum ScheduleType {
+    // Optional metadata
+    let hasCountdown: Bool
+    let tickerDataTitle: String?
+
+    enum ScheduleType: Equatable {
         case oneTime
         case daily
+        case weekdays([Int]) // Array of weekday indices
+        case hourly(interval: Int)
+        case biweekly
+        case monthly
+        case yearly
 
         var badgeText: String {
             switch self {
             case .oneTime: return "Once"
             case .daily: return "Daily"
+            case .weekdays(let days):
+                if days.count == 7 { return "Daily" }
+                if days.count == 5 && !days.contains(0) && !days.contains(6) { return "Weekdays" }
+                if days.count == 2 && days.contains(0) && days.contains(6) { return "Weekend" }
+                return "\(days.count) days"
+            case .hourly(let interval): return "\(interval)h"
+            case .biweekly: return "Biweekly"
+            case .monthly: return "Monthly"
+            case .yearly: return "Yearly"
             }
         }
 
         var badgeColor: Color {
             switch self {
-            case .oneTime: return Color(red: 0.055, green: 0.647, blue: 0.914)
-            case .daily: return Color(red: 0.518, green: 0.800, blue: 0.086)
+            case .oneTime: return Color(red: 0.055, green: 0.647, blue: 0.914) // Blue
+            case .daily: return Color(red: 0.518, green: 0.800, blue: 0.086) // Green
+            case .weekdays: return Color(red: 0.400, green: 0.600, blue: 0.800) // Light blue
+            case .hourly: return Color(red: 0.800, green: 0.400, blue: 0.200) // Orange
+            case .biweekly: return Color(red: 0.600, green: 0.400, blue: 0.800) // Purple
+            case .monthly: return Color(red: 0.900, green: 0.600, blue: 0.200) // Amber
+            case .yearly: return Color(red: 0.800, green: 0.200, blue: 0.400) // Pink
             }
         }
     }

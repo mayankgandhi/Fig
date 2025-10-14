@@ -32,7 +32,9 @@ struct DialogueMessage: Identifiable, Equatable {
             nextAlarmTime: Date(),
             scheduleType: .daily,
             hour: hour,
-            minute: minute
+            minute: minute,
+            hasCountdown: false,
+            tickerDataTitle: nil
         )
     }
 }

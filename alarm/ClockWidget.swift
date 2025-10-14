@@ -121,7 +121,9 @@ struct ClockWidgetProvider: TimelineProvider {
                 nextAlarmTime: nextAlarmTime,
                 scheduleType: scheduleType,
                 hour: hour,
-                minute: minute
+                minute: minute,
+                hasCountdown: alarm.countdown?.preAlert != nil,
+                tickerDataTitle: alarm.tickerData?.name
             )
         }
         .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
@@ -218,7 +220,9 @@ struct ClockWidget: Widget {
                 nextAlarmTime: Date().addingTimeInterval(3600),
                 scheduleType: .daily,
                 hour: 8,
-                minute: 0
+                minute: 0,
+                hasCountdown: false,
+                tickerDataTitle: nil
             ),
             UpcomingAlarmPresentation(
                 id: UUID(),
@@ -228,7 +232,9 @@ struct ClockWidget: Widget {
                 nextAlarmTime: Date().addingTimeInterval(7200),
                 scheduleType: .daily,
                 hour: 12,
-                minute: 0
+                minute: 0,
+                hasCountdown: true,
+                tickerDataTitle: "Lunch Break"
             )
         ]
     )
