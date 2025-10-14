@@ -175,14 +175,6 @@ struct AlarmDetailView: View {
                     title: alarm.label
                 )
 
-                // Notes option
-                if let notes = alarm.notes, !notes.isEmpty {
-                    optionPill(
-                        icon: "note.text",
-                        title: notes
-                    )
-                }
-
                 // Countdown option
                 if let countdown = alarm.countdown?.preAlert {
                     optionPill(
@@ -322,7 +314,6 @@ struct AlarmDetailView: View {
         alarm: Ticker(
             label: "Morning Workout",
             isEnabled: true,
-            notes: "Remember to stretch before starting!",
             schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)),
             countdown: TickerCountdown(
                 preAlert: TickerCountdown.CountdownDuration(hours: 0, minutes: 5, seconds: 0),

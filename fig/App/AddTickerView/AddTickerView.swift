@@ -100,7 +100,14 @@ struct AddTickerView: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button {
                     TickerHaptics.selection()
-                    dismiss()
+                    // If expanded content is visible, collapse it first
+                    if viewModel.optionsPillsViewModel.expandedField != nil {
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            viewModel.optionsPillsViewModel.collapseField()
+                        }
+                    } else {
+                        dismiss()
+                    }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
                         .font(.system(size: 22))
@@ -111,11 +118,19 @@ struct AddTickerView: View {
 
             ToolbarItem(placement: .confirmationAction) {
                 Button {
-                    Task {
+                    // If expanded content is visible, collapse it first
+                    if viewModel.optionsPillsViewModel.expandedField != nil {
                         TickerHaptics.selection()
-                        await viewModel.saveTicker()
-                        if !viewModel.showingError {
-                            dismiss()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            viewModel.optionsPillsViewModel.collapseField()
+                        }
+                    } else {
+                        Task {
+                            TickerHaptics.selection()
+                            await viewModel.saveTicker()
+                            if !viewModel.showingError {
+                                dismiss()
+                            }
                         }
                     }
                 } label: {
@@ -237,9 +252,6 @@ struct AddTickerView: View {
 
                 case .label:
                     LabelEditorView(viewModel: viewModel.labelViewModel)
-
-                case .notes:
-                    NotesEditorView(viewModel: viewModel.notesViewModel)
 
                 case .countdown:
                     CountdownConfigView(viewModel: viewModel.countdownViewModel)

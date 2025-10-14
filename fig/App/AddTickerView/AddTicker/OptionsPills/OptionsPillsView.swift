@@ -40,12 +40,6 @@ struct OptionsPillsView: View {
                 )
 
                 expandablePillButton(
-                    icon: "note.text",
-                    title: viewModel.displayNotes,
-                    field: .notes
-                )
-
-                expandablePillButton(
                     icon: "timer",
                     title: viewModel.displayCountdown,
                     field: .countdown

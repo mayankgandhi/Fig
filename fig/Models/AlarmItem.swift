@@ -17,7 +17,6 @@ final class Ticker {
     var label: String
     var createdAt: Date
     var isEnabled: Bool
-    var notes: String?
 
     // Schedule
     var schedule: TickerSchedule?
@@ -38,7 +37,6 @@ final class Ticker {
         id: UUID = UUID(),
         label: String,
         isEnabled: Bool = true,
-        notes: String? = nil,
         schedule: TickerSchedule? = nil,
         countdown: TickerCountdown? = nil,
         presentation: TickerPresentation = .init(),
@@ -48,7 +46,6 @@ final class Ticker {
         self.label = label
         self.createdAt = Date.now
         self.isEnabled = isEnabled
-        self.notes = notes
         self.schedule = schedule
         self.countdown = countdown
         self.presentation = presentation
@@ -137,6 +134,81 @@ struct TickerCountdown: Codable, Hashable {
         case snooze(duration: CountdownDuration)
         case `repeat`(duration: CountdownDuration)
         case openApp
+
+        // MARK: - Codable Conformance
+
+        enum CodingKeys: String, CodingKey {
+            case snooze
+            case `repeat`
+            case openApp
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+
+            // Handle the case where the container is empty (corrupted data)
+            if container.allKeys.isEmpty {
+                // Default to nil by throwing a specific error that can be caught
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: decoder.codingPath,
+                        debugDescription: "Empty PostAlertBehavior - treating as nil"
+                    )
+                )
+            }
+
+            // Decode based on which key is present
+            if let duration = try? container.decode(CountdownDuration.self, forKey: .snooze) {
+                self = .snooze(duration: duration)
+            } else if let duration = try? container.decode(CountdownDuration.self, forKey: .repeat) {
+                self = .repeat(duration: duration)
+            } else if container.contains(.openApp) {
+                self = .openApp
+            } else {
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: decoder.codingPath,
+                        debugDescription: "Invalid PostAlertBehavior"
+                    )
+                )
+            }
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+
+            switch self {
+            case .snooze(let duration):
+                try container.encode(duration, forKey: .snooze)
+            case .repeat(let duration):
+                try container.encode(duration, forKey: .repeat)
+            case .openApp:
+                try container.encode(true, forKey: .openApp)
+            }
+        }
+    }
+}
+
+// MARK: - Codable Conformance for TickerCountdown
+
+extension TickerCountdown {
+    enum CodingKeys: String, CodingKey {
+        case preAlert
+        case postAlert
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        preAlert = try container.decodeIfPresent(CountdownDuration.self, forKey: .preAlert)
+
+        // Safely decode postAlert, treating corrupted data as nil
+        postAlert = try? container.decodeIfPresent(PostAlertBehavior.self, forKey: .postAlert)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encodeIfPresent(preAlert, forKey: .preAlert)
+        try container.encodeIfPresent(postAlert, forKey: .postAlert)
     }
 }
 

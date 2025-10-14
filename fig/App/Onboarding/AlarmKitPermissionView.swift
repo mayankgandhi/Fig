@@ -131,14 +131,6 @@ struct AlarmKitPermissionView: View {
                             }
                             .tickerSecondaryButton()
 
-                            Button {
-                                TickerHaptics.selection()
-                                onContinue()
-                            } label: {
-                                Text("Continue Without Alarms")
-                                    .Caption()
-                                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-                            }
                         }
                     } else {
                         Button {

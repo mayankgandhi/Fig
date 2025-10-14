@@ -199,7 +199,6 @@ struct AlarmCell: View {
         AlarmCell(alarmItem: Ticker(
             label: "Lunch Break",
             isEnabled: true,
-            notes: "Time for lunch!",
             schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 12, minute: 30)),
             countdown: nil,
             presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
@@ -214,7 +213,6 @@ struct AlarmCell: View {
         AlarmCell(alarmItem: Ticker(
             label: "Morning Workout",
             isEnabled: true,
-            notes: "Don't skip leg day",
             schedule: .oneTime(date: Calendar.current.date(
                 bySettingHour: 6,
                 minute: 30,
@@ -234,7 +232,6 @@ struct AlarmCell: View {
         AlarmCell(alarmItem: Ticker(
             label: "Bedtime Reminder",
             isEnabled: false,
-            notes: nil,
             schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 22, minute: 0)),
             countdown: nil,
             presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),

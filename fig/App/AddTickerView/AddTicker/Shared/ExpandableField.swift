@@ -11,7 +11,6 @@ enum ExpandableField: Hashable {
     case calendar
     case `repeat`
     case label
-    case notes
     case countdown
     case icon
 }

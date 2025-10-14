@@ -16,7 +16,6 @@ final class OptionsPillsViewModel {
     private(set) weak var calendarViewModel: CalendarPickerViewModel?
     private(set) weak var repeatViewModel: RepeatOptionsViewModel?
     private(set) weak var labelViewModel: LabelEditorViewModel?
-    private(set) weak var notesViewModel: NotesEditorViewModel?
     private(set) weak var countdownViewModel: CountdownConfigViewModel?
 
     // MARK: - Computed Display Values
@@ -33,10 +32,6 @@ final class OptionsPillsViewModel {
         labelViewModel?.displayText ?? "Label"
     }
 
-    var displayNotes: String {
-        notesViewModel?.displayText ?? "Notes"
-    }
-
     var displayCountdown: String {
         countdownViewModel?.displayText ?? "Countdown"
     }
@@ -50,10 +45,6 @@ final class OptionsPillsViewModel {
         !(labelViewModel?.isEmpty ?? true)
     }
 
-    var hasNotesValue: Bool {
-        notesViewModel?.hasNotes ?? false
-    }
-
     var hasCountdownValue: Bool {
         countdownViewModel?.isEnabled ?? false
     }
@@ -64,13 +55,11 @@ final class OptionsPillsViewModel {
         calendar: CalendarPickerViewModel,
         repeat: RepeatOptionsViewModel,
         label: LabelEditorViewModel,
-        notes: NotesEditorViewModel,
         countdown: CountdownConfigViewModel
     ) {
         self.calendarViewModel = calendar
         self.repeatViewModel = `repeat`
         self.labelViewModel = label
-        self.notesViewModel = notes
         self.countdownViewModel = countdown
     }
 
@@ -90,7 +79,6 @@ final class OptionsPillsViewModel {
         switch field {
         case .calendar: return hasCalendarValue
         case .label: return hasLabelValue
-        case .notes: return hasNotesValue
         case .countdown: return hasCountdownValue
         case .repeat, .icon: return false
         }

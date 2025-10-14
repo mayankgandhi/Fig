@@ -21,7 +21,6 @@ final class AddTickerViewModel {
     var calendarViewModel: CalendarPickerViewModel
     var repeatViewModel: RepeatOptionsViewModel
     var labelViewModel: LabelEditorViewModel
-    var notesViewModel: NotesEditorViewModel
     var countdownViewModel: CountdownConfigViewModel
     var iconPickerViewModel: IconPickerViewModel
 
@@ -51,7 +50,6 @@ final class AddTickerViewModel {
         self.calendarViewModel = CalendarPickerViewModel()
         self.repeatViewModel = RepeatOptionsViewModel()
         self.labelViewModel = LabelEditorViewModel()
-        self.notesViewModel = NotesEditorViewModel()
         self.countdownViewModel = CountdownConfigViewModel()
         self.iconPickerViewModel = IconPickerViewModel()
         self.optionsPillsViewModel = OptionsPillsViewModel()
@@ -62,7 +60,6 @@ final class AddTickerViewModel {
             calendar: calendarViewModel,
             repeat: repeatViewModel,
             label: labelViewModel,
-            notes: notesViewModel,
             countdown: countdownViewModel
         )
 
@@ -150,7 +147,6 @@ final class AddTickerViewModel {
             if isEditMode, let existingTicker = prefillTemplate {
                 // Edit mode: Update existing ticker
                 existingTicker.label = labelViewModel.labelText.isEmpty ? "Ticker" : labelViewModel.labelText
-                existingTicker.notes = notesViewModel.notesText
                 existingTicker.schedule = schedule
                 existingTicker.countdown = countdown
                 existingTicker.presentation = presentation
@@ -162,7 +158,6 @@ final class AddTickerViewModel {
                 let ticker = Ticker(
                     label: labelViewModel.labelText.isEmpty ? "Ticker" : labelViewModel.labelText,
                     isEnabled: true,
-                    notes: notesViewModel.notesText,
                     schedule: schedule,
                     countdown: countdown,
                     presentation: presentation,
@@ -188,7 +183,6 @@ final class AddTickerViewModel {
         print("   Template Label: \(template.label)")
         print("   Template isEnabled: \(template.isEnabled)")
         print("   Template schedule: \(String(describing: template.schedule))")
-        print("   Template notes: \(String(describing: template.notes))")
         print("   Template countdown: \(String(describing: template.countdown))")
         print("   Template tickerData: \(String(describing: template.tickerData))")
 
@@ -233,16 +227,9 @@ final class AddTickerViewModel {
             repeatViewModel.selectOption(.noRepeat)
         }
 
-        // Populate label and notes
+        // Populate label
         print("   → Setting label: '\(template.label)'")
         labelViewModel.setText(template.label)
-
-        if let notes = template.notes {
-            print("   → Setting notes: '\(notes)'")
-            notesViewModel.setNotes(notes)
-        } else {
-            print("   → No notes to set")
-        }
 
         // Populate countdown
         if let countdown = template.countdown?.preAlert {
