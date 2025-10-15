@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 import AlarmKit
-@testable import fig
+@testable import Ticker
 
 // MARK: - MockConfigurationBuilder
 

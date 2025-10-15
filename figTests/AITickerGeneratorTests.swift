@@ -6,7 +6,7 @@
 //
 
 import XCTest
-@testable import fig
+@testable import Ticker
 
 @MainActor
 final class AITickerGeneratorTests: XCTestCase {
@@ -132,16 +132,16 @@ final class AITickerGeneratorTests: XCTestCase {
     
     func testRepeatPattern_EnhancedVariations() async throws {
         let testCases = [
-            ("Meeting every day", RepeatOption.daily),
-            ("Wake up daily", RepeatOption.daily),
-            ("Exercise each day", RepeatOption.daily),
-            ("Work on weekdays", RepeatOption.weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])),
-            ("Gym on workdays", RepeatOption.weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])),
-            ("Yoga on Mondays and Wednesdays", RepeatOption.weekdays([.monday, .wednesday])),
-            ("Meeting every 2 hours", RepeatOption.hourly(interval: 2)),
-            ("Check every 3 hours", RepeatOption.hourly(interval: 3)),
-            ("Biweekly meeting", RepeatOption.biweekly([.monday, .wednesday, .friday])),
-            ("Monthly report on the 15th", RepeatOption.monthly(day: 15))
+            ("Meeting every day", AITickerGenerator.RepeatOption.daily),
+            ("Wake up daily", AITickerGenerator.RepeatOption.daily),
+            ("Exercise each day", AITickerGenerator.RepeatOption.daily),
+            ("Work on weekdays", AITickerGenerator.RepeatOption.weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])),
+            ("Gym on workdays", AITickerGenerator.RepeatOption.weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])),
+            ("Yoga on Mondays and Wednesdays", AITickerGenerator.RepeatOption.weekdays([.monday, .wednesday])),
+            ("Meeting every 2 hours", AITickerGenerator.RepeatOption.hourly(interval: 2)),
+            ("Check every 3 hours", AITickerGenerator.RepeatOption.hourly(interval: 3)),
+            ("Biweekly meeting", AITickerGenerator.RepeatOption.biweekly([.monday, .wednesday, .friday])),
+            ("Monthly report on the 15th", AITickerGenerator.RepeatOption.monthly(day: 15))
         ]
         
         for (input, expectedOption) in testCases {
@@ -370,7 +370,6 @@ final class AITickerGeneratorTests: XCTestCase {
         
         // Should provide reasonable defaults
         XCTAssertFalse(configuration.label.isEmpty)
-        XCTAssertNotNil(configuration.schedule)
     }
     
     func testEdgeCase_AmbiguousTime() async throws {

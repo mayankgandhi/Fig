@@ -65,7 +65,7 @@ class AITickerGenerator: ObservableObject {
         }
         
         // Use Natural Language framework for text analysis
-        let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass, .dateTime])
+        let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass])
         tagger.string = trimmedInput
         
         // Extract entities and parse the input
@@ -100,6 +100,7 @@ class AITickerGenerator: ObservableObject {
     private func extractEntities(from input: String, using tagger: NLTagger) -> [String: [String]] {
         var entities: [String: [String]] = [:]
         
+        // Extract named entities
         tagger.enumerateTags(in: input.startIndex..<input.endIndex, unit: .word, scheme: .nameType) { tag, range in
             if let tag = tag {
                 let entity = String(input[range])
@@ -107,6 +108,18 @@ class AITickerGenerator: ObservableObject {
                     entities[tag.rawValue] = []
                 }
                 entities[tag.rawValue]?.append(entity)
+            }
+            return true
+        }
+        
+        // Extract lexical classes for better context understanding
+        tagger.enumerateTags(in: input.startIndex..<input.endIndex, unit: .word, scheme: .lexicalClass) { tag, range in
+            if let tag = tag {
+                let word = String(input[range])
+                if entities[tag.rawValue] == nil {
+                    entities[tag.rawValue] = []
+                }
+                entities[tag.rawValue]?.append(word)
             }
             return true
         }
@@ -124,25 +137,24 @@ class AITickerGenerator: ObservableObject {
         
         // Enhanced regex patterns for better time parsing
         let timePatterns = [
-            // 24-hour format patterns
-            #"(\d{1,2}):(\d{2})\s*(?:am|pm)?"#,
-            #"at\s+(\d{1,2}):(\d{2})"#,
-            #"(\d{1,2}):(\d{2})"#,
-            
-            // 12-hour format with AM/PM
+            // 12-hour format with AM/PM (prioritize these first)
             #"(\d{1,2}):(\d{2})\s*(am|pm)"#,
             #"(\d{1,2})\s*(am|pm)"#,
             #"at\s+(\d{1,2}):(\d{2})\s*(am|pm)"#,
             #"at\s+(\d{1,2})\s*(am|pm)"#,
-            
-            // More flexible patterns
-            #"(\d{1,2})\s*:\s*(\d{2})\s*(am|pm)?"#,
+            #"(\d{1,2})\s*:\s*(\d{2})\s*(am|pm)"#,
             #"(\d{1,2})\s*(am|pm)\s*(\d{2})"#,
-            #"(\d{1,2})\s*\.\s*(\d{2})\s*(am|pm)?"#,
+            #"(\d{1,2})\s*\.\s*(\d{2})\s*(am|pm)"#,
+            #"(?:at|around|about|by)\s+(\d{1,2}):(\d{2})\s*(am|pm)"#,
+            #"(?:at|around|about|by)\s+(\d{1,2})\s*(am|pm)"#,
             
-            // Time with context words
-            #"(?:at|around|about|by)\s+(\d{1,2}):(\d{2})\s*(am|pm)?"#,
-            #"(?:at|around|about|by)\s+(\d{1,2})\s*(am|pm)"#
+            // 24-hour format patterns (fallback)
+            #"(\d{1,2}):(\d{2})\s*(?:am|pm)?"#,
+            #"at\s+(\d{1,2}):(\d{2})"#,
+            #"(\d{1,2}):(\d{2})"#,
+            #"(\d{1,2})\s*:\s*(\d{2})\s*(?:am|pm)?"#,
+            #"(\d{1,2})\s*\.\s*(\d{2})\s*(?:am|pm)?"#,
+            #"(?:at|around|about|by)\s+(\d{1,2}):(\d{2})\s*(?:am|pm)?"#
         ]
         
         for pattern in timePatterns {
@@ -265,8 +277,21 @@ class AITickerGenerator: ObservableObject {
     }
     
     private func extractTimeFromEntities(_ entities: [String: [String]]) -> TickerConfiguration.TimeOfDay? {
-        // This could be enhanced to use NLTagger's dateTime scheme
-        // For now, return nil to fall back to regex patterns
+        // Look for time-related entities in the extracted data
+        // This is a fallback method when regex patterns don't match
+        
+        // Check for numbers that might be times
+        if let numbers = entities["Number"] {
+            for number in numbers {
+                if let num = Int(number) {
+                    // If it's a reasonable hour (1-12), assume it's a time
+                    if num >= 1 && num <= 12 {
+                        return TickerConfiguration.TimeOfDay(hour: num, minute: 0)
+                    }
+                }
+            }
+        }
+        
         return nil
     }
     
@@ -465,15 +490,23 @@ class AITickerGenerator: ObservableObject {
         
         // Check for monthly patterns
         if lowercaseInput.contains("monthly") || lowercaseInput.contains("every month") {
-            // Try to extract day of month
-            let monthlyPattern = #"(\d{1,2})(?:st|nd|rd|th)?\s*(?:of\s*)?(?:every\s*)?month"#
-            if let regex = try? NSRegularExpression(pattern: monthlyPattern, options: .caseInsensitive) {
-                let range = NSRange(location: 0, length: input.utf16.count)
-                if let match = regex.firstMatch(in: input, options: [], range: range) {
-                    let dayRange = match.range(at: 1)
-                    if let dayString = Range(dayRange, in: input).map({ String(input[$0]) }),
-                       let day = Int(dayString), day >= 1 && day <= 31 {
-                        return .monthly(day: day)
+            // Try to extract day of month with more flexible patterns
+            let monthlyPatterns = [
+                #"(\d{1,2})(?:st|nd|rd|th)?\s*(?:of\s*)?(?:every\s*)?month"#,
+                #"monthly\s*report\s*on\s*the\s*(\d{1,2})(?:st|nd|rd|th)?"#,
+                #"on\s*the\s*(\d{1,2})(?:st|nd|rd|th)?\s*(?:of\s*)?(?:every\s*)?month"#,
+                #"(\d{1,2})(?:st|nd|rd|th)?\s*(?:of\s*)?month"#
+            ]
+            
+            for pattern in monthlyPatterns {
+                if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
+                    let range = NSRange(location: 0, length: input.utf16.count)
+                    if let match = regex.firstMatch(in: input, options: [], range: range) {
+                        let dayRange = match.range(at: 1)
+                        if let dayString = Range(dayRange, in: input).map({ String(input[$0]) }),
+                           let day = Int(dayString), day >= 1 && day <= 31 {
+                            return .monthly(day: day)
+                        }
                     }
                 }
             }
@@ -494,6 +527,13 @@ class AITickerGenerator: ObservableObject {
         
         // Enhanced countdown patterns
         let countdownPatterns = [
+            // Hours and minutes (prioritize these first)
+            #"(\d+)\s*hour\s*(?:and\s*)?(\d+)?\s*minute\s*countdown"#,
+            #"(\d+)\s*hr\s*(?:and\s*)?(\d+)?\s*min\s*countdown"#,
+            #"(\d+)\s*h\s*(?:and\s*)?(\d+)?\s*m\s*countdown"#,
+            #"(\d+)\s*hour\s*(?:and\s*)?(\d+)?\s*minute"#,
+            #"(\d+)\s*hr\s*(?:and\s*)?(\d+)?\s*min"#,
+            
             // Minutes only
             #"(\d+)\s*minute\s*countdown"#,
             #"(\d+)\s*min\s*countdown"#,
@@ -505,15 +545,12 @@ class AITickerGenerator: ObservableObject {
             #"(\d+)\s*minute\s*notice"#,
             #"(\d+)\s*min\s*notice"#,
             
-            // Hours and minutes
-            #"(\d+)\s*hour\s*(?:and\s*)?(\d+)?\s*minute\s*countdown"#,
-            #"(\d+)\s*hr\s*(?:and\s*)?(\d+)?\s*min\s*countdown"#,
-            #"(\d+)\s*h\s*(?:and\s*)?(\d+)?\s*m\s*countdown"#,
-            
-            // With "with" or "after"
+            // With "with" or "after" or "in"
             #"with\s*(\d+)\s*minute\s*countdown"#,
             #"after\s*(\d+)\s*minutes"#,
             #"in\s*(\d+)\s*minutes"#,
+            #"in\s*(\d+)\s*hours"#,
+            #"wake\s*up\s*in\s*(\d+)\s*hours"#,
             
             // Seconds
             #"(\d+)\s*second\s*countdown"#,
@@ -535,7 +572,7 @@ class AITickerGenerator: ObservableObject {
                            let firstValue = Int(firstString) {
                             
                             // Check if this is a time pattern with hours and minutes
-                            if pattern.contains("hour") || pattern.contains("hr") || pattern.contains("h\\s") {
+                            if pattern.contains("hour") || pattern.contains("hr") || pattern.contains("h\\s") || pattern.contains("hours") {
                                 hours = firstValue
                                 
                                 // Extract minutes if present

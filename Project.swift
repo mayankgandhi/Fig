@@ -78,7 +78,8 @@ let project = Project(
             dependencies: [],
             settings: .settings(
                 base: [
-                    "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget)
+                    "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget),
+                    "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": "YES"
                 ].automaticCodeSigning(devTeam: developmentTeam),
                 configurations: []
             )

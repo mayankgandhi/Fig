@@ -9,7 +9,7 @@ import Testing
 import Foundation
 import SwiftData
 import AlarmKit
-@testable import fig
+@testable import Ticker
 
 @Suite("TickerService Tests")
 struct TickerServiceTests {

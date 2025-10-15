@@ -53,6 +53,7 @@ class ActivityIconMapper {
         
         // Work & Meetings
         "meeting": ActivityMapping(label: "Meeting", icon: "person.3", colorHex: "#3B82F6", category: .work),
+        "team meeting": ActivityMapping(label: "Team Meeting", icon: "person.3", colorHex: "#3B82F6", category: .work),
         "team": ActivityMapping(label: "Team Meeting", icon: "person.3", colorHex: "#3B82F6", category: .work),
         "conference": ActivityMapping(label: "Conference", icon: "person.3", colorHex: "#3B82F6", category: .work),
         "call": ActivityMapping(label: "Call", icon: "phone", colorHex: "#3B82F6", category: .work),
