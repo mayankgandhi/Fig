@@ -89,6 +89,7 @@ struct TickerPill: View {
         .padding(.horizontal, size.horizontalPadding)
         .frame(height: size.height)
         .background(backgroundColor)
+        .clipShape(Capsule())
         .glassEffect(in: .capsule)
         .overlay(
             Capsule()

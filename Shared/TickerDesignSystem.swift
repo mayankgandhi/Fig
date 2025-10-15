@@ -27,14 +27,14 @@ enum TickerColor {
 
     // MARK: Primary Brand Colors
 
-    /// Primary action color - electric violet
-    static let primary = Color(red: 0.545, green: 0.361, blue: 0.965) // #8B5CF6
+    /// Primary action color - vibrant orange
+    static let primary = Color(red: 0.976, green: 0.451, blue: 0.188) // #F97330
 
-    /// Primary hover/pressed state
-    static let primaryDark = Color(red: 0.467, green: 0.278, blue: 0.871) // #7747DE
+    /// Primary hover/pressed state - deeper orange
+    static let primaryDark = Color(red: 0.914, green: 0.337, blue: 0.106) // #E9561B
 
-    /// Accent color - bright cyan
-    static let accent = Color(red: 0.024, green: 0.714, blue: 0.831) // #06B6D4
+    /// Accent color - golden amber
+    static let accent = Color(red: 0.976, green: 0.616, blue: 0.169) // #F99D2B
 
     // MARK: Semantic Actions
 
@@ -49,8 +49,8 @@ enum TickerColor {
 
     // MARK: Alarm States
 
-    /// Scheduled - sky blue
-    static let scheduled = Color(red: 0.055, green: 0.647, blue: 0.914) // #0EA5E9
+    /// Scheduled - warm coral
+    static let scheduled = Color(red: 0.976, green: 0.537, blue: 0.278) // #F98947
 
     /// Running - electric lime
     static let running = Color(red: 0.518, green: 0.800, blue: 0.086) // #84CC16
@@ -100,14 +100,14 @@ enum TickerColor {
     static func liquidGlassGradient(for colorScheme: ColorScheme) -> some View {
         if colorScheme == .dark {
             return ZStack {
-                // Base gradient - Deep dimensional blues and purples
+                // Base gradient - Deep warm tones with orange/amber hints
                 LinearGradient(
                     colors: [
-                        Color(red: 0.01, green: 0.02, blue: 0.08),  // Midnight blue
-                        Color(red: 0.04, green: 0.02, blue: 0.10),  // Deep indigo
-                        Color(red: 0.06, green: 0.03, blue: 0.14),  // Rich purple
-                        Color(red: 0.02, green: 0.03, blue: 0.11),  // Navy depth
-                        Color(red: 0.03, green: 0.02, blue: 0.09)   // Dark violet
+                        Color(red: 0.08, green: 0.04, blue: 0.02),  // Deep burnt umber
+                        Color(red: 0.10, green: 0.05, blue: 0.02),  // Rich chocolate
+                        Color(red: 0.12, green: 0.06, blue: 0.03),  // Warm mahogany
+                        Color(red: 0.09, green: 0.04, blue: 0.02),  // Dark sienna
+                        Color(red: 0.07, green: 0.03, blue: 0.02)   // Deep coffee
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -164,26 +164,26 @@ enum TickerColor {
             }
         } else {
             return ZStack {
-                // Base gradient - Soft ethereal whites with color tints
+                // Base gradient - Soft warm whites with peachy/amber tints
                 LinearGradient(
                     colors: [
-                        Color(red: 0.92, green: 0.94, blue: 0.99),  // Cool blue-white
-                        Color(red: 0.95, green: 0.94, blue: 0.99),  // Lavender-white
-                        Color(red: 0.93, green: 0.96, blue: 0.99),  // Sky-white
-                        Color(red: 0.96, green: 0.95, blue: 0.98),  // Soft purple-white
-                        Color(red: 0.94, green: 0.95, blue: 0.99)   // Periwinkle-white
+                        Color(red: 0.99, green: 0.96, blue: 0.93),  // Warm cream
+                        Color(red: 0.99, green: 0.95, blue: 0.91),  // Soft peach-white
+                        Color(red: 0.99, green: 0.97, blue: 0.94),  // Ivory glow
+                        Color(red: 0.98, green: 0.96, blue: 0.93),  // Champagne-white
+                        Color(red: 0.99, green: 0.96, blue: 0.92)   // Vanilla-white
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
 
-                // Mid-layer gradient - Diagonal color wash
+                // Mid-layer gradient - Diagonal warm wash
                 LinearGradient(
                     colors: [
                         Color.clear,
                         primary.opacity(0.06),
                         Color.clear,
-                        Color.blue.opacity(0.04),
+                        accent.opacity(0.04),
                         Color.clear
                     ],
                     startPoint: .topTrailing,
@@ -214,13 +214,13 @@ enum TickerColor {
                     endPoint: .center
                 )
 
-                // Bottom color tint - Subtle depth
+                // Bottom color tint - Subtle warm depth
                 LinearGradient(
                     colors: [
                         Color.clear,
                         Color.clear,
                         primary.opacity(0.04),
-                        Color.blue.opacity(0.03)
+                        accent.opacity(0.03)
                     ],
                     startPoint: .center,
                     endPoint: .bottom
