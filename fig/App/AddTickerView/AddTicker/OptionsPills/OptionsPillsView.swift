@@ -35,7 +35,7 @@ struct OptionsPillsView: View {
             }
             .padding(.horizontal, TickerSpacing.md)
 
-            // Enhanced pill layout with better spacing
+            // Enhanced pill layout with consistent styling
             FlowLayout(spacing: TickerSpacing.sm) {
                 expandablePillButton(
                     icon: "calendar",
@@ -61,10 +61,12 @@ struct OptionsPillsView: View {
                     field: .countdown
                 )
 
+                // Icon pill uses the selected color as tint
                 expandablePillButton(
                     icon: selectedIcon,
                     title: "Icon",
-                    field: .icon
+                    field: .icon,
+                    tintHex: selectedColorHex
                 )
 
                 pillButton(
@@ -89,7 +91,8 @@ struct OptionsPillsView: View {
     private func expandablePillButton(
         icon: String,
         title: String,
-        field: ExpandableField
+        field: ExpandableField,
+        tintHex: String? = nil
     ) -> some View {
         Button {
             TickerHaptics.selection()
@@ -97,12 +100,13 @@ struct OptionsPillsView: View {
                 viewModel.toggleField(field)
             }
         } label: {
-            pillButtonContent(
+            TickerPill(
                 icon: icon,
                 title: title,
                 isActive: viewModel.expandedField == field,
                 hasValue: viewModel.hasValue(for: field),
-                field: field
+                size: .standard,
+                iconTintColor: (title == "Icon") ? (Color(hex: tintHex ?? "") ?? TickerColor.primary) : nil
             )
         }
     }
@@ -115,143 +119,15 @@ struct OptionsPillsView: View {
         action: @escaping () -> Void
     ) -> some View {
         Button(action: action) {
-            pillButtonContent(
+            TickerPill(
                 icon: icon,
                 title: title,
                 isActive: isActive,
-                hasValue: false,
-                field: nil
+                hasValue: isActive,
+                size: .standard
             )
         }
     }
-
-    private func pillButtonContent(
-        icon: String,
-        title: String,
-        isActive: Bool,
-        hasValue: Bool,
-        field: ExpandableField?
-    ) -> some View {
-        let isIconField = title == "Icon"
-        let iconColor = isIconField ? (Color(hex: selectedColorHex) ?? TickerColor.primary) : nil
-
-        return HStack(spacing: TickerSpacing.xs) {
-            ZStack {
-                if isIconField {
-                    // Icon field: Enhanced colored circle background
-                    Circle()
-                        .fill(iconColor ?? TickerColor.primary)
-                        .frame(width: 26, height: 26)
-                        .overlay(
-                            Circle()
-                                .strokeBorder(
-                                    TickerColor.absoluteWhite.opacity(0.2),
-                                    lineWidth: 1
-                                )
-                        )
-
-                    Image(systemName: icon)
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(TickerColor.absoluteWhite)
-                } else {
-                    // Other fields: Enhanced icon with better states
-                    ZStack {
-                        // Subtle background for better contrast
-                        if isActive {
-                            Circle()
-                                .fill(TickerColor.absoluteWhite.opacity(0.15))
-                                .frame(width: 24, height: 24)
-                        } else if hasValue {
-                            Circle()
-                                .fill(TickerColor.primary.opacity(0.1))
-                                .frame(width: 22, height: 22)
-                        }
-
-                        Image(systemName: icon)
-                            .font(.system(size: 15, weight: isActive ? .bold : .semibold))
-                            .foregroundStyle(
-                                isActive ? TickerColor.absoluteWhite : 
-                                hasValue ? TickerColor.primary : 
-                                TickerColor.textPrimary(for: colorScheme)
-                            )
-                    }
-                }
-            }
-
-            Text(title)
-                .font(.system(size: 14, weight: isActive ? .bold : .semibold, design: .rounded))
-                .lineLimit(1)
-                .foregroundStyle(
-                    isActive ? TickerColor.absoluteWhite : 
-                    hasValue ? TickerColor.textPrimary(for: colorScheme) : 
-                    TickerColor.textSecondary(for: colorScheme)
-                )
-        }
-        .padding(.horizontal, TickerSpacing.md)
-        .padding(.vertical, TickerSpacing.md)
-        .background(
-            ZStack {
-                if isActive {
-                    // Enhanced active gradient background
-                    LinearGradient(
-                        colors: [
-                            TickerColor.primary,
-                            TickerColor.primary.opacity(0.95),
-                            TickerColor.primary.opacity(0.9)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else if hasValue {
-                    // Value state with subtle primary tint
-                    LinearGradient(
-                        colors: [
-                            TickerColor.surface(for: colorScheme),
-                            TickerColor.surface(for: colorScheme).opacity(0.8)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                } else {
-                    // Default inactive state
-                    TickerColor.surface(for: colorScheme)
-                        .opacity(0.6)
-                }
-            }
-        )
-        .background(.ultraThinMaterial.opacity(isActive ? 0.6 : hasValue ? 0.4 : 0.2))
-        .overlay(
-            Capsule()
-                .strokeBorder(
-                    hasValue && !isActive ?
-                    LinearGradient(
-                        colors: [
-                            TickerColor.primary.opacity(0.7),
-                            TickerColor.primary.opacity(0.4)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ) :
-                        LinearGradient(
-                            colors: [Color.clear],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                    lineWidth: hasValue ? 1.5 : 0
-                )
-        )
-        .clipShape(Capsule())
-        .shadow(
-            color: isActive ? TickerColor.primary.opacity(0.5) : 
-                   hasValue ? TickerColor.primary.opacity(0.15) : 
-                   Color.black.opacity(0.06),
-            radius: isActive ? 10 : hasValue ? 6 : 3,
-            x: 0,
-            y: isActive ? 5 : hasValue ? 3 : 1
-        )
-        .scaleEffect(isActive ? 1.02 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isActive)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: hasValue)
-    }
+    
 }
 

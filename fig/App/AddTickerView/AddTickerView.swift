@@ -52,6 +52,12 @@ struct AddTickerView: View {
                     // Time Picker Card
                     timePickerCard
 
+                    // Inline validation banner
+                    if let message = viewModel.validationMessages.first {
+                        validationBanner(message: message)
+                            .padding(.horizontal, TickerSpacing.md)
+                    }
+
                     // Options Pills
                     OptionsPillsView(
                         viewModel: viewModel.optionsPillsViewModel,
@@ -353,6 +359,36 @@ struct AddTickerView: View {
             tickerService: tickerService,
             prefillTemplate: prefillTemplate,
             isEditMode: isEditMode
+        )
+    }
+}
+
+// MARK: - Inline Validation Banner
+
+extension AddTickerView {
+    @ViewBuilder
+    fileprivate func validationBanner(message: String) -> some View {
+        HStack(spacing: TickerSpacing.sm) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(TickerColor.warning)
+
+            Text(message)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                .multilineTextAlignment(.leading)
+
+            Spacer()
+        }
+        .padding(.horizontal, TickerSpacing.md)
+        .padding(.vertical, TickerSpacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                .fill(TickerColor.warning.opacity(0.1))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                .strokeBorder(TickerColor.warning.opacity(0.3), lineWidth: 1)
         )
     }
 }
