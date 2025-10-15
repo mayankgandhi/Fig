@@ -27,6 +27,7 @@ struct ClockView: View {
 
     var upcomingAlarms: [UpcomingAlarmPresentation]
     var shouldAnimateAlarms: Bool = false
+    var showSecondsHand: Bool = true
     @State private var currentTime = Date()
     @State private var alarmAnimationStates: [UUID: Bool] = [:]
     
@@ -221,22 +222,24 @@ struct ClockView: View {
                         .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.4), radius: 3, x: 0, y: 2)
                     
                     // Enhanced Second Hand
-                    RoundedRectangle(cornerRadius: 1)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    TickerColor.primary,
-                                    TickerColor.accent
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
+                    if showSecondsHand {
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        TickerColor.primary,
+                                        TickerColor.accent
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
                             )
-                        )
-                        .frame(width: 2, height: radius * 0.8)
-                        .offset(y: -radius * 0.4)
-                        .rotationEffect(Angle(degrees: secondAngle))
-                        .animation(.none, value: secondAngle)
-                        .shadow(color: TickerColor.primary.opacity(0.5), radius: 2, x: 0, y: 1)
+                            .frame(width: 2, height: radius * 0.8)
+                            .offset(y: -radius * 0.4)
+                            .rotationEffect(Angle(degrees: secondAngle))
+                            .animation(.none, value: secondAngle)
+                            .shadow(color: TickerColor.primary.opacity(0.5), radius: 2, x: 0, y: 1)
+                    }
                     
                     // Enhanced center dot
                     ZStack {

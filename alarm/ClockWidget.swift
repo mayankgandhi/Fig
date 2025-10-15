@@ -33,20 +33,32 @@ struct ClockWidgetProvider: TimelineProvider {
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
         Task {
+            let calendar = Calendar.current
             let currentDate = Date()
+
+            // Calculate the start of the next minute
+            let currentComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: currentDate)
+            guard let currentMinute = calendar.date(from: currentComponents),
+                  let nextMinute = calendar.date(byAdding: .minute, value: 1, to: currentMinute) else {
+                let entry = Entry(date: currentDate, upcomingAlarms: [])
+                let timeline = Timeline(entries: [entry], policy: .atEnd)
+                completion(timeline)
+                return
+            }
+
             let upcomingAlarms = await fetchUpcomingAlarms()
 
             // Generate timeline entries
             var entries: [Entry] = []
 
-            // Create entries for the next 2 hours, updating every 5 minutes
-            for minuteOffset in stride(from: 0, through: 120, by: 5) {
-                let entryDate = Calendar.current.date(byAdding: .minute, value: minuteOffset, to: currentDate)!
+            // Create entries for the next 2 hours, updating every minute
+            for minuteOffset in stride(from: 0, through: 120, by: 1) {
+                let entryDate = calendar.date(byAdding: .minute, value: minuteOffset, to: nextMinute)!
                 let entry = Entry(date: entryDate, upcomingAlarms: upcomingAlarms)
                 entries.append(entry)
             }
 
-            // Update policy: Refresh after the last entry, but also allow for more frequent updates
+            // Update policy: Refresh after the last entry
             let timeline = Timeline(entries: entries, policy: .atEnd)
             completion(timeline)
         }
@@ -231,7 +243,7 @@ struct ClockWidgetView: View {
                 .padding(.top, 12)
 
                 // Enhanced clock view
-                ClockView(upcomingAlarms: entry.upcomingAlarms, shouldAnimateAlarms: false)
+                ClockView(upcomingAlarms: entry.upcomingAlarms, shouldAnimateAlarms: false, showSecondsHand: false)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 12)
             }
