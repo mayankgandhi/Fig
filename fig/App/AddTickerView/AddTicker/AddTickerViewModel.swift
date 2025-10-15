@@ -115,6 +115,12 @@ final class AddTickerViewModel {
                 return end > repeatViewModel.hourlyStartTime
             }
             return true
+        case .every:
+            if repeatViewModel.everyInterval < 1 { return false }
+            if let end = repeatViewModel.everyEndTime {
+                return end > repeatViewModel.everyStartTime
+            }
+            return true
         case .biweekly:
             return !repeatViewModel.biweeklyWeekdays.isEmpty
         case .monthly:
@@ -154,6 +160,13 @@ final class AddTickerViewModel {
             }
             if let end = repeatViewModel.hourlyEndTime, end <= repeatViewModel.hourlyStartTime {
                 messages.append("Hourly end time must be after start time")
+            }
+        case .every:
+            if repeatViewModel.everyInterval < 1 {
+                messages.append("Interval must be at least 1")
+            }
+            if let end = repeatViewModel.everyEndTime, end <= repeatViewModel.everyStartTime {
+                messages.append("End time must be after start time")
             }
         case .monthly:
             if repeatViewModel.monthlyDayType == .fixed && !(1...31).contains(repeatViewModel.monthlyFixedDay) {
@@ -276,6 +289,25 @@ final class AddTickerViewModel {
                 interval: repeatViewModel.hourlyInterval,
                 startTime: repeatViewModel.hourlyStartTime,
                 endTime: repeatViewModel.hourlyEndTime
+            )
+
+        case .every:
+            // Validate every configuration
+            guard repeatViewModel.everyInterval >= 1 else {
+                errorMessage = "Interval must be at least 1"
+                showingError = true
+                return
+            }
+            if let end = repeatViewModel.everyEndTime, end <= repeatViewModel.everyStartTime {
+                errorMessage = "End time must be after start time"
+                showingError = true
+                return
+            }
+            schedule = .every(
+                interval: repeatViewModel.everyInterval,
+                unit: repeatViewModel.everyUnit,
+                startTime: repeatViewModel.everyStartTime,
+                endTime: repeatViewModel.everyEndTime
             )
 
         case .biweekly:
@@ -412,6 +444,16 @@ final class AddTickerViewModel {
                 repeatViewModel.hourlyInterval = interval
                 repeatViewModel.hourlyStartTime = startTime
                 repeatViewModel.hourlyEndTime = endTime
+
+            case .every(let interval, let unit, let startTime, let endTime):
+                print("      → Setting every schedule: every \(interval) \(unit.displayName)")
+                timePickerViewModel.setTimeFromDate(startTime)
+                calendarViewModel.selectedDate = startTime
+                repeatViewModel.selectOption(.every)
+                repeatViewModel.everyInterval = interval
+                repeatViewModel.everyUnit = unit
+                repeatViewModel.everyStartTime = startTime
+                repeatViewModel.everyEndTime = endTime
 
             case .weekdays(let time, let days, let startDate):
                 print("      → Setting weekdays schedule for: \(time.hour):\(time.minute)")

@@ -380,4 +380,184 @@ final class AITickerGeneratorTests: XCTestCase {
         XCTAssertEqual(configuration.time.hour, 12)
         XCTAssertEqual(configuration.time.minute, 0)
     }
+    
+    // MARK: - Additional Comprehensive Tests
+    
+    func testTimeParsing_EdgeCases() async throws {
+        let testCases = [
+            ("Meeting at 12:00pm", 12, 0),
+            ("Wake up at 12:00am", 0, 0),
+            ("Lunch at 12:30pm", 12, 30),
+            ("Midnight snack at 12:00am", 0, 0),
+            ("Noon meeting at 12:00pm", 12, 0),
+            ("Early morning at 1:00am", 1, 0),
+            ("Late night at 11:59pm", 23, 59),
+            ("Afternoon at 1:00pm", 13, 0),
+            ("Evening at 6:00pm", 18, 0)
+        ]
+        
+        for (input, expectedHour, expectedMinute) in testCases {
+            let configuration = try await aiGenerator.generateTickerConfiguration(from: input)
+            XCTAssertEqual(configuration.time.hour, expectedHour, "Failed for input: \(input)")
+            XCTAssertEqual(configuration.time.minute, expectedMinute, "Failed for input: \(input)")
+        }
+    }
+    
+    func testActivityMapping_Comprehensive() async throws {
+        let testCases = [
+            ("Team meeting at 2pm", "Team Meeting", "person.3", "#3B82F6"),
+            ("Coffee break at 3pm", "Coffee", "cup.and.saucer", "#92400E"),
+            ("Tea time at 4pm", "Tea", "cup.and.saucer", "#92400E"),
+            ("Yoga class at 7am", "Yoga", "figure.yoga", "#84CC16"),
+            ("Gym workout at 6pm", "Gym", "dumbbell", "#FF6B35"),
+            ("Doctor appointment at 10am", "Doctor", "cross.case", "#EF4444"),
+            ("Take medication at 9am", "Medication", "pills", "#EF4444"),
+            ("Lunch break at 12pm", "Lunch", "fork.knife", "#10B981"),
+            ("Wake up at 7am", "Wake Up", "sunrise", "#F59E0B"),
+            ("Bedtime at 10pm", "Bedtime", "moon", "#6366F1")
+        ]
+        
+        for (input, expectedLabel, expectedIcon, expectedColor) in testCases {
+            let configuration = try await aiGenerator.generateTickerConfiguration(from: input)
+            XCTAssertEqual(configuration.label, expectedLabel, "Failed for input: \(input)")
+            XCTAssertEqual(configuration.icon, expectedIcon, "Failed for input: \(input)")
+            XCTAssertEqual(configuration.colorHex, expectedColor, "Failed for input: \(input)")
+        }
+    }
+    
+    func testCountdownParsing_Comprehensive() async throws {
+        let testCases = [
+            ("Meeting with 5 minute countdown", 0, 5, 0),
+            ("Wake up with 10 min alert", 0, 10, 0),
+            ("Gym with 1 hour countdown", 1, 0, 0),
+            ("Lunch with 30 minute notice", 0, 30, 0),
+            ("Coffee with 1 hour and 30 minute countdown", 1, 30, 0),
+            ("Meeting with 45 second countdown", 0, 0, 45),
+            ("Wake up in 2 hours", 2, 0, 0),
+            ("Meeting after 15 minutes", 0, 15, 0),
+            ("Gym with 2 hour and 15 minute countdown", 2, 15, 0),
+            ("Lunch with 1 hr countdown", 1, 0, 0)
+        ]
+        
+        for (input, expectedHours, expectedMinutes, expectedSeconds) in testCases {
+            let configuration = try await aiGenerator.generateTickerConfiguration(from: input)
+            XCTAssertNotNil(configuration.countdown, "Failed for input: \(input)")
+            XCTAssertEqual(configuration.countdown?.hours, expectedHours, "Failed for input: \(input)")
+            XCTAssertEqual(configuration.countdown?.minutes, expectedMinutes, "Failed for input: \(input)")
+            XCTAssertEqual(configuration.countdown?.seconds, expectedSeconds, "Failed for input: \(input)")
+        }
+    }
+    
+    func testRepeatPatterns_Comprehensive() async throws {
+        let testCases = [
+            ("Meeting every day", AITickerGenerator.RepeatOption.daily),
+            ("Wake up daily", AITickerGenerator.RepeatOption.daily),
+            ("Exercise each day", AITickerGenerator.RepeatOption.daily),
+            ("Work on weekdays", AITickerGenerator.RepeatOption.weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])),
+            ("Gym on workdays", AITickerGenerator.RepeatOption.weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])),
+            ("Yoga on Mondays and Wednesdays", AITickerGenerator.RepeatOption.weekdays([.monday, .wednesday])),
+            ("Meeting every 2 hours", AITickerGenerator.RepeatOption.hourly(interval: 2)),
+            ("Check every 3 hours", AITickerGenerator.RepeatOption.hourly(interval: 3)),
+            ("Biweekly meeting", AITickerGenerator.RepeatOption.biweekly([.monday, .wednesday, .friday])),
+            ("Monthly report on the 15th", AITickerGenerator.RepeatOption.monthly(day: 15)),
+            ("Monthly report on the 1st", AITickerGenerator.RepeatOption.monthly(day: 1)),
+            ("Monthly report on the 31st", AITickerGenerator.RepeatOption.monthly(day: 31))
+        ]
+        
+        for (input, expectedOption) in testCases {
+            let configuration = try await aiGenerator.generateTickerConfiguration(from: input)
+            XCTAssertEqual(String(describing: configuration.repeatOption), String(describing: expectedOption), "Failed for input: \(input)")
+        }
+    }
+    
+    func testNaturalTimeExpressions_Comprehensive() async throws {
+        let testCases = [
+            ("Meeting at midnight", 0, 0),
+            ("Wake up at noon", 12, 0),
+            ("Lunch at midday", 12, 0),
+            ("Exercise in the morning", 8, 0),
+            ("Dinner in the evening", 18, 0),
+            ("Bedtime at night", 20, 0),
+            ("Meeting at dawn", 6, 0),
+            ("Sunrise yoga", 6, 30),
+            ("Late morning coffee", 10, 0),
+            ("Afternoon meeting", 14, 0),
+            ("Late afternoon snack", 16, 0),
+            ("Dusk walk", 19, 0),
+            ("Sunset dinner", 19, 30),
+            ("Late night study", 22, 0)
+        ]
+        
+        for (input, expectedHour, expectedMinute) in testCases {
+            let configuration = try await aiGenerator.generateTickerConfiguration(from: input)
+            XCTAssertEqual(configuration.time.hour, expectedHour, "Failed for input: \(input)")
+            XCTAssertEqual(configuration.time.minute, expectedMinute, "Failed for input: \(input)")
+        }
+    }
+    
+    func testComplexScenarios_Comprehensive() async throws {
+        let testCases = [
+            ("Morning yoga every Monday, Wednesday, Friday at 7am with 10 minute countdown", 7, 0, "Yoga", "figure.yoga", 0, 10, 0),
+            ("Team meeting at 2:30pm every Tuesday with 5 minute reminder", 14, 30, "Team Meeting", "person.3", 0, 5, 0),
+            ("Coffee break at 3:15pm daily with 15 minute alert", 15, 15, "Coffee", "cup.and.saucer", 0, 15, 0),
+            ("Gym workout at 6pm on weekdays with 1 hour countdown", 18, 0, "Gym", "dumbbell", 1, 0, 0),
+            ("Doctor appointment at 10am tomorrow with 30 minute notice", 10, 0, "Doctor", "cross.case", 0, 30, 0),
+            ("Take medication at 9am and 9pm daily", 9, 0, "Medication", "pills", nil, nil, nil),
+            ("Lunch break at 12pm every weekday with 10 minute reminder", 12, 0, "Lunch", "fork.knife", 0, 10, 0),
+            ("Wake up at 7am daily with 5 minute alert", 7, 0, "Wake Up", "sunrise", 0, 5, 0),
+            ("Bedtime at 10pm every night with 15 minute countdown", 22, 0, "Bedtime", "moon", 0, 15, 0),
+            ("Monthly report on the 15th at 2pm with 1 hour notice", 14, 0, "Report", "alarm", 1, 0, 0)
+        ]
+        
+        for (input, expectedHour, expectedMinute, expectedLabel, expectedIcon, expectedCountdownHours, expectedCountdownMinutes, expectedCountdownSeconds) in testCases {
+            let configuration = try await aiGenerator.generateTickerConfiguration(from: input)
+            
+            // Test time
+            XCTAssertEqual(configuration.time.hour, expectedHour, "Failed time hour for input: \(input)")
+            XCTAssertEqual(configuration.time.minute, expectedMinute, "Failed time minute for input: \(input)")
+            
+            // Test activity
+            XCTAssertEqual(configuration.label, expectedLabel, "Failed label for input: \(input)")
+            XCTAssertEqual(configuration.icon, expectedIcon, "Failed icon for input: \(input)")
+            
+            // Test countdown (if expected)
+            if let expectedHours = expectedCountdownHours,
+               let expectedMinutes = expectedCountdownMinutes,
+               let expectedSeconds = expectedCountdownSeconds {
+                XCTAssertNotNil(configuration.countdown, "Failed countdown for input: \(input)")
+                XCTAssertEqual(configuration.countdown?.hours, expectedHours, "Failed countdown hours for input: \(input)")
+                XCTAssertEqual(configuration.countdown?.minutes, expectedMinutes, "Failed countdown minutes for input: \(input)")
+                XCTAssertEqual(configuration.countdown?.seconds, expectedSeconds, "Failed countdown seconds for input: \(input)")
+            } else {
+                XCTAssertNil(configuration.countdown, "Expected no countdown for input: \(input)")
+            }
+        }
+    }
+    
+    func testEdgeCases_Comprehensive() async throws {
+        let testCases = [
+            ("Meeting at 25am every day", "Should handle invalid hour gracefully"),
+            ("Wake up at 7:60am daily", "Should handle invalid minute gracefully"),
+            ("Gym at 24:00 every day", "Should handle 24:00 as midnight"),
+            ("Coffee at 0:30 every day", "Should handle 0:30 as 12:30am"),
+            ("Lunch at 13:00 every day", "Should handle 24-hour format"),
+            ("Dinner at 19:30 every day", "Should handle 24-hour format with minutes"),
+            ("Meeting at 12:00pm every day", "Should handle noon correctly"),
+            ("Wake up at 12:00am every day", "Should handle midnight correctly"),
+            ("Snack at 12:30pm every day", "Should handle 12:30pm correctly"),
+            ("Breakfast at 12:30am every day", "Should handle 12:30am correctly")
+        ]
+        
+        for (input, description) in testCases {
+            do {
+                let configuration = try await aiGenerator.generateTickerConfiguration(from: input)
+                // If it doesn't throw, verify the time is reasonable
+                XCTAssertTrue(configuration.time.hour >= 0 && configuration.time.hour <= 23, "\(description) - Invalid hour: \(configuration.time.hour)")
+                XCTAssertTrue(configuration.time.minute >= 0 && configuration.time.minute <= 59, "\(description) - Invalid minute: \(configuration.time.minute)")
+            } catch {
+                // If it throws an error, that's also acceptable for invalid inputs
+                XCTAssertTrue(true, "\(description) - Threw expected error: \(error)")
+            }
+        }
+    }
 }

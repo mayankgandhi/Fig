@@ -26,6 +26,12 @@ final class RepeatOptionsViewModel {
     var hourlyInterval: Int = 1
     var hourlyStartTime: Date = Date()
     var hourlyEndTime: Date?
+
+    // Configuration for every option
+    var everyInterval: Int = 1
+    var everyUnit: TickerSchedule.TimeUnit = .hours
+    var everyStartTime: Date = Date()
+    var everyEndTime: Date?
     
     // Configuration for biweekly option
     var biweeklyWeekdays: Array<TickerSchedule.Weekday> = []
@@ -53,27 +59,29 @@ final class RepeatOptionsViewModel {
         case daily = "Daily"
         case weekdays = "Weekdays"
         case hourly = "Hourly"
+        case every = "Every"
         case biweekly = "Biweekly"
         case monthly = "Monthly"
         case yearly = "Yearly"
-        
+
         var icon: String {
             switch self {
                 case .noRepeat: return "calendar"
                 case .daily: return "repeat"
                 case .weekdays: return "calendar.badge.clock"
                 case .hourly: return "clock"
+                case .every: return "arrow.clockwise"
                 case .biweekly: return "calendar.badge.clock"
                 case .monthly: return "calendar.circle"
                 case .yearly: return "calendar.badge.exclamationmark"
             }
         }
-        
+
         var needsConfiguration: Bool {
             switch self {
                 case .noRepeat, .daily:
                     return false
-                case .weekdays, .hourly, .biweekly, .monthly, .yearly:
+                case .weekdays, .hourly, .every, .biweekly, .monthly, .yearly:
                     return true
             }
         }
@@ -110,6 +118,9 @@ final class RepeatOptionsViewModel {
                 } else {
                     return "Repeats every \(hourlyInterval) hours"
                 }
+            case .every:
+                let unitName = everyInterval == 1 ? everyUnit.singularName : everyUnit.displayName.lowercased()
+                return "Repeats every \(everyInterval) \(unitName)"
             case .biweekly:
                 if biweeklyWeekdays.isEmpty {
                     return "Biweekly (not configured)"
@@ -168,6 +179,10 @@ final class RepeatOptionsViewModel {
         hourlyInterval = 1
         hourlyStartTime = Date()
         hourlyEndTime = nil
+        everyInterval = 1
+        everyUnit = .hours
+        everyStartTime = Date()
+        everyEndTime = nil
         biweeklyWeekdays = []
         biweeklyAnchorDate = Date()
         monthlyDayType = .fixed

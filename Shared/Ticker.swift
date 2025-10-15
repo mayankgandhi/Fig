@@ -83,6 +83,7 @@ enum TickerSchedule: Codable, Hashable {
     case oneTime(date: Date)
     case daily(time: TimeOfDay, startDate: Date)
     case hourly(interval: Int, startTime: Date, endTime: Date?)
+    case every(interval: Int, unit: TimeUnit, startTime: Date, endTime: Date?)
     case weekdays(time: TimeOfDay, days: Array<Weekday>, startDate: Date)
     case biweekly(time: TimeOfDay, weekdays: Array<Weekday>, anchorDate: Date)
     case monthly(day: MonthlyDay, time: TimeOfDay, startDate: Date)
@@ -120,6 +121,26 @@ enum TickerSchedule: Codable, Hashable {
         case lastWeekday(Weekday)
         case firstOfMonth
         case lastOfMonth
+    }
+
+    enum TimeUnit: String, Codable, Hashable, CaseIterable {
+        case minutes = "Minutes"
+        case hours = "Hours"
+        case days = "Days"
+        case weeks = "Weeks"
+
+        var displayName: String {
+            rawValue
+        }
+
+        var singularName: String {
+            switch self {
+            case .minutes: return "minute"
+            case .hours: return "hour"
+            case .days: return "day"
+            case .weeks: return "week"
+            }
+        }
     }
 }
 
@@ -184,6 +205,16 @@ extension TickerSchedule {
                 return "Every \(interval)h until \(formatter.string(from: endTime))"
             } else {
                 return "Every \(interval) hour\(interval == 1 ? "" : "s")"
+            }
+
+        case .every(let interval, let unit, _, let endTime):
+            let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
+            if let endTime = endTime {
+                let formatter = DateFormatter()
+                formatter.timeStyle = .short
+                return "Every \(interval) \(unitName) until \(formatter.string(from: endTime))"
+            } else {
+                return "Every \(interval) \(unitName)"
             }
 
         case .weekdays(let time, let days, _):
@@ -382,7 +413,7 @@ extension Ticker {
                 .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
             )
 
-        case .hourly, .weekdays, .biweekly, .monthly, .yearly:
+        case .hourly, .every, .weekdays, .biweekly, .monthly, .yearly:
             // Composite schedules are expanded into multiple one-time alarms
             // by the TickerService, so they don't need direct AlarmKit mapping
             return nil

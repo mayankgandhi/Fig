@@ -37,6 +37,9 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         case .hourly(let interval, let startTime, let endTime):
             return expandHourly(interval: interval, startTime: startTime, endTime: endTime, within: window)
 
+        case .every(let interval, let unit, let startTime, let endTime):
+            return expandEvery(interval: interval, unit: unit, startTime: startTime, endTime: endTime, within: window)
+
         case .weekdays(let time, let days, let startDate):
             return expandWeekdays(time: time, days: days, startDate: startDate, within: window)
 
@@ -94,6 +97,36 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
             dates.append(currentDate)
 
             guard let nextDate = calendar.date(byAdding: .hour, value: interval, to: currentDate) else {
+                break
+            }
+            currentDate = nextDate
+        }
+
+        return dates.sorted()
+    }
+
+    private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, startTime: Date, endTime: Date?, within window: DateInterval) -> [Date] {
+        var dates: [Date] = []
+        let effectiveEndTime = endTime ?? window.end
+        var currentDate = max(startTime, window.start)
+
+        // Map TimeUnit to Calendar.Component
+        let component: Calendar.Component
+        switch unit {
+        case .minutes:
+            component = .minute
+        case .hours:
+            component = .hour
+        case .days:
+            component = .day
+        case .weeks:
+            component = .weekOfYear
+        }
+
+        while currentDate <= min(effectiveEndTime, window.end) {
+            dates.append(currentDate)
+
+            guard let nextDate = calendar.date(byAdding: component, value: interval, to: currentDate) else {
                 break
             }
             currentDate = nextDate
