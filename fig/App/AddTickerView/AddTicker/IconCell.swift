@@ -14,27 +14,18 @@ struct IconPickerViewMVVM: View {
     private let columns = Array(repeating: GridItem(.flexible(), spacing: TickerSpacing.xs), count: 5)
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
-            // Icons grid
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: TickerSpacing.sm) {
-                    ForEach(IconColorPair.allIcons) { iconPair in
-                        IconCell(
-                            iconPair: iconPair,
-                            isSelected: viewModel.selectedIcon == iconPair.symbol
-                        ) {
-                            selectIcon(iconPair)
-                        }
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: TickerSpacing.sm) {
+                ForEach(IconColorPair.allIcons) { iconPair in
+                    IconCell(
+                        iconPair: iconPair,
+                        isSelected: viewModel.selectedIcon == iconPair.symbol
+                    ) {
+                        selectIcon(iconPair)
                     }
                 }
             }
-            .frame(height: 280)
         }
-        .padding(TickerSpacing.md)
-        .background(TickerColor.surface(for: colorScheme).opacity(0.95))
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 
     private func selectIcon(_ iconPair: IconColorPair) {
@@ -90,3 +81,4 @@ private struct IconCell: View {
         .buttonStyle(.plain)
     }
 }
+

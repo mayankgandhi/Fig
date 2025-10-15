@@ -32,11 +32,6 @@ struct IconPickerView: View {
             }
             .frame(height: 280)
         }
-        .padding(TickerSpacing.md)
-        .background(TickerColor.surface(for: colorScheme).opacity(0.95))
-        .background(.ultraThinMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 
     private func selectIcon(_ iconPair: IconColorPair) {

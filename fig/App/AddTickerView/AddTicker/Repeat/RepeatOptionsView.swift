@@ -26,32 +26,19 @@ struct RepeatOptionsView: View {
             // Main Repeat Type Selector
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: TickerSpacing.xs) {
-                    ForEach(RepeatOption.allCases, id: \.self) { option in
+                    ForEach(RepeatOptionsViewModel.RepeatOption.allCases, id: \.self) { option in
                         repeatOptionButton(for: option)
                     }
                 }
                 .padding(.horizontal, TickerSpacing.md)
             }
             .padding(.vertical, TickerSpacing.sm)
-            .background(
-                RoundedRectangle(cornerRadius: TickerRadius.large)
-                    .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
-            )
-            .background(
-                RoundedRectangle(cornerRadius: TickerRadius.large)
-                    .fill(.ultraThinMaterial)
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: TickerRadius.large)
-                    .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
 
             // Validation Message
             if let validationMessage = validationMessage {
                 validationMessageView(message: validationMessage)
             }
-            
+
             // Configuration View for selected option
             if viewModel.needsConfiguration {
                 configurationView
@@ -60,7 +47,7 @@ struct RepeatOptionsView: View {
     }
 
     @ViewBuilder
-    private func repeatOptionButton(for option: RepeatOption) -> some View {
+    private func repeatOptionButton(for option: RepeatOptionsViewModel.RepeatOption) -> some View {
         Button {
             TickerHaptics.selection()
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {

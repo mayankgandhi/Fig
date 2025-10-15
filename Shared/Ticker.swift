@@ -43,7 +43,7 @@ final class Ticker {
 
     // AlarmKit Integration
     var alarmKitID: UUID? // Legacy: Single alarm ID for simple schedules
-    var generatedAlarmKitIDs: [UUID] // Multiple alarm IDs for composite schedules
+    var generatedAlarmKitIDs: [UUID] = [] // Multiple alarm IDs for composite schedules
     var generationWindow: Int // Days ahead to generate alarms (default 60)
 
     init(

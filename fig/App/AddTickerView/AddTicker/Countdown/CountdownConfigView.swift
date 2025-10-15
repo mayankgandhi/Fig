@@ -43,19 +43,5 @@ struct CountdownConfigView: View {
                 .frame(height: 120)
             }
         }
-        .padding(TickerSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
-        )
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(.ultraThinMaterial)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
     }
 }

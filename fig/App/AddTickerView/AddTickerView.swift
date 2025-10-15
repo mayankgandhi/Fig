@@ -78,8 +78,6 @@ struct AddTickerView: View {
             ) {
                 if let field = viewModel.optionsPillsViewModel.expandedField {
                     expandedContentForField(field)
-                        .padding(.horizontal, TickerSpacing.md)
-                        .padding(.bottom, TickerSpacing.lg)
                 }
             }
         }
@@ -322,31 +320,83 @@ struct AddTickerView: View {
     @ViewBuilder
     private func expandedContentForField(_ field: ExpandableField) -> some View {
         if let viewModel = viewModel {
-            Group {
-                switch field {
-                case .calendar:
-                    CalendarPickerView(viewModel: viewModel.calendarViewModel)
+            ZStack(alignment: .topTrailing) {
+                // Content
+                Group {
+                    switch field {
+                    case .calendar:
+                        CalendarPickerView(viewModel: viewModel.calendarViewModel)
 
-                case .repeat:
-                    RepeatOptionsView(
-                        viewModel: viewModel.repeatViewModel,
-                        validationMessage: viewModel.dateWeekdayMismatchMessage,
-                        onFixMismatch: viewModel.hasDateWeekdayMismatch ? {
-                            viewModel.adjustDateToMatchWeekdays()
-                        } : nil
-                    )
+                    case .repeat:
+                        RepeatOptionsView(
+                            viewModel: viewModel.repeatViewModel,
+                            validationMessage: viewModel.dateWeekdayMismatchMessage,
+                            onFixMismatch: viewModel.hasDateWeekdayMismatch ? {
+                                viewModel.adjustDateToMatchWeekdays()
+                            } : nil
+                        )
 
-                case .label:
-                    LabelEditorView(viewModel: viewModel.labelViewModel)
+                    case .label:
+                        LabelEditorView(viewModel: viewModel.labelViewModel)
 
-                case .countdown:
-                    CountdownConfigView(viewModel: viewModel.countdownViewModel)
+                    case .countdown:
+                        CountdownConfigView(viewModel: viewModel.countdownViewModel)
 
-                case .icon:
-                    IconPickerViewMVVM(viewModel: viewModel.iconPickerViewModel)
+                    case .icon:
+                        IconPickerViewMVVM(viewModel: viewModel.iconPickerViewModel)
+                    }
                 }
+                .padding(TickerSpacing.lg)
+                .background(
+                    RoundedRectangle(cornerRadius: TickerRadius.large)
+                        .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
+                )
+                .background(
+                    RoundedRectangle(cornerRadius: TickerRadius.large)
+                        .fill(.ultraThinMaterial)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: TickerRadius.large)
+                        .strokeBorder(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(0.3),
+                                    Color.white.opacity(0.1)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+                .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
+                .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+
+                // Dismiss button
+                Button {
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                        viewModel.optionsPillsViewModel.collapseField()
+                    }
+                } label: {
+                    ZStack {
+                        Circle()
+                            .fill(TickerColor.surface(for: colorScheme).opacity(0.9))
+                            .frame(width: 28, height: 28)
+
+                        Circle()
+                            .fill(.ultraThinMaterial.opacity(0.5))
+                            .frame(width: 28, height: 28)
+
+                        Image(systemName: "xmark")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    }
+                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                }
+                .buttonStyle(.plain)
+                .padding(TickerSpacing.md)
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
 

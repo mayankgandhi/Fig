@@ -35,7 +35,8 @@ let project = Project(
                 .glob(pattern: "fig/Resources/AppIcon.icon/**")
             ],
             entitlements: .dictionary([
-                "com.apple.security.application-groups": .array([.string("group.m.fig")])
+                "com.apple.security.application-groups": .array([.string("group.m.fig")]),
+                "com.apple.developer.apple-intelligence": .boolean(true)
             ]),
             dependencies: [
                 .target(name: "alarm")

@@ -260,41 +260,62 @@ struct ClockView: View {
                 )
             }
         }
-        .onChange(of: shouldAnimateAlarms) { _, newValue in
-            if newValue {
-                // Initialize all alarm animation states to false
-                for alarm in upcomingAlarms {
-                    alarmAnimationStates[alarm.id] = false
-                }
-                
+        .onChange(of: shouldAnimateAlarms) { oldValue, newValue in
+            if newValue && !oldValue {
                 // Trigger staggered animation
                 for (index, alarm) in upcomingAlarms.enumerated() {
                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
-                        alarmAnimationStates[alarm.id] = true
+                        withAnimation {
+                            alarmAnimationStates[alarm.id] = true
+                        }
                     }
+                }
+            } else if !newValue {
+                // Reset all states to false
+                for alarm in upcomingAlarms {
+                    alarmAnimationStates[alarm.id] = false
                 }
             }
         }
-        .onChange(of: upcomingAlarms) { _, newAlarms in
-            // If we have alarms and should animate, trigger animation
-            if !newAlarms.isEmpty && shouldAnimateAlarms {
-                // Initialize all alarm animation states to false
-                for alarm in newAlarms {
+        .onChange(of: upcomingAlarms) { oldAlarms, newAlarms in
+            // Initialize new alarms based on current animation state
+            let newAlarmIDs = Set(newAlarms.map { $0.id })
+            let oldAlarmIDs = Set(oldAlarms.map { $0.id })
+            let addedAlarms = newAlarms.filter { !oldAlarmIDs.contains($0.id) }
+
+            // Remove states for alarms that no longer exist
+            for oldID in oldAlarmIDs {
+                if !newAlarmIDs.contains(oldID) {
+                    alarmAnimationStates.removeValue(forKey: oldID)
+                }
+            }
+
+            // Add states for new alarms
+            if shouldAnimateAlarms {
+                // Start new alarms hidden, then animate them in
+                for alarm in addedAlarms {
                     alarmAnimationStates[alarm.id] = false
                 }
-                
-                // Trigger staggered animation
-                for (index, alarm) in newAlarms.enumerated() {
+
+                // Trigger staggered animation for new alarms
+                for (index, alarm) in addedAlarms.enumerated() {
                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
-                        alarmAnimationStates[alarm.id] = true
+                        withAnimation {
+                            alarmAnimationStates[alarm.id] = true
+                        }
                     }
+                }
+            } else {
+                // If not animating, just set them to false
+                for alarm in addedAlarms {
+                    alarmAnimationStates[alarm.id] = false
                 }
             }
         }
         .onAppear {
-            // Initialize animation states when view appears
+            // Initialize all alarm animation states to false on appear
             for alarm in upcomingAlarms {
-                alarmAnimationStates[alarm.id] = shouldAnimateAlarms
+                alarmAnimationStates[alarm.id] = false
             }
         }
     }

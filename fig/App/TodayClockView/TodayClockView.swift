@@ -16,9 +16,11 @@ struct TodayClockView: View {
     
     @State private var showSettings: Bool = false
     @State private var showAddSheet: Bool = false
+    @State private var showNaturalLanguageSheet: Bool = false
     @State private var viewModel: TodayViewModel?
     @State private var alarmToEdit: Ticker?
     @State private var shouldAnimateAlarms: Bool = false
+    @State private var generatedTicker: Ticker?
     @Namespace private var editButtonNamespace
     @Namespace private var addButtonNamespace
     
@@ -124,7 +126,7 @@ struct TodayClockView: View {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button {
                         TickerHaptics.selection()
-                        showAddSheet = true
+                        showNaturalLanguageSheet = true
                     } label: {
                         Image(systemName: "plus")
                     }
@@ -138,20 +140,51 @@ struct TodayClockView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showAddSheet) {
-                AddTickerView(namespace: addButtonNamespace)
-                    .presentationCornerRadius(TickerRadius.large)
-                    .presentationDragIndicator(.visible)
-                    .interactiveDismissDisabled()
-                    .presentationBackground {
-                        ZStack {
-                            TickerColor.liquidGlassGradient(for: colorScheme)
-
-                            Rectangle()
-                                .fill(.ultraThinMaterial)
-                                .opacity(0.5)
-                        }
+            .sheet(isPresented: $showNaturalLanguageSheet) {
+                NaturalLanguageTickerView(
+                    namespace: addButtonNamespace,
+                    onGenerated: { ticker in
+                        generatedTicker = ticker
+                        showNaturalLanguageSheet = false
+                        showAddSheet = true
+                    },
+                    onSkip: {
+                        showNaturalLanguageSheet = false
+                        showAddSheet = true
                     }
+                )
+                .presentationCornerRadius(TickerRadius.large)
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+                .presentationBackground {
+                    ZStack {
+                        TickerColor.liquidGlassGradient(for: colorScheme)
+
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.5)
+                    }
+                }
+            }
+            .sheet(isPresented: $showAddSheet, onDismiss: {
+                generatedTicker = nil
+            }) {
+                AddTickerView(
+                    namespace: addButtonNamespace,
+                    prefillTemplate: generatedTicker
+                )
+                .presentationCornerRadius(TickerRadius.large)
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+                .presentationBackground {
+                    ZStack {
+                        TickerColor.liquidGlassGradient(for: colorScheme)
+
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.5)
+                    }
+                }
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()

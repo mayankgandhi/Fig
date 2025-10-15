@@ -15,12 +15,14 @@ struct ContentView: View {
     @Environment(TickerService.self) private var tickerService
 
     @State private var showAddSheet = false
+    @State private var showNaturalLanguageSheet = false
     @State private var displayAlarms: [Ticker] = []
     @State private var alarmToEdit: Ticker?
     @State private var alarmToDelete: Ticker?
     @State private var alarmToShowDetail: Ticker?
     @State private var showDeleteAlert = false
     @State private var searchText = ""
+    @State private var generatedTicker: Ticker?
     @Namespace private var addButtonNamespace
     @Namespace private var editButtonNamespace
     
@@ -47,22 +49,54 @@ struct ContentView: View {
                 }
                 .searchable(text: $searchText, prompt: "Search by name or time")
         }
+        .sheet(isPresented: $showNaturalLanguageSheet, onDismiss: {
+            showNaturalLanguageSheet = false
+        }) {
+            NaturalLanguageTickerView(
+                namespace: addButtonNamespace,
+                onGenerated: { ticker in
+                    generatedTicker = ticker
+                    showNaturalLanguageSheet = false
+                    showAddSheet = true
+                },
+                onSkip: {
+                    showNaturalLanguageSheet = false
+                    showAddSheet = true
+                }
+            )
+            .presentationCornerRadius(TickerRadius.large)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled()
+            .presentationBackground {
+                ZStack {
+                    TickerColor.liquidGlassGradient(for: colorScheme)
+
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.5)
+                }
+            }
+        }
         .sheet(isPresented: $showAddSheet, onDismiss: {
             showAddSheet = false
+            generatedTicker = nil
         }) {
-            AddTickerView(namespace: addButtonNamespace)
-                .presentationCornerRadius(TickerRadius.large)
-                .presentationDragIndicator(.visible)
-                .interactiveDismissDisabled()
-                .presentationBackground {
-                    ZStack {
-                        TickerColor.liquidGlassGradient(for: colorScheme)
+            AddTickerView(
+                namespace: addButtonNamespace,
+                prefillTemplate: generatedTicker
+            )
+            .presentationCornerRadius(TickerRadius.large)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled()
+            .presentationBackground {
+                ZStack {
+                    TickerColor.liquidGlassGradient(for: colorScheme)
 
-                        Rectangle()
-                            .fill(.ultraThinMaterial)
-                            .opacity(0.5)
-                    }
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.5)
                 }
+            }
         }
         .sheet(item: $alarmToEdit) { ticker in
             AddTickerView(namespace: editButtonNamespace, prefillTemplate: ticker, isEditMode: true)
@@ -181,7 +215,7 @@ struct ContentView: View {
     var menuButton: some View {
         Button {
             TickerHaptics.selection()
-            showAddSheet.toggle()
+            showNaturalLanguageSheet.toggle()
         } label: {
             Image(systemName: "plus")
         }
@@ -217,7 +251,7 @@ struct ContentView: View {
                 } actions: {
                     Button {
                         TickerHaptics.criticalAction()
-                        showAddSheet = true
+                        showNaturalLanguageSheet = true
                     } label: {
                         HStack(spacing: TickerSpacing.xs) {
                             Image(systemName: "plus.circle.fill")
