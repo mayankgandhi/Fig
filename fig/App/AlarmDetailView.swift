@@ -129,7 +129,7 @@ struct AlarmDetailView: View {
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                 HStack(spacing: TickerSpacing.xxs) {
-                    Image(systemName: scheduleIcon(for: schedule))
+                    Image(systemName: schedule.icon)
                         .font(.system(size: 12))
                     Text(scheduleTypeLabel(for: schedule))
                         .font(.system(size: 13, weight: .medium, design: .rounded))
@@ -257,26 +257,29 @@ struct AlarmDetailView: View {
         case .hourly:
             // For hourly schedules, show a generic time indicator
             return "Hourly"
+
+        case .every(let interval, let unit, let startTime, _):
+            // For short intervals (minutes/hours), show start time
+            // For longer intervals (days/weeks), show interval description
+            switch unit {
+            case .minutes, .hours:
+                let formatter = DateFormatter()
+                formatter.timeStyle = .short
+                return formatter.string(from: startTime)
+            case .days, .weeks:
+                let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
+                return "Every \(interval) \(unitName)"
+            }
         }
     }
 
-    private func scheduleIcon(for schedule: TickerSchedule) -> String {
-        switch schedule {
-        case .oneTime: return "calendar"
-        case .daily: return "repeat"
-        case .hourly: return "clock"
-        case .weekdays: return "calendar.badge.clock"
-        case .biweekly: return "calendar.badge.clock"
-        case .monthly: return "calendar.circle"
-        case .yearly: return "calendar.badge.exclamationmark"
-        }
-    }
 
     private func scheduleTypeLabel(for schedule: TickerSchedule) -> String {
         switch schedule {
         case .oneTime: return "One-time ticker"
         case .daily: return "Daily ticker"
         case .hourly: return "Hourly ticker"
+        case .every: return "Every Ticker"
         case .weekdays: return "Weekly ticker"
         case .biweekly: return "Biweekly ticker"
         case .monthly: return "Monthly ticker"
@@ -309,6 +312,10 @@ struct AlarmDetailView: View {
         case .yearly(let month, let day, _, _):
             let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
             return "\(monthNames[month - 1]) \(day)"
+
+        case .every(let interval, let unit, _, _):
+            let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
+            return "Every \(interval) \(unitName)"
         }
     }
 
@@ -320,6 +327,8 @@ struct AlarmDetailView: View {
             return "Daily"
         case .hourly:
             return "Hourly"
+        case .every:
+            return "Every"
         case .weekdays:
             return "Weekdays"
         case .biweekly:

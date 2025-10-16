@@ -199,6 +199,11 @@ struct ContentView: View {
                 case .hourly:
                     // For hourly alarms, use a generic string
                     timeString = "hourly"
+
+                case .every(let interval, let unit, _, _):
+                    // For every alarms, create searchable string with interval and unit
+                    let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
+                    timeString = "every \(interval) \(unitName)"
                 }
 
                 if timeString.contains(lowercasedSearch) {
@@ -398,6 +403,13 @@ struct ContentView: View {
 
         case .hourly(_, let startTime, _):
             // For hourly alarms, use the start time
+            let calendar = Calendar.current
+            let components = calendar.dateComponents([.hour, .minute, .second], from: startTime)
+            let seconds = (components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60 + (components.second ?? 0)
+            return TimeInterval(seconds)
+
+        case .every(_, _, let startTime, _):
+            // For every alarms, use the start time for sorting
             let calendar = Calendar.current
             let components = calendar.dateComponents([.hour, .minute, .second], from: startTime)
             let seconds = (components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60 + (components.second ?? 0)

@@ -82,6 +82,8 @@ final class TodayViewModel {
                 return .weekdays(days.map { $0.rawValue })
             case .hourly(let interval, _, _):
                 return .hourly(interval: interval)
+            case .every(let interval, let unit, _, _):
+                return .every(interval: interval, unit: unit.displayName)
             case .biweekly: return .biweekly
             case .monthly: return .monthly
             case .yearly: return .yearly
@@ -144,6 +146,9 @@ final class TodayViewModel {
         case .hourly(let interval, let startTime, let endTime):
             return getNextHourlyOccurrence(interval: interval, startTime: startTime, endTime: endTime, from: date)
 
+        case .every(let interval, let unit, let startTime, let endTime):
+            return getNextEveryOccurrence(interval: interval, unit: unit, startTime: startTime, endTime: endTime, from: date)
+
         case .biweekly(let time, let weekdays, let anchorDate):
             return getNextBiweeklyOccurrence(for: time, weekdays: weekdays, anchorDate: anchorDate, from: date)
 
@@ -191,6 +196,33 @@ final class TodayViewModel {
                 return current
             }
             current = calendar.date(byAdding: .hour, value: interval, to: current) ?? Date.distantFuture
+        }
+
+        return Date.distantFuture
+    }
+
+    /// Calculates the next occurrence for every schedule
+    private func getNextEveryOccurrence(interval: Int, unit: TickerSchedule.TimeUnit, startTime: Date, endTime: Date?, from date: Date) -> Date {
+        var current = max(startTime, date)
+
+        // Map unit to Calendar.Component
+        let component: Calendar.Component
+        switch unit {
+        case .minutes:
+            component = .minute
+        case .hours:
+            component = .hour
+        case .days:
+            component = .day
+        case .weeks:
+            component = .weekOfYear
+        }
+
+        while current < (endTime ?? Date.distantFuture) {
+            if current > date {
+                return current
+            }
+            current = calendar.date(byAdding: component, value: interval, to: current) ?? Date.distantFuture
         }
 
         return Date.distantFuture

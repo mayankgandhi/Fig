@@ -112,7 +112,7 @@ struct AlarmCell: View {
     private var scheduleInfoView: some View {
         if let schedule = alarmItem.schedule {
             HStack(spacing: 4) {
-                Image(systemName: scheduleIcon(for: schedule))
+                Image(systemName: schedule.icon)
                 Text(scheduleDescription(for: schedule))
             }
         } else if alarmItem.countdown?.preAlert != nil {
@@ -120,18 +120,6 @@ struct AlarmCell: View {
                 Image(systemName: "timer")
                 Text("Countdown")
             }
-        }
-    }
-
-    private func scheduleIcon(for schedule: TickerSchedule) -> String {
-        switch schedule {
-        case .oneTime: return "calendar"
-        case .daily: return "repeat"
-        case .hourly: return "clock"
-        case .weekdays: return "calendar.badge.clock"
-        case .biweekly: return "calendar.badge.clock"
-        case .monthly: return "calendar.circle"
-        case .yearly: return "calendar.badge.exclamationmark"
         }
     }
 
@@ -149,6 +137,20 @@ struct AlarmCell: View {
         case .hourly:
             Image(systemName: "clock")
                 .font(.system(size: 20, weight: .medium))
+        case .every(let interval, let unit, let startTime, _):
+            // For short intervals (minutes/hours), show start time
+            // For longer intervals (days/weeks), show icon with interval
+            switch unit {
+            case .minutes, .hours:
+                Text(startTime, style: .time)
+            case .days, .weeks:
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.system(size: 16, weight: .medium))
+                    Text("\(interval)")
+                        .font(.system(size: 20, weight: .bold))
+                }
+            }
         }
     }
 

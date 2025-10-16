@@ -294,7 +294,7 @@ final class TickerService: TickerServiceProtocol {
         switch schedule {
         case .oneTime, .daily:
             return true
-        case .hourly, .weekdays, .biweekly, .monthly, .yearly:
+        case .hourly, .weekdays, .biweekly, .monthly, .yearly, .every:
             return false
         }
     }

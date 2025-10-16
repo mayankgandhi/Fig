@@ -146,6 +146,21 @@ enum TickerSchedule: Codable, Hashable {
 
 // MARK: - Weekday Display Extensions
 
+extension TickerSchedule {
+    var icon: String {
+        switch self {
+            case .oneTime: return "calendar"
+            case .daily: return "repeat"
+            case .hourly: return "clock"
+            case .weekdays: return "calendar.badge.clock"
+            case .biweekly: return "calendar.badge.clock"
+            case .every: return "calendar.badge.clock"
+            case .monthly: return "calendar.circle"
+            case .yearly: return "calendar.badge.exclamationmark"
+        }
+    }
+}
+
 extension TickerSchedule.Weekday {
     var localeWeekday: Locale.Weekday {
         switch self {

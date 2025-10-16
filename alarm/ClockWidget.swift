@@ -116,7 +116,7 @@ struct ClockWidgetProvider: TimelineProvider {
                 guard nextOccurrence <= next12Hours else { return nil }
                 nextAlarmTime = nextOccurrence
 
-            case .hourly, .weekdays, .biweekly, .monthly, .yearly:
+            case .hourly, .weekdays, .biweekly, .monthly, .yearly, .every:
                 // For composite schedules, we could expand them, but for simplicity
                 // we'll skip them in the widget for now
                 return nil

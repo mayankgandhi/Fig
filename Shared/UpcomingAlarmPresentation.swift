@@ -31,6 +31,7 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
         case daily
         case weekdays([Int]) // Array of weekday indices
         case hourly(interval: Int)
+        case every(interval: Int, unit: String) // interval and unit name
         case biweekly
         case monthly
         case yearly
@@ -45,6 +46,17 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
                 if days.count == 2 && days.contains(0) && days.contains(6) { return "Weekend" }
                 return "\(days.count) days"
             case .hourly(let interval): return "\(interval)h"
+            case .every(let interval, let unit):
+                // Show compact format: "30m", "2d", "1w"
+                let unitAbbrev: String
+                switch unit.lowercased() {
+                case "minutes": unitAbbrev = "m"
+                case "hours": unitAbbrev = "h"
+                case "days": unitAbbrev = "d"
+                case "weeks": unitAbbrev = "w"
+                default: unitAbbrev = String(unit.prefix(1))
+                }
+                return "\(interval)\(unitAbbrev)"
             case .biweekly: return "Biweekly"
             case .monthly: return "Monthly"
             case .yearly: return "Yearly"
@@ -57,6 +69,7 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
             case .daily: return Color(red: 0.518, green: 0.800, blue: 0.086) // Green
             case .weekdays: return Color(red: 0.400, green: 0.600, blue: 0.800) // Light blue
             case .hourly: return Color(red: 0.800, green: 0.400, blue: 0.200) // Orange
+            case .every: return Color(red: 0.200, green: 0.800, blue: 0.800) // Cyan
             case .biweekly: return Color(red: 0.600, green: 0.400, blue: 0.800) // Purple
             case .monthly: return Color(red: 0.900, green: 0.600, blue: 0.200) // Amber
             case .yearly: return Color(red: 0.800, green: 0.200, blue: 0.400) // Pink
