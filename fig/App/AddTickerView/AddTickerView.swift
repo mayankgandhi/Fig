@@ -129,10 +129,10 @@ struct AddTickerView: View {
                 TickerHaptics.selection()
                 viewModel.updateSmartDate()
             }
-            .onChange(of: viewModel.calendarViewModel.selectedDate) { _, _ in
+            .onChange(of: viewModel.scheduleViewModel.selectedDate) { _, _ in
                 // Trigger validation update when date changes
             }
-            .onChange(of: viewModel.repeatViewModel.selectedWeekdays) { _, _ in
+            .onChange(of: viewModel.scheduleViewModel.selectedWeekdays) { _, _ in
                 // Trigger validation update when weekdays change
             }
         }

@@ -62,17 +62,8 @@ struct ExpandedFieldContent: View {
     @ViewBuilder
     private var fieldContent: some View {
         switch field {
-        case .calendar:
-            CalendarPickerView(viewModel: viewModel.calendarViewModel)
-
-        case .repeat:
-            RepeatOptionsView(
-                viewModel: viewModel.repeatViewModel,
-                validationMessage: viewModel.dateWeekdayMismatchMessage,
-                onFixMismatch: viewModel.hasDateWeekdayMismatch ? {
-                    viewModel.adjustDateToMatchWeekdays()
-                } : nil
-            )
+        case .schedule:
+            ScheduleView(viewModel: viewModel.scheduleViewModel)
 
         case .label:
             LabelEditorView(viewModel: viewModel.labelViewModel)

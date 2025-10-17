@@ -18,8 +18,7 @@ final class AddTickerViewModel {
     // MARK: - Child ViewModels
     var timePickerViewModel: TimePickerViewModel
     var optionsPillsViewModel: OptionsPillsViewModel
-    var calendarViewModel: CalendarPickerViewModel
-    var repeatViewModel: RepeatOptionsViewModel
+    var scheduleViewModel: ScheduleViewModel
     var labelViewModel: LabelEditorViewModel
     var countdownViewModel: CountdownConfigViewModel
     var iconPickerViewModel: IconPickerViewModel
@@ -47,8 +46,7 @@ final class AddTickerViewModel {
 
         // Initialize child ViewModels
         self.timePickerViewModel = TimePickerViewModel()
-        self.calendarViewModel = CalendarPickerViewModel()
-        self.repeatViewModel = RepeatOptionsViewModel()
+        self.scheduleViewModel = ScheduleViewModel()
         self.labelViewModel = LabelEditorViewModel()
         self.countdownViewModel = CountdownConfigViewModel()
         self.iconPickerViewModel = IconPickerViewModel()
@@ -57,8 +55,7 @@ final class AddTickerViewModel {
         // Configure OptionsPillsViewModel with references to child view models
         // This enables reactive computed properties
         self.optionsPillsViewModel.configure(
-            calendar: calendarViewModel,
-            repeat: repeatViewModel,
+            schedule: scheduleViewModel,
             label: labelViewModel,
             countdown: countdownViewModel
         )
@@ -72,65 +69,15 @@ final class AddTickerViewModel {
     // MARK: - Computed Properties
 
     var canSave: Bool {
-        labelViewModel.isValid && countdownViewModel.isValid && repeatConfigIsValid && !hasDateWeekdayMismatch
-    }
-    
-    /// Checks if the selected date conflicts with the selected weekdays
-    var hasDateWeekdayMismatch: Bool {
-        guard repeatViewModel.selectedOption == .weekdays else { return false }
-        guard !repeatViewModel.selectedWeekdays.isEmpty else { return false }
-        
-        let selectedWeekday = calendar.component(.weekday, from: calendarViewModel.selectedDate)
-        // Convert Calendar weekday (1=Sunday) to our Weekday enum (0=Sunday)
-        let adjustedWeekday = (selectedWeekday == 1) ? 0 : selectedWeekday - 1
-        
-        guard let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday) else { return true }
-        
-        return !repeatViewModel.selectedWeekdays.contains(tickerWeekday)
-    }
-    
-    /// Returns a helpful message about the date/weekday mismatch
-    var dateWeekdayMismatchMessage: String? {
-        guard hasDateWeekdayMismatch else { return nil }
-        
-        let selectedWeekday = calendar.component(.weekday, from: calendarViewModel.selectedDate)
-        let adjustedWeekday = (selectedWeekday == 1) ? 0 : selectedWeekday - 1
-        
-        guard let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday) else { return nil }
-        
-        let selectedDayNames = repeatViewModel.selectedWeekdays.map { $0.displayName }.joined(separator: ", ")
-        return "Selected date (\(tickerWeekday.displayName)) doesn't match selected days (\(selectedDayNames))"
+        labelViewModel.isValid && countdownViewModel.isValid && scheduleViewModel.repeatConfigIsValid && !scheduleViewModel.hasDateWeekdayMismatch
     }
 
-    /// Validates configuration specific to the selected repeat option
-    var repeatConfigIsValid: Bool {
-        switch repeatViewModel.selectedOption {
-        case .noRepeat, .daily:
-            return true
-        case .weekdays:
-            return !repeatViewModel.selectedWeekdays.isEmpty
-        case .hourly:
-            if repeatViewModel.hourlyInterval < 1 { return false }
-            if let end = repeatViewModel.hourlyEndTime {
-                return end > repeatViewModel.hourlyStartTime
-            }
-            return true
-        case .every:
-            if repeatViewModel.everyInterval < 1 { return false }
-            if let end = repeatViewModel.everyEndTime {
-                return end > repeatViewModel.everyStartTime
-            }
-            return true
-        case .biweekly:
-            return !repeatViewModel.biweeklyWeekdays.isEmpty
-        case .monthly:
-            if repeatViewModel.monthlyDayType == .fixed {
-                return (1...31).contains(repeatViewModel.monthlyFixedDay)
-            }
-            return true
-        case .yearly:
-            return (1...12).contains(repeatViewModel.yearlyMonth) && (1...31).contains(repeatViewModel.yearlyDay)
-        }
+    var hasDateWeekdayMismatch: Bool {
+        scheduleViewModel.hasDateWeekdayMismatch
+    }
+
+    var dateWeekdayMismatchMessage: String? {
+        scheduleViewModel.dateWeekdayMismatchMessage
     }
 
     /// Aggregated validation messages for inline UI presentation
@@ -143,37 +90,37 @@ final class AddTickerViewModel {
         if !countdownViewModel.isValid {
             messages.append("Countdown must be greater than 0 seconds")
         }
-        if let mismatch = dateWeekdayMismatchMessage { messages.append(mismatch) }
+        if let mismatch = scheduleViewModel.dateWeekdayMismatchMessage { messages.append(mismatch) }
 
-        switch repeatViewModel.selectedOption {
+        switch scheduleViewModel.selectedOption {
         case .weekdays:
-            if repeatViewModel.selectedWeekdays.isEmpty {
+            if scheduleViewModel.selectedWeekdays.isEmpty {
                 messages.append("Select at least one weekday")
             }
         case .biweekly:
-            if repeatViewModel.biweeklyWeekdays.isEmpty {
+            if scheduleViewModel.biweeklyWeekdays.isEmpty {
                 messages.append("Select at least one weekday for biweekly repeat")
             }
         case .hourly:
-            if repeatViewModel.hourlyInterval < 1 {
+            if scheduleViewModel.hourlyInterval < 1 {
                 messages.append("Hourly interval must be at least 1 hour")
             }
-            if let end = repeatViewModel.hourlyEndTime, end <= repeatViewModel.hourlyStartTime {
+            if let end = scheduleViewModel.hourlyEndTime, end <= scheduleViewModel.hourlyStartTime {
                 messages.append("Hourly end time must be after start time")
             }
         case .every:
-            if repeatViewModel.everyInterval < 1 {
+            if scheduleViewModel.everyInterval < 1 {
                 messages.append("Interval must be at least 1")
             }
-            if let end = repeatViewModel.everyEndTime, end <= repeatViewModel.everyStartTime {
+            if let end = scheduleViewModel.everyEndTime, end <= scheduleViewModel.everyStartTime {
                 messages.append("End time must be after start time")
             }
         case .monthly:
-            if repeatViewModel.monthlyDayType == .fixed && !(1...31).contains(repeatViewModel.monthlyFixedDay) {
+            if scheduleViewModel.monthlyDayType == .fixed && !(1...31).contains(scheduleViewModel.monthlyFixedDay) {
                 messages.append("Monthly day must be between 1 and 31")
             }
         case .yearly:
-            if !(1...12).contains(repeatViewModel.yearlyMonth) || !(1...31).contains(repeatViewModel.yearlyDay) {
+            if !(1...12).contains(scheduleViewModel.yearlyMonth) || !(1...31).contains(scheduleViewModel.yearlyDay) {
                 messages.append("Select a valid month and day")
             }
         default:
@@ -186,43 +133,14 @@ final class AddTickerViewModel {
     // MARK: - Methods
 
     func updateSmartDate() {
-        calendarViewModel.updateSmartDate(
+        scheduleViewModel.updateSmartDate(
             for: timePickerViewModel.selectedHour,
             minute: timePickerViewModel.selectedMinute
         )
     }
-    
-    /// Automatically adjusts the selected date to the next occurrence of the selected weekdays
+
     func adjustDateToMatchWeekdays() {
-        guard repeatViewModel.selectedOption == .weekdays else { return }
-        guard !repeatViewModel.selectedWeekdays.isEmpty else { return }
-        
-        let currentDate = calendarViewModel.selectedDate
-        let timeComponents = calendar.dateComponents([.hour, .minute], from: currentDate)
-        
-        // Find the next occurrence of any selected weekday
-        var searchDate = currentDate
-        for _ in 0..<7 { // Check up to 7 days ahead
-            let weekday = calendar.component(.weekday, from: searchDate)
-            let adjustedWeekday = (weekday == 1) ? 0 : weekday - 1
-            
-            if let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday),
-               repeatViewModel.selectedWeekdays.contains(tickerWeekday) {
-                
-                // Set the time to match the selected time
-                var components = calendar.dateComponents([.year, .month, .day], from: searchDate)
-                components.hour = timePickerViewModel.selectedHour
-                components.minute = timePickerViewModel.selectedMinute
-                
-                if let adjustedDate = calendar.date(from: components) {
-                    calendarViewModel.selectedDate = adjustedDate
-                }
-                return
-            }
-            
-            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: searchDate) else { break }
-            searchDate = nextDate
-        }
+        scheduleViewModel.adjustDateToMatchWeekdays()
     }
 
     @MainActor
@@ -242,7 +160,7 @@ final class AddTickerViewModel {
         defer { isSaving = false }
 
         // Build schedule
-        var components = calendar.dateComponents([.year, .month, .day], from: calendarViewModel.selectedDate)
+        var components = calendar.dateComponents([.year, .month, .day], from: scheduleViewModel.selectedDate)
         components.hour = timePickerViewModel.selectedHour
         components.minute = timePickerViewModel.selectedMinute
 
@@ -258,92 +176,92 @@ final class AddTickerViewModel {
         )
 
         let schedule: TickerSchedule
-        switch repeatViewModel.selectedOption {
+        switch scheduleViewModel.selectedOption {
         case .noRepeat:
             schedule = .oneTime(date: finalDate)
 
         case .daily:
-            schedule = .daily(time: time, startDate: calendarViewModel.selectedDate)
+            schedule = .daily(time: time, startDate: scheduleViewModel.selectedDate)
 
         case .weekdays:
-            guard !repeatViewModel.selectedWeekdays.isEmpty else {
+            guard !scheduleViewModel.selectedWeekdays.isEmpty else {
                 errorMessage = "Please select at least one weekday"
                 showingError = true
                 return
             }
-            schedule = .weekdays(time: time, days: repeatViewModel.selectedWeekdays, startDate: calendarViewModel.selectedDate)
+            schedule = .weekdays(time: time, days: scheduleViewModel.selectedWeekdays, startDate: scheduleViewModel.selectedDate)
 
         case .hourly:
             // Validate hourly configuration
-            guard repeatViewModel.hourlyInterval >= 1 else {
+            guard scheduleViewModel.hourlyInterval >= 1 else {
                 errorMessage = "Hourly interval must be at least 1 hour"
                 showingError = true
                 return
             }
-            if let end = repeatViewModel.hourlyEndTime, end <= repeatViewModel.hourlyStartTime {
+            if let end = scheduleViewModel.hourlyEndTime, end <= scheduleViewModel.hourlyStartTime {
                 errorMessage = "Hourly end time must be after start time"
                 showingError = true
                 return
             }
             schedule = .hourly(
-                interval: repeatViewModel.hourlyInterval,
-                startTime: repeatViewModel.hourlyStartTime,
-                endTime: repeatViewModel.hourlyEndTime
+                interval: scheduleViewModel.hourlyInterval,
+                startTime: scheduleViewModel.hourlyStartTime,
+                endTime: scheduleViewModel.hourlyEndTime
             )
 
         case .every:
             // Validate every configuration
-            guard repeatViewModel.everyInterval >= 1 else {
+            guard scheduleViewModel.everyInterval >= 1 else {
                 errorMessage = "Interval must be at least 1"
                 showingError = true
                 return
             }
-            if let end = repeatViewModel.everyEndTime, end <= repeatViewModel.everyStartTime {
+            if let end = scheduleViewModel.everyEndTime, end <= scheduleViewModel.everyStartTime {
                 errorMessage = "End time must be after start time"
                 showingError = true
                 return
             }
             schedule = .every(
-                interval: repeatViewModel.everyInterval,
-                unit: repeatViewModel.everyUnit,
-                startTime: repeatViewModel.everyStartTime,
-                endTime: repeatViewModel.everyEndTime
+                interval: scheduleViewModel.everyInterval,
+                unit: scheduleViewModel.everyUnit,
+                startTime: scheduleViewModel.everyStartTime,
+                endTime: scheduleViewModel.everyEndTime
             )
 
         case .biweekly:
-            guard !repeatViewModel.biweeklyWeekdays.isEmpty else {
+            guard !scheduleViewModel.biweeklyWeekdays.isEmpty else {
                 errorMessage = "Please select at least one weekday for biweekly repeat"
                 showingError = true
                 return
             }
             schedule = .biweekly(
                 time: time,
-                weekdays: repeatViewModel.biweeklyWeekdays,
-                anchorDate: repeatViewModel.biweeklyAnchorDate
+                weekdays: scheduleViewModel.biweeklyWeekdays,
+                anchorDate: scheduleViewModel.biweeklyAnchorDate
             )
 
         case .monthly:
             let monthlyDay: TickerSchedule.MonthlyDay
-            switch repeatViewModel.monthlyDayType {
+            switch scheduleViewModel.monthlyDayType {
             case .fixed:
-                monthlyDay = .fixed(repeatViewModel.monthlyFixedDay)
+                monthlyDay = .fixed(scheduleViewModel.monthlyFixedDay)
             case .firstWeekday:
-                monthlyDay = .firstWeekday(repeatViewModel.monthlyWeekday)
+                monthlyDay = .firstWeekday(scheduleViewModel.monthlyWeekday)
             case .lastWeekday:
-                monthlyDay = .lastWeekday(repeatViewModel.monthlyWeekday)
+                monthlyDay = .lastWeekday(scheduleViewModel.monthlyWeekday)
             case .firstOfMonth:
                 monthlyDay = .firstOfMonth
             case .lastOfMonth:
                 monthlyDay = .lastOfMonth
             }
-            schedule = .monthly(day: monthlyDay, time: time, startDate: calendarViewModel.selectedDate)
+            schedule = .monthly(day: monthlyDay, time: time, startDate: scheduleViewModel.selectedDate)
 
         case .yearly:
             schedule = .yearly(
-                month: repeatViewModel.yearlyMonth,
-                day: repeatViewModel.yearlyDay,
+                month: scheduleViewModel.yearlyMonth,
+                day: scheduleViewModel.yearlyDay,
                 time: time,
-                startDate: calendarViewModel.selectedDate
+                startDate: scheduleViewModel.selectedDate
             )
         }
 
@@ -425,98 +343,98 @@ final class AddTickerViewModel {
             case .oneTime(let date):
                 print("      → Setting one-time schedule for: \(date)")
                 timePickerViewModel.setTimeFromDate(date)
-                calendarViewModel.selectedDate = date >= now ? date : now
-                repeatViewModel.selectOption(.noRepeat)
+                scheduleViewModel.selectedDate = date >= now ? date : now
+                scheduleViewModel.selectOption(.noRepeat)
 
             case .daily(let time, let startDate):
                 print("      → Setting daily schedule for: \(time.hour):\(time.minute)")
                 timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
-                repeatViewModel.selectOption(.daily)
+                scheduleViewModel.selectOption(.daily)
 
                 // Use the start date from the template, but ensure it's not in the past
-                calendarViewModel.selectedDate = max(startDate, now)
+                scheduleViewModel.selectedDate = max(startDate, now)
 
             case .hourly(let interval, let startTime, let endTime):
                 print("      → Setting hourly schedule: every \(interval)h")
                 timePickerViewModel.setTimeFromDate(startTime)
-                calendarViewModel.selectedDate = startTime
-                repeatViewModel.selectOption(.hourly)
-                repeatViewModel.hourlyInterval = interval
-                repeatViewModel.hourlyStartTime = startTime
-                repeatViewModel.hourlyEndTime = endTime
+                scheduleViewModel.selectedDate = startTime
+                scheduleViewModel.selectOption(.hourly)
+                scheduleViewModel.hourlyInterval = interval
+                scheduleViewModel.hourlyStartTime = startTime
+                scheduleViewModel.hourlyEndTime = endTime
 
             case .every(let interval, let unit, let startTime, let endTime):
                 print("      → Setting every schedule: every \(interval) \(unit.displayName)")
                 timePickerViewModel.setTimeFromDate(startTime)
-                calendarViewModel.selectedDate = startTime
-                repeatViewModel.selectOption(.every)
-                repeatViewModel.everyInterval = interval
-                repeatViewModel.everyUnit = unit
-                repeatViewModel.everyStartTime = startTime
-                repeatViewModel.everyEndTime = endTime
+                scheduleViewModel.selectedDate = startTime
+                scheduleViewModel.selectOption(.every)
+                scheduleViewModel.everyInterval = interval
+                scheduleViewModel.everyUnit = unit
+                scheduleViewModel.everyStartTime = startTime
+                scheduleViewModel.everyEndTime = endTime
 
             case .weekdays(let time, let days, let startDate):
                 print("      → Setting weekdays schedule for: \(time.hour):\(time.minute)")
                 timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
-                repeatViewModel.selectOption(.weekdays)
-                repeatViewModel.selectedWeekdays = days
+                scheduleViewModel.selectOption(.weekdays)
+                scheduleViewModel.selectedWeekdays = days
                 // Use the start date from the template, but ensure it's not in the past
-                calendarViewModel.selectedDate = max(startDate, now)
+                scheduleViewModel.selectedDate = max(startDate, now)
 
             case .biweekly(let time, let weekdays, let anchorDate):
                 print("      → Setting biweekly schedule for: \(time.hour):\(time.minute)")
                 timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
-                repeatViewModel.selectOption(.biweekly)
-                repeatViewModel.biweeklyWeekdays = weekdays
-                repeatViewModel.biweeklyAnchorDate = anchorDate
+                scheduleViewModel.selectOption(.biweekly)
+                scheduleViewModel.biweeklyWeekdays = weekdays
+                scheduleViewModel.biweeklyAnchorDate = anchorDate
                 // Set selectedDate to next occurrence
                 var components = calendar.dateComponents([.year, .month, .day], from: now)
                 components.hour = time.hour
                 components.minute = time.minute
                 if let todayOccurrence = calendar.date(from: components) {
-                    calendarViewModel.selectedDate = todayOccurrence <= now ? calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence : todayOccurrence
+                    scheduleViewModel.selectedDate = todayOccurrence <= now ? calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence : todayOccurrence
                 } else {
-                    calendarViewModel.selectedDate = now
+                    scheduleViewModel.selectedDate = now
                 }
 
             case .monthly(let day, let time, let startDate):
                 print("      → Setting monthly schedule for: \(time.hour):\(time.minute)")
                 timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
-                repeatViewModel.selectOption(.monthly)
+                scheduleViewModel.selectOption(.monthly)
                 switch day {
                 case .fixed(let d):
-                    repeatViewModel.monthlyDayType = .fixed
-                    repeatViewModel.monthlyFixedDay = d
+                    scheduleViewModel.monthlyDayType = .fixed
+                    scheduleViewModel.monthlyFixedDay = d
                 case .firstWeekday(let weekday):
-                    repeatViewModel.monthlyDayType = .firstWeekday
-                    repeatViewModel.monthlyWeekday = weekday
+                    scheduleViewModel.monthlyDayType = .firstWeekday
+                    scheduleViewModel.monthlyWeekday = weekday
                 case .lastWeekday(let weekday):
-                    repeatViewModel.monthlyDayType = .lastWeekday
-                    repeatViewModel.monthlyWeekday = weekday
+                    scheduleViewModel.monthlyDayType = .lastWeekday
+                    scheduleViewModel.monthlyWeekday = weekday
                 case .firstOfMonth:
-                    repeatViewModel.monthlyDayType = .firstOfMonth
+                    scheduleViewModel.monthlyDayType = .firstOfMonth
                 case .lastOfMonth:
-                    repeatViewModel.monthlyDayType = .lastOfMonth
+                    scheduleViewModel.monthlyDayType = .lastOfMonth
                 }
                 // Use the start date from the template, but ensure it's not in the past
-                calendarViewModel.selectedDate = max(startDate, now)
+                scheduleViewModel.selectedDate = max(startDate, now)
 
             case .yearly(let month, let day, let time, let startDate):
                 print("      → Setting yearly schedule for: \(time.hour):\(time.minute)")
                 timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
-                repeatViewModel.selectOption(.yearly)
-                repeatViewModel.yearlyMonth = month
-                repeatViewModel.yearlyDay = day
+                scheduleViewModel.selectOption(.yearly)
+                scheduleViewModel.yearlyMonth = month
+                scheduleViewModel.yearlyDay = day
                 // Use the start date from the template, but ensure it's not in the past
-                calendarViewModel.selectedDate = max(startDate, now)
+                scheduleViewModel.selectedDate = max(startDate, now)
             }
         } else {
             print("   ⚠️ No schedule found in template - using defaults")
             // Set default time to current time
             let components = calendar.dateComponents([.hour, .minute], from: now)
             timePickerViewModel.setTime(hour: components.hour ?? 12, minute: components.minute ?? 0)
-            calendarViewModel.selectedDate = now
-            repeatViewModel.selectOption(.noRepeat)
+            scheduleViewModel.selectedDate = now
+            scheduleViewModel.selectOption(.noRepeat)
         }
 
         // Populate label

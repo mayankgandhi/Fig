@@ -38,15 +38,9 @@ struct OptionsPillsView: View {
             // Enhanced pill layout with consistent styling
             FlowLayout(spacing: TickerSpacing.sm) {
                 expandablePillButton(
-                    icon: "calendar",
-                    title: viewModel.displayDate,
-                    field: .calendar
-                )
-
-                expandablePillButton(
-                    icon: "repeat",
-                    title: viewModel.displayRepeat,
-                    field: .repeat
+                    icon: "calendar.badge.clock",
+                    title: viewModel.displaySchedule,
+                    field: .schedule
                 )
 
                 expandablePillButton(
