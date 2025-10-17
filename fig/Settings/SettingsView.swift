@@ -15,10 +15,6 @@ struct SettingsView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: TickerSpacing.lg) {
-                    
-                    // Header Section
-                    headerSection
-                        .padding(.horizontal, TickerSpacing.md)
 
                     // App Settings Section
                     appSettingsSection
@@ -56,36 +52,6 @@ struct SettingsView: View {
     }
 
     // MARK: - View Components
-    
-    private var headerSection: some View {
-        VStack(spacing: TickerSpacing.sm) {
-            HStack {
-                VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
-                    Text("Configure Your Experience")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                    
-                    Text("Customize alarms, manage data, and get support")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                }
-                
-                Spacer()
-                
-                // App icon or decorative element
-                ZStack {
-                    Circle()
-                        .fill(TickerColor.primary.opacity(0.1))
-                        .frame(width: 60, height: 60)
-                    
-                    Image(systemName: "gearshape.2.fill")
-                        .font(.system(size: 24, weight: .semibold))
-                        .foregroundStyle(TickerColor.primary)
-                }
-            }
-        }
-        .padding(.vertical, TickerSpacing.md)
-    }
 
     private var appSettingsSection: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {

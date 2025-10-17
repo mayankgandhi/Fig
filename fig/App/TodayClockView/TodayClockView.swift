@@ -126,7 +126,11 @@ struct TodayClockView: View {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button {
                         TickerHaptics.selection()
-                        showNaturalLanguageSheet = true
+                        if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
+                            showNaturalLanguageSheet = true
+                        } else {
+                            showAddSheet = true
+                        }
                     } label: {
                         Image(systemName: "plus")
                     }

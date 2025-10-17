@@ -100,36 +100,36 @@ enum TickerColor {
     static func liquidGlassGradient(for colorScheme: ColorScheme) -> some View {
         if colorScheme == .dark {
             return ZStack {
-                // Base gradient - Deep warm tones with orange/amber hints
+                // Base gradient - Soft neutral dark with subtle warm undertones
                 LinearGradient(
                     colors: [
-                        Color(red: 0.08, green: 0.04, blue: 0.02),  // Deep burnt umber
-                        Color(red: 0.10, green: 0.05, blue: 0.02),  // Rich chocolate
-                        Color(red: 0.12, green: 0.06, blue: 0.03),  // Warm mahogany
-                        Color(red: 0.09, green: 0.04, blue: 0.02),  // Dark sienna
-                        Color(red: 0.07, green: 0.03, blue: 0.02)   // Deep coffee
+                        Color(red: 0.04, green: 0.04, blue: 0.04),  // Soft charcoal
+                        Color(red: 0.05, green: 0.05, blue: 0.05),  // Neutral dark gray
+                        Color(red: 0.06, green: 0.06, blue: 0.05),  // Barely warm gray
+                        Color(red: 0.05, green: 0.04, blue: 0.04),  // Subtle warm undertone
+                        Color(red: 0.04, green: 0.04, blue: 0.04)   // Return to neutral
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 )
 
-                // Mid-layer gradient - Diagonal accent
+                // Mid-layer gradient - Very subtle diagonal accent
                 LinearGradient(
                     colors: [
                         Color.clear,
-                        primary.opacity(0.12),
+                        primary.opacity(0.04),
                         Color.clear,
-                        accent.opacity(0.08),
+                        accent.opacity(0.03),
                         Color.clear
                     ],
                     startPoint: .topTrailing,
                     endPoint: .bottomLeading
                 )
 
-                // Radial depth overlay - Center glow
+                // Radial depth overlay - Gentle center glow
                 RadialGradient(
                     colors: [
-                        primary.opacity(0.06),
+                        primary.opacity(0.02),
                         Color.clear,
                         Color.clear
                     ],
@@ -138,11 +138,11 @@ enum TickerColor {
                     endRadius: 400
                 )
 
-                // Top shimmer - Light reflection
+                // Top shimmer - Delicate light reflection
                 LinearGradient(
                     colors: [
-                        Color.white.opacity(0.05),
-                        Color.white.opacity(0.02),
+                        Color.white.opacity(0.03),
+                        Color.white.opacity(0.01),
                         Color.clear,
                         Color.clear
                     ],
@@ -150,13 +150,13 @@ enum TickerColor {
                     endPoint: .center
                 )
 
-                // Bottom glow - Subtle depth
+                // Bottom glow - Barely-there depth
                 LinearGradient(
                     colors: [
                         Color.clear,
                         Color.clear,
-                        primary.opacity(0.08),
-                        primaryDark.opacity(0.06)
+                        primary.opacity(0.03),
+                        primaryDark.opacity(0.02)
                     ],
                     startPoint: .center,
                     endPoint: .bottom

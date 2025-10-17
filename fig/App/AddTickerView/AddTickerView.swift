@@ -320,7 +320,35 @@ struct AddTickerView: View {
     @ViewBuilder
     private func expandedContentForField(_ field: ExpandableField) -> some View {
         if let viewModel = viewModel {
-            ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                // Dismiss button positioned above the content
+                HStack {
+                    Spacer()
+                    Button {
+                        TickerHaptics.selection()
+                        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                            viewModel.optionsPillsViewModel.collapseField()
+                        }
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(TickerColor.surface(for: colorScheme).opacity(0.9))
+                                .frame(width: 28, height: 28)
+
+                            Circle()
+                                .fill(.ultraThinMaterial.opacity(0.5))
+                                .frame(width: 28, height: 28)
+
+                            Image(systemName: "xmark")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                        }
+                        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(TickerSpacing.md)
+                }
+                
                 // Content
                 Group {
                     switch field {
@@ -371,31 +399,6 @@ struct AddTickerView: View {
                 )
                 .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
                 .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
-
-                // Dismiss button
-                Button {
-                    TickerHaptics.selection()
-                    withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
-                        viewModel.optionsPillsViewModel.collapseField()
-                    }
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(TickerColor.surface(for: colorScheme).opacity(0.9))
-                            .frame(width: 28, height: 28)
-
-                        Circle()
-                            .fill(.ultraThinMaterial.opacity(0.5))
-                            .frame(width: 28, height: 28)
-
-                        Image(systemName: "xmark")
-                            .font(.system(size: 11, weight: .semibold))
-                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                    }
-                    .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
-                }
-                .buttonStyle(.plain)
-                .padding(TickerSpacing.md)
             }
         }
     }

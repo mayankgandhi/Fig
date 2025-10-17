@@ -8,13 +8,13 @@
 import SwiftUI
 
 struct AppView: View {
-
+    
     init() {
         // For large titles - SF Pro Rounded Bold
         UINavigationBar.appearance().largeTitleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 30, weight: .bold).withRoundedDesign()
         ]
-
+        
         // For inline titles - SF Pro Rounded Bold
         UINavigationBar.appearance().titleTextAttributes = [
             .font: UIFont.systemFont(ofSize: 20, weight: .bold).withRoundedDesign()
@@ -26,14 +26,17 @@ struct AppView: View {
             Tab("Today", systemImage: "calendar.day.timeline.left") {
                 TodayClockView()
             }
-
+            
             Tab("Scheduled", systemImage: "alarm") {
                 ContentView()
             }
         }
+        .tint(TickerColor.primary)
+        
     }
 }
 
 #Preview {
     AppView()
+        .environment(TickerService())
 }

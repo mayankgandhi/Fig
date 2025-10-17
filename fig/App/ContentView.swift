@@ -220,7 +220,11 @@ struct ContentView: View {
     var menuButton: some View {
         Button {
             TickerHaptics.selection()
-            showNaturalLanguageSheet.toggle()
+            if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
+                showNaturalLanguageSheet.toggle()
+            } else {
+                showAddSheet.toggle()
+            }
         } label: {
             Image(systemName: "plus")
         }
@@ -256,7 +260,11 @@ struct ContentView: View {
                 } actions: {
                     Button {
                         TickerHaptics.criticalAction()
-                        showNaturalLanguageSheet = true
+                        if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
+                            showNaturalLanguageSheet = true
+                        } else {
+                            showAddSheet = true
+                        }
                     } label: {
                         HStack(spacing: TickerSpacing.xs) {
                             Image(systemName: "plus.circle.fill")
