@@ -409,13 +409,25 @@ final class TickerService: TickerServiceProtocol {
             Task { @MainActor in
                 let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
                 if let alarmItem = try? context.fetch(descriptor).first {
+                    // IMPORTANT: Access all properties BEFORE deletion to resolve SwiftData faults
+                    // This prevents "backing data was detached" errors
+                    let alarmKitID = alarmItem.alarmKitID
+                    let generatedIDs = alarmItem.generatedAlarmKitIDs
+
+                    // Force-resolve all lazy-loaded properties to prevent fault resolution after deletion
+                    _ = alarmItem.schedule // Accesses scheduleData which has @Attribute(.externalStorage)
+                    _ = alarmItem.tickerData
+                    _ = alarmItem.label
+                    _ = alarmItem.countdown
+                    _ = alarmItem.presentation
+
                     // Cancel legacy single alarm
-                    if let alarmKitID = alarmItem.alarmKitID {
+                    if let alarmKitID = alarmKitID {
                         try? alarmManager.cancel(id: alarmKitID)
                     }
 
                     // Cancel all generated composite alarms
-                    for generatedID in alarmItem.generatedAlarmKitIDs {
+                    for generatedID in generatedIDs {
                         try? alarmManager.cancel(id: generatedID)
                     }
 
@@ -433,7 +445,7 @@ final class TickerService: TickerServiceProtocol {
         Task {
             await stateManager.removeState(id: id)
         }
-        
+
         // Refresh widget timelines
         refreshWidgetTimelines()
     }
