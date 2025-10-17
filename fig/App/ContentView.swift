@@ -22,9 +22,9 @@ struct ContentView: View {
     @State private var alarmToShowDetail: Ticker?
     @State private var showDeleteAlert = false
     @State private var searchText = ""
-    @State private var generatedTicker: Ticker?
     @Namespace private var addButtonNamespace
     @Namespace private var editButtonNamespace
+    @Namespace private var aiButtonNamespace
     
     var body: some View {
         NavigationStack {
@@ -43,60 +43,45 @@ struct ContentView: View {
                 .navigationTitle(Text("Tickers"))
                 .toolbarTitleDisplayMode(.inlineLarge)
                 .toolbar {
-                    ToolbarItemGroup {
-                        menuButton
+                    ToolbarItemGroup(placement: .primaryAction) {
+                        plusButton
+
+                        if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
+                            aiButton
+                        }
                     }
                 }
                 .searchable(text: $searchText, prompt: "Search by name or time")
         }
-        .sheet(isPresented: $showNaturalLanguageSheet, onDismiss: {
-            showNaturalLanguageSheet = false
-        }) {
-            NaturalLanguageTickerView(
-                namespace: addButtonNamespace,
-                onGenerated: { ticker in
-                    generatedTicker = ticker
-                    showNaturalLanguageSheet = false
-                    showAddSheet = true
-                },
-                onSkip: {
-                    showNaturalLanguageSheet = false
-                    showAddSheet = true
-                }
-            )
-            .presentationCornerRadius(TickerRadius.large)
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled()
-            .presentationBackground {
-                ZStack {
-                    TickerColor.liquidGlassGradient(for: colorScheme)
+        .sheet(isPresented: $showNaturalLanguageSheet) {
+            NaturalLanguageTickerView()
+                .presentationCornerRadius(TickerRadius.large)
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+                .presentationBackground {
+                    ZStack {
+                        TickerColor.liquidGlassGradient(for: colorScheme)
 
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .opacity(0.5)
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.5)
+                    }
                 }
-            }
         }
-        .sheet(isPresented: $showAddSheet, onDismiss: {
-            showAddSheet = false
-            generatedTicker = nil
-        }) {
-            AddTickerView(
-                namespace: addButtonNamespace,
-                prefillTemplate: generatedTicker
-            )
-            .presentationCornerRadius(TickerRadius.large)
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled()
-            .presentationBackground {
-                ZStack {
-                    TickerColor.liquidGlassGradient(for: colorScheme)
+        .sheet(isPresented: $showAddSheet) {
+            AddTickerView(namespace: addButtonNamespace)
+                .presentationCornerRadius(TickerRadius.large)
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+                .presentationBackground {
+                    ZStack {
+                        TickerColor.liquidGlassGradient(for: colorScheme)
 
-                    Rectangle()
-                        .fill(.ultraThinMaterial)
-                        .opacity(0.5)
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.5)
+                    }
                 }
-            }
         }
         .sheet(item: $alarmToEdit) { ticker in
             AddTickerView(namespace: editButtonNamespace, prefillTemplate: ticker, isEditMode: true)
@@ -217,18 +202,24 @@ struct ContentView: View {
         }
     }
 
-    var menuButton: some View {
+    var plusButton: some View {
         Button {
             TickerHaptics.selection()
-            if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
-                showNaturalLanguageSheet.toggle()
-            } else {
-                showAddSheet.toggle()
-            }
+            showAddSheet.toggle()
         } label: {
             Image(systemName: "plus")
         }
         .matchedTransitionSource(id: "addButton", in: addButtonNamespace)
+    }
+
+    @available(iOS 26.0, *)
+    var aiButton: some View {
+        Button {
+            TickerHaptics.selection()
+            showNaturalLanguageSheet.toggle()
+        } label: {
+            Image(systemName: "apple.intelligence")
+        }
     }
 
     @ViewBuilder
@@ -260,11 +251,7 @@ struct ContentView: View {
                 } actions: {
                     Button {
                         TickerHaptics.criticalAction()
-                        if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
-                            showNaturalLanguageSheet = true
-                        } else {
-                            showAddSheet = true
-                        }
+                        showAddSheet = true
                     } label: {
                         HStack(spacing: TickerSpacing.xs) {
                             Image(systemName: "plus.circle.fill")

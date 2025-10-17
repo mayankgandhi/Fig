@@ -8,16 +8,15 @@
 import SwiftUI
 
 struct NaturalLanguageTickerView: View {
-    let namespace: Namespace.ID
-    let onGenerated: (Ticker) -> Void
-    let onSkip: () -> Void
-    
     @StateObject private var aiGenerator = AITickerGenerator()
     @State private var inputText = ""
     @State private var showingError = false
     @State private var errorMessage = ""
+    @State private var showingSuccess = false
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.modelContext) private var modelContext
+    @Environment(TickerService.self) private var tickerService
     
     private let examplePrompts = [
         "Wake up at 7am every weekday",
@@ -36,15 +35,15 @@ struct NaturalLanguageTickerView: View {
                 VStack(spacing: TickerSpacing.xl) {
                     // Header
                     headerSection
-                    
+
                     // Input Section
                     inputSection
-                    
+
                     // Example Prompts
                     examplePromptsSection
-                    
-                    // Action Buttons
-                    actionButtonsSection
+
+                    // Generate Button
+                    generateButtonSection
                 }
                 .padding(TickerSpacing.lg)
             }
@@ -188,108 +187,94 @@ struct NaturalLanguageTickerView: View {
         }
     }
     
-    // MARK: - Action Buttons Section
-    
-    private var actionButtonsSection: some View {
-        VStack(spacing: TickerSpacing.md) {
-            // Generate Button
-            Button {
-                Task {
-                    await generateTicker()
+    // MARK: - Generate Button Section
+
+    private var generateButtonSection: some View {
+        Button {
+            Task {
+                await generateTicker()
+            }
+        } label: {
+            HStack(spacing: TickerSpacing.sm) {
+                if aiGenerator.isGenerating {
+                    ProgressView()
+                        .tint(TickerColor.absoluteWhite)
+                        .scaleEffect(0.8)
+                } else {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 16, weight: .bold))
                 }
-            } label: {
-                HStack(spacing: TickerSpacing.sm) {
+
+                Text(aiGenerator.isGenerating ? "Generating..." : "Generate Ticker")
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+            }
+            .foregroundStyle(TickerColor.absoluteWhite)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, TickerSpacing.lg)
+            .background(
+                ZStack {
+                    Capsule()
+                        .fill(
+                            aiGenerator.isGenerating ?
+                            LinearGradient(
+                                colors: [
+                                    TickerColor.primary.opacity(0.8),
+                                    TickerColor.primary.opacity(0.6)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ) :
+                            LinearGradient(
+                                colors: [
+                                    TickerColor.primary,
+                                    TickerColor.primary.opacity(0.95),
+                                    TickerColor.primary.opacity(0.9)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+
                     if aiGenerator.isGenerating {
-                        ProgressView()
-                            .tint(TickerColor.absoluteWhite)
-                            .scaleEffect(0.8)
-                    } else {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 16, weight: .bold))
-                    }
-                    
-                    Text(aiGenerator.isGenerating ? "Generating..." : "Generate Ticker")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                }
-                .foregroundStyle(TickerColor.absoluteWhite)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, TickerSpacing.lg)
-                .background(
-                    ZStack {
                         Capsule()
                             .fill(
-                                aiGenerator.isGenerating ?
                                 LinearGradient(
                                     colors: [
-                                        TickerColor.primary.opacity(0.8),
-                                        TickerColor.primary.opacity(0.6)
+                                        Color.clear,
+                                        Color.white.opacity(0.2),
+                                        Color.clear
                                     ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ) :
-                                LinearGradient(
-                                    colors: [
-                                        TickerColor.primary,
-                                        TickerColor.primary.opacity(0.95),
-                                        TickerColor.primary.opacity(0.9)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
+                                    startPoint: .leading,
+                                    endPoint: .trailing
                                 )
                             )
-                        
-                        if aiGenerator.isGenerating {
-                            Capsule()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [
-                                            Color.clear,
-                                            Color.white.opacity(0.2),
-                                            Color.clear
-                                        ],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .offset(x: -50)
-                                .animation(
-                                    .linear(duration: 1.5)
-                                    .repeatForever(autoreverses: false),
-                                    value: aiGenerator.isGenerating
-                                )
-                        }
+                            .offset(x: -50)
+                            .animation(
+                                .linear(duration: 1.5)
+                                .repeatForever(autoreverses: false),
+                                value: aiGenerator.isGenerating
+                            )
                     }
-                )
-                .overlay(
-                    Capsule()
-                        .strokeBorder(
-                            TickerColor.absoluteWhite.opacity(0.2),
-                            lineWidth: 1
-                        )
-                )
-                .shadow(
-                    color: TickerColor.primary.opacity(aiGenerator.isGenerating ? 0.3 : 0.5),
-                    radius: aiGenerator.isGenerating ? 6 : 12,
-                    x: 0,
-                    y: aiGenerator.isGenerating ? 3 : 6
-                )
-                .scaleEffect(aiGenerator.isGenerating ? 0.95 : 1.0)
-                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: aiGenerator.isGenerating)
-            }
-            .disabled(aiGenerator.isGenerating || inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-            .opacity(aiGenerator.isGenerating || inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
-            
-            // Skip Button
-            Button {
-                TickerHaptics.selection()
-                onSkip()
-            } label: {
-                Text("Skip to Manual Setup")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-            }
-            .disabled(aiGenerator.isGenerating)
+                }
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(
+                        TickerColor.absoluteWhite.opacity(0.2),
+                        lineWidth: 1
+                    )
+            )
+            .shadow(
+                color: TickerColor.primary.opacity(aiGenerator.isGenerating ? 0.3 : 0.5),
+                radius: aiGenerator.isGenerating ? 6 : 12,
+                x: 0,
+                y: aiGenerator.isGenerating ? 3 : 6
+            )
+            .scaleEffect(aiGenerator.isGenerating ? 0.95 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: aiGenerator.isGenerating)
         }
+        .disabled(aiGenerator.isGenerating || inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        .opacity(aiGenerator.isGenerating || inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
     }
     
     // MARK: - Background
@@ -307,19 +292,30 @@ struct NaturalLanguageTickerView: View {
     }
     
     // MARK: - Actions
-    
+
     private func generateTicker() async {
         guard !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             return
         }
-        
+
         do {
             let configuration = try await aiGenerator.generateTickerConfiguration(from: inputText)
             let parser = TickerConfigurationParser()
             let ticker = parser.parseToTicker(from: configuration)
-            
+
+            // Save the ticker immediately
+            modelContext.insert(ticker)
+            try modelContext.save()
+
+            // Schedule the alarm
+            try await tickerService.scheduleAlarm(from: ticker, context: modelContext)
+
             TickerHaptics.success()
-            onGenerated(ticker)
+            showingSuccess = true
+
+            // Dismiss the view after a brief success indication
+            try? await Task.sleep(for: .milliseconds(500))
+            dismiss()
         } catch {
             TickerHaptics.error()
             errorMessage = error.localizedDescription
@@ -376,10 +372,7 @@ struct ExamplePromptCard: View {
 // MARK: - Preview
 
 #Preview {
-    @Previewable @Namespace var namespace
-    NaturalLanguageTickerView(
-        namespace: namespace,
-        onGenerated: { _ in },
-        onSkip: { }
-    )
+    NaturalLanguageTickerView()
+        .environment(TickerService())
+        .modelContainer(for: Ticker.self, inMemory: true)
 }

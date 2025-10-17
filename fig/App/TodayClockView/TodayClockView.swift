@@ -145,18 +145,7 @@ struct TodayClockView: View {
                 }
             }
             .sheet(isPresented: $showNaturalLanguageSheet) {
-                NaturalLanguageTickerView(
-                    namespace: addButtonNamespace,
-                    onGenerated: { ticker in
-                        generatedTicker = ticker
-                        showNaturalLanguageSheet = false
-                        showAddSheet = true
-                    },
-                    onSkip: {
-                        showNaturalLanguageSheet = false
-                        showAddSheet = true
-                    }
-                )
+                NaturalLanguageTickerView()
                 .presentationCornerRadius(TickerRadius.large)
                 .presentationDragIndicator(.visible)
                 .interactiveDismissDisabled()
