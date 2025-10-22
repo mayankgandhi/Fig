@@ -189,10 +189,9 @@ final class TickerService: TickerServiceProtocol {
         do {
             _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
 
-            // Update alarmKitID for tracking
-            alarmItem.alarmKitID = alarmItem.id
+            // Update generatedAlarmKitIDs for tracking
+            alarmItem.generatedAlarmKitIDs = [alarmItem.id]
             alarmItem.isEnabled = true
-            alarmItem.generatedAlarmKitIDs = []
 
             // Save to SwiftData
             context.insert(alarmItem)
@@ -267,7 +266,6 @@ final class TickerService: TickerServiceProtocol {
 
             // 3. Update ticker with generated IDs
             alarmItem.generatedAlarmKitIDs = scheduledIDs
-            alarmItem.alarmKitID = nil // Clear legacy ID
             alarmItem.isEnabled = true
 
             // 4. Save to SwiftData
@@ -314,10 +312,7 @@ final class TickerService: TickerServiceProtocol {
 
     @MainActor
     func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
-        // Cancel all existing alarms (both legacy single and composite)
-        if let alarmKitID = alarmItem.alarmKitID {
-            try? alarmManager.cancel(id: alarmKitID)
-        }
+        // Cancel all existing alarms
         for id in alarmItem.generatedAlarmKitIDs {
             try? alarmManager.cancel(id: id)
         }
@@ -350,8 +345,7 @@ final class TickerService: TickerServiceProtocol {
                     }
 
                     _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
-                    alarmItem.alarmKitID = alarmItem.id
-                    alarmItem.generatedAlarmKitIDs = []
+                    alarmItem.generatedAlarmKitIDs = [alarmItem.id]
                 } else {
                     // Composite schedule
                     let now = Date()
@@ -383,7 +377,6 @@ final class TickerService: TickerServiceProtocol {
                     }
 
                     alarmItem.generatedAlarmKitIDs = scheduledIDs
-                    alarmItem.alarmKitID = nil
                 }
 
                 try context.save()
@@ -411,7 +404,6 @@ final class TickerService: TickerServiceProtocol {
                 if let alarmItem = try? context.fetch(descriptor).first {
                     // IMPORTANT: Access all properties BEFORE deletion to resolve SwiftData faults
                     // This prevents "backing data was detached" errors
-                    let alarmKitID = alarmItem.alarmKitID
                     let generatedIDs = alarmItem.generatedAlarmKitIDs
 
                     // Force-resolve all lazy-loaded properties to prevent fault resolution after deletion
@@ -421,12 +413,7 @@ final class TickerService: TickerServiceProtocol {
                     _ = alarmItem.countdown
                     _ = alarmItem.presentation
 
-                    // Cancel legacy single alarm
-                    if let alarmKitID = alarmKitID {
-                        try? alarmManager.cancel(id: alarmKitID)
-                    }
-
-                    // Cancel all generated composite alarms
+                    // Cancel all generated alarms
                     for generatedID in generatedIDs {
                         try? alarmManager.cancel(id: generatedID)
                     }

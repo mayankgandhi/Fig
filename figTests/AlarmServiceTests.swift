@@ -123,7 +123,7 @@ struct TickerServiceTests {
     func testUpdateDisabledAlarm() async throws {
         // Given
         let ticker = createTestTicker()
-        ticker.alarmKitID = UUID()
+        ticker.generatedAlarmKitIDs = [UUID()]
         ticker.isEnabled = false
         let context = createTestContext()
 

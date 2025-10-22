@@ -44,12 +44,9 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
         let allItems = (try? context.fetch(allItemsDescriptor)) ?? []
         let disabledItemIds = Set(allItems.filter { !$0.isEnabled }.map { $0.id })
 
-        // Build a map of all AlarmKit IDs (both single and composite generated)
+        // Build a map of all AlarmKit IDs (composite generated)
         var alarmKitIDsToTicker: [UUID: Ticker] = [:]
         for ticker in allItems {
-            if let alarmKitID = ticker.alarmKitID {
-                alarmKitIDsToTicker[alarmKitID] = ticker
-            }
             for generatedID in ticker.generatedAlarmKitIDs {
                 alarmKitIDsToTicker[generatedID] = ticker
             }
@@ -65,12 +62,12 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
                 continue
             }
 
-            // Check if this is an orphaned composite alarm (generated ID without parent ticker)
+            // Check if this is an orphaned alarm (generated ID without parent ticker)
             if let parentTicker = alarmKitIDsToTicker[alarm.id] {
                 // This alarm belongs to a known ticker
                 alarmsToKeep.append(alarm)
             } else {
-                // Check if this could be a legacy simple alarm
+                // Check if this could be a simple alarm (ticker ID matches alarm ID)
                 if allItems.contains(where: { $0.id == alarm.id }) {
                     alarmsToKeep.append(alarm)
                 } else {
@@ -97,7 +94,7 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
                     label: "Alarm",
                     isEnabled: true
                 )
-                tickerToUse.alarmKitID = alarm.id
+                tickerToUse.generatedAlarmKitIDs = [alarm.id]
             }
 
             // Update local state
@@ -117,7 +114,7 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
                     label: "Alarm",
                     isEnabled: true
                 )
-                alarmItem.alarmKitID = alarm.id
+                alarmItem.generatedAlarmKitIDs = [alarm.id]
                 context.insert(alarmItem)
             }
         }

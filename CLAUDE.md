@@ -87,7 +87,7 @@ The app uses SwiftData for persistent alarm storage:
 - The `ModelContainer` is configured in `figApp.swift` with persistent storage (not in-memory)
 - Schema: `Schema([Ticker.self])`
 - Views access data using `@Query` for fetching and `@Environment(\.modelContext)` for mutations
-- AlarmKit integration via `alarmKitID` property for bidirectional sync
+- AlarmKit integration via `generatedAlarmKitIDs` property for bidirectional sync
 
 ## AlarmKit Integration
 

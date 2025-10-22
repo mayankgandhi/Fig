@@ -70,7 +70,7 @@ final class MockStateManager: AlarmStateManagerProtocol {
         remoteAlarms.forEach { alarm in
             if alarms[alarm.id] == nil {
                 let ticker = Ticker(id: alarm.id, label: "Mock Alarm", isEnabled: true)
-                ticker.alarmKitID = alarm.id
+                ticker.generatedAlarmKitIDs = [alarm.id]
                 alarms[alarm.id] = ticker
             }
         }

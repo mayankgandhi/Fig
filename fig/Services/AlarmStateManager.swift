@@ -45,7 +45,7 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
                         label: "Alarm (Old Session)",
                         isEnabled: true
                     )
-                    ticker.alarmKitID = updated.id
+                    ticker.generatedAlarmKitIDs = [updated.id]
                     alarms[updated.id] = ticker
                 }
             }
