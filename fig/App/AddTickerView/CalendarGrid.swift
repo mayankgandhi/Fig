@@ -11,8 +11,9 @@ import SwiftUI
 
 struct CalendarGrid: View {
     @Binding var selectedDate: Date
+    var showStartDateLabel: Bool = false
     @Environment(\.colorScheme) private var colorScheme
-    
+
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
     private let calendar = Calendar.current
     private let weekdaySymbols = [
@@ -48,6 +49,17 @@ struct CalendarGrid: View {
     
     var body: some View {
         VStack(spacing: 8) {
+            // Start Date Label (when repeat is selected)
+            if showStartDateLabel {
+                Text("START DATE")
+                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                    .textCase(.uppercase)
+                    .tracking(0.8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.bottom, 4)
+            }
+
             HStack {
                 Button {
                     TickerHaptics.selection()
@@ -59,12 +71,12 @@ struct CalendarGrid: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
-                
+
                 Text(selectedDate.formatted(.dateTime.month(.wide).year()))
                     .Body()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .frame(maxWidth: .infinity)
-                
+
                 Button {
                     TickerHaptics.selection()
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {

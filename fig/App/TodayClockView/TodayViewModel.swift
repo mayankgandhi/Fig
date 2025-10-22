@@ -29,24 +29,41 @@ final class TodayViewModel {
         tickerService.getAlarmsWithMetadata(context: modelContext).filter { $0.isEnabled }
     }
 
-    /// Alarms scheduled within the next 12 hours, sorted by time
+    /// All upcoming alarms with recurrences, ending when all alarms have appeared at least once
     @MainActor
     var upcomingAlarms: [UpcomingAlarmPresentation] {
         let now = Date()
-        let next12Hours = now.addingTimeInterval(12 * 60 * 60)
+
+        // Step 1: Find the cutoff time (latest first occurrence among all alarms)
+        let cutoffTime = allEnabledAlarms
+            .compactMap { alarm -> Date? in
+                guard alarm.schedule != nil else { return nil }
+                return getNextAlarmTime(for: alarm, from: now)
+            }
+            .max() ?? now
+
+        // Step 2: Generate all occurrences for each alarm until cutoff time
+        let allOccurrences = allEnabledAlarms.flatMap { alarm -> [UpcomingAlarmPresentation] in
+            generateOccurrences(for: alarm, from: now, until: cutoffTime)
+        }
+
+        // Step 3: Sort all occurrences chronologically
+        return allOccurrences.sorted { $0.nextAlarmTime < $1.nextAlarmTime }
+    }
+
+    /// Upcoming alarms for clock display (only first occurrence of each unique alarm)
+    @MainActor
+    var upcomingAlarmsForClock: [UpcomingAlarmPresentation] {
+        let now = Date()
 
         return allEnabledAlarms
-            .filter { alarm in
-                guard alarm.schedule != nil else { return false }
+            .compactMap { alarm -> UpcomingAlarmPresentation? in
+                guard alarm.schedule != nil else { return nil }
                 let nextTime = getNextAlarmTime(for: alarm, from: now)
-                return nextTime >= now && nextTime <= next12Hours
+                guard nextTime > now && nextTime != Date.distantFuture else { return nil }
+                return createPresentation(from: alarm, at: nextTime)
             }
-            .sorted { alarm1, alarm2 in
-                let time1 = getNextAlarmTime(for: alarm1, from: now)
-                let time2 = getNextAlarmTime(for: alarm2, from: now)
-                return time1 < time2
-            }
-            .map { createPresentation(from: $0, currentTime: now) }
+            .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
     }
 
     /// Number of upcoming alarms
@@ -69,10 +86,44 @@ final class TodayViewModel {
         self.calendar = calendar
     }
 
-    // MARK: - Presentation Model Creation
 
-    private func createPresentation(from alarm: Ticker, currentTime: Date) -> UpcomingAlarmPresentation {
-        let nextTime = getNextAlarmTime(for: alarm, from: currentTime)
+    // MARK: - Helper Methods
+
+    /// Generates all occurrences for an alarm within a time window
+    private func generateOccurrences(for alarm: Ticker, from startDate: Date, until endDate: Date) -> [UpcomingAlarmPresentation] {
+        guard let schedule = alarm.schedule else { return [] }
+
+        var occurrences: [Date] = []
+        var currentDate = startDate
+
+        // For one-time alarms, just add the single occurrence if it's in range
+        if case .oneTime(let alarmDate) = schedule {
+            if alarmDate >= startDate && alarmDate <= endDate {
+                occurrences.append(alarmDate)
+            }
+            return occurrences.map { createPresentation(from: alarm, at: $0) }
+        }
+
+        // For recurring alarms, generate occurrences until we reach the end date
+        while currentDate <= endDate {
+            let nextOccurrence = getNextAlarmTime(for: alarm, from: currentDate)
+
+            // Break if next occurrence is beyond our window or in the far future
+            if nextOccurrence > endDate || nextOccurrence == Date.distantFuture {
+                break
+            }
+
+            occurrences.append(nextOccurrence)
+
+            // Move to just after this occurrence to find the next one
+            currentDate = nextOccurrence.addingTimeInterval(60) // Add 1 minute to avoid same occurrence
+        }
+
+        return occurrences.map { createPresentation(from: alarm, at: $0) }
+    }
+
+    /// Creates presentation model for a specific alarm occurrence time
+    private func createPresentation(from alarm: Ticker, at time: Date) -> UpcomingAlarmPresentation {
         let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
             guard let schedule = alarm.schedule else { return .oneTime }
             switch schedule {
@@ -91,15 +142,15 @@ final class TodayViewModel {
         }()
 
         // Extract hour and minute for angle calculation
-        let hour = calendar.component(.hour, from: nextTime)
-        let minute = calendar.component(.minute, from: nextTime)
+        let hour = calendar.component(.hour, from: time)
+        let minute = calendar.component(.minute, from: time)
 
         return UpcomingAlarmPresentation(
             id: alarm.id,
             displayName: alarm.displayName,
             icon: alarm.tickerData?.icon ?? "alarm",
             color: extractColor(from: alarm),
-            nextAlarmTime: nextTime,
+            nextAlarmTime: time,
             scheduleType: scheduleType,
             hour: hour,
             minute: minute,
@@ -107,8 +158,6 @@ final class TodayViewModel {
             tickerDataTitle: alarm.tickerData?.name
         )
     }
-
-    // MARK: - Helper Methods
 
     /// Calculates the next occurrence of a daily alarm time
     private func getNextOccurrence(for time: TickerSchedule.TimeOfDay, from date: Date) -> Date {

@@ -13,15 +13,22 @@ struct ScheduleView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(spacing: TickerSpacing.lg) {
-            // Calendar Date Picker
-            CalendarGrid(selectedDate: $viewModel.selectedDate)
-
-            Divider()
+        ScrollView {
+            VStack(spacing: TickerSpacing.md) {
+                // Calendar Date Picker (compact)
+                CalendarGrid(
+                    selectedDate: $viewModel.selectedDate,
+                    showStartDateLabel: viewModel.selectedOption != .noRepeat
+                )
                 .padding(.horizontal, TickerSpacing.md)
 
-            // Repeat Options
-            repeatOptionsSection
+                Divider()
+                    .padding(.horizontal, TickerSpacing.md)
+
+                // Repeat Options
+                repeatOptionsSection
+            }
+            .padding(.vertical, TickerSpacing.sm)
         }
     }
 
@@ -29,8 +36,8 @@ struct ScheduleView: View {
 
     @ViewBuilder
     private var repeatOptionsSection: some View {
-        VStack(spacing: TickerSpacing.md) {
-            // Main Repeat Type Selector
+        VStack(spacing: TickerSpacing.sm) {
+            // Main Repeat Type Selector (compact)
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: TickerSpacing.xs) {
                     ForEach(ScheduleViewModel.RepeatOption.allCases, id: \.self) { option in
@@ -39,16 +46,18 @@ struct ScheduleView: View {
                 }
                 .padding(.horizontal, TickerSpacing.md)
             }
-            .padding(.vertical, TickerSpacing.sm)
+            .frame(height: 36)
 
             // Validation Message (baked in)
             if let validationMessage = viewModel.dateWeekdayMismatchMessage {
                 validationMessageView(message: validationMessage)
+                    .padding(.horizontal, TickerSpacing.md)
             }
 
-            // Configuration View for selected option
+            // Configuration View for selected option (compact)
             if viewModel.needsConfiguration {
                 configurationView
+                    .padding(.horizontal, TickerSpacing.md)
             }
         }
     }
@@ -120,38 +129,38 @@ struct ScheduleView: View {
         }
     }
 
-    // MARK: - Validation Message View
+    // MARK: - Validation Message View (Compact)
 
     @ViewBuilder
     private func validationMessageView(message: String) -> some View {
-        VStack(spacing: TickerSpacing.sm) {
-            HStack(spacing: TickerSpacing.sm) {
+        VStack(spacing: TickerSpacing.xs) {
+            HStack(spacing: TickerSpacing.xs) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(TickerColor.warning)
 
                 Text(message)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .multilineTextAlignment(.leading)
 
                 Spacer()
             }
 
-            // Fix Date button
+            // Fix Date button (compact)
             Button {
                 TickerHaptics.selection()
                 viewModel.adjustDateToMatchWeekdays()
             } label: {
-                HStack(spacing: TickerSpacing.xs) {
+                HStack(spacing: TickerSpacing.xxs) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(.system(size: 11, weight: .medium))
                     Text("Fix Date")
-                        .font(.system(size: 12, weight: .semibold, design: .rounded))
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
                 }
                 .foregroundStyle(TickerColor.primary)
-                .padding(.horizontal, TickerSpacing.sm)
-                .padding(.vertical, TickerSpacing.xs)
+                .padding(.horizontal, TickerSpacing.xs)
+                .padding(.vertical, 4)
                 .background(
                     Capsule()
                         .fill(TickerColor.primary.opacity(0.1))
@@ -162,14 +171,14 @@ struct ScheduleView: View {
                 )
             }
         }
-        .padding(.horizontal, TickerSpacing.md)
-        .padding(.vertical, TickerSpacing.sm)
+        .padding(.horizontal, TickerSpacing.sm)
+        .padding(.vertical, TickerSpacing.xs)
         .background(
-            RoundedRectangle(cornerRadius: TickerRadius.medium)
+            RoundedRectangle(cornerRadius: TickerRadius.small)
                 .fill(TickerColor.warning.opacity(0.1))
         )
         .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.medium)
+            RoundedRectangle(cornerRadius: TickerRadius.small)
                 .strokeBorder(TickerColor.warning.opacity(0.3), lineWidth: 1)
         )
     }

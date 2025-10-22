@@ -30,8 +30,8 @@ struct TodayClockView: View {
                 if let viewModel {
                     ScrollView {
                         VStack(spacing: 0) {
-                            // Clock View
-                            ClockView(upcomingAlarms: viewModel.upcomingAlarms, shouldAnimateAlarms: shouldAnimateAlarms)
+                            // Clock View (uses unique alarms only)
+                            ClockView(upcomingAlarms: viewModel.upcomingAlarmsForClock, shouldAnimateAlarms: shouldAnimateAlarms)
                                 .frame(height: UIScreen.main.bounds.width)
                                 .padding(.horizontal, 20)
                                 .padding(.top, 8)
@@ -70,8 +70,8 @@ struct TodayClockView: View {
                                         Text("No upcoming alarms")
                                             .Title2()
                                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                                        
-                                        Text("Alarms scheduled for the next 12 hours will appear here")
+
+                                        Text("All upcoming alarms will appear here")
                                             .Footnote()
                                             .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                                             .multilineTextAlignment(.center)
