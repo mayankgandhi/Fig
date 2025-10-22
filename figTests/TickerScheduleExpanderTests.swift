@@ -279,6 +279,53 @@ final class TickerScheduleExpanderTests: XCTestCase {
         }
     }
 
+    // MARK: - Alarm Limiting Tests
+    
+    func testDailySchedule_WithAlarmLimit() {
+        let time = TickerSchedule.TimeOfDay(hour: 9, minute: 30)
+        let startDate = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let schedule = TickerSchedule.daily(time: time, startDate: startDate)
+
+        let start = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let results = expander.expandSchedule(schedule, startingFrom: start, days: 30, maxAlarms: 2)
+
+        // Should only return 2 alarms despite 30-day window
+        XCTAssertEqual(results.count, 2)
+        
+        // Verify the first two days
+        for (index, date) in results.enumerated() {
+            let components = calendar.dateComponents([.day, .hour, .minute], from: date)
+            XCTAssertEqual(components.day, index + 1) // Days 1, 2
+            XCTAssertEqual(components.hour, 9)
+            XCTAssertEqual(components.minute, 30)
+        }
+    }
+    
+    func testHourlySchedule_WithAlarmLimit() {
+        let startTime = createDate(year: 2025, month: 1, day: 1, hour: 9, minute: 0)
+        let endTime = createDate(year: 2025, month: 1, day: 1, hour: 17, minute: 0)
+        let schedule = TickerSchedule.hourly(interval: 2, startTime: startTime, endTime: endTime)
+
+        let results = expander.expandSchedule(schedule, startingFrom: startTime, days: 1, maxAlarms: 2)
+
+        // Should only return 2 alarms despite 5 possible alarms
+        XCTAssertEqual(results.count, 2)
+        XCTAssertEqual(calendar.component(.hour, from: results[0]), 9)
+        XCTAssertEqual(calendar.component(.hour, from: results[1]), 11)
+    }
+    
+    func testDefaultAlarmLimit() {
+        let time = TickerSchedule.TimeOfDay(hour: 9, minute: 30)
+        let startDate = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let schedule = TickerSchedule.daily(time: time, startDate: startDate)
+
+        let start = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let results = expander.expandSchedule(schedule, startingFrom: start, days: 30)
+
+        // Should default to maximum 2 alarms
+        XCTAssertEqual(results.count, 2)
+    }
+
     // MARK: - Helper Methods
 
     private func createDate(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {

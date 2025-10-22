@@ -43,7 +43,7 @@ final class Ticker {
 
     // AlarmKit Integration
     var generatedAlarmKitIDs: [UUID] = [] // Multiple alarm IDs for composite schedules
-    var generationWindow: Int // Days ahead to generate alarms (default 60)
+    var generationWindow: Int // Days ahead to search for alarms, but limited to max 2 alarms (default 60)
 
     init(
         id: UUID = UUID(),

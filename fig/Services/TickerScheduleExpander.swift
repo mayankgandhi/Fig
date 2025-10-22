@@ -13,6 +13,7 @@ import Foundation
 protocol TickerScheduleExpanderProtocol {
     func expandSchedule(_ schedule: TickerSchedule, within window: DateInterval) -> [Date]
     func expandSchedule(_ schedule: TickerSchedule, startingFrom: Date, days: Int) -> [Date]
+    func expandSchedule(_ schedule: TickerSchedule, startingFrom: Date, days: Int, maxAlarms: Int) -> [Date]
 }
 
 // MARK: - TickerScheduleExpander Implementation
@@ -55,11 +56,19 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     }
 
     func expandSchedule(_ schedule: TickerSchedule, startingFrom: Date, days: Int) -> [Date] {
+        // Default to maximum 2 alarms for efficiency
+        return expandSchedule(schedule, startingFrom: startingFrom, days: days, maxAlarms: 2)
+    }
+    
+    func expandSchedule(_ schedule: TickerSchedule, startingFrom: Date, days: Int, maxAlarms: Int) -> [Date] {
         guard let endDate = calendar.date(byAdding: .day, value: days, to: startingFrom) else {
             return []
         }
         let window = DateInterval(start: startingFrom, end: endDate)
-        return expandSchedule(schedule, within: window)
+        let allDates = expandSchedule(schedule, within: window)
+        
+        // Limit to specified maximum number of alarms
+        return Array(allDates.prefix(maxAlarms))
     }
 
     // MARK: - Private Expansion Methods
