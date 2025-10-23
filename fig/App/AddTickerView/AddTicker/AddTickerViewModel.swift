@@ -145,46 +145,78 @@ final class AddTickerViewModel {
 
     @MainActor
     func saveTicker() async {
-        guard !isSaving else { return }
+        print("🚀 AddTickerViewModel.saveTicker() started")
+        print("   → isSaving: \(isSaving)")
+        print("   → canSave: \(canSave)")
+        print("   → hasDateWeekdayMismatch: \(hasDateWeekdayMismatch)")
+        print("   → isEditMode: \(isEditMode)")
+        print("   → prefillTemplate: \(prefillTemplate?.id.uuidString ?? "nil")")
+        
+        guard !isSaving else { 
+            print("   ❌ Already saving, returning early")
+            return 
+        }
         guard canSave else {
+            print("   ❌ Cannot save - validation failed")
             if hasDateWeekdayMismatch {
                 errorMessage = dateWeekdayMismatchMessage ?? "Date and weekday selection don't match"
+                print("   → Date/weekday mismatch error: \(errorMessage ?? "nil")")
             } else {
                 errorMessage = "Please check your inputs"
+                print("   → Generic validation error")
             }
             showingError = true
             return
         }
 
+        print("   ✅ Validation passed, starting save process")
         isSaving = true
-        defer { isSaving = false }
+        defer { 
+            print("   🔄 Setting isSaving to false")
+            isSaving = false 
+        }
 
         // Build schedule
+        print("   📅 Building schedule configuration")
+        print("   → selectedDate: \(scheduleViewModel.selectedDate)")
+        print("   → selectedHour: \(timePickerViewModel.selectedHour)")
+        print("   → selectedMinute: \(timePickerViewModel.selectedMinute)")
+        print("   → selectedOption: \(scheduleViewModel.selectedOption)")
+        
         var components = calendar.dateComponents([.year, .month, .day], from: scheduleViewModel.selectedDate)
         components.hour = timePickerViewModel.selectedHour
         components.minute = timePickerViewModel.selectedMinute
 
         guard let finalDate = calendar.date(from: components) else {
+            print("   ❌ Invalid date configuration")
             errorMessage = "Invalid date configuration"
             showingError = true
             return
         }
+        print("   → finalDate: \(finalDate)")
 
         let time = TickerSchedule.TimeOfDay(
             hour: timePickerViewModel.selectedHour,
             minute: timePickerViewModel.selectedMinute
         )
+        print("   → time: \(time.hour):\(time.minute)")
 
         let schedule: TickerSchedule
+        print("   → Building schedule for option: \(scheduleViewModel.selectedOption)")
         switch scheduleViewModel.selectedOption {
-        case .noRepeat:
+        case .oneTime:
+            print("   → Creating one-time schedule")
             schedule = .oneTime(date: finalDate)
 
         case .daily:
+            print("   → Creating daily schedule")
             schedule = .daily(time: time, startDate: scheduleViewModel.selectedDate)
 
         case .weekdays:
+            print("   → Creating weekdays schedule")
+            print("   → selectedWeekdays: \(scheduleViewModel.selectedWeekdays)")
             guard !scheduleViewModel.selectedWeekdays.isEmpty else {
+                print("   ❌ No weekdays selected")
                 errorMessage = "Please select at least one weekday"
                 showingError = true
                 return
@@ -192,13 +224,19 @@ final class AddTickerViewModel {
             schedule = .weekdays(time: time, days: scheduleViewModel.selectedWeekdays, startDate: scheduleViewModel.selectedDate)
 
         case .hourly:
+            print("   → Creating hourly schedule")
+            print("   → hourlyInterval: \(scheduleViewModel.hourlyInterval)")
+            print("   → hourlyStartTime: \(scheduleViewModel.hourlyStartTime)")
+            print("   → hourlyEndTime: \(scheduleViewModel.hourlyEndTime?.description ?? "nil")")
             // Validate hourly configuration
             guard scheduleViewModel.hourlyInterval >= 1 else {
+                print("   ❌ Hourly interval too small")
                 errorMessage = "Hourly interval must be at least 1 hour"
                 showingError = true
                 return
             }
             if let end = scheduleViewModel.hourlyEndTime, end <= scheduleViewModel.hourlyStartTime {
+                print("   ❌ Hourly end time before start time")
                 errorMessage = "Hourly end time must be after start time"
                 showingError = true
                 return
@@ -210,13 +248,20 @@ final class AddTickerViewModel {
             )
 
         case .every:
+            print("   → Creating every schedule")
+            print("   → everyInterval: \(scheduleViewModel.everyInterval)")
+            print("   → everyUnit: \(scheduleViewModel.everyUnit)")
+            print("   → everyStartTime: \(scheduleViewModel.everyStartTime)")
+            print("   → everyEndTime: \(scheduleViewModel.everyEndTime?.description ?? "nil")")
             // Validate every configuration
             guard scheduleViewModel.everyInterval >= 1 else {
+                print("   ❌ Every interval too small")
                 errorMessage = "Interval must be at least 1"
                 showingError = true
                 return
             }
             if let end = scheduleViewModel.everyEndTime, end <= scheduleViewModel.everyStartTime {
+                print("   ❌ Every end time before start time")
                 errorMessage = "End time must be after start time"
                 showingError = true
                 return
@@ -229,7 +274,11 @@ final class AddTickerViewModel {
             )
 
         case .biweekly:
+            print("   → Creating biweekly schedule")
+            print("   → biweeklyWeekdays: \(scheduleViewModel.biweeklyWeekdays)")
+            print("   → biweeklyAnchorDate: \(scheduleViewModel.biweeklyAnchorDate)")
             guard !scheduleViewModel.biweeklyWeekdays.isEmpty else {
+                print("   ❌ No biweekly weekdays selected")
                 errorMessage = "Please select at least one weekday for biweekly repeat"
                 showingError = true
                 return
@@ -241,6 +290,10 @@ final class AddTickerViewModel {
             )
 
         case .monthly:
+            print("   → Creating monthly schedule")
+            print("   → monthlyDayType: \(scheduleViewModel.monthlyDayType)")
+            print("   → monthlyFixedDay: \(scheduleViewModel.monthlyFixedDay)")
+            print("   → monthlyWeekday: \(scheduleViewModel.monthlyWeekday)")
             let monthlyDay: TickerSchedule.MonthlyDay
             switch scheduleViewModel.monthlyDayType {
             case .fixed:
@@ -257,6 +310,9 @@ final class AddTickerViewModel {
             schedule = .monthly(day: monthlyDay, time: time, startDate: scheduleViewModel.selectedDate)
 
         case .yearly:
+            print("   → Creating yearly schedule")
+            print("   → yearlyMonth: \(scheduleViewModel.yearlyMonth)")
+            print("   → yearlyDay: \(scheduleViewModel.yearlyDay)")
             schedule = .yearly(
                 month: scheduleViewModel.yearlyMonth,
                 day: scheduleViewModel.yearlyDay,
@@ -266,8 +322,13 @@ final class AddTickerViewModel {
         }
 
         // Build countdown
+        print("   ⏰ Building countdown configuration")
+        print("   → countdownEnabled: \(countdownViewModel.isEnabled)")
         let countdown: TickerCountdown?
         if countdownViewModel.isEnabled {
+            print("   → countdownHours: \(countdownViewModel.hours)")
+            print("   → countdownMinutes: \(countdownViewModel.minutes)")
+            print("   → countdownSeconds: \(countdownViewModel.seconds)")
             let duration = TickerCountdown.CountdownDuration(
                 hours: countdownViewModel.hours,
                 minutes: countdownViewModel.minutes,
@@ -275,34 +336,44 @@ final class AddTickerViewModel {
             )
             countdown = TickerCountdown(preAlert: duration, postAlert: nil)
         } else {
+            print("   → No countdown configured")
             countdown = nil
         }
 
         // Build presentation
+        print("   🎨 Building presentation configuration")
         let presentation = TickerPresentation(
             tintColorHex: nil,
             secondaryButtonType: .none
         )
 
         // Build ticker data
+        print("   📝 Building ticker data")
+        print("   → labelText: '\(labelViewModel.labelText)'")
+        print("   → selectedIcon: \(iconPickerViewModel.selectedIcon)")
+        print("   → selectedColorHex: \(iconPickerViewModel.selectedColorHex)")
         let tickerData = TickerData(
             name: labelViewModel.labelText.isEmpty ? "Ticker" : labelViewModel.labelText,
             icon: iconPickerViewModel.selectedIcon,
             colorHex: iconPickerViewModel.selectedColorHex
         )
 
+        print("   💾 Starting save operation")
         do {
             if isEditMode, let existingTicker = prefillTemplate {
-                // Edit mode: Update existing ticker
+                print("   → Edit mode: Updating existing ticker")
+                print("   → existingTicker ID: \(existingTicker.id)")
                 existingTicker.label = labelViewModel.labelText.isEmpty ? "Ticker" : labelViewModel.labelText
                 existingTicker.schedule = schedule
                 existingTicker.countdown = countdown
                 existingTicker.presentation = presentation
                 existingTicker.tickerData = tickerData
 
+                print("   → Calling tickerService.updateAlarm()")
                 try await tickerService.updateAlarm(existingTicker, context: modelContext)
+                print("   → updateAlarm() completed successfully")
             } else {
-                // Create mode: Schedule new alarm
+                print("   → Create mode: Scheduling new alarm")
                 let ticker = Ticker(
                     label: labelViewModel.labelText.isEmpty ? "Ticker" : labelViewModel.labelText,
                     isEnabled: true,
@@ -311,12 +382,19 @@ final class AddTickerViewModel {
                     presentation: presentation,
                     tickerData: tickerData
                 )
+                print("   → Created ticker with ID: \(ticker.id)")
 
+                print("   → Calling tickerService.scheduleAlarm()")
                 try await tickerService.scheduleAlarm(from: ticker, context: modelContext)
+                print("   → scheduleAlarm() completed successfully")
             }
 
+            print("   ✅ Save operation completed successfully")
             TickerHaptics.success()
         } catch {
+            print("   ❌ Save operation failed with error: \(error)")
+            print("   → Error type: \(type(of: error))")
+            print("   → Error description: \(error.localizedDescription)")
             TickerHaptics.error()
             errorMessage = error.localizedDescription
             showingError = true
@@ -344,7 +422,7 @@ final class AddTickerViewModel {
                 print("      → Setting one-time schedule for: \(date)")
                 timePickerViewModel.setTimeFromDate(date)
                 scheduleViewModel.selectedDate = date >= now ? date : now
-                scheduleViewModel.selectOption(.noRepeat)
+                scheduleViewModel.selectOption(.oneTime)
 
             case .daily(let time, let startDate):
                 print("      → Setting daily schedule for: \(time.hour):\(time.minute)")
@@ -434,7 +512,7 @@ final class AddTickerViewModel {
             let components = calendar.dateComponents([.hour, .minute], from: now)
             timePickerViewModel.setTime(hour: components.hour ?? 12, minute: components.minute ?? 0)
             scheduleViewModel.selectedDate = now
-            scheduleViewModel.selectOption(.noRepeat)
+            scheduleViewModel.selectOption(.oneTime)
         }
 
         // Populate label

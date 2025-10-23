@@ -94,10 +94,22 @@ struct AddTickerView: View {
                     isExpanded: viewModel.optionsPillsViewModel.expandedField != nil,
                     onDismiss: { dismiss() },
                     onSave: {
+                        print("💾 AddTickerView onSave triggered")
+                        print("   → viewModel.isSaving: \(viewModel.isSaving)")
+                        print("   → viewModel.canSave: \(viewModel.canSave)")
+                        print("   → viewModel.showingError: \(viewModel.showingError)")
+                        print("   → isEditMode: \(isEditMode)")
+                        
                         Task {
+                            print("   → Starting saveTicker() task")
                             await viewModel.saveTicker()
+                            print("   → saveTicker() completed")
+                            print("   → viewModel.showingError after save: \(viewModel.showingError)")
                             if !viewModel.showingError {
+                                print("   → Dismissing view")
                                 dismiss()
+                            } else {
+                                print("   → Error occurred, not dismissing")
                             }
                         }
                     },

@@ -16,6 +16,13 @@ struct HourlyConfigView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // Example text
+            Text("Perfect for regular reminders")
+                .Caption()
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TickerSpacing.md)
+
             // Interval Picker Section
             configurationSection {
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {

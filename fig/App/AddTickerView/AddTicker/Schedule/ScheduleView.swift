@@ -15,15 +15,17 @@ struct ScheduleView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: TickerSpacing.lg) {
-                // Calendar Date Picker
-                CalendarGrid(
-                    selectedDate: $viewModel.selectedDate,
-                    showStartDateLabel: viewModel.selectedOption != .noRepeat
-                )
-                .padding(.horizontal, TickerSpacing.md)
-
-                // Repeat Options Section
+                // Repeat Options Section (moved to top)
                 repeatOptionsSection
+
+                // Calendar Date Picker (conditional, moved to bottom)
+                if viewModel.shouldShowCalendar {
+                    CalendarGrid(
+                        selectedDate: $viewModel.selectedDate,
+                        showStartDateLabel: false
+                    )
+                    .padding(.horizontal, TickerSpacing.md)
+                }
             }
             .padding(.vertical, TickerSpacing.md)
         }
@@ -45,6 +47,15 @@ struct ScheduleView: View {
                     }
                     .padding(.horizontal, TickerSpacing.md)
                 }
+            }
+
+            // Example text for One Time option
+            if viewModel.selectedOption == .oneTime {
+                Text("Perfect for one-off events")
+                    .Caption()
+                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, TickerSpacing.md)
             }
 
             // Validation Message
@@ -88,6 +99,15 @@ struct ScheduleView: View {
     @ViewBuilder
     private var configurationView: some View {
         switch viewModel.selectedOption {
+        case .daily:
+            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                Text("Perfect for everyday habits")
+                    .Caption()
+                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, TickerSpacing.md)
+            }
+
         case .weekdays:
             WeekdayPickerView(selectedWeekdays: $viewModel.selectedWeekdays)
 

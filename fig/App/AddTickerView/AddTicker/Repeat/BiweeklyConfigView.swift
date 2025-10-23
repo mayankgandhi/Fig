@@ -14,6 +14,13 @@ struct BiweeklyConfigView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // Example text
+            Text("Perfect for recurring meetings")
+                .Caption()
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TickerSpacing.md)
+
             // Weekday Selector Section
             configurationSection {
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {

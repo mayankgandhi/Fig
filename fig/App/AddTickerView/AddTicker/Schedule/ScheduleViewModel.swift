@@ -16,7 +16,7 @@ final class ScheduleViewModel {
     var selectedDate: Date
 
     // MARK: - Repeat Configuration (from RepeatOptionsViewModel)
-    var selectedOption: RepeatOption = .noRepeat
+    var selectedOption: RepeatOption = .oneTime
 
     // Configuration for weekdays option
     var selectedWeekdays: Array<TickerSchedule.Weekday> = []
@@ -81,8 +81,8 @@ final class ScheduleViewModel {
 
     var displayRepeat: String {
         switch selectedOption {
-            case .noRepeat:
-                return "No repeat"
+            case .oneTime:
+                return "One time"
             case .daily:
                 return "Daily"
             case .weekdays:
@@ -113,8 +113,8 @@ final class ScheduleViewModel {
 
     var displayRepeatFull: String {
         switch selectedOption {
-            case .noRepeat:
-                return "No repeat"
+            case .oneTime:
+                return "One time"
             case .daily:
                 return "Repeats every day"
             case .weekdays:
@@ -166,12 +166,17 @@ final class ScheduleViewModel {
         selectedOption.needsConfiguration
     }
 
+    /// Whether the calendar grid should be shown
+    var shouldShowCalendar: Bool {
+        selectedOption == .oneTime
+    }
+
     // MARK: - Unified Display Property
 
     /// Intelligently combines date and repeat info for pill display
     var displaySchedule: String {
-        if selectedOption == .noRepeat {
-            // Only show date if no repeat
+        if selectedOption == .oneTime {
+            // Only show date if one time
             return displayDate
         } else {
             // Show "Date, Repeat"
@@ -181,7 +186,7 @@ final class ScheduleViewModel {
 
     /// Whether schedule has any non-default value
     var hasScheduleValue: Bool {
-        !isToday || selectedOption != .noRepeat
+        !isToday || selectedOption != .oneTime
     }
 
     // MARK: - Validation (moved from AddTickerViewModel)
@@ -216,7 +221,7 @@ final class ScheduleViewModel {
     /// Validates configuration specific to the selected repeat option
     var repeatConfigIsValid: Bool {
         switch selectedOption {
-        case .noRepeat, .daily:
+        case .oneTime, .daily:
             return true
         case .weekdays:
             return !selectedWeekdays.isEmpty
@@ -312,7 +317,7 @@ final class ScheduleViewModel {
 
     func reset() {
         selectedDate = Date()
-        selectedOption = .noRepeat
+        selectedOption = .oneTime
         selectedWeekdays = []
         hourlyInterval = 1
         hourlyStartTime = Date()

@@ -389,7 +389,7 @@ struct NaturalLanguageTickerView: View {
     
     private func formatRepeatPattern(_ repeatOption: AITickerGenerator.RepeatOption) -> String {
         switch repeatOption {
-        case .noRepeat:
+        case .oneTime:
             return "One time"
         case .daily:
             return "Daily"

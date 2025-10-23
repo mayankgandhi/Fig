@@ -17,6 +17,13 @@ struct EveryConfigView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // Example text
+            Text("Perfect for custom intervals")
+                .Caption()
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TickerSpacing.md)
+
             // Unit Picker Section
             configurationSection {
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {

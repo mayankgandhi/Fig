@@ -154,62 +154,95 @@ final class TickerService: TickerServiceProtocol {
 
     @MainActor
     func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws {
+        print("🔔 TickerService.scheduleAlarm() started")
+        print("   → alarmItem ID: \(alarmItem.id)")
+        print("   → alarmItem label: '\(alarmItem.label)'")
+        print("   → alarmItem schedule: \(String(describing: alarmItem.schedule))")
+        print("   → alarmItem isEnabled: \(alarmItem.isEnabled)")
+        
         // 1. Request authorization
+        print("   → Checking authorization...")
         let authStatus = try await requestAuthorization()
+        print("   → Authorization status: \(authStatus)")
         guard authStatus == .authorized else {
+            print("   ❌ Not authorized")
             throw TickerServiceError.notAuthorized
         }
 
         // 2. Determine if this is a simple or composite schedule
         guard let schedule = alarmItem.schedule else {
+            print("   ❌ No schedule found")
             throw TickerServiceError.invalidConfiguration
         }
 
         let isSimpleSchedule = isSimple(schedule)
+        print("   → isSimpleSchedule: \(isSimpleSchedule)")
 
         if isSimpleSchedule {
+            print("   → Using simple alarm scheduling")
             // Simple schedule: 1:1 AlarmKit mapping (backward compatible)
             try await scheduleSimpleAlarm(alarmItem, context: context)
         } else {
+            print("   → Using composite alarm scheduling")
             // Composite schedule: Generate multiple AlarmKit alarms
             try await scheduleCompositeAlarm(alarmItem, context: context)
         }
+        print("   ✅ scheduleAlarm() completed successfully")
     }
 
     // MARK: - Private Scheduling Methods
 
     @MainActor
     private func scheduleSimpleAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
+        print("   🔧 scheduleSimpleAlarm() started")
+        print("   → alarmItem ID: \(alarmItem.id)")
+        
         // Build AlarmKit configuration
+        print("   → Building AlarmKit configuration...")
         guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
+            print("   ❌ Failed to build configuration")
             throw TickerServiceError.invalidConfiguration
         }
+        print("   → Configuration built successfully")
 
         // Schedule with AlarmKit
         do {
+            print("   → Scheduling with AlarmKit...")
             _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
+            print("   → AlarmKit scheduling successful")
 
             // Update generatedAlarmKitIDs for tracking
             alarmItem.generatedAlarmKitIDs = [alarmItem.id]
             alarmItem.isEnabled = true
+            print("   → Updated alarmItem properties")
 
             // Save to SwiftData
+            print("   → Saving to SwiftData...")
             context.insert(alarmItem)
             try context.save()
+            print("   → SwiftData save successful")
 
             // Update local state
+            print("   → Updating local state...")
             await stateManager.updateState(ticker: alarmItem)
+            print("   → Local state updated")
 
             // Refresh widget timelines
+            print("   → Refreshing widget timelines...")
             refreshWidgetTimelines()
+            print("   → Widget timelines refreshed")
 
         } catch let error as TickerServiceError {
+            print("   ❌ TickerServiceError: \(error)")
             throw error
         } catch {
+            print("   ❌ General error: \(error)")
+            print("   → Rolling back SwiftData changes...")
             // Rollback: remove from SwiftData if scheduling failed
             context.delete(alarmItem)
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
+        print("   ✅ scheduleSimpleAlarm() completed successfully")
     }
 
     @MainActor
@@ -235,13 +268,19 @@ final class TickerService: TickerServiceProtocol {
             expansionStartDate = max(startDate, now)
         case .yearly(_, _, _, let startDate):
             expansionStartDate = max(startDate, now)
+        case .every(_, _, let startTime, _):
+            // Use the start time if it's in the future, otherwise use now
+            expansionStartDate = startTime > now ? startTime : now
         default:
             expansionStartDate = now
         }
         
         let dates = scheduleExpander.expandSchedule(schedule, startingFrom: expansionStartDate, days: alarmItem.generationWindow)
+        print("   → Expanded dates: \(dates)")
+        print("   → Number of dates: \(dates.count)")
 
         guard !dates.isEmpty else {
+            print("   ❌ No dates generated from expansion")
             throw TickerServiceError.invalidConfiguration
         }
 
@@ -249,18 +288,25 @@ final class TickerService: TickerServiceProtocol {
         var scheduledIDs: [UUID] = []
 
         do {
-            for date in dates {
+            for (index, date) in dates.enumerated() {
+                print("   → Processing date \(index + 1)/\(dates.count): \(date)")
+                
                 // Create a temporary one-time schedule for this occurrence
                 let oneTimeSchedule = TickerSchedule.oneTime(date: date)
                 let tempAlarmItem = createTemporaryAlarmItem(from: alarmItem, with: oneTimeSchedule)
+                print("   → Created temp alarm item with schedule: \(tempAlarmItem.schedule)")
 
                 guard let configuration = configurationBuilder.buildConfiguration(from: tempAlarmItem) else {
+                    print("   ❌ Failed to build configuration for date: \(date)")
                     continue
                 }
+                print("   → Configuration built successfully")
 
                 // Generate unique ID for this occurrence
                 let occurrenceID = UUID()
+                print("   → Scheduling alarm with ID: \(occurrenceID)")
                 _ = try await alarmManager.schedule(id: occurrenceID, configuration: configuration)
+                print("   → Alarm scheduled successfully")
                 scheduledIDs.append(occurrenceID)
             }
 
@@ -312,43 +358,67 @@ final class TickerService: TickerServiceProtocol {
 
     @MainActor
     func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
+        print("🔄 TickerService.updateAlarm() started")
+        print("   → alarmItem ID: \(alarmItem.id)")
+        print("   → alarmItem label: '\(alarmItem.label)'")
+        print("   → alarmItem isEnabled: \(alarmItem.isEnabled)")
+        print("   → generatedAlarmKitIDs: \(alarmItem.generatedAlarmKitIDs)")
+        
         // Cancel all existing alarms
+        print("   → Canceling existing alarms...")
         for id in alarmItem.generatedAlarmKitIDs {
+            print("   → Canceling alarm ID: \(id)")
             try? alarmManager.cancel(id: id)
         }
 
         // Save to SwiftData first
+        print("   → Saving to SwiftData...")
         do {
             try context.save()
+            print("   → SwiftData save successful")
         } catch {
+            print("   ❌ SwiftData save failed: \(error)")
             throw TickerServiceError.swiftDataSaveFailed(underlying: error)
         }
 
         // If alarm is enabled, reschedule with AlarmKit
         if alarmItem.isEnabled {
+            print("   → Alarm is enabled, rescheduling...")
+            print("   → Checking authorization...")
             let authStatus = try await requestAuthorization()
+            print("   → Authorization status: \(authStatus)")
             guard authStatus == .authorized else {
+                print("   ❌ Not authorized")
                 throw TickerServiceError.notAuthorized
             }
 
             guard let schedule = alarmItem.schedule else {
+                print("   ❌ No schedule found")
                 throw TickerServiceError.invalidConfiguration
             }
 
             let isSimpleSchedule = isSimple(schedule)
+            print("   → isSimpleSchedule: \(isSimpleSchedule)")
 
             do {
                 if isSimpleSchedule {
+                    print("   → Using simple schedule rescheduling")
                     // Simple schedule
+                    print("   → Building configuration...")
                     guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
+                        print("   ❌ Failed to build configuration")
                         throw TickerServiceError.invalidConfiguration
                     }
 
+                    print("   → Scheduling with AlarmKit...")
                     _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
                     alarmItem.generatedAlarmKitIDs = [alarmItem.id]
+                    print("   → Simple schedule rescheduled successfully")
                 } else {
+                    print("   → Using composite schedule rescheduling")
                     // Composite schedule
                     let now = Date()
+                    print("   → Current time: \(now)")
                     
                     // For hourly schedules, use the start time from the schedule if it's in the future
                     let expansionStartDate: Date
@@ -356,44 +426,62 @@ final class TickerService: TickerServiceProtocol {
                     case .hourly(_, let startTime, _):
                         // Use the start time if it's in the future, otherwise use now
                         expansionStartDate = startTime > now ? startTime : now
+                        print("   → Hourly schedule, startTime: \(startTime)")
                     default:
                         expansionStartDate = now
+                        print("   → Non-hourly schedule, using current time")
                     }
+                    print("   → Expansion start date: \(expansionStartDate)")
                     
+                    print("   → Expanding schedule...")
                     let dates = scheduleExpander.expandSchedule(schedule, startingFrom: expansionStartDate, days: alarmItem.generationWindow)
+                    print("   → Generated \(dates.count) dates")
 
                     var scheduledIDs: [UUID] = []
                     for date in dates {
+                        print("   → Processing date: \(date)")
                         let oneTimeSchedule = TickerSchedule.oneTime(date: date)
                         let tempAlarmItem = createTemporaryAlarmItem(from: alarmItem, with: oneTimeSchedule)
 
                         guard let configuration = configurationBuilder.buildConfiguration(from: tempAlarmItem) else {
+                            print("   ❌ Failed to build configuration for date: \(date)")
                             continue
                         }
 
                         let occurrenceID = UUID()
+                        print("   → Scheduling occurrence ID: \(occurrenceID) for date: \(date)")
                         _ = try await alarmManager.schedule(id: occurrenceID, configuration: configuration)
                         scheduledIDs.append(occurrenceID)
                     }
 
                     alarmItem.generatedAlarmKitIDs = scheduledIDs
+                    print("   → Composite schedule rescheduled with \(scheduledIDs.count) occurrences")
                 }
 
+                print("   → Final SwiftData save...")
                 try context.save()
+                print("   → Updating local state...")
                 await stateManager.updateState(ticker: alarmItem)
-                
+                print("   → Refreshing widget timelines...")
                 // Refresh widget timelines
                 refreshWidgetTimelines()
+                print("   → Composite schedule rescheduled successfully")
             } catch {
+                print("   ❌ Scheduling failed: \(error)")
                 throw TickerServiceError.schedulingFailed(underlying: error)
             }
         } else {
+            print("   → Alarm is disabled, removing from local state")
             // If disabled, just remove from local state
             await stateManager.removeState(id: alarmItem.id)
+            print("   → Removed from local state")
             
             // Refresh widget timelines
+            print("   → Refreshing widget timelines...")
             refreshWidgetTimelines()
+            print("   → Widget timelines refreshed")
         }
+        print("   ✅ updateAlarm() completed successfully")
     }
 
     func cancelAlarm(id: UUID, context: ModelContext?) throws {

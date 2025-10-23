@@ -17,7 +17,7 @@ extension Array {
 
 @Observable
 final class RepeatOptionsViewModel {
-    var selectedOption: RepeatOption = .noRepeat
+    var selectedOption: RepeatOption = .oneTime
     
     // Configuration for weekdays option
     var selectedWeekdays: Array<TickerSchedule.Weekday> = []
@@ -55,7 +55,7 @@ final class RepeatOptionsViewModel {
     }
     
     enum RepeatOption: String, CaseIterable {
-        case noRepeat = "No repeat"
+        case oneTime = "One Time"
         case daily = "Daily"
         case weekdays = "Weekdays"
         case hourly = "Hourly"
@@ -66,7 +66,7 @@ final class RepeatOptionsViewModel {
 
         var icon: String {
             switch self {
-                case .noRepeat: return "calendar"
+                case .oneTime: return "calendar"
                 case .daily: return "repeat"
                 case .weekdays: return "calendar.badge.clock"
                 case .hourly: return "clock"
@@ -79,7 +79,7 @@ final class RepeatOptionsViewModel {
 
         var needsConfiguration: Bool {
             switch self {
-                case .noRepeat, .daily:
+                case .oneTime, .daily:
                     return false
                 case .weekdays, .hourly, .every, .biweekly, .monthly, .yearly:
                     return true
@@ -99,8 +99,8 @@ final class RepeatOptionsViewModel {
     
     var displayText: String {
         switch selectedOption {
-            case .noRepeat:
-                return "No repeat"
+            case .oneTime:
+                return "One time"
             case .daily:
                 return "Repeats every day"
             case .weekdays:
@@ -174,7 +174,7 @@ final class RepeatOptionsViewModel {
     }
     
     func reset() {
-        selectedOption = .noRepeat
+        selectedOption = .oneTime
         selectedWeekdays = []
         hourlyInterval = 1
         hourlyStartTime = Date()

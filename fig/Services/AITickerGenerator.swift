@@ -46,7 +46,7 @@ class AITickerGenerator: ObservableObject {
     private var parsingTask: Task<Void, Never>?
     
     enum RepeatOption: Equatable {
-        case noRepeat
+        case oneTime
         case daily
         case weekdays([TickerSchedule.Weekday])
         case hourly(interval: Int)
@@ -564,8 +564,8 @@ class AITickerGenerator: ObservableObject {
             return .yearly(month: 1, day: 1) // Default to January 1st
         }
         
-        // Default to no repeat
-        return .noRepeat
+        // Default to one time
+        return .oneTime
     }
     
     private func parseCountdown(from input: String) -> TickerConfiguration.CountdownConfiguration? {

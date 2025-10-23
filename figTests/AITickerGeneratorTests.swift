@@ -154,7 +154,7 @@ final class AITickerGeneratorTests: XCTestCase {
         let input = "Doctor appointment at 2pm tomorrow"
         let configuration = try await aiGenerator.generateTickerConfiguration(from: input)
         
-        if case .noRepeat = configuration.repeatOption {
+        if case .oneTime = configuration.repeatOption {
             // Success
         } else {
             XCTFail("Expected no repeat pattern")

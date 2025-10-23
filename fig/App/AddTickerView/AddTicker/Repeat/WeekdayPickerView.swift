@@ -13,6 +13,12 @@ struct WeekdayPickerView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+            Text("Perfect for work schedules")
+                .Caption()
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.bottom, TickerSpacing.xs)
+
             Text("Select Days")
                 .Caption()
                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))

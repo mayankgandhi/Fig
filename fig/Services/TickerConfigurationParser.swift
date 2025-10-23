@@ -56,7 +56,7 @@ class TickerConfigurationParser {
         )
         
         switch configuration.repeatOption {
-        case .noRepeat:
+        case .oneTime:
             return .oneTime(date: configuration.date)
             
         case .daily:
@@ -201,7 +201,7 @@ extension TickerConfigurationParser {
         }
         
         // For one-time alarms, check if countdown would start in the past
-        if case .noRepeat = configuration.repeatOption {
+        if case .oneTime = configuration.repeatOption {
             let alarmDate = configuration.date
             let countdownStartDate = alarmDate.addingTimeInterval(-countdownDuration)
             
