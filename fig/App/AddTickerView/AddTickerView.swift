@@ -75,17 +75,16 @@ struct AddTickerView: View {
                 }
                 .padding(.top, TickerSpacing.md)
             }
-            .overlay(alignment: .bottom) {
-                // Expanded content overlay
-                ExpandableOverlayContainer(
-                    isPresented: viewModel.optionsPillsViewModel.expandedField != nil,
-                    onDismiss: {
+            .sheet(isPresented: Binding(
+                get: { viewModel.optionsPillsViewModel.expandedField != nil },
+                set: { isPresented in
+                    if !isPresented {
                         viewModel.optionsPillsViewModel.collapseField()
                     }
-                ) {
-                    if let field = viewModel.optionsPillsViewModel.expandedField {
-                        ExpandedFieldContent(field: field, viewModel: viewModel)
-                    }
+                }
+            )) {
+                if let field = viewModel.optionsPillsViewModel.expandedField {
+                    ExpandedFieldContent(field: field, viewModel: viewModel)
                 }
             }
             .background(backgroundView)
