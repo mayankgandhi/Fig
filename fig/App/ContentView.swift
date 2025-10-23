@@ -255,9 +255,9 @@ struct ContentView: View {
                     } label: {
                         HStack(spacing: TickerSpacing.xs) {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 16, weight: .semibold))
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
                             Text("Add Ticker")
-                                .font(.system(size: 16, weight: .bold))
+                                .ButtonText()
                         }
                         .foregroundStyle(TickerColor.absoluteWhite)
                         .padding(.horizontal, TickerSpacing.xl)
@@ -284,6 +284,8 @@ struct ContentView: View {
                 AlarmCell(alarmItem: ticker) {
                     alarmToShowDetail = ticker
                 }
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
                 .contextMenu(menuItems: {
                     Button {
                         TickerHaptics.selection()
@@ -291,7 +293,7 @@ struct ContentView: View {
                     } label: {
                         Label("Edit", systemImage: "pencil")
                     }
-                    .tint(TickerColor.primary)
+                    .tint(.blue)
                     
                     Button(role: .destructive) {
                         TickerHaptics.selection()
@@ -302,27 +304,6 @@ struct ContentView: View {
                     }
                     .tint(.red)
                 })
-                .listRowInsets(EdgeInsets(top: TickerSpacing.xs, leading: 20, bottom: TickerSpacing.xs, trailing: 20))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    Button {
-                        TickerHaptics.selection()
-                            alarmToEdit = ticker
-                        } label: {
-                            Label("Edit", systemImage: "pencil")
-                        }
-                        .tint(TickerColor.primary)
-
-                        Button(role: .destructive) {
-                            TickerHaptics.selection()
-                            alarmToDelete = ticker
-                            showDeleteAlert = true
-                        } label: {
-                            Label("Delete", systemImage: "trash")
-                        }
-                        .tint(.red)
-                    }
             }
         }
         .listStyle(.plain)
@@ -414,7 +395,6 @@ struct ContentView: View {
 }
 
 #Preview {
-    return ContentView()
+   ContentView()
         .environment(TickerService())
-        .modelContainer(for: Ticker.self, inMemory: true)
 }

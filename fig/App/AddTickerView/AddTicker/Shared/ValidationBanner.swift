@@ -14,11 +14,11 @@ struct ValidationBanner: View {
     var body: some View {
         HStack(spacing: TickerSpacing.sm) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.system(size: 14, weight: .medium))
+                .Subheadline()
                 .foregroundStyle(TickerColor.warning)
 
             Text(message)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .Footnote()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 .multilineTextAlignment(.leading)
 

@@ -16,11 +16,11 @@ struct AlarmDetailOptionPill: View {
     var body: some View {
         HStack(spacing: TickerSpacing.xxs) {
             Image(systemName: icon)
-                .font(.system(size: 12, weight: .medium))
+                .font(.caption.weight(.medium))
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
             Text(title)
-                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .Footnote()
                 .lineLimit(1)
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
         }

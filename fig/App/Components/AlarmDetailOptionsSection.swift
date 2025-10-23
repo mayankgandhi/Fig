@@ -15,7 +15,7 @@ struct AlarmDetailOptionsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.xs) {
             Text("OPTIONS")
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .Caption()
                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
             FlowLayout(spacing: TickerSpacing.xs) {

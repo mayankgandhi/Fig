@@ -136,11 +136,11 @@ struct ScheduleView: View {
         VStack(spacing: TickerSpacing.xs) {
             HStack(spacing: TickerSpacing.xs) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 12, weight: .medium))
+                    .Caption()
                     .foregroundStyle(TickerColor.warning)
 
                 Text(message)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .Caption()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .multilineTextAlignment(.leading)
 
@@ -154,9 +154,9 @@ struct ScheduleView: View {
             } label: {
                 HStack(spacing: TickerSpacing.xxs) {
                     Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 11, weight: .medium))
+                        .Caption2()
                     Text("Fix Date")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .Caption2()
                 }
                 .foregroundStyle(TickerColor.primary)
                 .padding(.horizontal, TickerSpacing.xs)

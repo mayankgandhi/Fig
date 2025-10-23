@@ -15,13 +15,13 @@ struct BiweeklyConfigView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             Text("Biweekly Repeat")
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .Callout()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
             // Weekday Selector
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("Select Days")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                 LazyVGrid(columns: [
@@ -41,7 +41,7 @@ struct BiweeklyConfigView: View {
             // Anchor Date
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("Starting Week")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                 DatePicker("", selection: $anchorDate, displayedComponents: .date)
@@ -49,7 +49,7 @@ struct BiweeklyConfigView: View {
                     .labelsHidden()
 
                 Text("The alarm will repeat every other week starting from this date's week")
-                    .font(.system(size: 11, weight: .regular, design: .rounded))
+                    .Caption2()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme).opacity(0.8))
             }
 
@@ -58,7 +58,7 @@ struct BiweeklyConfigView: View {
                 let sortedDays = selectedWeekdays.sorted { $0.rawValue < $1.rawValue }
                 let dayNames = sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
                 Text("Alarms will repeat every other week on \(dayNames)")
-                    .font(.system(size: 12, weight: .regular, design: .rounded))
+                    .Caption()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     .padding(.top, TickerSpacing.xs)
             }
@@ -97,7 +97,7 @@ struct BiweeklyConfigView: View {
         } label: {
             VStack(spacing: TickerSpacing.xxs) {
                 Text(weekday.shortDisplayName)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(isSelected ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
             }
             .frame(maxWidth: .infinity)

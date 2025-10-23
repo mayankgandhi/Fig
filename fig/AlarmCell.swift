@@ -20,59 +20,46 @@ struct AlarmCell: View {
     }
 
     var body: some View {
-        HStack(spacing: TickerSpacing.sm) {
-            // Leading: Category icon with colored background
+        HStack(spacing: 12) {
+            // Icon
             categoryIconView
-
-            // Main content area
-            VStack(alignment: .leading, spacing: TickerSpacing.xs) {
-                // Primary: Alarm label
-                Text(alarmItem.label)
-                    .Title3()
-                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-
-                // Secondary: Category name
-                if let tickerData = alarmItem.tickerData, let name = tickerData.name, name != alarmItem.label {
-                    Text(name)
-                        .Subheadline()
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+            
+            // Main content
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(alarmItem.label)
+                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                    
+                    Spacer()
+                    
+                    // Time display
+                    if let schedule = alarmItem.schedule {
+                        scheduleText(for: schedule)
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .foregroundStyle(.primary)
+                    } else if let countdown = alarmItem.countdown?.preAlert {
+                        Text(formatDuration(countdown.interval))
+                            .font(.system(size: 16, weight: .medium, design: .rounded))
+                            .foregroundStyle(.primary)
+                    }
                 }
-
-                // Tertiary: Schedule info
-                scheduleInfoView
-                    .Footnote()
-                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-            }
-
-            Spacer()
-
-            // Trailing: Time and status
-            VStack(alignment: .trailing, spacing: TickerSpacing.xs) {
-                // Time display (large and prominent)
-                if let schedule = alarmItem.schedule {
-                    scheduleText(for: schedule)
-                    .Title()
-                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                } else if let countdown = alarmItem.countdown?.preAlert {
-                    Text(formatDuration(countdown.interval))
-                        .Headline()
-                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                
+                HStack {
+                    // Schedule info
+                    scheduleInfoView
+                        .font(.system(size: 14, weight: .regular, design: .rounded))
+                        .foregroundStyle(.secondary)
+                    
+                    Spacer()
+                    
+                    // Status tag
+                    tag
                 }
-
-                // Status tag
-                tag
             }
         }
-        .padding(TickerSpacing.sm)
-        .background(TickerColor.surface(for: colorScheme))
-        .background(.ultraThinMaterial.opacity(0.5))
-        .clipShape(RoundedRectangle(cornerRadius: TickerRadius.large))
-        .shadow(
-            color: TickerShadow.subtle.color,
-            radius: TickerShadow.subtle.radius,
-            x: TickerShadow.subtle.x,
-            y: TickerShadow.subtle.y
-        )
+        .padding(.vertical, 8)
         .contentShape(Rectangle())
         .onTapGesture {
             TickerHaptics.selection()
@@ -85,26 +72,15 @@ struct AlarmCell: View {
     @ViewBuilder
     private var categoryIconView: some View {
         if let tickerData = alarmItem.tickerData, let icon = tickerData.icon {
-            ZStack {
-                Circle()
-                    .fill(Color(hex: tickerData.colorHex ?? "") ?? TickerColor.scheduled)
-                    .opacity(0.15)
-                    .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
-
-                Image(systemName: icon)
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(Color(hex: tickerData.colorHex ?? "") ?? TickerColor.scheduled)
-            }
+            Image(systemName: icon)
+                .font(.system(size: 20, weight: .medium, design: .rounded))
+                .foregroundStyle(Color(hex: tickerData.colorHex ?? "") ?? .blue)
+                .frame(width: 24, height: 24)
         } else {
-            ZStack {
-                Circle()
-                    .fill(TickerColor.scheduled.opacity(0.15))
-                    .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
-
-                Image(systemName: "alarm")
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundStyle(TickerColor.scheduled)
-            }
+            Image(systemName: "alarm")
+                .font(.system(size: 20, weight: .medium, design: .rounded))
+                .foregroundStyle(.blue)
+                .frame(width: 24, height: 24)
         }
     }
 
@@ -135,21 +111,15 @@ struct AlarmCell: View {
         case .daily(let time, _), .weekdays(let time, _, _), .biweekly(let time, _, _), .monthly(_, let time, _), .yearly(_, _, let time, _):
             Text(formatTime(time))
         case .hourly:
-            Image(systemName: "clock")
-                .font(.system(size: 20, weight: .medium))
+            Text("Hourly")
         case .every(let interval, let unit, let startTime, _):
             // For short intervals (minutes/hours), show start time
-            // For longer intervals (days/weeks), show icon with interval
+            // For longer intervals (days/weeks), show interval
             switch unit {
             case .minutes, .hours:
                 Text(startTime, style: .time)
             case .days, .weeks:
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 16, weight: .medium))
-                    Text("\(interval)")
-                        .font(.system(size: 20, weight: .bold))
-                }
+                Text("Every \(interval) \(unit.displayName)")
             }
         }
     }
@@ -174,7 +144,12 @@ struct AlarmCell: View {
 
     var tag: some View {
         Text(tagLabel)
-            .tickerStatusBadge(color: tagColor)
+            .font(.system(size: 12, weight: .medium, design: .rounded))
+            .foregroundStyle(tagColor)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 4)
+            .background(tagColor.opacity(0.1))
+            .clipShape(Capsule())
     }
 
     var tagLabel: String {
@@ -189,10 +164,10 @@ struct AlarmCell: View {
     var tagColor: Color {
         // If alarm is in service, it's active (scheduled color)
         if tickerService.getTicker(id: alarmItem.id) != nil {
-            return TickerColor.scheduled
+            return .green
         }
         // If not in service
-        return alarmItem.isEnabled ? TickerColor.scheduled : TickerColor.disabled
+        return alarmItem.isEnabled ? .blue : .gray
     }
 }
 

@@ -20,11 +20,11 @@ struct YearlyConfigView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             Text("Yearly Repeat")
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .Callout()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
             Text("Perfect for birthdays, anniversaries, and annual events")
-                .font(.system(size: 13, weight: .regular, design: .rounded))
+                .Footnote()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
             Divider()
@@ -35,7 +35,7 @@ struct YearlyConfigView: View {
                 // Month Picker
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                     Text("Month")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .Subheadline()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                     Picker("Month", selection: $month) {
@@ -51,7 +51,7 @@ struct YearlyConfigView: View {
                 // Day Picker
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                     Text("Day")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .Subheadline()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                     Picker("Day", selection: $day) {
@@ -67,7 +67,7 @@ struct YearlyConfigView: View {
 
             // Helper Text
             Text("Alarm will repeat every year on \(monthNames[month - 1]) \(day)")
-                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .padding(.top, TickerSpacing.xs)
         }

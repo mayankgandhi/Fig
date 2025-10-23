@@ -114,11 +114,11 @@ struct RepeatOptionsView: View {
         VStack(spacing: TickerSpacing.sm) {
             HStack(spacing: TickerSpacing.sm) {
                 Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 14, weight: .medium))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.warning)
                 
                 Text(message)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .Footnote()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .multilineTextAlignment(.leading)
                 
@@ -132,9 +132,9 @@ struct RepeatOptionsView: View {
                 } label: {
                     HStack(spacing: TickerSpacing.xs) {
                         Image(systemName: "arrow.clockwise")
-                            .font(.system(size: 12, weight: .medium))
+                            .Caption()
                         Text("Fix Date")
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            .Caption()
                     }
                     .foregroundStyle(TickerColor.primary)
                     .padding(.horizontal, TickerSpacing.sm)

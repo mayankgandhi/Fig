@@ -216,11 +216,11 @@ struct ClockWidgetView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Upcoming Alarms")
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                         
                         Text("\(entry.upcomingAlarms.count) scheduled")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     }
                     
@@ -230,11 +230,11 @@ struct ClockWidgetView: View {
                     if let nextAlarm = entry.upcomingAlarms.first {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("Next")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(.system(size: 10, weight: .medium, design: .rounded))
                                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                             
                             Text(nextAlarm.timeUntilAlarm(from: entry.date))
-                                .font(.system(size: 12, weight: .bold))
+                                .font(.system(size: 12, weight: .bold, design: .rounded))
                                 .foregroundStyle(nextAlarm.color)
                         }
                     }

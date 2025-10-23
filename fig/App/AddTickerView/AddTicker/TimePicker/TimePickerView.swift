@@ -16,11 +16,11 @@ struct TimePickerView: View {
             // Title with better hierarchy
             VStack(spacing: TickerSpacing.xs) {
                 Text("Set Time")
-                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .TickerTitle()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 
                 Text(viewModel.formattedTime)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .DetailText()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
 
@@ -29,7 +29,7 @@ struct TimePickerView: View {
                 // Hour Picker
                 VStack(spacing: TickerSpacing.xs) {
                     Text("HOUR")
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .Caption2()
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .textCase(.uppercase)
                         .tracking(0.5)
@@ -37,7 +37,7 @@ struct TimePickerView: View {
                     Picker("Hour", selection: $viewModel.selectedHour) {
                         ForEach(0..<24) { hour in
                             Text(String(format: "%02d", hour))
-                                .font(.system(size: 40, weight: .bold, design: .rounded))
+                                .TimeDisplay()
                                 .tag(hour)
                         }
                     }
@@ -77,7 +77,7 @@ struct TimePickerView: View {
                 // Minute Picker
                 VStack(spacing: TickerSpacing.xs) {
                     Text("MIN")
-                        .font(.system(size: 10, weight: .bold, design: .rounded))
+                        .Caption2()
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .textCase(.uppercase)
                         .tracking(0.5)
@@ -85,7 +85,7 @@ struct TimePickerView: View {
                     Picker("Minute", selection: $viewModel.selectedMinute) {
                         ForEach(0..<60) { minute in
                             Text(String(format: "%02d", minute))
-                                .font(.system(size: 40, weight: .bold, design: .rounded))
+                                .TimeDisplay()
                                 .tag(minute)
                         }
                     }

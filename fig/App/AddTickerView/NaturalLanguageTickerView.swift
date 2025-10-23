@@ -86,18 +86,18 @@ struct NaturalLanguageTickerView: View {
                     .frame(width: 80, height: 80)
                 
                 Image(systemName: "sparkles")
-                    .font(.system(size: 32, weight: .medium))
+                    .font(.system(size: 24, weight: .medium, design: .rounded))
                     .foregroundStyle(TickerColor.primary)
             }
             
             VStack(spacing: TickerSpacing.sm) {
                 Text("Describe Your Ticker")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .TickerTitle()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .multilineTextAlignment(.center)
                 
                 Text("Tell me what kind of ticker you want, and I'll set it up for you")
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .DetailText()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, TickerSpacing.md)
@@ -111,11 +111,11 @@ struct NaturalLanguageTickerView: View {
         VStack(spacing: TickerSpacing.md) {
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("What do you want to be reminded about?")
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .Headline()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 
                 Text("Be specific about the time, activity, and how often")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -142,13 +142,13 @@ struct NaturalLanguageTickerView: View {
                 
                 if inputText.isEmpty {
                     Text("e.g., Wake up at 7am every weekday")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .Caption()
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .padding(TickerSpacing.lg)
                 }
                 
                 TextEditor(text: $inputText)
-                    .font(.system(size: 16, weight: .medium, design: .rounded))
+                    .Body()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
@@ -164,7 +164,7 @@ struct NaturalLanguageTickerView: View {
         VStack(spacing: TickerSpacing.md) {
             HStack {
                 Text("Try these examples:")
-                    .font(.system(size: 16, weight: .semibold, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 
                 Spacer()
@@ -202,11 +202,11 @@ struct NaturalLanguageTickerView: View {
                         .scaleEffect(0.8)
                 } else {
                     Image(systemName: "sparkles")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.callout.weight(.bold))
                 }
 
                 Text(aiGenerator.isGenerating ? "Generating..." : "Generate Ticker")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .Headline()
             }
             .foregroundStyle(TickerColor.absoluteWhite)
             .frame(maxWidth: .infinity)
@@ -336,7 +336,7 @@ struct ExamplePromptCard: View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                 Text(prompt)
-                    .font(.system(size: 13, weight: .medium, design: .rounded))
+                    .Body()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .multilineTextAlignment(.leading)
                     .lineLimit(3)
@@ -346,7 +346,7 @@ struct ExamplePromptCard: View {
                 HStack {
                     Spacer()
                     Image(systemName: "arrow.up.left")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.caption2.weight(.semibold))
                         .foregroundStyle(TickerColor.primary)
                 }
             }

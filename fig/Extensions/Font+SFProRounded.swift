@@ -8,71 +8,6 @@
 
 import SwiftUI
 
-extension Font {
-
-
-    // MARK: - Dynamic Type Styles with SF Pro Rounded
-
-    /// Large Title style with SF Pro Rounded (34pt base, scales with Dynamic Type)
-    static var LargeTitle: Font {
-        .system(size: 34, weight: .bold, design: .rounded)
-    }
-
-    /// Title 1 style with SF Pro Rounded (28pt base, scales with Dynamic Type)
-    static var Title: Font {
-        .system(size: 28, weight: .bold, design: .rounded)
-    }
-
-    /// Title 2 style with SF Pro Rounded (22pt base, scales with Dynamic Type)
-    static var Title2: Font {
-        .system(size: 22, weight: .bold, design: .rounded)
-    }
-
-    /// Title 3 style with SF Pro Rounded (20pt base, scales with Dynamic Type)
-    static var Title3: Font {
-        .system(size: 20, weight: .semibold, design: .rounded)
-    }
-
-    /// Headline style with SF Pro Rounded (17pt base, scales with Dynamic Type)
-    static var Headline: Font {
-        .system(size: 17, weight: .semibold, design: .rounded)
-    }
-
-    /// Body style with SF Pro Rounded (17pt base, scales with Dynamic Type)
-    static var Body: Font {
-        .system(size: 17, weight: .regular, design: .rounded)
-    }
-
-    /// Callout style with SF Pro Rounded (16pt base, scales with Dynamic Type)
-    static var Callout: Font {
-        .system(size: 16, weight: .regular, design: .rounded)
-    }
-
-    /// Subheadline style with SF Pro Rounded (15pt base, scales with Dynamic Type)
-    static var Subheadline: Font {
-        .system(size: 15, weight: .semibold, design: .rounded)
-    }
-
-    /// Footnote style with SF Pro Rounded (13pt base, scales with Dynamic Type)
-    static var Footnote: Font {
-        .system(size: 13, weight: .medium, design: .rounded)
-    }
-
-    /// Caption 1 style with SF Pro Rounded (12pt base, scales with Dynamic Type)
-    static var Caption: Font {
-        .system(size: 12, weight: .medium, design: .rounded)
-    }
-
-    /// Caption 2 style with SF Pro Rounded (11pt base, scales with Dynamic Type)
-    static var Caption2: Font {
-        .system(size: 11, weight: .regular, design: .rounded)
-    }
-
-
-}
-
-// MARK: - View Extension for Easy Application
-
 extension View {
 
     /// Apply SF Pro Rounded large title style
@@ -130,7 +65,99 @@ extension View {
         self.font(.Caption2)
     }
 
+    // MARK: - Consistent Typography Hierarchy
+    
+    /// Apply consistent time display font (28pt) - for card time displays
+    func TimeDisplay() -> some View {
+        self.font(.system(size: 28, weight: .bold, design: .rounded))
+    }
+    
+    /// Apply consistent ticker title font (18pt) - for ticker names
+    func TickerTitle() -> some View {
+        self.font(.system(size: 18, weight: .semibold, design: .rounded))
+    }
+    
+    /// Apply consistent detail text font (15pt) - for schedule details
+    func DetailText() -> some View {
+        self.font(.system(size: 15, weight: .medium, design: .rounded))
+    }
+    
+    /// Apply consistent button text font (14pt) - for buttons and labels
+    func ButtonText() -> some View {
+        self.font(.system(size: 14, weight: .semibold, design: .rounded))
+    }
+    
+    /// Apply consistent small text font (12pt) - for secondary info
+    func SmallText() -> some View {
+        self.font(.system(size: 12, weight: .medium, design: .rounded))
+    }
+
 }
+
+fileprivate extension Font {
+
+    // MARK: - Dynamic Type Styles with SF Pro Rounded
+
+    /// Large Title style with SF Pro Rounded (34pt base, scales with Dynamic Type)
+    static var LargeTitle: Font {
+        .system(.largeTitle, design: .rounded, weight: .bold)
+    }
+
+    /// Title 1 style with SF Pro Rounded (28pt base, scales with Dynamic Type)
+    static var Title: Font {
+        .system(.title, design: .rounded, weight: .bold)
+    }
+
+    /// Title 2 style with SF Pro Rounded (22pt base, scales with Dynamic Type)
+    static var Title2: Font {
+        .system(.title2, design: .rounded, weight: .bold)
+    }
+
+    /// Title 3 style with SF Pro Rounded (20pt base, scales with Dynamic Type)
+    static var Title3: Font {
+        .system(.title3, design: .rounded, weight: .semibold)
+    }
+
+    /// Headline style with SF Pro Rounded (17pt base, scales with Dynamic Type)
+    static var Headline: Font {
+        .system(.headline, design: .rounded, weight: .semibold)
+    }
+
+    /// Body style with SF Pro Rounded (17pt base, scales with Dynamic Type)
+    static var Body: Font {
+        .system(.body, design: .rounded, weight: .regular)
+    }
+
+    /// Callout style with SF Pro Rounded (16pt base, scales with Dynamic Type)
+    static var Callout: Font {
+        .system(.callout, design: .rounded, weight: .regular)
+    }
+
+    /// Subheadline style with SF Pro Rounded (15pt base, scales with Dynamic Type)
+    static var Subheadline: Font {
+        .system(.subheadline, design: .rounded, weight: .semibold)
+    }
+
+    /// Footnote style with SF Pro Rounded (13pt base, scales with Dynamic Type)
+    static var Footnote: Font {
+        .system(.footnote, design: .rounded, weight: .medium)
+    }
+
+    /// Caption 1 style with SF Pro Rounded (12pt base, scales with Dynamic Type)
+    static var Caption: Font {
+        .system(.caption, design: .rounded, weight: .medium)
+    }
+
+    /// Caption 2 style with SF Pro Rounded (11pt base, scales with Dynamic Type)
+    static var Caption2: Font {
+        .system(.caption2, design: .rounded, weight: .regular)
+    }
+
+}
+
+// MARK: - View Extension for Easy Application
+
+
 
 // MARK: - Preview Helper
 

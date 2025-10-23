@@ -79,7 +79,7 @@ struct TickerPill: View {
     var body: some View {
         HStack(spacing: size.spacing) {
             Image(systemName: icon)
-                .font(.system(size: size.iconSize, weight: .semibold))
+                .font(.system(size: size.iconSize, weight: .semibold, design: .rounded))
                 .foregroundStyle(iconColor)
 
             Text(title)

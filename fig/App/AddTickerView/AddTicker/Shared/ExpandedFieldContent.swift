@@ -47,7 +47,7 @@ struct ExpandedFieldContent: View {
                         .frame(width: 28, height: 28)
 
                     Image(systemName: "xmark")
-                        .font(.system(size: 11, weight: .semibold))
+                        .Caption2()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
                 .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)

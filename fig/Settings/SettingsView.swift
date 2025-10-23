@@ -93,7 +93,7 @@ struct SettingsView: View {
                     .frame(width: 24, height: 24)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
                     .foregroundStyle(TickerColor.primary)
             }
             

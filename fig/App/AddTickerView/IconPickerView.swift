@@ -68,7 +68,7 @@ private struct IconCell: View {
 
                 // Icon
                 Image(systemName: iconPair.symbol)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.system(size: 20, weight: .medium, design: .rounded))
                     .foregroundStyle(iconPair.color)
 
                 // Selection indicator

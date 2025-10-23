@@ -24,11 +24,11 @@ struct AddTickerToolbar: ToolbarContent {
         ToolbarItem(placement: .principal) {
             VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                 Text(isEditMode ? "Edit Ticker" : "New Ticker")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .Headline()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                 Text(formattedTime)
-                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .Caption()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     .opacity(0.8)
             }
@@ -40,7 +40,7 @@ struct AddTickerToolbar: ToolbarContent {
                 onDismiss()
             } label: {
                 Image(systemName: "xmark")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.callout.weight(.semibold))
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
             }
             .buttonStyle(PlainButtonStyle())
@@ -88,10 +88,10 @@ private struct SaveButton: View {
                         .scaleEffect(0.8)
                 } else {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .bold))
+                        .font(.callout.weight(.bold))
                 }
                 Text(isSaving ? "Saving..." : "Save")
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .Body()
             }
             .foregroundStyle(TickerColor.absoluteWhite)
             .padding(.horizontal, TickerSpacing.lg)

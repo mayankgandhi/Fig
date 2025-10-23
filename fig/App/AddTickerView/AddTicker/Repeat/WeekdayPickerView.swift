@@ -14,7 +14,7 @@ struct WeekdayPickerView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             Text("Select Days")
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .Callout()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
             LazyVGrid(columns: [
@@ -59,7 +59,7 @@ struct WeekdayPickerView: View {
         } label: {
             VStack(spacing: TickerSpacing.xxs) {
                 Text(weekday.shortDisplayName)
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(isSelected ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
             }
             .frame(maxWidth: .infinity)

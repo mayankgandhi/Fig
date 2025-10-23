@@ -22,7 +22,7 @@ struct AlarmDetailHeader: View {
                     .frame(width: 44, height: 44)
 
                 Image(systemName: iconSymbol)
-                    .font(.system(size: 20, weight: .medium))
+                    .font(.title3.weight(.medium))
                     .foregroundStyle(iconColor)
             }
 
@@ -34,7 +34,7 @@ struct AlarmDetailHeader: View {
 
                 // Status badge
                 Text(statusLabel)
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .Caption2()
                     .foregroundStyle(statusColor)
                     .padding(.horizontal, TickerSpacing.xs)
                     .padding(.vertical, 2)

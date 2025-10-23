@@ -16,14 +16,14 @@ struct AlarmDetailTimeSection: View {
         VStack(spacing: TickerSpacing.xs) {
             if let schedule = alarm.schedule {
                 Text(timeString(for: schedule))
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .TimeDisplay()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                 HStack(spacing: TickerSpacing.xxs) {
                     Image(systemName: schedule.icon)
-                        .font(.system(size: 12))
+                        .Caption()
                     Text(scheduleTypeLabel(for: schedule))
-                        .font(.system(size: 13, weight: .medium, design: .rounded))
+                        .Footnote()
                 }
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }

@@ -20,7 +20,7 @@ struct EveryConfigView: View {
             // Unit Picker
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("Time Unit")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                 Picker("Unit", selection: $unit) {
@@ -41,7 +41,7 @@ struct EveryConfigView: View {
             // Interval Picker
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("Repeat Every")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                 HStack(spacing: TickerSpacing.sm) {
@@ -55,7 +55,7 @@ struct EveryConfigView: View {
                     .clipped()
 
                     Text(intervalDisplayText)
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .Callout()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 }
             }
@@ -66,7 +66,7 @@ struct EveryConfigView: View {
             // Start Time
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("Start Time")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                 DatePicker("", selection: $startTime, displayedComponents: displayComponents)
@@ -81,7 +81,7 @@ struct EveryConfigView: View {
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Toggle(isOn: $useEndTime) {
                     Text("Set End Time")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .Subheadline()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 }
                 .tint(TickerColor.primary)
@@ -103,7 +103,7 @@ struct EveryConfigView: View {
 
             // Helper Text
             Text(summaryText)
-                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .padding(.top, TickerSpacing.xs)
         }

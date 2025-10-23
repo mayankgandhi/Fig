@@ -437,7 +437,7 @@ struct TickerStatusBadge: ViewModifier {
 
     func body(content: Content) -> some View {
         content
-            .Caption()
+            .ButtonText()
             .textCase(.uppercase)
             .foregroundStyle(TickerColor.absoluteWhite)
             .padding(.horizontal, TickerSpacing.sm)

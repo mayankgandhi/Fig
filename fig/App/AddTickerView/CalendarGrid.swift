@@ -52,7 +52,7 @@ struct CalendarGrid: View {
             // Start Date Label (when repeat is selected)
             if showStartDateLabel {
                 Text("START DATE")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .Caption2()
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     .textCase(.uppercase)
                     .tracking(0.8)
@@ -68,7 +68,7 @@ struct CalendarGrid: View {
                     }
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 12, weight: .semibold))
+                        .Caption()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
 
@@ -84,7 +84,7 @@ struct CalendarGrid: View {
                     }
                 } label: {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 12, weight: .semibold))
+                        .Caption()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
             }
@@ -92,7 +92,7 @@ struct CalendarGrid: View {
             LazyVGrid(columns: columns, spacing: 4) {
                 ForEach(weekdaySymbols, id: \.id) { symbol in
                     Text(symbol.label)
-                        .font(.system(size: 10, weight: .medium))
+                        .Caption2()
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .frame(maxWidth: .infinity)
                 }
@@ -137,7 +137,7 @@ struct CalendarDayCell: View {
     var body: some View {
         Button(action: onTap) {
             Text(dayNumber)
-                .font(.system(size: 14, weight: isSelected ? .semibold : .regular))
+                .Subheadline()
                 .foregroundStyle(isSelected ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
                 .frame(maxWidth: .infinity)
                 .frame(height: 32)

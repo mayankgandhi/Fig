@@ -13,6 +13,6 @@ struct LabelEditorView: View {
 
     var body: some View {
         TextField("Enter label", text: $viewModel.labelText)
-            .font(.system(size: 16, weight: .medium, design: .rounded))
+            .Callout()
     }
 }

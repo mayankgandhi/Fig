@@ -14,7 +14,7 @@ struct CountdownConfigView: View {
     var body: some View {
         VStack(spacing: TickerSpacing.md) {
             Toggle("Enable Countdown", isOn: $viewModel.isEnabled)
-                .font(.system(size: 15, weight: .medium, design: .rounded))
+                .Subheadline()
                 .tint(TickerColor.primary)
 
             if viewModel.isEnabled {

@@ -64,15 +64,15 @@ struct TodayClockView: View {
                                 if !viewModel.hasUpcomingAlarms {
                                     VStack(spacing: TickerSpacing.sm) {
                                         Image(systemName: "clock.badge.checkmark")
-                                            .font(.system(size: 64))
+                                            .font(.system(size: 48, weight: .medium, design: .rounded))
                                             .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                                         
                                         Text("No upcoming alarms")
-                                            .Title2()
+                                            .TickerTitle()
                                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                                         Text("All upcoming alarms will appear here")
-                                            .Footnote()
+                                            .DetailText()
                                             .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                                             .multilineTextAlignment(.center)
                                             .padding(.horizontal, TickerSpacing.xxl)

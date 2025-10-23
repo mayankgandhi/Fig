@@ -18,7 +18,7 @@ struct OptionsPillsView: View {
             // Enhanced section header
             HStack {
                 Text("OPTIONS")
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .Caption2()
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     .textCase(.uppercase)
                     .tracking(0.8)
