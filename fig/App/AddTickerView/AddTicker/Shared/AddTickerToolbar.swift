@@ -93,7 +93,7 @@ private struct SaveButton: View {
                 Text(isSaving ? "Saving..." : "Save")
                     .Body()
             }
-            .foregroundStyle(TickerColor.absoluteWhite)
+            .foregroundStyle(TickerColor.primary)
             .padding(.horizontal, TickerSpacing.lg)
             .padding(.vertical, TickerSpacing.md)
             .scaleEffect(isSaving ? 0.95 : 1.0)

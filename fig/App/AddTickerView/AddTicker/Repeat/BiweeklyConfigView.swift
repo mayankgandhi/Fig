@@ -13,43 +13,46 @@ struct BiweeklyConfigView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
-            Text("Biweekly Repeat")
-                .Callout()
-                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // Weekday Selector Section
+            configurationSection {
+                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                    Text("Select Days")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .textCase(.uppercase)
+                        .tracking(0.8)
 
-            // Weekday Selector
-            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                Text("Select Days")
-                    .Subheadline()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: TickerSpacing.sm) {
-                    ForEach(TickerSchedule.Weekday.allCases, id: \.self) { weekday in
-                        weekdayButton(for: weekday)
+                    LazyVGrid(columns: [
+                        GridItem(.flexible()),
+                        GridItem(.flexible()),
+                        GridItem(.flexible())
+                    ], spacing: TickerSpacing.sm) {
+                        ForEach(TickerSchedule.Weekday.allCases, id: \.self) { weekday in
+                            weekdayButton(for: weekday)
+                        }
                     }
                 }
             }
 
-            Divider()
+            // Anchor Date Section
+            configurationSection {
+                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                    Text("Starting Week")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .textCase(.uppercase)
+                        .tracking(0.8)
 
-            // Anchor Date
-            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                Text("Starting Week")
-                    .Subheadline()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    DatePicker("", selection: $anchorDate, displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
 
-                DatePicker("", selection: $anchorDate, displayedComponents: .date)
-                    .datePickerStyle(.compact)
-                    .labelsHidden()
-
-                Text("The alarm will repeat every other week starting from this date's week")
-                    .Caption2()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme).opacity(0.8))
+                    Text("The alarm will repeat every other week starting from this date's week")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                        .padding(.top, TickerSpacing.xs)
+                }
             }
 
             // Helper Text
@@ -59,9 +62,32 @@ struct BiweeklyConfigView: View {
                 Text("Alarms will repeat every other week on \(dayNames)")
                     .Caption()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                    .padding(.top, TickerSpacing.xs)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
+    }
+
+    // MARK: - Configuration Section Container
+
+    @ViewBuilder
+    private func configurationSection<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(TickerSpacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .fill(TickerColor.surface(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.1), lineWidth: 1)
+            )
+            .shadow(
+                color: TickerShadow.subtle.color,
+                radius: TickerShadow.subtle.radius,
+                x: TickerShadow.subtle.x,
+                y: TickerShadow.subtle.y
+            )
     }
 
     @ViewBuilder

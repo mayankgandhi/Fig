@@ -14,61 +14,96 @@ struct MonthlyConfigView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
-            Text("Repeat On")
-                .Callout()
-                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // Day Type Selector Section
+            configurationSection {
+                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                    Text("Repeat On")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .textCase(.uppercase)
+                        .tracking(0.8)
 
-            // Day Type Selector
-            VStack(spacing: TickerSpacing.sm) {
-                ForEach(RepeatOptionsViewModel.MonthlyDayType.allCases, id: \.self) { type in
-                    dayTypeButton(for: type)
+                    VStack(spacing: TickerSpacing.sm) {
+                        ForEach(RepeatOptionsViewModel.MonthlyDayType.allCases, id: \.self) { type in
+                            dayTypeButton(for: type)
+                        }
+                    }
                 }
             }
 
             // Additional Configuration based on selection
             if dayType == .fixed {
-                Divider()
+                configurationSection {
+                    VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                        Text("Day of Month")
+                            .Caption()
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                            .textCase(.uppercase)
+                            .tracking(0.8)
 
-                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                    Text("Day of Month")
-                        .Subheadline()
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
-                    Picker("Day", selection: $fixedDay) {
-                        ForEach(1...31, id: \.self) { day in
-                            Text("\(day)").tag(day)
+                        Picker("Day", selection: $fixedDay) {
+                            ForEach(1...31, id: \.self) { day in
+                                Text("\(day)").tag(day)
+                            }
                         }
+                        .pickerStyle(.wheel)
+                        .frame(height: 120)
+                        .clipped()
                     }
-                    .pickerStyle(.wheel)
-                    .frame(height: 120)
-                    .clipped()
                 }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             } else if dayType == .firstWeekday || dayType == .lastWeekday {
-                Divider()
+                configurationSection {
+                    VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                        Text("Weekday")
+                            .Caption()
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                            .textCase(.uppercase)
+                            .tracking(0.8)
 
-                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                    Text("Weekday")
-                        .Subheadline()
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
-                    Picker("Weekday", selection: $weekday) {
-                        ForEach(TickerSchedule.Weekday.allCases, id: \.self) { day in
-                            Text(day.displayName).tag(day)
+                        Picker("Weekday", selection: $weekday) {
+                            ForEach(TickerSchedule.Weekday.allCases, id: \.self) { day in
+                                Text(day.displayName).tag(day)
+                            }
                         }
+                        .pickerStyle(.wheel)
+                        .frame(height: 120)
+                        .clipped()
                     }
-                    .pickerStyle(.wheel)
-                    .frame(height: 120)
-                    .clipped()
                 }
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
             // Helper Text
             Text(helperText)
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                .padding(.top, TickerSpacing.xs)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    // MARK: - Configuration Section Container
+
+    @ViewBuilder
+    private func configurationSection<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(TickerSpacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .fill(TickerColor.surface(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.1), lineWidth: 1)
+            )
+            .shadow(
+                color: TickerShadow.subtle.color,
+                radius: TickerShadow.subtle.radius,
+                x: TickerShadow.subtle.x,
+                y: TickerShadow.subtle.y
+            )
     }
 
     @ViewBuilder

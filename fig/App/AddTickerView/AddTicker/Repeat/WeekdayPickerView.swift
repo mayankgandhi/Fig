@@ -12,10 +12,12 @@ struct WeekdayPickerView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+        VStack(alignment: .leading, spacing: TickerSpacing.sm) {
             Text("Select Days")
-                .Subheadline()
-                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                .Caption()
+                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                .textCase(.uppercase)
+                .tracking(0.8)
 
             LazyVGrid(columns: [
                 GridItem(.flexible()),
@@ -27,6 +29,22 @@ struct WeekdayPickerView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(TickerSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                .fill(TickerColor.surface(for: colorScheme))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.1), lineWidth: 1)
+        )
+        .shadow(
+            color: TickerShadow.subtle.color,
+            radius: TickerShadow.subtle.radius,
+            x: TickerShadow.subtle.x,
+            y: TickerShadow.subtle.y
+        )
     }
 
     @ViewBuilder

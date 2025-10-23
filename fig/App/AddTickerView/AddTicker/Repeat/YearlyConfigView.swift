@@ -18,49 +18,56 @@ struct YearlyConfigView: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
-            Text("Yearly Repeat")
-                .Callout()
-                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // Date Picker Section
+            configurationSection {
+                VStack(alignment: .leading, spacing: TickerSpacing.md) {
+                    VStack(alignment: .leading, spacing: TickerSpacing.xs) {
+                        Text("Annual Date")
+                            .Caption()
+                            .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                            .textCase(.uppercase)
+                            .tracking(0.8)
 
-            Text("Perfect for birthdays, anniversaries, and annual events")
-                .Footnote()
-                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                        Text("Perfect for birthdays, anniversaries, and annual events")
+                            .Caption()
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    }
 
-            Divider()
+                    // Month and Day Pickers
+                    HStack(spacing: TickerSpacing.md) {
+                        // Month Picker
+                        VStack(alignment: .leading, spacing: TickerSpacing.xs) {
+                            Text("Month")
+                                .Caption()
+                                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
-            // Month and Day Pickers
-            HStack(spacing: TickerSpacing.md) {
-                // Month Picker
-                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                    Text("Month")
-                        .Subheadline()
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                            Picker("Month", selection: $month) {
+                                ForEach(1...12, id: \.self) { m in
+                                    Text(monthNames[m - 1]).tag(m)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(height: 120)
+                            .clipped()
+                        }
 
-                    Picker("Month", selection: $month) {
-                        ForEach(1...12, id: \.self) { m in
-                            Text(monthNames[m - 1]).tag(m)
+                        // Day Picker
+                        VStack(alignment: .leading, spacing: TickerSpacing.xs) {
+                            Text("Day")
+                                .Caption()
+                                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+
+                            Picker("Day", selection: $day) {
+                                ForEach(1...daysInMonth, id: \.self) { d in
+                                    Text("\(d)").tag(d)
+                                }
+                            }
+                            .pickerStyle(.wheel)
+                            .frame(height: 120)
+                            .clipped()
                         }
                     }
-                    .pickerStyle(.wheel)
-                    .frame(height: 120)
-                    .clipped()
-                }
-
-                // Day Picker
-                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                    Text("Day")
-                        .Subheadline()
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
-                    Picker("Day", selection: $day) {
-                        ForEach(1...daysInMonth, id: \.self) { d in
-                            Text("\(d)").tag(d)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .frame(height: 120)
-                    .clipped()
                 }
             }
 
@@ -68,7 +75,7 @@ struct YearlyConfigView: View {
             Text("Alarm will repeat every year on \(monthNames[month - 1]) \(day)")
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                .padding(.top, TickerSpacing.xs)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onChange(of: month) { _, _ in
             // Adjust day if it's now invalid for the selected month
@@ -76,6 +83,29 @@ struct YearlyConfigView: View {
                 day = daysInMonth
             }
         }
+    }
+
+    // MARK: - Configuration Section Container
+
+    @ViewBuilder
+    private func configurationSection<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(TickerSpacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .fill(TickerColor.surface(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.1), lineWidth: 1)
+            )
+            .shadow(
+                color: TickerShadow.subtle.color,
+                radius: TickerShadow.subtle.radius,
+                x: TickerShadow.subtle.x,
+                y: TickerShadow.subtle.y
+            )
     }
 
     private var daysInMonth: Int {

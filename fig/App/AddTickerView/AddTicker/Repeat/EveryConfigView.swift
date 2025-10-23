@@ -16,85 +16,104 @@ struct EveryConfigView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
-            // Unit Picker
-            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                Text("Time Unit")
-                    .Subheadline()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // Unit Picker Section
+            configurationSection {
+                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                    Text("Time Unit")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .textCase(.uppercase)
+                        .tracking(0.8)
 
-                Picker("Unit", selection: $unit) {
-                    ForEach(TickerSchedule.TimeUnit.allCases, id: \.self) { timeUnit in
-                        Text(timeUnit.displayName).tag(timeUnit)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .onChange(of: unit) { _, _ in
-                    // Reset interval when unit changes
-                    interval = 1
-                }
-            }
-
-            Divider()
-
-            // Interval Picker
-            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                Text("Repeat Every")
-                    .Subheadline()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
-                HStack(spacing: TickerSpacing.sm) {
-                    Picker("Interval", selection: $interval) {
-                        ForEach(intervalRange, id: \.self) { value in
-                            Text("\(value)").tag(value)
+                    Picker("Unit", selection: $unit) {
+                        ForEach(TickerSchedule.TimeUnit.allCases, id: \.self) { timeUnit in
+                            Text(timeUnit.displayName).tag(timeUnit)
                         }
                     }
-                    .pickerStyle(.wheel)
-                    .frame(width: 80, height: 100)
-                    .clipped()
-
-                    Text(intervalDisplayText)
-                        .Callout()
-                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                }
-            }
-
-            Divider()
-
-            // Start Time
-            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                Text("Start Time")
-                    .Subheadline()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
-                DatePicker("", selection: $startTime, displayedComponents: displayComponents)
-                    .datePickerStyle(.compact)
-                    .labelsHidden()
-            }
-
-            Divider()
-
-            // End Time Toggle
-            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                Toggle(isOn: $useEndTime) {
-                    Text("Set End Time")
-                        .Subheadline()
-                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                }
-                .tint(TickerColor.primary)
-                .onChange(of: useEndTime) { _, newValue in
-                    if newValue {
-                        // Set end time based on unit
-                        endTime = defaultEndTime
-                    } else {
-                        endTime = nil
+                    .pickerStyle(.segmented)
+                    .onChange(of: unit) { _, _ in
+                        TickerHaptics.selection()
+                        // Reset interval when unit changes
+                        interval = 1
                     }
                 }
+            }
 
-                if useEndTime, let endTimeBinding = Binding($endTime) {
-                    DatePicker("End Time", selection: endTimeBinding, displayedComponents: displayComponents)
+            // Interval Picker Section
+            configurationSection {
+                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                    Text("Repeat Every")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .textCase(.uppercase)
+                        .tracking(0.8)
+
+                    HStack(spacing: TickerSpacing.sm) {
+                        Picker("Interval", selection: $interval) {
+                            ForEach(intervalRange, id: \.self) { value in
+                                Text("\(value)").tag(value)
+                            }
+                        }
+                        .pickerStyle(.wheel)
+                        .frame(width: 80, height: 100)
+                        .clipped()
+
+                        Text(intervalDisplayText)
+                            .Body()
+                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                    }
+                }
+            }
+
+            // Start Time Section
+            configurationSection {
+                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                    Text("Start Time")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .textCase(.uppercase)
+                        .tracking(0.8)
+
+                    DatePicker("", selection: $startTime, displayedComponents: displayComponents)
                         .datePickerStyle(.compact)
                         .labelsHidden()
+                }
+            }
+
+            // End Time Section
+            configurationSection {
+                VStack(alignment: .leading, spacing: TickerSpacing.md) {
+                    Toggle(isOn: $useEndTime) {
+                        Text("Set End Time")
+                            .Subheadline()
+                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                    }
+                    .tint(TickerColor.primary)
+                    .onChange(of: useEndTime) { _, newValue in
+                        TickerHaptics.selection()
+                        if newValue {
+                            // Set end time based on unit
+                            endTime = defaultEndTime
+                        } else {
+                            endTime = nil
+                        }
+                    }
+
+                    if useEndTime, let endTimeBinding = Binding($endTime) {
+                        VStack(alignment: .leading, spacing: TickerSpacing.xs) {
+                            Text("End Time")
+                                .Caption()
+                                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                                .textCase(.uppercase)
+                                .tracking(0.8)
+
+                            DatePicker("End Time", selection: endTimeBinding, displayedComponents: displayComponents)
+                                .datePickerStyle(.compact)
+                                .labelsHidden()
+                        }
+                        .transition(.opacity.combined(with: .move(edge: .top)))
+                    }
                 }
             }
 
@@ -102,11 +121,34 @@ struct EveryConfigView: View {
             Text(summaryText)
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                .padding(.top, TickerSpacing.xs)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
         .onAppear {
             useEndTime = endTime != nil
         }
+    }
+
+    // MARK: - Configuration Section Container
+
+    @ViewBuilder
+    private func configurationSection<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+        content()
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(TickerSpacing.md)
+            .background(
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .fill(TickerColor.surface(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: TickerRadius.medium)
+                    .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.1), lineWidth: 1)
+            )
+            .shadow(
+                color: TickerShadow.subtle.color,
+                radius: TickerShadow.subtle.radius,
+                x: TickerShadow.subtle.x,
+                y: TickerShadow.subtle.y
+            )
     }
 
     // MARK: - Helper Properties
