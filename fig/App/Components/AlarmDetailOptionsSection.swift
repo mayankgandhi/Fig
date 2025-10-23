@@ -13,44 +13,104 @@ struct AlarmDetailOptionsSection: View {
     @Environment(\.colorScheme) private var colorScheme
     
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.xs) {
-            Text("OPTIONS")
-                .Caption()
-                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
+            // Enhanced section header with better visual hierarchy
+            HStack {
+                Text("OPTIONS")
+                    .Caption2()
+                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                    .textCase(.uppercase)
+                    .tracking(0.8)
+                
+                Spacer()
+                
+                // Enhanced indicator for active options
+                if hasAnyActiveOptions {
+                    HStack(spacing: TickerSpacing.xxs) {
+                        Circle()
+                            .fill(TickerColor.primary)
+                            .frame(width: 6, height: 6)
+                            .opacity(0.8)
+                        
+                        Text("\(activeOptionsCount)")
+                            .Caption2()
+                            .foregroundStyle(TickerColor.primary)
+                            .fontWeight(.semibold)
+                    }
+                }
+            }
+            .padding(.horizontal, TickerSpacing.md)
 
-            FlowLayout(spacing: TickerSpacing.xs) {
+            // Enhanced pill layout with improved spacing and alignment
+            FlowLayout(spacing: TickerSpacing.md) {
                 // Calendar/Date option
                 if let schedule = alarm.schedule {
-                    AlarmDetailOptionPill(
-                        icon: "calendar",
-                        title: dateDisplayText(for: schedule)
+                    TickerPill(
+                        icon: "calendar.badge.clock",
+                        title: dateDisplayText(for: schedule),
+                        hasValue: true,
+                        size: .standard
                     )
                 }
 
                 // Repeat option
                 if let schedule = alarm.schedule {
-                    AlarmDetailOptionPill(
+                    TickerPill(
                         icon: "repeat",
-                        title: repeatDisplayText(for: schedule)
+                        title: repeatDisplayText(for: schedule),
+                        hasValue: true,
+                        size: .standard
                     )
                 }
 
                 // Label option
-                AlarmDetailOptionPill(
+                TickerPill(
                     icon: "tag",
-                    title: alarm.label
+                    title: alarm.label,
+                    hasValue: !alarm.label.isEmpty,
+                    size: .standard
                 )
 
                 // Countdown option
                 if let countdown = alarm.countdown?.preAlert {
-                    AlarmDetailOptionPill(
+                    TickerPill(
                         icon: "timer",
-                        title: formatCountdown(countdown)
+                        title: formatCountdown(countdown),
+                        hasValue: true,
+                        size: .standard
+                    )
+                }
+                
+                // Icon option with selected color
+                if let tickerData = alarm.tickerData {
+                    TickerPill(
+                        icon: tickerData.icon ?? "clock",
+                        title: "Icon",
+                        hasValue: true,
+                        size: .standard,
+                        iconTintColor: tickerData.colorHex != nil ? Color(hex: tickerData.colorHex!) : TickerColor.primary
                     )
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, TickerSpacing.md)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: hasAnyActiveOptions)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var hasAnyActiveOptions: Bool {
+        alarm.schedule != nil || !alarm.label.isEmpty || alarm.countdown?.preAlert != nil || alarm.tickerData != nil
+    }
+    
+    private var activeOptionsCount: Int {
+        var count = 0
+        if alarm.schedule != nil { count += 1 }
+        if !alarm.label.isEmpty { count += 1 }
+        if alarm.countdown?.preAlert != nil { count += 1 }
+        if alarm.tickerData != nil { count += 1 }
+        return count
     }
     
     // MARK: - Helper Methods

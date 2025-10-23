@@ -14,8 +14,8 @@ struct OptionsPillsView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
-            // Enhanced section header
+        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
+            // Enhanced section header with better visual hierarchy
             HStack {
                 Text("OPTIONS")
                     .Caption2()
@@ -25,18 +25,25 @@ struct OptionsPillsView: View {
                 
                 Spacer()
                 
-                // Subtle indicator for active options
+                // Enhanced indicator for active options
                 if viewModel.hasAnyActiveOptions {
-                    Circle()
-                        .fill(TickerColor.primary)
-                        .frame(width: 6, height: 6)
-                        .opacity(0.7)
+                    HStack(spacing: TickerSpacing.xxs) {
+                        Circle()
+                            .fill(TickerColor.primary)
+                            .frame(width: 6, height: 6)
+                            .opacity(0.8)
+                        
+                        Text("\(viewModel.activeOptionsCount)")
+                            .Caption2()
+                            .foregroundStyle(TickerColor.primary)
+                            .fontWeight(.semibold)
+                    }
                 }
             }
             .padding(.horizontal, TickerSpacing.md)
 
-            // Enhanced pill layout with consistent styling
-            FlowLayout(spacing: TickerSpacing.sm) {
+            // Enhanced pill layout with improved spacing and alignment
+            FlowLayout(spacing: TickerSpacing.md) {
                 expandablePillButton(
                     icon: "calendar.badge.clock",
                     title: viewModel.displaySchedule,
@@ -76,6 +83,7 @@ struct OptionsPillsView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TickerSpacing.md)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.hasAnyActiveOptions)
         }
     }
 

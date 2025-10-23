@@ -47,6 +47,15 @@ final class OptionsPillsViewModel {
     var hasAnyActiveOptions: Bool {
         hasScheduleValue || hasLabelValue || hasCountdownValue || enableSnooze
     }
+    
+    var activeOptionsCount: Int {
+        var count = 0
+        if hasScheduleValue { count += 1 }
+        if hasLabelValue { count += 1 }
+        if hasCountdownValue { count += 1 }
+        if enableSnooze { count += 1 }
+        return count
+    }
 
     // MARK: - Methods
 

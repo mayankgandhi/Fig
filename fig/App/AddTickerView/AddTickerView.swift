@@ -53,7 +53,7 @@ struct AddTickerView: View {
     private var contentView: some View {
         if let viewModel = viewModel {
             ScrollView {
-                VStack(spacing: TickerSpacing.lg) {
+                VStack(spacing: TickerSpacing.xl) {
                     // Time Picker Card
                     TimePickerCard(viewModel: viewModel.timePickerViewModel)
 
@@ -63,15 +63,17 @@ struct AddTickerView: View {
                             .padding(.horizontal, TickerSpacing.md)
                     }
 
-                    // Options Pills
+                    // Options Pills with enhanced spacing
                     OptionsPillsView(
                         viewModel: viewModel.optionsPillsViewModel,
                         selectedIcon: viewModel.iconPickerViewModel.selectedIcon,
                         selectedColorHex: viewModel.iconPickerViewModel.selectedColorHex
                     )
+                    .padding(.top, TickerSpacing.sm)
 
                     Spacer(minLength: 300)
                 }
+                .padding(.top, TickerSpacing.md)
             }
             .overlay(alignment: .bottom) {
                 // Expanded content overlay

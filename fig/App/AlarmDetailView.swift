@@ -20,15 +20,16 @@ struct AlarmDetailView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: TickerSpacing.md) {
+                VStack(spacing: TickerSpacing.xl) {
                     // Header with icon and label
                     AlarmDetailHeader(alarm: alarm, tickerService: tickerService)
 
                     // Time display
                     AlarmDetailTimeSection(alarm: alarm)
 
-                    // Options display (using same icons as Add Ticker)
+                    // Options display with enhanced styling
                     AlarmDetailOptionsSection(alarm: alarm)
+                        .padding(.top, TickerSpacing.sm)
                 }
                 .padding(TickerSpacing.md)
                 .padding(.bottom, TickerSpacing.xl)

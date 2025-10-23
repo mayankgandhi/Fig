@@ -95,6 +95,12 @@ struct TickerPill: View {
             Capsule()
                 .strokeBorder(borderColor, lineWidth: borderWidth)
         )
+        .shadow(
+            color: shadowColor,
+            radius: shadowRadius,
+            x: 0,
+            y: shadowOffset
+        )
         .contentShape(Capsule())
     }
 
@@ -162,6 +168,42 @@ struct TickerPill: View {
 
     private var borderWidth: CGFloat {
         isActive ? 2 : 1
+    }
+    
+    private var shadowColor: Color {
+        if isActive {
+            return TickerColor.primary.opacity(0.3)
+        }
+        
+        if hasValue {
+            return TickerColor.accent.opacity(0.2)
+        }
+        
+        return Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1)
+    }
+    
+    private var shadowRadius: CGFloat {
+        if isActive {
+            return 8
+        }
+        
+        if hasValue {
+            return 4
+        }
+        
+        return 2
+    }
+    
+    private var shadowOffset: CGFloat {
+        if isActive {
+            return 2
+        }
+        
+        if hasValue {
+            return 1
+        }
+        
+        return 0.5
     }
 }
 
