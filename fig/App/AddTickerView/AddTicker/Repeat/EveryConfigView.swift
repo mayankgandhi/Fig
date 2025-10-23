@@ -16,7 +16,7 @@ struct EveryConfigView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
             // Unit Picker
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("Time Unit")
@@ -36,7 +36,6 @@ struct EveryConfigView: View {
             }
 
             Divider()
-                .background(Color.white.opacity(0.1))
 
             // Interval Picker
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
@@ -61,7 +60,6 @@ struct EveryConfigView: View {
             }
 
             Divider()
-                .background(Color.white.opacity(0.1))
 
             // Start Time
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
@@ -75,7 +73,6 @@ struct EveryConfigView: View {
             }
 
             Divider()
-                .background(Color.white.opacity(0.1))
 
             // End Time Toggle
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
@@ -107,20 +104,6 @@ struct EveryConfigView: View {
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .padding(.top, TickerSpacing.xs)
         }
-        .padding(TickerSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
-        )
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(.ultraThinMaterial)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
         .onAppear {
             useEndTime = endTime != nil
         }

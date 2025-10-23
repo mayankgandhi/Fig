@@ -18,7 +18,7 @@ struct YearlyConfigView: View {
     ]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
             Text("Yearly Repeat")
                 .Callout()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
@@ -28,7 +28,6 @@ struct YearlyConfigView: View {
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
             Divider()
-                .background(Color.white.opacity(0.1))
 
             // Month and Day Pickers
             HStack(spacing: TickerSpacing.md) {
@@ -71,20 +70,6 @@ struct YearlyConfigView: View {
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .padding(.top, TickerSpacing.xs)
         }
-        .padding(TickerSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
-        )
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(.ultraThinMaterial)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
         .onChange(of: month) { _, _ in
             // Adjust day if it's now invalid for the selected month
             if day > daysInMonth {

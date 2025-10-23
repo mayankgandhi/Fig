@@ -102,6 +102,19 @@ enum TickerSchedule: Codable, Hashable {
             self.hour = components.hour ?? 0
             self.minute = components.minute ?? 0
         }
+        
+        func addingTimeInterval(_ interval: TimeInterval) -> TimeOfDay {
+            let totalMinutes = hour * 60 + minute
+            let intervalMinutes = Int(interval / 60)
+            let newTotalMinutes = totalMinutes + intervalMinutes
+            
+            // Handle day rollover - ensure we stay within 24-hour range
+            let adjustedMinutes = ((newTotalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60)
+            let newHour = adjustedMinutes / 60
+            let newMinute = adjustedMinutes % 60
+            
+            return TimeOfDay(hour: newHour, minute: newMinute)
+        }
     }
 
     enum Weekday: Int, Codable, Hashable, CaseIterable {
@@ -431,13 +444,27 @@ extension Ticker {
 
         switch schedule {
         case .oneTime(let date):
+            // If there's a countdown, schedule the alarm to start the countdown before the actual alarm time
+            if let countdownDuration = countdown?.preAlert?.interval {
+                let countdownStartDate = date.addingTimeInterval(-countdownDuration)
+                return .fixed(countdownStartDate)
+            }
             return .fixed(date)
 
         case .daily(let time, _):
-            let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
-            return .relative(
-                .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
-            )
+            // If there's a countdown, adjust the time to start the countdown before the alarm time
+            if let countdownDuration = countdown?.preAlert?.interval {
+                let countdownStartTime = time.addingTimeInterval(-countdownDuration)
+                let alarmTime = Alarm.Schedule.Relative.Time(hour: countdownStartTime.hour, minute: countdownStartTime.minute)
+                return .relative(
+                    .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
+                )
+            } else {
+                let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
+                return .relative(
+                    .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
+                )
+            }
 
         case .hourly, .every, .weekdays, .biweekly, .monthly, .yearly:
             // Composite schedules are expanded into multiple one-time alarms

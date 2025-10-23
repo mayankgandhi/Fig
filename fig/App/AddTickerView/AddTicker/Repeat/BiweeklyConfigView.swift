@@ -13,7 +13,7 @@ struct BiweeklyConfigView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
             Text("Biweekly Repeat")
                 .Callout()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
@@ -36,7 +36,6 @@ struct BiweeklyConfigView: View {
             }
 
             Divider()
-                .background(Color.white.opacity(0.1))
 
             // Anchor Date
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
@@ -63,20 +62,6 @@ struct BiweeklyConfigView: View {
                     .padding(.top, TickerSpacing.xs)
             }
         }
-        .padding(TickerSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
-        )
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(.ultraThinMaterial)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
     }
 
     @ViewBuilder
@@ -95,28 +80,15 @@ struct BiweeklyConfigView: View {
                 }
             }
         } label: {
-            VStack(spacing: TickerSpacing.xxs) {
-                Text(weekday.shortDisplayName)
-                    .Subheadline()
-                    .foregroundStyle(isSelected ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, TickerSpacing.sm)
-            .background(
-                RoundedRectangle(cornerRadius: TickerRadius.small)
-                    .fill(isSelected ? TickerColor.primary : TickerColor.surface(for: colorScheme).opacity(0.5))
-            )
-            .background(
-                RoundedRectangle(cornerRadius: TickerRadius.small)
-                    .fill(.ultraThinMaterial.opacity(0.2))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: TickerRadius.small)
-                    .strokeBorder(
-                        isSelected ? TickerColor.primary.opacity(0.5) : Color.white.opacity(0.1),
-                        lineWidth: 1
-                    )
-            )
+            Text(weekday.shortDisplayName)
+                .Subheadline()
+                .foregroundStyle(isSelected ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, TickerSpacing.sm)
+                .background(
+                    RoundedRectangle(cornerRadius: TickerRadius.small)
+                        .fill(isSelected ? TickerColor.primary : TickerColor.surface(for: colorScheme))
+                )
         }
     }
 }

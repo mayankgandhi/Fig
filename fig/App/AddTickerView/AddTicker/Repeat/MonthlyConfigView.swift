@@ -14,9 +14,9 @@ struct MonthlyConfigView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
             Text("Repeat On")
-                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .Callout()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
             // Day Type Selector
@@ -29,11 +29,10 @@ struct MonthlyConfigView: View {
             // Additional Configuration based on selection
             if dayType == .fixed {
                 Divider()
-                    .background(Color.white.opacity(0.1))
 
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                     Text("Day of Month")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .Subheadline()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                     Picker("Day", selection: $fixedDay) {
@@ -47,11 +46,10 @@ struct MonthlyConfigView: View {
                 }
             } else if dayType == .firstWeekday || dayType == .lastWeekday {
                 Divider()
-                    .background(Color.white.opacity(0.1))
 
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                     Text("Weekday")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .Subheadline()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                     Picker("Weekday", selection: $weekday) {
@@ -67,24 +65,10 @@ struct MonthlyConfigView: View {
 
             // Helper Text
             Text(helperText)
-                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .padding(.top, TickerSpacing.xs)
         }
-        .padding(TickerSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
-        )
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(.ultraThinMaterial)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
     }
 
     @ViewBuilder
@@ -99,14 +83,14 @@ struct MonthlyConfigView: View {
         } label: {
             HStack {
                 Text(type.rawValue)
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(isSelected ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
 
                 Spacer()
 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 16))
+                        .Subheadline()
                         .foregroundStyle(TickerColor.absoluteWhite)
                 }
             }
@@ -114,18 +98,7 @@ struct MonthlyConfigView: View {
             .padding(.vertical, TickerSpacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: TickerRadius.small)
-                    .fill(isSelected ? TickerColor.primary : TickerColor.surface(for: colorScheme).opacity(0.5))
-            )
-            .background(
-                RoundedRectangle(cornerRadius: TickerRadius.small)
-                    .fill(.ultraThinMaterial.opacity(0.2))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: TickerRadius.small)
-                    .strokeBorder(
-                        isSelected ? TickerColor.primary.opacity(0.5) : Color.white.opacity(0.1),
-                        lineWidth: 1
-                    )
+                    .fill(isSelected ? TickerColor.primary : TickerColor.surface(for: colorScheme))
             )
         }
     }

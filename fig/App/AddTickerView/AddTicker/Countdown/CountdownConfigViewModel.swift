@@ -27,6 +27,33 @@ final class CountdownConfigViewModel {
     var isValid: Bool {
         !isEnabled || totalSeconds > 0
     }
+    
+    var validationMessage: String? {
+        guard isEnabled else { return nil }
+        
+        if totalSeconds <= 0 {
+            return "Countdown must be greater than 0 seconds"
+        }
+        
+        if totalSeconds > 24 * 3600 {
+            return "Countdown is very long (over 24 hours)"
+        }
+        
+        if totalSeconds < 60 {
+            return "Countdown is very short - consider if this provides enough notice"
+        }
+        
+        if totalSeconds > 6 * 3600 {
+            return "Countdown is very long - consider if this is necessary"
+        }
+        
+        return nil
+    }
+    
+    var hasValidationWarning: Bool {
+        guard isEnabled else { return false }
+        return totalSeconds > 6 * 3600 || totalSeconds < 60
+    }
 
     // MARK: - Methods
 

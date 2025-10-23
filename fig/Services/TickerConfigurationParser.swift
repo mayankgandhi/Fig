@@ -171,6 +171,9 @@ extension TickerConfigurationParser {
             if totalSeconds > 24 * 3600 {
                 warnings.append("Countdown is very long (over 24 hours)")
             }
+            
+            // Validate countdown timing with alarm time
+            validateCountdownTiming(configuration: configuration, countdown: countdown, errors: &errors, warnings: &warnings)
         }
         
         return ValidationResult(
@@ -178,6 +181,51 @@ extension TickerConfigurationParser {
             errors: errors,
             warnings: warnings
         )
+    }
+    
+    private func validateCountdownTiming(
+        configuration: TickerConfiguration,
+        countdown: TickerConfiguration.CountdownConfiguration,
+        errors: inout [String],
+        warnings: inout [String]
+    ) {
+        let countdownDuration = TimeInterval(countdown.hours * 3600 + countdown.minutes * 60 + countdown.seconds)
+        
+        // Check if countdown would start before midnight for early morning alarms
+        let alarmTime = TickerSchedule.TimeOfDay(hour: configuration.time.hour, minute: configuration.time.minute)
+        let countdownStartTime = alarmTime.addingTimeInterval(-countdownDuration)
+        
+        // Validate that countdown doesn't go beyond reasonable bounds
+        if countdownDuration > 12 * 3600 { // More than 12 hours
+            warnings.append("Countdown is very long - consider if this is intended")
+        }
+        
+        // For one-time alarms, check if countdown would start in the past
+        if case .noRepeat = configuration.repeatOption {
+            let alarmDate = configuration.date
+            let countdownStartDate = alarmDate.addingTimeInterval(-countdownDuration)
+            
+            if countdownStartDate < Date() {
+                errors.append("Countdown would start in the past. Please set an earlier alarm time or shorter countdown.")
+            }
+        }
+        
+        // For daily alarms, check if countdown crosses midnight
+        if case .daily = configuration.repeatOption {
+            if countdownStartTime.hour > alarmTime.hour || 
+               (countdownStartTime.hour == alarmTime.hour && countdownStartTime.minute > alarmTime.minute) {
+                warnings.append("Countdown crosses midnight - countdown will start the previous day")
+            }
+        }
+        
+        // Validate countdown duration is reasonable
+        if countdownDuration < 60 { // Less than 1 minute
+            warnings.append("Countdown is very short - consider if this provides enough notice")
+        }
+        
+        if countdownDuration > 6 * 3600 { // More than 6 hours
+            warnings.append("Countdown is very long - consider if this is necessary")
+        }
     }
 }
 

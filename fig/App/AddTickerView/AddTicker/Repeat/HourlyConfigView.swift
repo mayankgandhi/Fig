@@ -15,11 +15,11 @@ struct HourlyConfigView: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+        VStack(alignment: .leading, spacing: TickerSpacing.lg) {
             // Interval Picker
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("Repeat Every")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                 HStack(spacing: TickerSpacing.sm) {
@@ -33,18 +33,17 @@ struct HourlyConfigView: View {
                     .clipped()
 
                     Text(interval == 1 ? "hour" : "hours")
-                        .font(.system(size: 16, weight: .medium, design: .rounded))
+                        .Callout()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 }
             }
 
             Divider()
-                .background(Color.white.opacity(0.1))
 
             // Start Time
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Text("Start Time")
-                    .font(.system(size: 14, weight: .medium, design: .rounded))
+                    .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                 DatePicker("", selection: $startTime, displayedComponents: .hourAndMinute)
@@ -53,13 +52,12 @@ struct HourlyConfigView: View {
             }
 
             Divider()
-                .background(Color.white.opacity(0.1))
 
             // End Time Toggle
             VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 Toggle(isOn: $useEndTime) {
                     Text("Set End Time")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .Subheadline()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 }
                 .tint(TickerColor.primary)
@@ -81,24 +79,10 @@ struct HourlyConfigView: View {
 
             // Helper Text
             Text("Alarms will repeat every \(interval) hour\(interval == 1 ? "" : "s") from \(formatTime(startTime))\(useEndTime && endTime != nil ? " until \(formatTime(endTime!))" : "")")
-                .font(.system(size: 12, weight: .regular, design: .rounded))
+                .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .padding(.top, TickerSpacing.xs)
         }
-        .padding(TickerSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.surface(for: colorScheme).opacity(0.95))
-        )
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(.ultraThinMaterial)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
-        )
-        .shadow(color: .black.opacity(0.15), radius: 24, x: 0, y: 12)
         .onAppear {
             useEndTime = endTime != nil
         }

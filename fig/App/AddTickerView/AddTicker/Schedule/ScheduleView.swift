@@ -133,7 +133,7 @@ struct ScheduleView: View {
 
     @ViewBuilder
     private func validationMessageView(message: String) -> some View {
-        VStack(spacing: TickerSpacing.xs) {
+        VStack(spacing: TickerSpacing.sm) {
             HStack(spacing: TickerSpacing.xs) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .Caption()
@@ -159,27 +159,18 @@ struct ScheduleView: View {
                         .Caption2()
                 }
                 .foregroundStyle(TickerColor.primary)
-                .padding(.horizontal, TickerSpacing.xs)
-                .padding(.vertical, 4)
+                .padding(.horizontal, TickerSpacing.sm)
+                .padding(.vertical, TickerSpacing.xs)
                 .background(
                     Capsule()
                         .fill(TickerColor.primary.opacity(0.1))
                 )
-                .overlay(
-                    Capsule()
-                        .strokeBorder(TickerColor.primary.opacity(0.3), lineWidth: 1)
-                )
             }
         }
-        .padding(.horizontal, TickerSpacing.sm)
-        .padding(.vertical, TickerSpacing.xs)
+        .padding(TickerSpacing.sm)
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.small)
-                .fill(TickerColor.warning.opacity(0.1))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.small)
-                .strokeBorder(TickerColor.warning.opacity(0.3), lineWidth: 1)
+                .fill(TickerColor.warning.opacity(0.05))
         )
     }
 }
