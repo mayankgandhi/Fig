@@ -146,7 +146,7 @@ final class TodayViewModel {
         let minute = calendar.component(.minute, from: time)
 
         return UpcomingAlarmPresentation(
-            id: alarm.id,
+            baseAlarmId: alarm.id,
             displayName: alarm.displayName,
             icon: alarm.tickerData?.icon ?? "alarm",
             color: extractColor(from: alarm),

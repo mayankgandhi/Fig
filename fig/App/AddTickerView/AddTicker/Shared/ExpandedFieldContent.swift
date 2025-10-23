@@ -3,6 +3,7 @@
 //  fig
 //
 //  Handles rendering of expanded field content based on field type
+//  All fields use overlay callout presentation
 //
 
 import SwiftUI
@@ -10,26 +11,12 @@ import SwiftUI
 struct ExpandedFieldContent: View {
     let field: ExpandableField
     let viewModel: AddTickerViewModel
-    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Field-specific content with Liquid Glass
-                fieldContent
-            }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        TickerHaptics.selection()
-                        viewModel.optionsPillsViewModel.collapseField()
-                    }
-                }
-            }
+        OverlayCallout(field: field, viewModel: viewModel) {
+            fieldContent
         }
     }
-
 
     // MARK: - Field Content
 

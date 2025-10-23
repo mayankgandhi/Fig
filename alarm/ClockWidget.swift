@@ -134,7 +134,7 @@ struct ClockWidgetProvider: TimelineProvider {
             }()
 
             return UpcomingAlarmPresentation(
-                id: alarm.id,
+                baseAlarmId: alarm.id,
                 displayName: alarm.displayName,
                 icon: alarm.tickerData?.icon ?? "alarm",
                 color: extractColor(from: alarm),
@@ -269,38 +269,3 @@ struct ClockWidget: Widget {
     }
 }
 
-// MARK: - Preview
-
-#Preview(as: .systemMedium) {
-    ClockWidget()
-} timeline: {
-    ClockWidgetProvider.Entry(
-        date: .now,
-        upcomingAlarms: [
-            UpcomingAlarmPresentation(
-                id: UUID(),
-                displayName: "Morning Alarm",
-                icon: "sunrise.fill",
-                color: .orange,
-                nextAlarmTime: Date().addingTimeInterval(3600),
-                scheduleType: .daily,
-                hour: 8,
-                minute: 0,
-                hasCountdown: false,
-                tickerDataTitle: nil
-            ),
-            UpcomingAlarmPresentation(
-                id: UUID(),
-                displayName: "Lunch",
-                icon: "fork.knife",
-                color: .green,
-                nextAlarmTime: Date().addingTimeInterval(7200),
-                scheduleType: .daily,
-                hour: 12,
-                minute: 0,
-                hasCountdown: true,
-                tickerDataTitle: "Lunch Break"
-            )
-        ]
-    )
-}

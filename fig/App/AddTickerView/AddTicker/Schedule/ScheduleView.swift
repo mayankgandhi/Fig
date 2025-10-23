@@ -45,7 +45,6 @@ struct ScheduleView: View {
                     }
                     .padding(.horizontal, TickerSpacing.md)
                 }
-                .frame(height: 36)
             }
 
             // Validation Message

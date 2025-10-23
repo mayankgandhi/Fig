@@ -10,7 +10,6 @@ import Foundation
 @Observable
 final class OptionsPillsViewModel {
     var expandedField: ExpandableField? = nil
-    var enableSnooze: Bool = true
 
     // References to other view models for reactive display
     private(set) weak var scheduleViewModel: ScheduleViewModel?
@@ -45,15 +44,14 @@ final class OptionsPillsViewModel {
     }
 
     var hasAnyActiveOptions: Bool {
-        hasScheduleValue || hasLabelValue || hasCountdownValue || enableSnooze
+        hasScheduleValue || hasLabelValue || hasCountdownValue
     }
-    
+
     var activeOptionsCount: Int {
         var count = 0
         if hasScheduleValue { count += 1 }
         if hasLabelValue { count += 1 }
         if hasCountdownValue { count += 1 }
-        if enableSnooze { count += 1 }
         return count
     }
 

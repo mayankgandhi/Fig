@@ -80,13 +80,13 @@ struct TodayClockView: View {
                                     .frame(maxWidth: .infinity)
                                     .padding(.vertical, TickerSpacing.xxl)
                                 } else {
-                                    LazyVStack(spacing: 0) {
+                                    LazyVStack(spacing: TickerSpacing.xs) {
                                         ForEach(viewModel.upcomingAlarms) { presentation in
                                             UpcomingAlarmRow(presentation: presentation)
                                                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                                     Button {
                                                         TickerHaptics.selection()
-                                                        if let ticker = getTicker(for: presentation.id) {
+                                                        if let ticker = getTicker(for: presentation.baseAlarmId) {
                                                             alarmToEdit = ticker
                                                         }
                                                     } label: {
@@ -96,8 +96,6 @@ struct TodayClockView: View {
                                                 }
                                         }
                                     }
-                                    .background(Color(.secondarySystemBackground))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
                                     .padding(.horizontal, 20)
                                 }
                             }

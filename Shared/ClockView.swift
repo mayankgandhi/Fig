@@ -331,7 +331,7 @@ struct ClockView: View {
     ClockView(upcomingAlarms: [
         // 12:00 PM - Should be at top (0°)
         UpcomingAlarmPresentation(
-            id: UUID(),
+            baseAlarmId: UUID(),
             displayName: "Noon",
             icon: "sun.max.fill",
             color: .yellow,
@@ -344,7 +344,7 @@ struct ClockView: View {
         ),
         // 3:00 PM - Should be at right (90°)
         UpcomingAlarmPresentation(
-            id: UUID(),
+            baseAlarmId: UUID(),
             displayName: "Mid Afternoon",
             icon: "cup.and.saucer.fill",
             color: .orange,
@@ -357,7 +357,7 @@ struct ClockView: View {
         ),
         // 6:00 PM - Should be at bottom (180°)
         UpcomingAlarmPresentation(
-            id: UUID(),
+            baseAlarmId: UUID(),
             displayName: "Dinner",
             icon: "fork.knife",
             color: .red,
@@ -370,7 +370,7 @@ struct ClockView: View {
         ),
         // 9:00 PM - Should be at left (270°)
         UpcomingAlarmPresentation(
-            id: UUID(),
+            baseAlarmId: UUID(),
             displayName: "Bedtime",
             icon: "bed.double.fill",
             color: .purple,
@@ -383,7 +383,7 @@ struct ClockView: View {
         ),
         // 12:30 AM - Should be slightly past top (15°)
         UpcomingAlarmPresentation(
-            id: UUID(),
+            baseAlarmId: UUID(),
             displayName: "Midnight Snack",
             icon: "moon.stars.fill",
             color: .blue,
@@ -396,7 +396,7 @@ struct ClockView: View {
         ),
         // 6:30 AM - Should be at bottom + offset (195°)
         UpcomingAlarmPresentation(
-            id: UUID(),
+            baseAlarmId: UUID(),
             displayName: "Morning Run",
             icon: "figure.run",
             color: .green,

@@ -20,30 +20,30 @@ struct UpcomingAlarmRow: View {
                 // Color indicator and icon
                 ZStack {
                     Circle()
-                        .fill(presentation.color.opacity(0.15))
-                        .frame(width: TickerSpacing.tapTargetPreferred, height: TickerSpacing.tapTargetPreferred)
+                        .fill(presentation.color.opacity(0.12))
+                        .frame(width: 48, height: 48)
 
                     Image(systemName: presentation.icon)
-                        .font(.system(size: 24, weight: .medium))
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(presentation.color)
                 }
 
                 // Alarm details
                 VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                     Text(presentation.displayName)
-                        .Title3()
+                        .Headline()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                     HStack(spacing: TickerSpacing.xs) {
                         Text(presentation.nextAlarmTime, style: .time)
-                            .Subheadline()
+                            .Footnote()
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                         Text("•")
                             .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                         Text(presentation.timeUntilAlarm(from: context.date))
-                            .Subheadline()
+                            .Footnote()
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     }
                 }
@@ -56,7 +56,6 @@ struct UpcomingAlarmRow: View {
             }
             .padding(TickerSpacing.md)
             .background(TickerColor.surface(for: colorScheme))
-            .background(.ultraThinMaterial.opacity(0.5))
             .clipShape(RoundedRectangle(cornerRadius: TickerRadius.large))
             .shadow(
                 color: TickerShadow.subtle.color,

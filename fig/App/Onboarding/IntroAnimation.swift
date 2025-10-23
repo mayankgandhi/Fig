@@ -25,7 +25,7 @@ struct DialogueMessage: Identifiable, Equatable {
 
     var alarmPresentation: UpcomingAlarmPresentation {
         UpcomingAlarmPresentation(
-            id: id,
+            baseAlarmId: id,
             displayName: text,
             icon: icon,
             color: color,

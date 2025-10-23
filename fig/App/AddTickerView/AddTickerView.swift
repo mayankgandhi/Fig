@@ -75,16 +75,11 @@ struct AddTickerView: View {
                 }
                 .padding(.top, TickerSpacing.md)
             }
-            .sheet(isPresented: Binding(
-                get: { viewModel.optionsPillsViewModel.expandedField != nil },
-                set: { isPresented in
-                    if !isPresented {
-                        viewModel.optionsPillsViewModel.collapseField()
-                    }
-                }
-            )) {
+            // Overlay presentation for all expandable fields
+            .overlay(alignment: .top) {
                 if let field = viewModel.optionsPillsViewModel.expandedField {
                     ExpandedFieldContent(field: field, viewModel: viewModel)
+                        .zIndex(100)
                 }
             }
             .background(backgroundView)

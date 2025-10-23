@@ -69,17 +69,6 @@ struct OptionsPillsView: View {
                     field: .icon,
                     tintHex: selectedColorHex
                 )
-
-                pillButton(
-                    icon: "bell.badge",
-                    title: "Snooze",
-                    isActive: viewModel.enableSnooze
-                ) {
-                    TickerHaptics.selection()
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        viewModel.enableSnooze.toggle()
-                    }
-                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TickerSpacing.md)
@@ -113,23 +102,5 @@ struct OptionsPillsView: View {
         }
     }
 
-    @ViewBuilder
-    private func pillButton(
-        icon: String,
-        title: String,
-        isActive: Bool,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            TickerPill(
-                icon: icon,
-                title: title,
-                isActive: isActive,
-                hasValue: isActive,
-                size: .standard
-            )
-        }
-    }
-    
 }
 

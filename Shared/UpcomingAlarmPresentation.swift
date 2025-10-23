@@ -14,6 +14,7 @@ import SwiftUI
 /// View-ready representation of an upcoming alarm with pre-calculated values
 struct UpcomingAlarmPresentation: Identifiable, Equatable {
     let id: UUID
+    let baseAlarmId: UUID
     let displayName: String
     let icon: String
     let color: Color
@@ -25,6 +26,24 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
     // Optional metadata
     let hasCountdown: Bool
     let tickerDataTitle: String?
+    
+    /// Initialize with unique ID generation
+    init(baseAlarmId: UUID, displayName: String, icon: String, color: Color, nextAlarmTime: Date, scheduleType: ScheduleType, hour: Int, minute: Int, hasCountdown: Bool, tickerDataTitle: String?) {
+        self.baseAlarmId = baseAlarmId
+        self.displayName = displayName
+        self.icon = icon
+        self.color = color
+        self.nextAlarmTime = nextAlarmTime
+        self.scheduleType = scheduleType
+        self.hour = hour
+        self.minute = minute
+        self.hasCountdown = hasCountdown
+        self.tickerDataTitle = tickerDataTitle
+        
+        // Generate unique ID by combining baseAlarmId and nextAlarmTime
+        let combinedString = "\(baseAlarmId.uuidString)-\(nextAlarmTime.timeIntervalSince1970)"
+        self.id = UUID(uuidString: combinedString) ?? UUID()
+    }
 
     enum ScheduleType: Equatable {
         case oneTime
