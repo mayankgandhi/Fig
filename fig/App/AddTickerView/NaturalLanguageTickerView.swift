@@ -10,6 +10,7 @@ import SwiftUI
 struct NaturalLanguageTickerView: View {
     @StateObject private var aiGenerator = AITickerGenerator()
     @State private var inputText = ""
+    @State private var hasStartedTyping = false
     @State private var showingError = false
     @State private var errorMessage = ""
     @State private var showingSuccess = false
@@ -39,8 +40,12 @@ struct NaturalLanguageTickerView: View {
                     // Input Section
                     inputSection
 
-                    // Example Prompts
-                    examplePromptsSection
+                    // Conditional Content
+                    if hasStartedTyping {
+                        parsedDataPreviewSection
+                    } else {
+                        examplePromptsSection
+                    }
 
                     // Generate Button
                     generateButtonSection
@@ -95,12 +100,6 @@ struct NaturalLanguageTickerView: View {
                     .TickerTitle()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .multilineTextAlignment(.center)
-                
-                Text("Tell me what kind of ticker you want, and I'll set it up for you")
-                    .DetailText()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, TickerSpacing.md)
             }
         }
     }
@@ -153,6 +152,14 @@ struct NaturalLanguageTickerView: View {
                     .scrollContentBackground(.hidden)
                     .background(Color.clear)
                     .padding(TickerSpacing.md)
+                    .onChange(of: inputText) { _, newValue in
+                        if !hasStartedTyping && !newValue.isEmpty {
+                            hasStartedTyping = true
+                        }
+                        
+                        // Trigger background parsing
+                        aiGenerator.parseInBackground(from: newValue)
+                    }
             }
             .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
         }
@@ -205,7 +212,7 @@ struct NaturalLanguageTickerView: View {
                         .font(.callout.weight(.bold))
                 }
 
-                Text(aiGenerator.isGenerating ? "Generating..." : "Generate Ticker")
+                Text(aiGenerator.isGenerating ? "Creating..." : "Create Ticker")
                     .Headline()
             }
             .foregroundStyle(TickerColor.absoluteWhite)
@@ -275,6 +282,150 @@ struct NaturalLanguageTickerView: View {
         }
         .disabled(aiGenerator.isGenerating || inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         .opacity(aiGenerator.isGenerating || inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.6 : 1.0)
+    }
+    
+    // MARK: - Parsed Data Preview Section
+    
+    private var parsedDataPreviewSection: some View {
+        VStack(spacing: TickerSpacing.md) {
+            HStack {
+                Text("PARSED OPTIONS")
+                    .Caption2()
+                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                    .textCase(.uppercase)
+                    .tracking(0.8)
+                
+                Spacer()
+                
+                // Subtle indicator for parsed data
+                if aiGenerator.parsedConfiguration != nil {
+                    Circle()
+                        .fill(TickerColor.primary)
+                        .frame(width: 6, height: 6)
+                        .opacity(0.7)
+                }
+            }
+            .padding(.horizontal, TickerSpacing.md)
+            
+            if let configuration = aiGenerator.parsedConfiguration {
+                // Show parsed data as pills
+                FlowLayout(spacing: TickerSpacing.sm) {
+                    // Activity/Label pill
+                    TickerPill(
+                        icon: "tag",
+                        title: configuration.label.isEmpty ? "Activity" : configuration.label,
+                        hasValue: !configuration.label.isEmpty,
+                        size: .standard
+                    )
+                    
+                    // Time pill
+                    let timeString = formatTime(configuration.time)
+                    TickerPill(
+                        icon: "clock",
+                        title: timeString,
+                        hasValue: true,
+                        size: .standard
+                    )
+                    
+                    // Repeat pattern pill
+                    let repeatString = formatRepeatPattern(configuration.repeatOption)
+                    TickerPill(
+                        icon: "repeat",
+                        title: repeatString,
+                        hasValue: true,
+                        size: .standard
+                    )
+                    
+                    // Countdown pill (if present)
+                    if let countdown = configuration.countdown {
+                        let countdownString = formatCountdown(countdown)
+                        TickerPill(
+                            icon: "timer",
+                            title: countdownString,
+                            hasValue: true,
+                            size: .standard
+                        )
+                    }
+                    
+                    // Icon pill with selected color
+                    TickerPill(
+                        icon: configuration.icon,
+                        title: "Icon",
+                        hasValue: true,
+                        size: .standard,
+                        iconTintColor: Color(hex: configuration.colorHex) ?? TickerColor.primary
+                    )
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TickerSpacing.md)
+            } else {
+                // Loading state with shimmer pills
+                FlowLayout(spacing: TickerSpacing.sm) {
+                    ShimmerPill(width: 100, height: 40)
+                    ShimmerPill(width: 80, height: 40)
+                    ShimmerPill(width: 120, height: 40)
+                    ShimmerPill(width: 90, height: 40)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TickerSpacing.md)
+            }
+        }
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: aiGenerator.parsedConfiguration)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func formatTime(_ time: TickerConfiguration.TimeOfDay) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        
+        let calendar = Calendar.current
+        let components = DateComponents(hour: time.hour, minute: time.minute)
+        if let date = calendar.date(from: components) {
+            return formatter.string(from: date)
+        }
+        return "\(time.hour):\(String(format: "%02d", time.minute))"
+    }
+    
+    private func formatRepeatPattern(_ repeatOption: AITickerGenerator.RepeatOption) -> String {
+        switch repeatOption {
+        case .noRepeat:
+            return "One time"
+        case .daily:
+            return "Daily"
+        case .weekdays(let weekdays):
+            if weekdays.count == 5 && weekdays.contains(.monday) && weekdays.contains(.friday) {
+                return "Weekdays"
+            }
+            let dayNames = weekdays.map { $0.shortName }.joined(separator: ", ")
+            return dayNames
+        case .hourly(let interval):
+            return "Every \(interval) hour\(interval == 1 ? "" : "s")"
+        case .biweekly(let weekdays):
+            let dayNames = weekdays.map { $0.shortName }.joined(separator: ", ")
+            return "Biweekly (\(dayNames))"
+        case .monthly(let day):
+            return "Monthly (day \(day))"
+        case .yearly(let month, let day):
+            let monthName = Calendar.current.monthSymbols[month - 1]
+            return "Yearly (\(monthName) \(day))"
+        }
+    }
+    
+    private func formatCountdown(_ countdown: TickerConfiguration.CountdownConfiguration) -> String {
+        var parts: [String] = []
+        
+        if countdown.hours > 0 {
+            parts.append("\(countdown.hours) hour\(countdown.hours == 1 ? "" : "s")")
+        }
+        if countdown.minutes > 0 {
+            parts.append("\(countdown.minutes) minute\(countdown.minutes == 1 ? "" : "s")")
+        }
+        if countdown.seconds > 0 {
+            parts.append("\(countdown.seconds) second\(countdown.seconds == 1 ? "" : "s")")
+        }
+        
+        return parts.joined(separator: " ")
     }
     
     // MARK: - Background
@@ -368,6 +519,7 @@ struct ExamplePromptCard: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
 
 // MARK: - Preview
 

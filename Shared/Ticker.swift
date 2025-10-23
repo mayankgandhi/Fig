@@ -112,6 +112,18 @@ enum TickerSchedule: Codable, Hashable {
         case thursday = 4
         case friday = 5
         case saturday = 6
+        
+        var shortName: String {
+            switch self {
+                case .sunday: return "Sun"
+                case .monday: return "Mon"
+                case .tuesday: return "Wed"
+                case .wednesday: return "Thu"
+                case .thursday: return "Fri"
+                case .friday: return "Sat"
+                case .saturday: return "Sun"
+            }
+        }
     }
 
     enum MonthlyDay: Codable, Hashable {

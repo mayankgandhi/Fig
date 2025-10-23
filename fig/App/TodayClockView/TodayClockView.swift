@@ -132,7 +132,11 @@ struct TodayClockView: View {
                             showAddSheet = true
                         }
                     } label: {
-                        Image(systemName: "plus")
+                        if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
+                            Image(systemName: "apple.intelligence")
+                        } else {
+                            Image(systemName: "plus")
+                        }
                     }
                     .matchedTransitionSource(id: "addButton", in: addButtonNamespace)
 

@@ -11,7 +11,7 @@ import SwiftUI
 
 // MARK: - Ticker Configuration
 
-struct TickerConfiguration {
+struct TickerConfiguration: Equatable {
     let label: String
     let time: TimeOfDay
     let date: Date
@@ -20,12 +20,12 @@ struct TickerConfiguration {
     let icon: String
     let colorHex: String
     
-    struct TimeOfDay {
+    struct TimeOfDay: Equatable{
         let hour: Int
         let minute: Int
     }
     
-    struct CountdownConfiguration {
+    struct CountdownConfiguration: Equatable {
         let hours: Int
         let minutes: Int
         let seconds: Int
@@ -40,10 +40,12 @@ struct TickerConfiguration {
 class AITickerGenerator: ObservableObject {
     @Published var isGenerating = false
     @Published var errorMessage: String?
+    @Published var parsedConfiguration: TickerConfiguration?
     
     private let activityMapper = ActivityIconMapper()
+    private var parsingTask: Task<Void, Never>?
     
-    enum RepeatOption {
+    enum RepeatOption: Equatable {
         case noRepeat
         case daily
         case weekdays([TickerSchedule.Weekday])
@@ -51,6 +53,70 @@ class AITickerGenerator: ObservableObject {
         case biweekly([TickerSchedule.Weekday])
         case monthly(day: Int)
         case yearly(month: Int, day: Int)
+    }
+    
+    func parseInBackground(from input: String) {
+        // Cancel any existing parsing task
+        parsingTask?.cancel()
+        
+        // Clear previous results
+        parsedConfiguration = nil
+        
+        // Don't parse empty or very short inputs
+        let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedInput.count > 3 else {
+            return
+        }
+        
+        parsingTask = Task {
+            do {
+                // Add a small delay to debounce rapid typing
+                try await Task.sleep(for: .milliseconds(500))
+                
+                // Check if task was cancelled
+                guard !Task.isCancelled else { return }
+                
+                // Perform lightweight parsing
+                let configuration = try await parseConfiguration(from: trimmedInput)
+                
+                // Update on main thread
+                await MainActor.run {
+                    self.parsedConfiguration = configuration
+                }
+            } catch {
+                // Silently fail for background parsing - don't show errors to user
+                await MainActor.run {
+                    self.parsedConfiguration = nil
+                }
+            }
+        }
+    }
+    
+    private func parseConfiguration(from input: String) async throws -> TickerConfiguration {
+        // Use Natural Language framework for text analysis
+        let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass])
+        tagger.string = input
+        
+        // Extract entities and parse the input
+        let entities = extractEntities(from: input, using: tagger)
+        let timeInfo = parseTime(from: input, entities: entities)
+        let dateInfo = parseDate(from: input, entities: entities)
+        let repeatInfo = parseRepeatPattern(from: input, entities: entities)
+        let countdownInfo = parseCountdown(from: input)
+        let activityInfo = parseActivity(from: input, entities: entities)
+        
+        // Generate configuration
+        let configuration = TickerConfiguration(
+            label: activityInfo.label,
+            time: timeInfo,
+            date: dateInfo,
+            repeatOption: repeatInfo,
+            countdown: countdownInfo,
+            icon: activityInfo.icon,
+            colorHex: activityInfo.colorHex
+        )
+        
+        return configuration
     }
     
     func generateTickerConfiguration(from input: String) async throws -> TickerConfiguration {
@@ -64,28 +130,8 @@ class AITickerGenerator: ObservableObject {
             throw AITickerGenerationError.invalidInput
         }
         
-        // Use Natural Language framework for text analysis
-        let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass])
-        tagger.string = trimmedInput
-        
-        // Extract entities and parse the input
-        let entities = extractEntities(from: trimmedInput, using: tagger)
-        let timeInfo = parseTime(from: trimmedInput, entities: entities)
-        let dateInfo = parseDate(from: trimmedInput, entities: entities)
-        let repeatInfo = parseRepeatPattern(from: trimmedInput, entities: entities)
-        let countdownInfo = parseCountdown(from: trimmedInput)
-        let activityInfo = parseActivity(from: trimmedInput, entities: entities)
-        
-        // Generate configuration
-        let configuration = TickerConfiguration(
-            label: activityInfo.label,
-            time: timeInfo,
-            date: dateInfo,
-            repeatOption: repeatInfo,
-            countdown: countdownInfo,
-            icon: activityInfo.icon,
-            colorHex: activityInfo.colorHex
-        )
+        // Use the shared parsing logic
+        let configuration = try await parseConfiguration(from: trimmedInput)
         
         // Additional validation
         if configuration.label.isEmpty {
