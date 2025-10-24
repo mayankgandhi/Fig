@@ -315,17 +315,18 @@ struct ContentView: View {
 
         // Collect IDs first to avoid index issues
         let alarmsToDelete = offsets.map { displayAlarms[$0] }
-
-        // Delete each alarm
-        for alarm in alarmsToDelete {
-            try? tickerService.cancelAlarm(id: alarm.id, context: modelContext)
+        Task { @MainActor in
+            // Delete each alarm
+            for alarm in alarmsToDelete {
+                try? await tickerService.cancelAlarm(id: alarm.id, context: modelContext)
+            }
         }
 
         // Reload the list
         loadAlarms()
     }
 
-    private func toggleAlarmEnabled(_ ticker: Ticker) {
+    private func toggleAlarmEnabled(_ ticker: Ticker) async  {
         ticker.isEnabled.toggle()
 
         // Update in TickerService
@@ -333,7 +334,7 @@ struct ContentView: View {
             if ticker.isEnabled {
                 try? await tickerService.scheduleAlarm(from: ticker, context: modelContext)
             } else {
-                try? tickerService.cancelAlarm(id: ticker.id, context: modelContext)
+                try? await tickerService.cancelAlarm(id: ticker.id, context: modelContext)
             }
             loadAlarms()
         }

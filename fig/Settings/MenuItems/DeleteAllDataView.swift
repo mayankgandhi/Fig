@@ -35,8 +35,10 @@ struct DeleteAllDataView: View {
 
     private func deleteAllAlarms() {
         // Cancel and delete all alarms
-        for alarmItem in alarmItems {
-            try? tickerService.cancelAlarm(id: alarmItem.id, context: modelContext)
+        Task { @MainActor in
+            for alarmItem in alarmItems {
+                try? await tickerService.cancelAlarm(id: alarmItem.id, context: modelContext)
+            }
         }
     }
 }

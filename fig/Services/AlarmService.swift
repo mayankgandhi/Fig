@@ -219,8 +219,9 @@ final class TickerService: TickerServiceProtocol {
             // Save to SwiftData
             print("   → Saving to SwiftData...")
             // Check if item is already in context before inserting
-            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == alarmItem.id })
-            let existingItems = try? context.fetch(descriptor)
+            let allItemsDescriptor = FetchDescriptor<Ticker>()
+            let allItems = try? context.fetch(allItemsDescriptor)
+            let existingItems = allItems?.filter { $0.id == alarmItem.id }
             if existingItems?.isEmpty ?? true {
                 context.insert(alarmItem)
                 print("   → Inserted new alarm into context")
@@ -330,8 +331,9 @@ final class TickerService: TickerServiceProtocol {
             // 4. Save to SwiftData
             print("   → Saving to SwiftData...")
             // Check if item is already in context before inserting
-            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == alarmItem.id })
-            let existingItems = try? context.fetch(descriptor)
+            let allItemsDescriptor = FetchDescriptor<Ticker>()
+            let allItems = try? context.fetch(allItemsDescriptor)
+            let existingItems = allItems?.filter { $0.id == alarmItem.id }
             if existingItems?.isEmpty ?? true {
                 context.insert(alarmItem)
                 print("   → Inserted new alarm into context")
@@ -531,14 +533,15 @@ final class TickerService: TickerServiceProtocol {
     }
 
     @MainActor
-    func cancelAlarm(id: UUID, context: ModelContext?) throws {
+    func cancelAlarm(id: UUID, context: ModelContext?) async throws {
         print("🗑️ TickerService.cancelAlarm() started")
         print("   → id: \(id)")
 
         // Fetch the alarm to get all generated IDs
         if let context = context {
-            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
-            if let alarmItem = try? context.fetch(descriptor).first {
+            let allItemsDescriptor = FetchDescriptor<Ticker>()
+            let allItems = try? context.fetch(allItemsDescriptor)
+            if let alarmItem = allItems?.first(where: { $0.id == id }) {
                 print("   → Found alarm in SwiftData: '\(alarmItem.label)'")
                 print("   → Generated IDs: \(alarmItem.generatedAlarmKitIDs)")
 

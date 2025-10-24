@@ -218,8 +218,9 @@ struct TodayClockView: View {
     // MARK: - Helper Methods
     
     private func getTicker(for id: UUID) -> Ticker? {
-        let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
-        return try? modelContext.fetch(descriptor).first
+        let allItemsDescriptor = FetchDescriptor<Ticker>()
+        let allItems = try? modelContext.fetch(allItemsDescriptor)
+        return allItems?.first(where: { $0.id == id })
     }
 }
 
