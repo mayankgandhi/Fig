@@ -68,7 +68,7 @@ struct StandByWidgetView: View {
                             .frame(width: 64, height: 64)
 
                         Image(systemName: alarm.icon)
-                            .font(.system(size: 32, weight: .semibold))
+                            .font(.system(.title2, design: .rounded, weight: .semibold))
                             .foregroundStyle(alarm.color)
                     }
 
@@ -104,15 +104,15 @@ struct StandByWidgetView: View {
 
                         HStack(alignment: .lastTextBaseline, spacing: 6) {
                             Text(String(format: "%d", alarm.hour % 12 == 0 ? 12 : alarm.hour % 12))
-                                .font(.system(size: 72, weight: .bold, design: .rounded))
+                                .font(.system(.largeTitle, design: .rounded, weight: .bold))
                                 .foregroundStyle(alarm.color)
 
                             Text(":")
-                                .font(.system(size: 72, weight: .bold, design: .rounded))
+                                .font(.system(.largeTitle, design: .rounded, weight: .bold))
                                 .foregroundStyle(alarm.color.opacity(0.5))
 
                             Text(String(format: "%02d", alarm.minute))
-                                .font(.system(size: 72, weight: .bold, design: .rounded))
+                                .font(.system(.largeTitle, design: .rounded, weight: .bold))
                                 .foregroundStyle(alarm.color)
 
                             Text(alarm.hour < 12 ? "AM" : "PM")
@@ -190,7 +190,7 @@ struct StandByWidgetView: View {
                         .blur(radius: 20)
 
                     Image(systemName: "alarm.slash")
-                        .font(.system(size: 48, weight: .regular))
+                        .font(.system(.title, design: .rounded, weight: .regular))
                         .foregroundStyle(.white.opacity(0.5))
                 }
 

@@ -25,8 +25,5 @@ struct AlarmExtension: WidgetBundle {
 
         // Lock Screen / StandBy Widget
         StandByAlarmWidget()         // ExtraLarge - Nightstand display for lock screen
-
-        // Control Center Widget
-        TimerControlWidget()         // Control Center - Quick timer toggle
     }
 }

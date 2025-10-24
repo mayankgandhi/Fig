@@ -432,7 +432,7 @@ struct AlarmCellPreview: View {
                     .frame(width: 48, height: 48)
 
                 Image(systemName: icon)
-                    .font(.system(size: 22))
+                    .font(.system(.title2, design: .rounded, weight: .regular))
                     .foregroundStyle(iconColor)
             }
 
@@ -444,7 +444,7 @@ struct AlarmCellPreview: View {
 
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
-                        .font(.system(size: 11))
+                        .Caption2()
                     Text(schedule)
                 }
                 .Footnote()
@@ -481,7 +481,7 @@ struct EmptyStatePreview: View {
             Spacer()
 
             Image(systemName: TickerIcons.alarmScheduled)
-                .font(.system(size: 128))
+                .font(.system(.largeTitle, design: .rounded, weight: .regular))
                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
             VStack(spacing: TickerSpacing.xs) {
@@ -573,7 +573,7 @@ struct IconSystemPreview: View {
     private func iconItem(name: String, label: String) -> some View {
         VStack(spacing: TickerSpacing.xs) {
             Image(systemName: name)
-                .font(.system(size: 32))
+                .font(.system(.title2, design: .rounded, weight: .regular))
                 .foregroundStyle(TickerColor.primary)
                 .frame(width: 60, height: 60)
 

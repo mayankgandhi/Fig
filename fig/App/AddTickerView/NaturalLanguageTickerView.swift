@@ -91,7 +91,7 @@ struct NaturalLanguageTickerView: View {
                     .frame(width: 80, height: 80)
                 
                 Image(systemName: "sparkles")
-                    .font(.system(size: 24, weight: .medium, design: .rounded))
+                    .font(.system(.title2, design: .rounded, weight: .medium))
                     .foregroundStyle(TickerColor.primary)
             }
             

@@ -60,10 +60,10 @@ struct IntroView: View {
                 } label: {
                     HStack(spacing: TickerSpacing.xs) {
                         Text("Continue")
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                            .TickerTitle()
 
                         Image(systemName: "arrow.right")
-                            .font(.system(size: 16, weight: .bold))
+                            .Callout()
                     }
                 }
                 .tickerPrimaryButton()

@@ -14,33 +14,6 @@ struct AlarmDetailOptionsSection: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.lg) {
-            // Enhanced section header with better visual hierarchy
-            HStack {
-                Text("OPTIONS")
-                    .Caption2()
-                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-                    .textCase(.uppercase)
-                    .tracking(0.8)
-                
-                Spacer()
-                
-                // Enhanced indicator for active options
-                if hasAnyActiveOptions {
-                    HStack(spacing: TickerSpacing.xxs) {
-                        Circle()
-                            .fill(TickerColor.primary)
-                            .frame(width: 6, height: 6)
-                            .opacity(0.8)
-                        
-                        Text("\(activeOptionsCount)")
-                            .Caption2()
-                            .foregroundStyle(TickerColor.primary)
-                            .fontWeight(.semibold)
-                    }
-                }
-            }
-            .padding(.horizontal, TickerSpacing.md)
-
             // Enhanced pill layout with improved spacing and alignment
             FlowLayout(spacing: TickerSpacing.md) {
                 // Calendar/Date option

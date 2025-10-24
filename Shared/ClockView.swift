@@ -160,11 +160,11 @@ struct ClockFaceView: View {
                             // Icon and text
                             VStack(spacing: 2) {
                                 Image(systemName: event.icon)
-                                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                                    .SmallText()
                                     .foregroundStyle(.white)
 
                                 Text(event.displayName)
-                                    .font(.system(size: 8, weight: .bold, design: .rounded))
+                                    .Caption2()
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.6)
                                     .foregroundStyle(.white)

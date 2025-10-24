@@ -61,7 +61,7 @@ struct AlarmDetailView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "pencil")
-                            .font(.system(size: 16, weight: .semibold))
+                            .Callout()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     }
 
@@ -71,7 +71,7 @@ struct AlarmDetailView: View {
                         dismiss()
                     } label: {
                         Image(systemName: "trash")
-                            .font(.system(size: 16, weight: .semibold))
+                            .Callout()
                             .foregroundStyle(.red)
                     }
                 }

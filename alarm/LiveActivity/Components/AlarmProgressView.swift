@@ -42,7 +42,7 @@ struct AlarmProgressView: View {
 
                     // Icon
                     Image(systemName: tickerIcon ?? "bell.fill")
-                        .font(.system(size: 8, weight: .semibold))
+                        .Caption2()
                         .foregroundStyle(tint)
                 }
             case .paused:
@@ -68,7 +68,7 @@ struct AlarmProgressView: View {
 
                     // Pause icon
                     Image(systemName: "pause.fill")
-                        .font(.system(size: 8, weight: .semibold))
+                        .Caption2()
                         .foregroundStyle(tint.opacity(0.7))
                 }
             default:

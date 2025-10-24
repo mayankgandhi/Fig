@@ -80,7 +80,7 @@ struct AlarmCell: View {
             
             // Icon
             Image(systemName: iconName)
-                .font(.system(size: 20, weight: .semibold, design: .rounded))
+                .font(.system(.title3, design: .rounded, weight: .semibold))
                 .foregroundStyle(iconColor)
                 .frame(width: 24, height: 24)
         }

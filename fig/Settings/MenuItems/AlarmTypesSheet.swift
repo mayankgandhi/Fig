@@ -55,7 +55,7 @@ struct AlarmTypesSheet: View {
             
             VStack(spacing: TickerSpacing.md) {
                 Image(systemName: "tag.circle")
-                    .font(.system(size: 64, weight: .light))
+                    .font(.system(.largeTitle, design: .rounded, weight: .light))
                     .foregroundStyle(.secondary)
                 
                 VStack(spacing: TickerSpacing.xs) {
@@ -110,7 +110,7 @@ private struct AlarmTypeRow: View {
                     .frame(width: 40, height: 40)
                 
                 Image(systemName: alarmType.icon)
-                    .font(.system(size: 18, weight: .medium))
+                    .TickerTitle()
                     .foregroundStyle(alarmType.color)
             }
             

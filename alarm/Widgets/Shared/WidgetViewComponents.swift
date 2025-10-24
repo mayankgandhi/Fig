@@ -65,38 +65,40 @@ struct CompactAlarmRow: View {
     let colorScheme: ColorScheme
 
     var body: some View {
-        HStack(spacing: 8) {
-            // Time
+        VStack(spacing: TickerSpacing.xxs) {
+            ZStack {
+                Circle()
+                    .fill(alarm.color.opacity(0.12))
+                    .frame(width: 24, height: 24)
+                
+                Image(systemName: alarm.icon)
+                    .Subheadline()
+                    .foregroundStyle(alarm.color)
+            }
+            .layoutPriority(1)
+            
+            Text(alarm.displayName)
+                .Subheadline()
+                .fontWeight(.medium)
+                .foregroundStyle(alarm.color.opacity(0.7))
+            
             HStack(alignment: .lastTextBaseline, spacing: 2) {
                 Text(String(format: "%d:%02d", alarm.hour % 12 == 0 ? 12 : alarm.hour % 12, alarm.minute))
-                    .ButtonText()
+                    .Callout()
+                    .fontWeight(.bold)
                     .foregroundStyle(alarm.color)
-
+                
                 Text(alarm.hour < 12 ? "AM" : "PM")
-                    .font(.system(size: 8, weight: .semibold, design: .rounded))
-                    .foregroundStyle(alarm.color.opacity(0.7))
-            }
-
-            Spacer()
-
-            // Alarm info
-            HStack(spacing: 4) {
-                Image(systemName: alarm.icon)
-                    .Caption2()
+                    .Callout()
+                    .fontWeight(.bold)
                     .foregroundStyle(alarm.color)
-
-                Text(alarm.displayName)
-                    .Caption2()
-                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                    .lineLimit(1)
-                    .truncationMode(.tail)
             }
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .padding(TickerSpacing.xxs)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.secondarySystemBackground).opacity(0.4))
+            TickerColor.background(for: colorScheme)
+                .cornerRadius(TickerSpacing.md)
         )
     }
 }
@@ -141,7 +143,7 @@ struct DetailedAlarmRow: View {
 
                     if alarm.hasCountdown {
                         Image(systemName: "timer")
-                            .font(.system(size: 9, weight: .medium))
+                            .SmallText()
                             .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     }
                 }
@@ -152,25 +154,28 @@ struct DetailedAlarmRow: View {
                 HStack(alignment: .lastTextBaseline, spacing: 3) {
                     Text(String(format: "%d:%02d", alarm.hour % 12 == 0 ? 12 : alarm.hour % 12, alarm.minute))
                         .Subheadline()
+                        .fontWeight(.semibold)
                         .foregroundStyle(alarm.color)
-
+                    
                     Text(alarm.hour < 12 ? "AM" : "PM")
                         .Caption2()
+                        .fontWeight(.semibold)
                         .foregroundStyle(alarm.color.opacity(0.7))
                 }
-
+                
                 Text(alarm.timeUntilAlarm(from: currentDate))
                     .Caption2()
+                
                     .foregroundStyle(alarm.color.opacity(0.8))
                     .multilineTextAlignment(.trailing)
             }
-            .frame(width: 80, alignment: .trailing)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, TickerSpacing.xs)
+        .padding(.vertical, TickerSpacing.xxs)
         .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground).opacity(0.5))
+            TickerColor.background(for: colorScheme)
+                .cornerRadius(TickerSpacing.xs)
         )
     }
 }
+

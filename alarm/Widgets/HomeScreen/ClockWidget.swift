@@ -78,7 +78,7 @@ struct ClockWidgetView: View {
                         VStack(alignment: .trailing, spacing: 4) {
                             HStack(spacing: 4) {
                                 Image(systemName: "clock.fill")
-                                    .font(.system(size: 10, weight: .semibold))
+                                    .SmallText()
                                     .foregroundStyle(nextAlarm.color)
 
                                 Text("Next")

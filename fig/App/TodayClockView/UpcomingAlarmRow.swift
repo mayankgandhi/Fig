@@ -24,7 +24,7 @@ struct UpcomingAlarmRow: View {
                         .frame(width: 48, height: 48)
 
                     Image(systemName: presentation.icon)
-                        .font(.system(size: 20, weight: .semibold))
+                        .font(.system(.title3, design: .rounded, weight: .semibold))
                         .foregroundStyle(presentation.color)
                 }
                 .layoutPriority(1)

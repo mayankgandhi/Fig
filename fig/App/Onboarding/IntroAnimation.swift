@@ -254,7 +254,7 @@ struct DialogueCallout: View {
             // Icon and prompt text
             HStack(alignment: .top, spacing: TickerSpacing.sm) {
                 Image(systemName: message.icon)
-                    .font(.system(size: 12, weight: .semibold))
+                    .SmallText()
                     .foregroundStyle(message.color)
                     .frame(width: 24, height: 24)
                     .background(

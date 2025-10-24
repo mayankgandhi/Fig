@@ -59,19 +59,19 @@ struct NativeMenuListItem: View {
                         )
 
                     Image(systemName: icon)
-                        .font(.system(size: 18, weight: .semibold))
+                        .TickerTitle()
                         .foregroundStyle(.white)
                 }
 
                 // Title and subtitle with improved typography
                 VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                     Text(title)
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .Headline()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                     if let subtitle = subtitle {
                         Text(subtitle)
-                            .font(.system(size: 14, weight: .medium))
+                            .ButtonText()
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     }
                 }
@@ -80,7 +80,7 @@ struct NativeMenuListItem: View {
 
                 // Enhanced chevron with subtle animation
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
+                    .ButtonText()
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     .scaleEffect(isPressed ? 0.9 : 1.0)
                     .animation(TickerAnimation.quick, value: isPressed)

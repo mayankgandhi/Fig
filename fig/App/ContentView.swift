@@ -255,7 +255,7 @@ struct ContentView: View {
                     } label: {
                         HStack(spacing: TickerSpacing.xs) {
                             Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .Callout()
                             Text("Add Ticker")
                                 .ButtonText()
                         }

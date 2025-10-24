@@ -32,7 +32,7 @@ struct OverlayCallout<Content: View>: View {
                     }
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 24))
+                        .font(.system(.title2, design: .rounded, weight: .regular))
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                         .symbolRenderingMode(.hierarchical)
                 }

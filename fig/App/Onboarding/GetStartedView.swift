@@ -151,10 +151,10 @@ struct GetStartedView: View {
                     } label: {
                         HStack(spacing: TickerSpacing.xs) {
                             Text("Get Started")
-                                .font(.system(size: 18, weight: .bold, design: .rounded))
+                                .TickerTitle()
 
                             Image(systemName: "arrow.right.circle.fill")
-                                .font(.system(size: 20, weight: .bold))
+                                .font(.system(.title3, design: .rounded, weight: .bold))
                         }
                     }
                     .tickerPrimaryButton()
@@ -253,7 +253,7 @@ struct FeatureCard: View {
         HStack(alignment: .top, spacing: TickerSpacing.md) {
             // Icon
             Image(systemName: feature.icon)
-                .font(.system(size: 24, weight: .semibold))
+                .font(.system(.title2, design: .rounded, weight: .semibold))
                 .foregroundStyle(feature.color)
                 .frame(width: 48, height: 48)
                 .background(
@@ -303,7 +303,7 @@ struct CompactFeatureCard: View {
         HStack(alignment: .center, spacing: TickerSpacing.sm) {
             // Icon - smaller
             Image(systemName: feature.icon)
-                .font(.system(size: 18, weight: .semibold))
+                .TickerTitle()
                 .foregroundStyle(feature.color)
                 .frame(width: 36, height: 36)
                 .background(
@@ -348,7 +348,7 @@ struct NotificationPermissionCard: View {
         VStack(alignment: .leading, spacing: TickerSpacing.sm) {
             HStack(spacing: TickerSpacing.sm) {
                 Image(systemName: "bell.badge.fill")
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.system(.title2, design: .rounded, weight: .semibold))
                     .foregroundStyle(TickerColor.primary)
 
                 Text("Enable Notifications")
@@ -398,7 +398,7 @@ struct CompactNotificationCard: View {
     var body: some View {
         HStack(spacing: TickerSpacing.sm) {
             Image(systemName: "bell.badge.fill")
-                .font(.system(size: 18, weight: .semibold))
+                .TickerTitle()
                 .foregroundStyle(TickerColor.primary)
                 .frame(width: 36, height: 36)
                 .background(

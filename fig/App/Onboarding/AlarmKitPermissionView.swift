@@ -64,7 +64,7 @@ struct AlarmKitPermissionView: View {
                             )
 
                         Image(systemName: "clock.badge.checkmark.fill")
-                            .font(.system(size: 48, weight: .semibold))
+                            .font(.system(.largeTitle, design: .rounded, weight: .semibold))
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
@@ -124,9 +124,9 @@ struct AlarmKitPermissionView: View {
                             } label: {
                                 HStack(spacing: TickerSpacing.xs) {
                                     Image(systemName: "gear")
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .Callout()
                                     Text("Open Settings")
-                                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                                        .TickerTitle()
                                 }
                             }
                             .tickerSecondaryButton()
@@ -143,9 +143,9 @@ struct AlarmKitPermissionView: View {
                                         .tint(.white)
                                 } else {
                                     Image(systemName: "clock.badge.checkmark")
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .Callout()
                                     Text("Allow Alarms")
-                                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                                        .TickerTitle()
                                 }
                             }
                         }

@@ -93,12 +93,12 @@ struct SettingsView: View {
                     .frame(width: 24, height: 24)
                 
                 Image(systemName: icon)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .SmallText()
                     .foregroundStyle(TickerColor.primary)
             }
             
             Text(title)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                .DetailText()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 .textCase(.uppercase)
                 .tracking(0.5)

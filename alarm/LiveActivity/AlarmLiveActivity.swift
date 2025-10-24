@@ -62,7 +62,7 @@ struct AlarmLiveActivity: Widget {
 
                         // Quick countdown in expanded view
                         countdown(state: context.state, maxWidth: 80)
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .ButtonText()
                             .foregroundStyle(context.attributes.tintColor)
                     }
                 }
@@ -79,7 +79,7 @@ struct AlarmLiveActivity: Widget {
                         .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
 
                     countdown(state: context.state, maxWidth: 44)
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .SmallText()
                         .foregroundStyle(context.attributes.tintColor)
                 }
             } compactTrailing: {
@@ -162,7 +162,7 @@ struct AlarmLiveActivity: Widget {
             // Enhanced countdown display
             VStack(alignment: .leading, spacing: 4) {
                 countdown(state: state, maxWidth: 150)
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .font(.system(.title, design: .rounded, weight: .bold))
                     .foregroundStyle(attributes.tintColor)
 
                 // Status indicator
@@ -234,7 +234,7 @@ struct AlarmLiveActivity: Widget {
         if let name = metadata?.name, let icon = metadata?.icon {
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
+                    .Callout()
                     .foregroundStyle(.primary)
 
                 Text(name)

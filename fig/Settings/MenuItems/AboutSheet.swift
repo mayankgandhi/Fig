@@ -24,7 +24,7 @@ struct AboutSheet: View {
 
                 VStack(spacing: TickerSpacing.md) {
                     Image(systemName: "alarm.fill")
-                        .font(.system(size: 64))
+                        .font(.system(.largeTitle, design: .rounded, weight: .regular))
                         .foregroundStyle(Color.blue)
 
                     Text("fig")

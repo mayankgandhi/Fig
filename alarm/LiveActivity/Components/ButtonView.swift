@@ -27,10 +27,10 @@ struct ButtonView<I>: View where I: AppIntent {
         Button(intent: intent) {
             HStack(spacing: 6) {
                 Image(systemName: config.systemImageName)
-                    .font(.system(size: 14, weight: .semibold))
+                    .ButtonText()
 
                 Text(config.text)
-                    .font(.system(size: 13, weight: .semibold))
+                    .SmallText()
                     .lineLimit(1)
             }
             .foregroundStyle(.white)
