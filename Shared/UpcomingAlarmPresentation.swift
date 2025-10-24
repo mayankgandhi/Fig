@@ -99,10 +99,19 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
     /// Dynamically formatted time until alarm
     func timeUntilAlarm(from currentDate: Date) -> String {
         let interval = nextAlarmTime.timeIntervalSince(currentDate)
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
+        let totalSeconds = Int(interval)
+        let days = totalSeconds / 86400
+        let hours = (totalSeconds % 86400) / 3600
+        let minutes = (totalSeconds % 3600) / 60
 
-        if hours > 0 {
+        if days > 0 {
+            // Show days and hours for alarms more than 24h away
+            if hours > 0 {
+                return "in \(days)d \(hours)h"
+            } else {
+                return "in \(days)d"
+            }
+        } else if hours > 0 {
             return "in \(hours)h \(minutes)m"
         } else if minutes > 0 {
             return "in \(minutes)m"

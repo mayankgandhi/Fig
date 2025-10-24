@@ -11,13 +11,13 @@ import SwiftUI
 struct ScheduleView: View {
     @Bindable var viewModel: ScheduleViewModel
     @Environment(\.colorScheme) private var colorScheme
-
+    
     var body: some View {
         ScrollView {
             VStack(spacing: TickerSpacing.lg) {
                 // Repeat Options Section (moved to top)
                 repeatOptionsSection
-
+                
                 // Calendar Date Picker (conditional, moved to bottom)
                 if viewModel.shouldShowCalendar {
                     CalendarGrid(
@@ -31,12 +31,19 @@ struct ScheduleView: View {
         }
         .background(TickerColor.background(for: colorScheme).ignoresSafeArea())
     }
-
+    
     // MARK: - Repeat Options Section
-
+    
     @ViewBuilder
     private var repeatOptionsSection: some View {
         VStack(spacing: TickerSpacing.md) {
+            
+            Text("Select a Repeat Frequency")
+                .Caption()
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TickerSpacing.md)
+            
             // Main Repeat Type Selector
             VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -48,23 +55,14 @@ struct ScheduleView: View {
                     .padding(.horizontal, TickerSpacing.md)
                 }
             }
-
-            // Example text for One Time option
-            if viewModel.selectedOption == .oneTime {
-                Text("Perfect for one-off events")
-                    .Caption()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, TickerSpacing.md)
-            }
-
+            
             // Validation Message
             if let validationMessage = viewModel.dateWeekdayMismatchMessage {
                 validationMessageView(message: validationMessage)
                     .padding(.horizontal, TickerSpacing.md)
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
-
+            
             // Configuration View for selected option
             if viewModel.needsConfiguration {
                 configurationView
@@ -73,9 +71,9 @@ struct ScheduleView: View {
             }
         }
     }
-
+    
     // MARK: - Repeat Option Buttons
-
+    
     @ViewBuilder
     private func repeatOptionButton(for option: ScheduleViewModel.RepeatOption) -> some View {
         Button {
@@ -93,65 +91,65 @@ struct ScheduleView: View {
             )
         }
     }
-
+    
     // MARK: - Configuration View
-
+    
     @ViewBuilder
     private var configurationView: some View {
         switch viewModel.selectedOption {
-        case .daily:
-            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                Text("Perfect for everyday habits")
-                    .Caption()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, TickerSpacing.md)
-            }
-
-        case .weekdays:
-            WeekdayPickerView(selectedWeekdays: $viewModel.selectedWeekdays)
-
-        case .hourly:
-            HourlyConfigView(
-                interval: $viewModel.hourlyInterval,
-                startTime: $viewModel.hourlyStartTime,
-                endTime: $viewModel.hourlyEndTime
-            )
-
-        case .every:
-            EveryConfigView(
-                interval: $viewModel.everyInterval,
-                unit: $viewModel.everyUnit,
-                startTime: $viewModel.everyStartTime,
-                endTime: $viewModel.everyEndTime
-            )
-
-        case .biweekly:
-            BiweeklyConfigView(
-                selectedWeekdays: $viewModel.biweeklyWeekdays,
-                anchorDate: $viewModel.biweeklyAnchorDate
-            )
-
-        case .monthly:
-            MonthlyConfigView(
-                dayType: $viewModel.monthlyDayType,
-                fixedDay: $viewModel.monthlyFixedDay,
-                weekday: $viewModel.monthlyWeekday
-            )
-
-        case .yearly:
-            YearlyConfigView(
-                month: $viewModel.yearlyMonth,
-                day: $viewModel.yearlyDay
-            )
-
-        default:
-            EmptyView()
+            case .daily:
+                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
+                    Text("Perfect for everyday habits")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, TickerSpacing.md)
+                }
+                
+            case .weekdays:
+                WeekdayPickerView(selectedWeekdays: $viewModel.selectedWeekdays)
+                
+            case .hourly:
+                HourlyConfigView(
+                    interval: $viewModel.hourlyInterval,
+                    startTime: $viewModel.hourlyStartTime,
+                    endTime: $viewModel.hourlyEndTime
+                )
+                
+            case .every:
+                EveryConfigView(
+                    interval: $viewModel.everyInterval,
+                    unit: $viewModel.everyUnit,
+                    startTime: $viewModel.everyStartTime,
+                    endTime: $viewModel.everyEndTime
+                )
+                
+            case .biweekly:
+                BiweeklyConfigView(
+                    selectedWeekdays: $viewModel.biweeklyWeekdays,
+                    anchorDate: $viewModel.biweeklyAnchorDate
+                )
+                
+            case .monthly:
+                MonthlyConfigView(
+                    dayType: $viewModel.monthlyDayType,
+                    fixedDay: $viewModel.monthlyFixedDay,
+                    weekday: $viewModel.monthlyWeekday
+                )
+                
+            case .yearly:
+                YearlyConfigView(
+                    month: $viewModel.yearlyMonth,
+                    day: $viewModel.yearlyDay
+                )
+                
+            default:
+                EmptyView()
         }
     }
-
+    
     // MARK: - Validation Message View (Compact)
-
+    
     @ViewBuilder
     private func validationMessageView(message: String) -> some View {
         VStack(alignment: .leading, spacing: TickerSpacing.sm) {
@@ -159,15 +157,15 @@ struct ScheduleView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .Footnote()
                     .foregroundStyle(TickerColor.warning)
-
+                
                 Text(message)
                     .Footnote()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .multilineTextAlignment(.leading)
-
+                
                 Spacer()
             }
-
+            
             // Fix Date button
             Button {
                 TickerHaptics.selection()

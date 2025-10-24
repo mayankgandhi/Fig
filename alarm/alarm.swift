@@ -60,7 +60,6 @@ struct AlarmWidgetProvider: TimelineProvider {
 
     // MARK: - Data Fetching
 
-    @MainActor
     private func fetchUpcomingAlarms() async -> [UpcomingAlarmPresentation] {
         // Create ModelContainer for SwiftData access with App Groups support
         let schema = Schema([Ticker.self])
@@ -187,46 +186,50 @@ struct NextAlarmWidgetView: View {
 
     var body: some View {
         if let nextAlarm = entry.upcomingAlarms.first {
-            VStack(spacing: 8) {
+            VStack(spacing: 6) {
                 // Time display
-                HStack(alignment: .lastTextBaseline, spacing: 4) {
+                HStack(alignment: .lastTextBaseline, spacing: 2) {
                     Text(String(format: "%d", nextAlarm.hour % 12 == 0 ? 12 : nextAlarm.hour % 12))
-                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundStyle(nextAlarm.color)
 
                     Text(":")
-                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundStyle(nextAlarm.color.opacity(0.7))
 
                     Text(String(format: "%02d", nextAlarm.minute))
-                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
                         .foregroundStyle(nextAlarm.color)
 
                     Text(nextAlarm.hour < 12 ? "AM" : "PM")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .font(.system(size: 14, weight: .semibold, design: .rounded))
                         .foregroundStyle(nextAlarm.color.opacity(0.8))
                         .offset(y: -2)
                 }
 
                 // Alarm info
-                VStack(spacing: 4) {
-                    HStack(spacing: 4) {
+                VStack(spacing: 2) {
+                    HStack(spacing: 3) {
                         Image(systemName: nextAlarm.icon)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(.system(size: 10, weight: .medium))
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                         Text(nextAlarm.displayName)
-                            .font(.system(size: 12, weight: .semibold, design: .rounded))
+                            .font(.system(size: 10, weight: .semibold, design: .rounded))
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                             .lineLimit(1)
+                            .truncationMode(.tail)
                     }
 
                     Text(nextAlarm.timeUntilAlarm(from: entry.date))
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
+                        .font(.system(size: 9, weight: .medium, design: .rounded))
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .lineLimit(1)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
             .containerBackground(for: .widget) {
                 TickerColor.liquidGlassGradient(for: colorScheme)
             }
@@ -273,34 +276,34 @@ struct AlarmListWidgetView: View {
             VStack(spacing: 0) {
                 // Header
                 HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 1) {
                         Text("Upcoming Alarms")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .font(.system(size: 12, weight: .bold, design: .rounded))
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                         Text("\(entry.upcomingAlarms.count) scheduled")
-                            .font(.system(size: 11, weight: .medium, design: .rounded))
+                            .font(.system(size: 9, weight: .medium, design: .rounded))
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     }
 
                     Spacer()
 
                     Image(systemName: "alarm.fill")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(TickerColor.primary)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+                .padding(.horizontal, 12)
+                .padding(.top, 8)
+                .padding(.bottom, 6)
 
-                // Alarm list (show up to 3)
-                VStack(spacing: 8) {
-                    ForEach(entry.upcomingAlarms.prefix(3)) { alarm in
-                        AlarmRow(alarm: alarm, currentDate: entry.date, colorScheme: colorScheme)
+                // Alarm list (show up to 2 for better fit)
+                VStack(spacing: 6) {
+                    ForEach(entry.upcomingAlarms.prefix(2)) { alarm in
+                        CompactAlarmRow(alarm: alarm, currentDate: entry.date, colorScheme: colorScheme)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
 
                 Spacer(minLength: 0)
             }
@@ -350,7 +353,7 @@ struct DetailedAlarmListWidgetView: View {
         if !entry.upcomingAlarms.isEmpty {
             VStack(spacing: 0) {
                 // Header with stats
-                HStack(alignment: .top) {
+                HStack(alignment: .center) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Upcoming Alarms")
                             .font(.system(size: 18, weight: .bold, design: .rounded))
@@ -380,6 +383,7 @@ struct DetailedAlarmListWidgetView: View {
                                 .font(.system(size: 14, weight: .bold, design: .rounded))
                                 .foregroundStyle(nextAlarm.color)
                         }
+                        .frame(width: 80, alignment: .trailing)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -488,13 +492,55 @@ struct AlarmRow: View {
     }
 }
 
+struct CompactAlarmRow: View {
+    let alarm: UpcomingAlarmPresentation
+    let currentDate: Date
+    let colorScheme: ColorScheme
+
+    var body: some View {
+        HStack(spacing: 8) {
+            // Time
+            HStack(alignment: .lastTextBaseline, spacing: 2) {
+                Text(String(format: "%d:%02d", alarm.hour % 12 == 0 ? 12 : alarm.hour % 12, alarm.minute))
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundStyle(alarm.color)
+
+                Text(alarm.hour < 12 ? "AM" : "PM")
+                    .font(.system(size: 8, weight: .semibold, design: .rounded))
+                    .foregroundStyle(alarm.color.opacity(0.7))
+            }
+
+            Spacer()
+
+            // Alarm info
+            HStack(spacing: 4) {
+                Image(systemName: alarm.icon)
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(alarm.color)
+
+                Text(alarm.displayName)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 6)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color(.secondarySystemBackground).opacity(0.4))
+        )
+    }
+}
+
 struct DetailedAlarmRow: View {
     let alarm: UpcomingAlarmPresentation
     let currentDate: Date
     let colorScheme: ColorScheme
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(alignment: .center, spacing: 12) {
             // Icon and color indicator
             ZStack {
                 Circle()
@@ -507,18 +553,19 @@ struct DetailedAlarmRow: View {
             }
 
             // Alarm details
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(alarm.displayName)
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .lineLimit(1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: 6) {
                     Text(alarm.scheduleType.badgeText)
                         .font(.system(size: 10, weight: .semibold, design: .rounded))
                         .foregroundStyle(.white)
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
                         .background(
                             Capsule()
                                 .fill(alarm.scheduleType.badgeColor)
@@ -532,26 +579,27 @@ struct DetailedAlarmRow: View {
                 }
             }
 
-            Spacer()
-
-            // Time and countdown
-            VStack(alignment: .trailing, spacing: 3) {
-                HStack(alignment: .lastTextBaseline, spacing: 2) {
+            // Time and countdown - Fixed width for consistent alignment
+            VStack(alignment: .trailing, spacing: 2) {
+                HStack(alignment: .lastTextBaseline, spacing: 3) {
                     Text(String(format: "%d:%02d", alarm.hour % 12 == 0 ? 12 : alarm.hour % 12, alarm.minute))
                         .font(.system(size: 16, weight: .bold, design: .rounded))
                         .foregroundStyle(alarm.color)
 
                     Text(alarm.hour < 12 ? "AM" : "PM")
-                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
                         .foregroundStyle(alarm.color.opacity(0.7))
                 }
 
                 Text(alarm.timeUntilAlarm(from: currentDate))
                     .font(.system(size: 11, weight: .medium, design: .rounded))
-                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                    .foregroundStyle(alarm.color.opacity(0.8))
+                    .multilineTextAlignment(.trailing)
             }
+            .frame(width: 80, alignment: .trailing)
         }
-        .padding(12)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.secondarySystemBackground).opacity(0.5))

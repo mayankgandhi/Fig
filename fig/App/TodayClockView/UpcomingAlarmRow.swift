@@ -27,32 +27,37 @@ struct UpcomingAlarmRow: View {
                         .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(presentation.color)
                 }
+                .layoutPriority(1)
 
                 // Alarm details
                 VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                     Text(presentation.displayName)
                         .Headline()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                        .lineLimit(1)
 
                     HStack(spacing: TickerSpacing.xs) {
                         Text(presentation.nextAlarmTime, style: .time)
                             .Footnote()
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                            .fixedSize()
 
                         Text("•")
                             .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                            .fixedSize()
 
                         Text(presentation.timeUntilAlarm(from: context.date))
                             .Footnote()
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                            .fixedSize()
                     }
                 }
-
-                Spacer()
+                .frame(maxWidth: .infinity, alignment: .leading)
 
                 // Schedule type badge
                 Text(presentation.scheduleType.badgeText)
                     .tickerStatusBadge(color: presentation.scheduleType.badgeColor)
+                    .layoutPriority(2)
             }
             .padding(TickerSpacing.md)
             .background(TickerColor.surface(for: colorScheme))
@@ -65,4 +70,101 @@ struct UpcomingAlarmRow: View {
             )
         }
     }
+}
+
+// MARK: - Previews
+
+#Preview("Upcoming Alarm Variations") {
+    VStack(spacing: TickerSpacing.lg) {
+        // Daily alarm - waking up
+        UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+            baseAlarmId: UUID(),
+            displayName: "Wake Up",
+            icon: "sunrise.fill",
+            color: .orange,
+            nextAlarmTime: Calendar.current.date(byAdding: .hour, value: 8, to: .now) ?? .now,
+            scheduleType: .daily,
+            hour: 7,
+            minute: 30,
+            hasCountdown: true,
+            tickerDataTitle: "Morning Routine"
+        ))
+
+        // One-time alarm - meeting
+        UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+            baseAlarmId: UUID(),
+            displayName: "Team Meeting",
+            icon: "person.3.fill",
+            color: .blue,
+            nextAlarmTime: Calendar.current.date(byAdding: .minute, value: 45, to: .now) ?? .now,
+            scheduleType: .oneTime,
+            hour: 14,
+            minute: 0,
+            hasCountdown: false,
+            tickerDataTitle: nil
+        ))
+
+        // Weekdays alarm - work
+        UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+            baseAlarmId: UUID(),
+            displayName: "Work Start",
+            icon: "briefcase.fill",
+            color: .purple,
+            nextAlarmTime: Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .now,
+            scheduleType: .weekdays([1, 2, 3, 4, 5]),
+            hour: 9,
+            minute: 0,
+            hasCountdown: true,
+            tickerDataTitle: "Get Ready"
+        ))
+
+        // Hourly interval alarm - medication
+        UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+            baseAlarmId: UUID(),
+            displayName: "Medication",
+            icon: "pills.fill",
+            color: .red,
+            nextAlarmTime: Calendar.current.date(byAdding: .minute, value: 20, to: .now) ?? .now,
+            scheduleType: .hourly(interval: 4),
+            hour: 10,
+            minute: 0,
+            hasCountdown: false,
+            tickerDataTitle: nil
+        ))
+    }
+    .padding()
+}
+
+#Preview("Single Alarm - Light Mode") {
+    UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+        baseAlarmId: UUID(),
+        displayName: "Morning Coffee",
+        icon: "cup.and.saucer.fill",
+        color: .brown,
+        nextAlarmTime: Calendar.current.date(byAdding: .hour, value: 2, to: .now) ?? .now,
+        scheduleType: .daily,
+        hour: 8,
+        minute: 15,
+        hasCountdown: true,
+        tickerDataTitle: "Brew Time"
+    ))
+    .padding()
+    .preferredColorScheme(.light)
+}
+
+#Preview("Single Alarm - Dark Mode") {
+    UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+        baseAlarmId: UUID(),
+        displayName: "Evening Walk",
+        icon: "figure.walk",
+        color: .green,
+        nextAlarmTime: Calendar.current.date(byAdding: .hour, value: 5, to: .now) ?? .now,
+        scheduleType: .daily,
+        hour: 18,
+        minute: 30,
+        hasCountdown: false,
+        tickerDataTitle: nil
+    ))
+    .padding()
+    .preferredColorScheme(.dark)
 }

@@ -44,7 +44,8 @@ struct figApp: App {
                         .environment(tickerService)
                         .task {
                             // Synchronize alarms on app launch
-                            await tickerService.synchronizeAlarmsOnLaunch(context: sharedModelContainer.mainContext)
+                            let context = ModelContext(sharedModelContainer)
+                            await tickerService.synchronizeAlarmsOnLaunch(context: context)
                         }
                 } else {
                     // Onboarding flow

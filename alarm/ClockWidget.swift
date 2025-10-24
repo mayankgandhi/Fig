@@ -66,7 +66,6 @@ struct ClockWidgetProvider: TimelineProvider {
 
     // MARK: - Data Fetching
 
-    @MainActor
     private func fetchUpcomingAlarms() async -> [UpcomingAlarmPresentation] {
         // Create ModelContainer for SwiftData access with App Groups support
         // This ensures we get the latest data from the shared container
@@ -267,5 +266,96 @@ struct ClockWidget: Widget {
         .description("View your upcoming alarms on a clock face")
         .supportedFamilies([.systemMedium, .systemLarge])
     }
+}
+
+// MARK: - Previews
+
+#Preview("Clock - Medium", as: .systemMedium) {
+    ClockWidget()
+} timeline: {
+    ClockWidgetProvider.Entry(
+        date: .now,
+        upcomingAlarms: [
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Morning Run",
+                icon: "figure.run",
+                color: .orange,
+                nextAlarmTime: Date().addingTimeInterval(7200),
+                scheduleType: .daily,
+                hour: 7,
+                minute: 30,
+                hasCountdown: true,
+                tickerDataTitle: "Exercise"
+            ),
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Team Meeting",
+                icon: "briefcase.fill",
+                color: .blue,
+                nextAlarmTime: Date().addingTimeInterval(14400),
+                scheduleType: .oneTime,
+                hour: 14,
+                minute: 0,
+                hasCountdown: false,
+                tickerDataTitle: nil
+            )
+        ]
+    )
+}
+
+#Preview("Clock - Large", as: .systemLarge) {
+    ClockWidget()
+} timeline: {
+    ClockWidgetProvider.Entry(
+        date: .now,
+        upcomingAlarms: [
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Morning Run",
+                icon: "figure.run",
+                color: .orange,
+                nextAlarmTime: Date().addingTimeInterval(7200),
+                scheduleType: .daily,
+                hour: 7,
+                minute: 30,
+                hasCountdown: true,
+                tickerDataTitle: "Exercise"
+            ),
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Team Meeting",
+                icon: "briefcase.fill",
+                color: .blue,
+                nextAlarmTime: Date().addingTimeInterval(14400),
+                scheduleType: .oneTime,
+                hour: 14,
+                minute: 0,
+                hasCountdown: false,
+                tickerDataTitle: nil
+            ),
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Dinner Time",
+                icon: "fork.knife",
+                color: .red,
+                nextAlarmTime: Date().addingTimeInterval(21600),
+                scheduleType: .daily,
+                hour: 18,
+                minute: 0,
+                hasCountdown: false,
+                tickerDataTitle: nil
+            )
+        ]
+    )
+}
+
+#Preview("Clock - No Alarms", as: .systemMedium) {
+    ClockWidget()
+} timeline: {
+    ClockWidgetProvider.Entry(
+        date: .now,
+        upcomingAlarms: []
+    )
 }
 
