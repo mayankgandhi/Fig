@@ -1,18 +1,19 @@
 //
-//  alarmControl.swift
+//  TimerControlWidget.swift
 //  alarm
 //
-//  Created by Mayank Gandhi on 05/10/25.
+//  Control Center widget for quick timer control
+//  Renamed and moved from alarmControl.swift
 //
 
 import AppIntents
 import SwiftUI
 import WidgetKit
 
-// Note: TimerConfiguration and StartTimerIntent are now located
+// Note: TimerConfiguration and StartTimerIntent are located
 // at fig/AppIntents/ControlWidget/
 
-struct alarmControl: ControlWidget {
+struct TimerControlWidget: ControlWidget {
     static let kind: String = "m.fig.alarm"
 
     var body: some ControlWidgetConfiguration {
@@ -49,7 +50,7 @@ struct alarmControl: ControlWidget {
                                 x: 0,
                                 y: 4
                             )
-                        
+
                         // Icon
                         Image(systemName: isRunning ? "timer" : "timer")
                             .font(.system(size: 16, weight: .semibold))
@@ -57,7 +58,7 @@ struct alarmControl: ControlWidget {
                             .scaleEffect(isRunning ? 1.1 : 1.0)
                             .animation(.easeInOut(duration: 0.2), value: isRunning)
                     }
-                    
+
                     // Status text
                     Text(isRunning ? "Running" : "Stopped")
                         .font(.system(size: 10, weight: .medium))
@@ -70,7 +71,7 @@ struct alarmControl: ControlWidget {
     }
 }
 
-extension alarmControl {
+extension TimerControlWidget {
     struct Value {
         var isRunning: Bool
         var name: String
@@ -78,12 +79,12 @@ extension alarmControl {
 
     struct Provider: AppIntentControlValueProvider {
         func previewValue(configuration: TimerConfiguration) -> Value {
-            alarmControl.Value(isRunning: false, name: configuration.timerName)
+            TimerControlWidget.Value(isRunning: false, name: configuration.timerName)
         }
 
         func currentValue(configuration: TimerConfiguration) async throws -> Value {
             let isRunning = true // Check if the timer is running
-            return alarmControl.Value(isRunning: isRunning, name: configuration.timerName)
+            return TimerControlWidget.Value(isRunning: isRunning, name: configuration.timerName)
         }
     }
 }

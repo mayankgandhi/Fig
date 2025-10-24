@@ -4,6 +4,7 @@
 //
 //  StandBy mode widget optimized for nightstand viewing
 //  Large, high-contrast design for distance viewing
+//  Refactored to use shared components
 //
 
 import WidgetKit
@@ -14,169 +15,21 @@ import SwiftData
 
 struct StandByWidgetProvider: TimelineProvider {
 
-    struct Entry: TimelineEntry {
-        let date: Date
-        let nextAlarm: UpcomingAlarmPresentation?
+    func placeholder(in context: Context) -> AlarmTimelineEntry {
+        BaseTimelineProvider.createPlaceholder()
     }
 
-    func placeholder(in context: Context) -> Entry {
-        Entry(date: Date(), nextAlarm: nil)
+    func getSnapshot(in context: Context, completion: @escaping (AlarmTimelineEntry) -> Void) {
+        completion(BaseTimelineProvider.createSnapshot())
     }
 
-    func getSnapshot(in context: Context, completion: @escaping (Entry) -> Void) {
-        let entry = Entry(date: Date(), nextAlarm: nil)
-        completion(entry)
-    }
-
-    func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> Void) {
-        Task {
-            let calendar = Calendar.current
-            let currentDate = Date()
-
-            // Calculate the start of the next minute
-            let currentComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: currentDate)
-            guard let currentMinute = calendar.date(from: currentComponents),
-                  let nextMinute = calendar.date(byAdding: .minute, value: 1, to: currentMinute) else {
-                let entry = Entry(date: currentDate, nextAlarm: nil)
-                let timeline = Timeline(entries: [entry], policy: .atEnd)
-                completion(timeline)
-                return
-            }
-
-            let nextAlarm = await fetchNextAlarm()
-
-            // Generate timeline entries for the next 30 minutes, updating every minute
-            var entries: [Entry] = []
-            for minuteOffset in stride(from: 0, through: 30, by: 1) {
-                let entryDate = calendar.date(byAdding: .minute, value: minuteOffset, to: nextMinute)!
-                let entry = Entry(date: entryDate, nextAlarm: nextAlarm)
-                entries.append(entry)
-            }
-
-            // Update policy: Refresh after the last entry
-            let timeline = Timeline(entries: entries, policy: .atEnd)
-            completion(timeline)
-        }
-    }
-
-    // MARK: - Data Fetching
-
-    @MainActor
-    private func fetchNextAlarm() async -> UpcomingAlarmPresentation? {
-        // Create ModelContainer for SwiftData access with App Groups support
-        let schema = Schema([Ticker.self])
-
-        // Try to use shared container first, fallback to local if not available
-        let modelConfiguration: ModelConfiguration
-        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.m.fig") {
-            modelConfiguration = ModelConfiguration(schema: schema, url: sharedURL.appendingPathComponent("Ticker.sqlite"))
-        } else {
-            modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        }
-
-        guard let modelContainer = try? ModelContainer(for: schema, configurations: [modelConfiguration]) else {
-            return nil
-        }
-
-        let context = ModelContext(modelContainer)
-
-        // Fetch all enabled alarms
-        let descriptor = FetchDescriptor<Ticker>(
-            predicate: #Predicate { $0.isEnabled },
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+    func getTimeline(in context: Context, completion: @escaping (Timeline<AlarmTimelineEntry>) -> Void) {
+        BaseTimelineProvider.generateNextAlarmTimeline(
+            in: context,
+            completion: completion,
+            timeWindowMinutes: 30,
+            alarmTimeWindowHours: 24
         )
-
-        guard let alarms = try? context.fetch(descriptor) else {
-            return nil
-        }
-
-        // Filter for upcoming alarms (next 24 hours)
-        let now = Date()
-        let next24Hours = now.addingTimeInterval(24 * 60 * 60)
-        let calendar = Calendar.current
-
-        let upcomingAlarms = alarms.compactMap { alarm -> UpcomingAlarmPresentation? in
-            guard let schedule = alarm.schedule else { return nil }
-
-            let nextAlarmTime: Date
-
-            switch schedule {
-            case .oneTime(let date):
-                guard date >= now && date <= next24Hours else { return nil }
-                nextAlarmTime = date
-
-            case .daily(let time, _):
-                let nextOccurrence = getNextOccurrence(for: time, from: now, calendar: calendar)
-                guard nextOccurrence <= next24Hours else { return nil }
-                nextAlarmTime = nextOccurrence
-
-            case .hourly, .weekdays, .biweekly, .monthly, .yearly, .every:
-                // For composite schedules, skip for simplicity
-                return nil
-            }
-
-            let hour = calendar.component(.hour, from: nextAlarmTime)
-            let minute = calendar.component(.minute, from: nextAlarmTime)
-
-            let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
-                switch schedule {
-                case .oneTime: return .oneTime
-                case .daily: return .daily
-                default: return .oneTime
-                }
-            }()
-
-            return UpcomingAlarmPresentation(
-                baseAlarmId: alarm.id,
-                displayName: alarm.displayName,
-                icon: alarm.tickerData?.icon ?? "alarm",
-                color: extractColor(from: alarm),
-                nextAlarmTime: nextAlarmTime,
-                scheduleType: scheduleType,
-                hour: hour,
-                minute: minute,
-                hasCountdown: alarm.countdown?.preAlert != nil,
-                tickerDataTitle: alarm.tickerData?.name
-            )
-        }
-        .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
-
-        return upcomingAlarms.first
-    }
-
-    private func getNextOccurrence(for time: TickerSchedule.TimeOfDay, from date: Date, calendar: Calendar) -> Date {
-        var components = calendar.dateComponents([.year, .month, .day], from: date)
-        components.hour = time.hour
-        components.minute = time.minute
-        components.second = 0
-
-        guard let todayOccurrence = calendar.date(from: components) else {
-            return date
-        }
-
-        // If today's occurrence has passed, return tomorrow's
-        if todayOccurrence <= date {
-            return calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence
-        }
-
-        return todayOccurrence
-    }
-
-    private func extractColor(from alarm: Ticker) -> Color {
-        // Try ticker data first
-        if let colorHex = alarm.tickerData?.colorHex,
-           let color = Color(hex: colorHex) {
-            return color
-        }
-
-        // Try presentation tint
-        if let tintHex = alarm.presentation.tintColorHex,
-           let color = Color(hex: tintHex) {
-            return color
-        }
-
-        // Default to accent
-        return .accentColor
     }
 }
 
@@ -184,10 +37,10 @@ struct StandByWidgetProvider: TimelineProvider {
 
 struct StandByWidgetView: View {
     @Environment(\.colorScheme) private var colorScheme
-    let entry: StandByWidgetProvider.Entry
+    let entry: AlarmTimelineEntry
 
     var body: some View {
-        if let alarm = entry.nextAlarm {
+        if let alarm = entry.upcomingAlarms.first {
             // Next alarm view - optimized for distance viewing
             HStack(spacing: 32) {
                 // Left side - Alarm icon and name
@@ -377,28 +230,30 @@ struct StandByAlarmWidget: Widget {
 #Preview("StandBy - With Alarm", as: .systemExtraLarge) {
     StandByAlarmWidget()
 } timeline: {
-    StandByWidgetProvider.Entry(
+    AlarmTimelineEntry(
         date: .now,
-        nextAlarm: UpcomingAlarmPresentation(
-            baseAlarmId: UUID(),
-            displayName: "Morning Wake Up",
-            icon: "sunrise.fill",
-            color: .orange,
-            nextAlarmTime: Date().addingTimeInterval(7200),
-            scheduleType: .daily,
-            hour: 7,
-            minute: 30,
-            hasCountdown: true,
-            tickerDataTitle: nil
-        )
+        upcomingAlarms: [
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Morning Wake Up",
+                icon: "sunrise.fill",
+                color: .orange,
+                nextAlarmTime: Date().addingTimeInterval(7200),
+                scheduleType: .daily,
+                hour: 7,
+                minute: 30,
+                hasCountdown: true,
+                tickerDataTitle: nil
+            )
+        ]
     )
 }
 
 #Preview("StandBy - No Alarm", as: .systemExtraLarge) {
     StandByAlarmWidget()
 } timeline: {
-    StandByWidgetProvider.Entry(
+    AlarmTimelineEntry(
         date: .now,
-        nextAlarm: nil
+        upcomingAlarms: []
     )
 }

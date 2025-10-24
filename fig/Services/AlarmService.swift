@@ -249,7 +249,9 @@ final class TickerService: TickerServiceProtocol {
             print("   → Rolling back SwiftData changes...")
             // Rollback: remove from SwiftData if scheduling failed
             // Only delete if we just inserted it
-            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == alarmItem.id })
+            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
+                ticker.id == alarmItem.id
+            })
             if let existingItem = try? context.fetch(descriptor).first {
                 context.delete(existingItem)
                 try? context.save()
@@ -370,7 +372,9 @@ final class TickerService: TickerServiceProtocol {
             alarmItem.generatedAlarmKitIDs = []
 
             // Only delete if we just inserted it
-            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == alarmItem.id })
+            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
+                ticker.id == alarmItem.id
+            })
             if let existingItem = try? context.fetch(descriptor).first {
                 context.delete(existingItem)
                 try? context.save()
