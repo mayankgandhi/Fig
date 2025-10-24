@@ -335,9 +335,9 @@ struct ClockFaceView: View {
                     }
                 }
             } else {
-                // If not animating, set to false and they'll stay hidden
+                // If not animating, show alarms immediately (for widgets)
                 for alarm in upcomingAlarms {
-                    alarmAnimationStates[alarm.id] = false
+                    alarmAnimationStates[alarm.id] = true
                 }
             }
         }

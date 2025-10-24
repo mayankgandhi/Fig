@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftData
+import Foundation
 
 /// Centralized service for fetching alarm data in widgets
 struct WidgetDataFetcher {
@@ -20,6 +21,17 @@ struct WidgetDataFetcher {
     ///   - withinHours: Time window in hours to search for upcoming alarms
     /// - Returns: Array of upcoming alarm presentations sorted by next alarm time
     static func fetchUpcomingAlarms(limit: Int? = nil, withinHours: Int = 24) async -> [UpcomingAlarmPresentation] {
+        // Try to read from cache first (fast path)
+        if let cachedAlarms = WidgetDataSharingService.readFromCache() {
+            print("⚡️ WidgetDataFetcher: Using cached data (\(cachedAlarms.count) alarms)")
+            if let limit = limit {
+                return Array(cachedAlarms.prefix(limit))
+            }
+            return cachedAlarms
+        }
+
+        // Fallback to computing from SwiftData (slower path)
+        print("🔄 WidgetDataFetcher: Cache miss, computing from SwiftData")
         guard let context = createModelContext() else {
             return []
         }
@@ -38,52 +50,65 @@ struct WidgetDataFetcher {
         let now = Date()
         let timeWindow = now.addingTimeInterval(Double(withinHours) * 60 * 60)
         let calendar = Calendar.current
+        let expander = TickerScheduleExpander(calendar: calendar)
 
-        var upcomingAlarms = alarms.compactMap { alarm -> UpcomingAlarmPresentation? in
-            guard let schedule = alarm.schedule else { return nil }
+        var upcomingAlarms: [UpcomingAlarmPresentation] = []
 
-            let nextAlarmTime: Date
+        for alarm in alarms {
+            guard let schedule = alarm.schedule else { continue }
 
-            switch schedule {
-            case .oneTime(let date):
-                guard date >= now && date <= timeWindow else { return nil }
-                nextAlarmTime = date
+            // Expand schedule to get upcoming dates
+            let window = DateInterval(start: now, end: timeWindow)
+            let expandedDates = expander.expandSchedule(schedule, within: window)
+            
+            // Limit to first few occurrences to avoid too many alarms in widget
+            let limitedDates = Array(expandedDates.prefix(3))
+            
+            for alarmDate in limitedDates {
+                let hour = calendar.component(.hour, from: alarmDate)
+                let minute = calendar.component(.minute, from: alarmDate)
 
-            case .daily(let time, _):
-                let nextOccurrence = getNextOccurrence(for: time, from: now, calendar: calendar)
-                guard nextOccurrence <= timeWindow else { return nil }
-                nextAlarmTime = nextOccurrence
+                let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
+                    switch schedule {
+                    case .oneTime: return .oneTime
+                    case .daily: return .daily
+                    case .hourly(let interval, _, _): return .hourly(interval: interval)
+                    case .weekdays(_, let days, _):
+                        return .weekdays(days.map { $0.rawValue })
+                    case .biweekly: return .biweekly
+                    case .monthly: return .monthly
+                    case .yearly: return .yearly
+                    case .every(let interval, let unit, _, _):
+                        let unitString: String
+                        switch unit {
+                        case .minutes: unitString = "minutes"
+                        case .hours: unitString = "hours"
+                        case .days: unitString = "days"
+                        case .weeks: unitString = "weeks"
+                        }
+                        return .every(interval: interval, unit: unitString)
+                    }
+                }()
 
-            case .hourly, .weekdays, .biweekly, .monthly, .yearly, .every:
-                // For composite schedules, skip in widgets for simplicity
-                return nil
+                let presentation = UpcomingAlarmPresentation(
+                    baseAlarmId: alarm.id,
+                    displayName: alarm.displayName,
+                    icon: alarm.tickerData?.icon ?? "alarm",
+                    color: extractColor(from: alarm),
+                    nextAlarmTime: alarmDate,
+                    scheduleType: scheduleType,
+                    hour: hour,
+                    minute: minute,
+                    hasCountdown: alarm.countdown?.preAlert != nil,
+                    tickerDataTitle: alarm.tickerData?.name
+                )
+                
+                upcomingAlarms.append(presentation)
             }
-
-            let hour = calendar.component(.hour, from: nextAlarmTime)
-            let minute = calendar.component(.minute, from: nextAlarmTime)
-
-            let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
-                switch schedule {
-                case .oneTime: return .oneTime
-                case .daily: return .daily
-                default: return .oneTime
-                }
-            }()
-
-            return UpcomingAlarmPresentation(
-                baseAlarmId: alarm.id,
-                displayName: alarm.displayName,
-                icon: alarm.tickerData?.icon ?? "alarm",
-                color: extractColor(from: alarm),
-                nextAlarmTime: nextAlarmTime,
-                scheduleType: scheduleType,
-                hour: hour,
-                minute: minute,
-                hasCountdown: alarm.countdown?.preAlert != nil,
-                tickerDataTitle: alarm.tickerData?.name
-            )
         }
-        .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
+
+        // Sort by next alarm time
+        upcomingAlarms.sort { $0.nextAlarmTime < $1.nextAlarmTime }
 
         // Apply limit if specified
         if let limit = limit {
@@ -123,28 +148,34 @@ struct WidgetDataFetcher {
         return ModelContext(modelContainer)
     }
 
-    /// Calculates the next occurrence of a daily alarm
-    /// - Parameters:
-    ///   - time: Time of day for the alarm
-    ///   - date: Reference date to calculate from
-    ///   - calendar: Calendar to use for calculations
-    /// - Returns: Next occurrence date
-    private static func getNextOccurrence(for time: TickerSchedule.TimeOfDay, from date: Date, calendar: Calendar) -> Date {
+    /// Creates a date with the specified time of day
+    private static func createDate(from date: Date, with time: TickerSchedule.TimeOfDay, calendar: Calendar) -> Date? {
         var components = calendar.dateComponents([.year, .month, .day], from: date)
         components.hour = time.hour
         components.minute = time.minute
         components.second = 0
-
-        guard let todayOccurrence = calendar.date(from: components) else {
-            return date
-        }
-
-        // If today's occurrence has passed, return tomorrow's
-        if todayOccurrence <= date {
-            return calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence
-        }
-
-        return todayOccurrence
+        return calendar.date(from: components)
+    }
+    
+    /// Creates a monthly date
+    private static func createMonthlyDate(from date: Date, day: Int, time: TickerSchedule.TimeOfDay, calendar: Calendar) -> Date? {
+        var components = calendar.dateComponents([.year, .month], from: date)
+        components.day = day
+        components.hour = time.hour
+        components.minute = time.minute
+        components.second = 0
+        return calendar.date(from: components)
+    }
+    
+    /// Creates a yearly date
+    private static func createYearlyDate(from date: Date, month: Int, day: Int, time: TickerSchedule.TimeOfDay, calendar: Calendar) -> Date? {
+        var components = calendar.dateComponents([.year], from: date)
+        components.month = month
+        components.day = day
+        components.hour = time.hour
+        components.minute = time.minute
+        components.second = 0
+        return calendar.date(from: components)
     }
 
     /// Extracts color from alarm data with fallback logic

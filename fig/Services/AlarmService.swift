@@ -238,7 +238,7 @@ final class TickerService: TickerServiceProtocol {
 
             // Refresh widget timelines
             print("   → Refreshing widget timelines...")
-            refreshWidgetTimelines()
+            refreshWidgetTimelines(context: context)
             print("   → Widget timelines refreshed")
 
         } catch let error as TickerServiceError {
@@ -531,7 +531,7 @@ final class TickerService: TickerServiceProtocol {
             
             // Refresh widget timelines
             print("   → Refreshing widget timelines...")
-            refreshWidgetTimelines()
+            refreshWidgetTimelines(context: context)
             print("   → Widget timelines refreshed")
         }
         print("   ✅ updateAlarm() completed successfully")
@@ -605,7 +605,7 @@ final class TickerService: TickerServiceProtocol {
 
         // Refresh widget timelines
         print("   → Refreshing widget timelines...")
-        refreshWidgetTimelines()
+        refreshWidgetTimelines(context: context)
         print("   ✅ cancelAlarm() completed")
     }
 
@@ -677,8 +677,16 @@ final class TickerService: TickerServiceProtocol {
 
     // MARK: - Widget Refresh
 
-    private func refreshWidgetTimelines() {
+    private func refreshWidgetTimelines(context: ModelContext? = nil) {
+        // Reload widget timelines
         WidgetCenter.shared.reloadAllTimelines()
+
+        // Update shared cache for optimized widget data loading
+        if let context = context {
+            Task { @MainActor in
+                await WidgetDataSharingService.updateSharedCache(context: context)
+            }
+        }
     }
 
     // MARK: - Synchronization

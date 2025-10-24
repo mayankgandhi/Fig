@@ -47,7 +47,7 @@ struct ClockWidgetView: View {
             ClockFaceView(
                 currentDate: entry.date,
                 upcomingAlarms: entry.upcomingAlarms,
-                shouldAnimateAlarms: true,
+                shouldAnimateAlarms: false,
                 showSecondsHand: false
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)

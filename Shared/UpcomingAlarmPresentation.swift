@@ -12,7 +12,7 @@ import SwiftUI
 // MARK: - Presentation Model
 
 /// View-ready representation of an upcoming alarm with pre-calculated values
-struct UpcomingAlarmPresentation: Identifiable, Equatable {
+struct UpcomingAlarmPresentation: Identifiable, Equatable, Codable {
     let id: UUID
     let baseAlarmId: UUID
     let displayName: String
@@ -26,6 +26,50 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
     // Optional metadata
     let hasCountdown: Bool
     let tickerDataTitle: String?
+
+    // MARK: - Codable Support
+
+    enum CodingKeys: String, CodingKey {
+        case id, baseAlarmId, displayName, icon, colorHex, nextAlarmTime
+        case scheduleType, hour, minute, hasCountdown, tickerDataTitle
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        baseAlarmId = try container.decode(UUID.self, forKey: .baseAlarmId)
+        displayName = try container.decode(String.self, forKey: .displayName)
+        icon = try container.decode(String.self, forKey: .icon)
+
+        // Decode color from hex string
+        let colorHex = try container.decode(String.self, forKey: .colorHex)
+        color = Color(hex: colorHex) ?? .accentColor
+
+        nextAlarmTime = try container.decode(Date.self, forKey: .nextAlarmTime)
+        scheduleType = try container.decode(ScheduleType.self, forKey: .scheduleType)
+        hour = try container.decode(Int.self, forKey: .hour)
+        minute = try container.decode(Int.self, forKey: .minute)
+        hasCountdown = try container.decode(Bool.self, forKey: .hasCountdown)
+        tickerDataTitle = try container.decodeIfPresent(String.self, forKey: .tickerDataTitle)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(baseAlarmId, forKey: .baseAlarmId)
+        try container.encode(displayName, forKey: .displayName)
+        try container.encode(icon, forKey: .icon)
+
+        // Encode color as hex string
+        try container.encode(color.toHex() ?? "#007AFF", forKey: .colorHex)
+
+        try container.encode(nextAlarmTime, forKey: .nextAlarmTime)
+        try container.encode(scheduleType, forKey: .scheduleType)
+        try container.encode(hour, forKey: .hour)
+        try container.encode(minute, forKey: .minute)
+        try container.encode(hasCountdown, forKey: .hasCountdown)
+        try container.encodeIfPresent(tickerDataTitle, forKey: .tickerDataTitle)
+    }
     
     /// Calculated angle for clock face positioning (0-360 degrees)
     var angle: Double {
@@ -51,7 +95,7 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
         self.id = UUID(uuidString: combinedString) ?? UUID()
     }
 
-    enum ScheduleType: Equatable {
+    enum ScheduleType: Equatable, Codable {
         case oneTime
         case daily
         case weekdays([Int]) // Array of weekday indices
@@ -60,6 +104,71 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
         case biweekly
         case monthly
         case yearly
+
+        enum CodingKeys: String, CodingKey {
+            case type, weekdays, interval, unit
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let type = try container.decode(String.self, forKey: .type)
+
+            switch type {
+            case "oneTime":
+                self = .oneTime
+            case "daily":
+                self = .daily
+            case "weekdays":
+                let days = try container.decode([Int].self, forKey: .weekdays)
+                self = .weekdays(days)
+            case "hourly":
+                let interval = try container.decode(Int.self, forKey: .interval)
+                self = .hourly(interval: interval)
+            case "every":
+                let interval = try container.decode(Int.self, forKey: .interval)
+                let unit = try container.decode(String.self, forKey: .unit)
+                self = .every(interval: interval, unit: unit)
+            case "biweekly":
+                self = .biweekly
+            case "monthly":
+                self = .monthly
+            case "yearly":
+                self = .yearly
+            default:
+                throw DecodingError.dataCorruptedError(
+                    forKey: .type,
+                    in: container,
+                    debugDescription: "Unknown schedule type: \(type)"
+                )
+            }
+        }
+
+        func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+
+            switch self {
+            case .oneTime:
+                try container.encode("oneTime", forKey: .type)
+            case .daily:
+                try container.encode("daily", forKey: .type)
+            case .weekdays(let days):
+                try container.encode("weekdays", forKey: .type)
+                try container.encode(days, forKey: .weekdays)
+            case .hourly(let interval):
+                try container.encode("hourly", forKey: .type)
+                try container.encode(interval, forKey: .interval)
+            case .every(let interval, let unit):
+                try container.encode("every", forKey: .type)
+                try container.encode(interval, forKey: .interval)
+                try container.encode(unit, forKey: .unit)
+            case .biweekly:
+                try container.encode("biweekly", forKey: .type)
+            case .monthly:
+                try container.encode("monthly", forKey: .type)
+            case .yearly:
+                try container.encode("yearly", forKey: .type)
+            }
+        }
 
         var badgeText: String {
             switch self {
