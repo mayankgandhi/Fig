@@ -74,14 +74,14 @@ struct StandByWidgetView: View {
 
                     // Alarm name
                     Text(alarm.displayName)
-                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .Title2()
                         .foregroundStyle(.white)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
                     // Schedule badge
                     Text(alarm.scheduleType.badgeText)
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .ButtonText()
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
@@ -98,7 +98,7 @@ struct StandByWidgetView: View {
                     // Next alarm time - extra large
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("NEXT ALARM")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .ButtonText()
                             .foregroundStyle(.white.opacity(0.6))
                             .tracking(1.5)
 
@@ -116,7 +116,7 @@ struct StandByWidgetView: View {
                                 .foregroundStyle(alarm.color)
 
                             Text(alarm.hour < 12 ? "AM" : "PM")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .TimeDisplay()
                                 .foregroundStyle(alarm.color.opacity(0.8))
                                 .offset(y: -8)
                         }
@@ -134,7 +134,7 @@ struct StandByWidgetView: View {
                             .shadow(color: alarm.color, radius: 16, x: 0, y: 0)
 
                         Text(alarm.timeUntilAlarm(from: entry.date))
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .Title3()
                             .foregroundStyle(.white)
                     }
                     .padding(.horizontal, 16)
@@ -151,7 +151,7 @@ struct StandByWidgetView: View {
             }
             .padding(32)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(
+            .containerBackground(for: .widget) {
                 ZStack {
                     // Deep black background
                     Color.black
@@ -178,7 +178,7 @@ struct StandByWidgetView: View {
                         endPoint: .center
                     )
                 }
-            )
+            }
         } else {
             // No alarms view
             VStack(spacing: 24) {
@@ -196,16 +196,18 @@ struct StandByWidgetView: View {
 
                 VStack(spacing: 8) {
                     Text("No Alarms")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .LargeTitle()
                         .foregroundStyle(.white.opacity(0.9))
 
                     Text("Enjoy your rest")
-                        .font(.system(size: 20, weight: .medium, design: .rounded))
+                        .Title3()
                         .foregroundStyle(.white.opacity(0.5))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(Color.black)
+            .containerBackground(for: .widget) {
+                Color.black
+            }
         }
     }
 }

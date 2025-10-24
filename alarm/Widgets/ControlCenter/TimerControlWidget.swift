@@ -53,7 +53,7 @@ struct TimerControlWidget: ControlWidget {
 
                         // Icon
                         Image(systemName: isRunning ? "timer" : "timer")
-                            .font(.system(size: 16, weight: .semibold))
+                            .Subheadline()
                             .foregroundStyle(isRunning ? .white : .secondary)
                             .scaleEffect(isRunning ? 1.1 : 1.0)
                             .animation(.easeInOut(duration: 0.2), value: isRunning)
@@ -61,8 +61,11 @@ struct TimerControlWidget: ControlWidget {
 
                     // Status text
                     Text(isRunning ? "Running" : "Stopped")
-                        .font(.system(size: 10, weight: .medium))
+                        .Caption2()
                         .foregroundStyle(isRunning ? .primary : .secondary)
+                }
+                .containerBackground(for: .widget) {
+                    Color.clear
                 }
             }
         }

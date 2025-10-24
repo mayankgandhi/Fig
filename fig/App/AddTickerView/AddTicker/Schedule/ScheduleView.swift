@@ -29,7 +29,6 @@ struct ScheduleView: View {
             }
             .padding(.vertical, TickerSpacing.md)
         }
-        .background(TickerColor.background(for: colorScheme).ignoresSafeArea())
     }
     
     // MARK: - Repeat Options Section

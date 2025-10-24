@@ -57,7 +57,7 @@ struct NextAlarmWidgetView: View {
                         .foregroundStyle(nextAlarm.color)
 
                     Text(nextAlarm.hour < 12 ? "AM" : "PM")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
+                        .ButtonText()
                         .foregroundStyle(nextAlarm.color.opacity(0.8))
                         .offset(y: -2)
                 }
@@ -66,11 +66,11 @@ struct NextAlarmWidgetView: View {
                 VStack(spacing: 2) {
                     HStack(spacing: 3) {
                         Image(systemName: nextAlarm.icon)
-                            .font(.system(size: 10, weight: .medium))
+                            .Caption2()
                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
                         Text(nextAlarm.displayName)
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .Caption2()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                             .lineLimit(1)
                             .truncationMode(.tail)
@@ -96,7 +96,7 @@ struct NextAlarmWidgetView: View {
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                 Text("No Alarms")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .ButtonText()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -133,7 +133,7 @@ struct AlarmListWidgetView: View {
                 HStack {
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Upcoming Alarms")
-                            .font(.system(size: 12, weight: .bold, design: .rounded))
+                            .SmallText()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                         Text("\(entry.upcomingAlarms.count) scheduled")
@@ -174,7 +174,7 @@ struct AlarmListWidgetView: View {
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                 Text("No Alarms Scheduled")
-                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .ButtonText()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -211,16 +211,16 @@ struct DetailedAlarmListWidgetView: View {
                 HStack(alignment: .center) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Upcoming Alarms")
-                            .font(.system(size: 18, weight: .bold, design: .rounded))
+                            .TickerTitle()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                         HStack(spacing: 4) {
                             Text("\(entry.upcomingAlarms.count)")
-                                .font(.system(size: 13, weight: .bold, design: .rounded))
+                                .Footnote()
                                 .foregroundStyle(TickerColor.primary)
 
                             Text("scheduled")
-                                .font(.system(size: 13, weight: .medium, design: .rounded))
+                                .Footnote()
                                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                         }
                     }
@@ -231,11 +231,11 @@ struct DetailedAlarmListWidgetView: View {
                     if let nextAlarm = entry.upcomingAlarms.first {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("Next")
-                                .font(.system(size: 10, weight: .medium, design: .rounded))
+                                .Caption2()
                                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
                             Text(nextAlarm.timeUntilAlarm(from: entry.date))
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .ButtonText()
                                 .foregroundStyle(nextAlarm.color)
                         }
                         .frame(width: 80, alignment: .trailing)
@@ -269,11 +269,11 @@ struct DetailedAlarmListWidgetView: View {
 
                 VStack(spacing: 4) {
                     Text("No Alarms Scheduled")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .TickerTitle()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                     Text("Tap to add a new alarm")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .DetailText()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
             }

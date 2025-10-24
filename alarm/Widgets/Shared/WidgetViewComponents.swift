@@ -22,16 +22,16 @@ struct AlarmRow: View {
             VStack(alignment: .leading, spacing: 2) {
                 HStack(alignment: .lastTextBaseline, spacing: 2) {
                     Text(String(format: "%d:%02d", alarm.hour % 12 == 0 ? 12 : alarm.hour % 12, alarm.minute))
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
+                        .TickerTitle()
                         .foregroundStyle(alarm.color)
 
                     Text(alarm.hour < 12 ? "AM" : "PM")
-                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .Caption2()
                         .foregroundStyle(alarm.color.opacity(0.7))
                 }
 
                 Text(alarm.timeUntilAlarm(from: currentDate))
-                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .Caption2()
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
             }
 
@@ -40,11 +40,11 @@ struct AlarmRow: View {
             // Alarm info
             HStack(spacing: 6) {
                 Image(systemName: alarm.icon)
-                    .font(.system(size: 12, weight: .medium))
+                    .SmallText()
                     .foregroundStyle(alarm.color)
 
                 Text(alarm.displayName)
-                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .SmallText()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .lineLimit(1)
             }
@@ -69,7 +69,7 @@ struct CompactAlarmRow: View {
             // Time
             HStack(alignment: .lastTextBaseline, spacing: 2) {
                 Text(String(format: "%d:%02d", alarm.hour % 12 == 0 ? 12 : alarm.hour % 12, alarm.minute))
-                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .ButtonText()
                     .foregroundStyle(alarm.color)
 
                 Text(alarm.hour < 12 ? "AM" : "PM")
@@ -82,11 +82,11 @@ struct CompactAlarmRow: View {
             // Alarm info
             HStack(spacing: 4) {
                 Image(systemName: alarm.icon)
-                    .font(.system(size: 10, weight: .medium))
+                    .Caption2()
                     .foregroundStyle(alarm.color)
 
                 Text(alarm.displayName)
-                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .Caption2()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .lineLimit(1)
                     .truncationMode(.tail)
@@ -116,21 +116,21 @@ struct DetailedAlarmRow: View {
                     .frame(width: 40, height: 40)
 
                 Image(systemName: alarm.icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .Subheadline()
                     .foregroundStyle(alarm.color)
             }
 
             // Alarm details
             VStack(alignment: .leading, spacing: 4) {
                 Text(alarm.displayName)
-                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                    .DetailText()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .lineLimit(1)
                     .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: 6) {
                     Text(alarm.scheduleType.badgeText)
-                        .font(.system(size: 10, weight: .semibold, design: .rounded))
+                        .Caption2()
                         .foregroundStyle(.white)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -151,16 +151,16 @@ struct DetailedAlarmRow: View {
             VStack(alignment: .trailing, spacing: 2) {
                 HStack(alignment: .lastTextBaseline, spacing: 3) {
                     Text(String(format: "%d:%02d", alarm.hour % 12 == 0 ? 12 : alarm.hour % 12, alarm.minute))
-                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .Subheadline()
                         .foregroundStyle(alarm.color)
 
                     Text(alarm.hour < 12 ? "AM" : "PM")
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .Caption2()
                         .foregroundStyle(alarm.color.opacity(0.7))
                 }
 
                 Text(alarm.timeUntilAlarm(from: currentDate))
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .Caption2()
                     .foregroundStyle(alarm.color.opacity(0.8))
                     .multilineTextAlignment(.trailing)
             }
