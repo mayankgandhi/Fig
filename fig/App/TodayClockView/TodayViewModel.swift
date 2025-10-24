@@ -21,59 +21,17 @@ final class TodayViewModel {
     private let modelContext: ModelContext
     private let calendar: Calendar
 
-    // MARK: - Computed Properties
-
-    /// All enabled alarms from TickerService
-    @MainActor
-    private var allEnabledAlarms: [Ticker] {
-        tickerService.getAlarmsWithMetadata(context: modelContext).filter { $0.isEnabled }
-    }
-
-    /// All upcoming alarms with recurrences, ending when all alarms have appeared at least once
-    @MainActor
-    var upcomingAlarms: [UpcomingAlarmPresentation] {
-        let now = Date()
-
-        // Step 1: Find the cutoff time (latest first occurrence among all alarms)
-        let cutoffTime = allEnabledAlarms
-            .compactMap { alarm -> Date? in
-                guard alarm.schedule != nil else { return nil }
-                return getNextAlarmTime(for: alarm, from: now)
-            }
-            .max() ?? now
-
-        // Step 2: Generate all occurrences for each alarm until cutoff time
-        let allOccurrences = allEnabledAlarms.flatMap { alarm -> [UpcomingAlarmPresentation] in
-            generateOccurrences(for: alarm, from: now, until: cutoffTime)
-        }
-
-        // Step 3: Sort all occurrences chronologically
-        return allOccurrences.sorted { $0.nextAlarmTime < $1.nextAlarmTime }
-    }
-
-    /// Upcoming alarms for clock display (only first occurrence of each unique alarm)
-    @MainActor
-    var upcomingAlarmsForClock: [UpcomingAlarmPresentation] {
-        let now = Date()
-
-        return allEnabledAlarms
-            .compactMap { alarm -> UpcomingAlarmPresentation? in
-                guard alarm.schedule != nil else { return nil }
-                let nextTime = getNextAlarmTime(for: alarm, from: now)
-                guard nextTime > now && nextTime != Date.distantFuture else { return nil }
-                return createPresentation(from: alarm, at: nextTime)
-            }
-            .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
-    }
-
+    // MARK: - Cached State (computed off main thread, stored for fast access)
+    
+    private(set) var upcomingAlarms: [UpcomingAlarmPresentation] = []
+    private(set) var upcomingAlarmsForClock: [UpcomingAlarmPresentation] = []
+    
     /// Number of upcoming alarms
-    @MainActor
     var upcomingAlarmsCount: Int {
         upcomingAlarms.count
     }
 
     /// Whether there are any upcoming alarms
-    @MainActor
     var hasUpcomingAlarms: Bool {
         !upcomingAlarms.isEmpty
     }
@@ -86,6 +44,46 @@ final class TodayViewModel {
         self.calendar = calendar
     }
 
+    // MARK: - Public Methods
+    
+    /// Refreshes upcoming alarms (call this when alarms change)
+    /// Computation happens off main thread for better performance
+    func refreshAlarms() async {
+        let now = Date()
+        
+        // Get all enabled alarms (fast dictionary access)
+        let allEnabledAlarms = tickerService.getAlarmsWithMetadata(context: modelContext).filter { $0.isEnabled }
+        
+        // Compute upcoming alarms off main thread
+        let cutoffTime = allEnabledAlarms
+            .compactMap { alarm -> Date? in
+                guard alarm.schedule != nil else { return nil }
+                return getNextAlarmTime(for: alarm, from: now)
+            }
+            .max() ?? now
+        
+        let allOccurrences = allEnabledAlarms.flatMap { alarm -> [UpcomingAlarmPresentation] in
+            generateOccurrences(for: alarm, from: now, until: cutoffTime)
+        }
+        
+        let sortedOccurrences = allOccurrences.sorted { $0.nextAlarmTime < $1.nextAlarmTime }
+        
+        // Compute clock alarms
+        let clockAlarms = allEnabledAlarms
+            .compactMap { alarm -> UpcomingAlarmPresentation? in
+                guard alarm.schedule != nil else { return nil }
+                let nextTime = getNextAlarmTime(for: alarm, from: now)
+                guard nextTime > now && nextTime != Date.distantFuture else { return nil }
+                return createPresentation(from: alarm, at: nextTime)
+            }
+            .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
+        
+        // Update state on main thread
+        await MainActor.run {
+            self.upcomingAlarms = sortedOccurrences
+            self.upcomingAlarmsForClock = clockAlarms
+        }
+    }
 
     // MARK: - Helper Methods
 

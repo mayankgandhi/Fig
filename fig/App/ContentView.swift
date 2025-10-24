@@ -147,7 +147,6 @@ struct ContentView: View {
         }
     }
 
-    @MainActor
     private func loadAlarms() {
         displayAlarms = tickerService.getAlarmsWithMetadata(context: modelContext).sorted { ticker1, ticker2 in
             sortByScheduledTime(ticker1, ticker2)

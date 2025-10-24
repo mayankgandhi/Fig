@@ -19,20 +19,23 @@ struct WidgetDataFetcher {
     ///   - limit: Maximum number of alarms to return (nil for no limit)
     ///   - withinHours: Time window in hours to search for upcoming alarms
     /// - Returns: Array of upcoming alarm presentations sorted by next alarm time
+    /// - Note: Runs on background thread for widget performance
     static func fetchUpcomingAlarms(limit: Int? = nil, withinHours: Int = 24) async -> [UpcomingAlarmPresentation] {
-        guard let context = createModelContext() else {
-            return []
-        }
+        // Explicitly run on background thread to avoid blocking widget rendering
+        return await Task.detached(priority: .userInitiated) {
+            guard let context = createModelContext() else {
+                return []
+            }
 
-        // Fetch all enabled alarms
-        let descriptor = FetchDescriptor<Ticker>(
-            predicate: #Predicate { $0.isEnabled },
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-        )
+            // Fetch all enabled alarms
+            let descriptor = FetchDescriptor<Ticker>(
+                predicate: #Predicate { $0.isEnabled },
+                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+            )
 
-        guard let alarms = try? context.fetch(descriptor) else {
-            return []
-        }
+            guard let alarms = try? context.fetch(descriptor) else {
+                return []
+            }
 
         // Filter for upcoming alarms within the specified time window
         let now = Date()
@@ -82,15 +85,16 @@ struct WidgetDataFetcher {
                 hasCountdown: alarm.countdown?.preAlert != nil,
                 tickerDataTitle: alarm.tickerData?.name
             )
-        }
-        .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
+            }
+            .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
 
-        // Apply limit if specified
-        if let limit = limit {
-            upcomingAlarms = Array(upcomingAlarms.prefix(limit))
-        }
+            // Apply limit if specified
+            if let limit = limit {
+                upcomingAlarms = Array(upcomingAlarms.prefix(limit))
+            }
 
-        return upcomingAlarms
+            return upcomingAlarms
+        }.value
     }
 
     /// Fetches the next upcoming alarm
