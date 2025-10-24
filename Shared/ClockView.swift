@@ -13,28 +13,28 @@ import SwiftUI
 /// Takes current date as parameter instead of using TimelineView
 struct ClockFaceView: View {
     @Environment(\.colorScheme) private var colorScheme
-
+    
     struct MinuteMark: Identifiable {
         var id: Double {
             angle
         }
         var angle: Double
     }
-
+    
     struct HourMark: Identifiable {
         var id: Int
         var time: Int?
         var angle: Double
         var textAngle: Double?
     }
-
+    
     // Parameters
     let currentDate: Date
     var upcomingAlarms: [UpcomingAlarmPresentation]
     var shouldAnimateAlarms: Bool = false
     var showSecondsHand: Bool = true
     @State private var alarmAnimationStates: [UUID: Bool] = [:]
-
+    
     let hourMarks: [HourMark] = [
         HourMark(id: 0, time: 12, angle: 0, textAngle: 0),
         HourMark(id: 1, time: nil, angle: 30, textAngle: nil),
@@ -49,26 +49,26 @@ struct ClockFaceView: View {
         HourMark(id: 10, time: nil, angle: 300, textAngle: nil),
         HourMark(id: 11, time: nil, angle: 330, textAngle: nil),
     ]
-
+    
     let minuteMarks: [MinuteMark] = stride(from: 0, through: 360, by: 3).map { angle in
         MinuteMark(angle: Double(angle))
     }
-
+    
     var body: some View {
         GeometryReader { geometry in
             let radius = min(geometry.size.width, geometry.size.height) / 2
             let markOffset = radius * 0.95
             let handLength = radius
-
+            
             let calendar = Calendar.current
             let hour = calendar.component(.hour, from: currentDate)
             let minute = calendar.component(.minute, from: currentDate)
             let second = calendar.component(.second, from: currentDate)
-                
+            
             let hourAngle = Double(hour % 12) * 30 + Double(minute) * 0.5
             let minuteAngle = Double(minute) * 6
             let secondAngle = Double(second) * 6
-
+            
             ZStack {
                 // Enhanced clock face with glassmorphism
                 ZStack {
@@ -81,7 +81,7 @@ struct ClockFaceView: View {
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
-
+                    
                     // Glassmorphism overlay
                     Circle()
                         .fill(.ultraThinMaterial)
@@ -106,7 +106,7 @@ struct ClockFaceView: View {
                 .shadow(color: Color(.label).opacity(0.1), radius: 20, x: 0, y: 8)
                 .shadow(color: Color(.label).opacity(0.05), radius: 5, x: 0, y: 2)
                 .shadow(color: Color(.label).opacity(0.02), radius: 1, x: 0, y: 1)
-
+                
                 ForEach(hourMarks) { hourmark in
                     Rectangle()
                         .fill(hourmark.time != nil ? Color(.label) : Color(.secondaryLabel))
@@ -116,7 +116,7 @@ struct ClockFaceView: View {
                         )
                         .offset(y: -markOffset)
                         .rotationEffect(Angle(degrees: hourmark.angle))
-
+                    
                     if let time = hourmark.time, let textAngle = hourmark.textAngle {
                         Text("\(time)")
                             .rotationEffect(Angle(degrees: textAngle))
@@ -126,7 +126,7 @@ struct ClockFaceView: View {
                             .rotationEffect(Angle(degrees: hourmark.angle))
                     }
                 }
-
+                
                 ForEach(minuteMarks) { hourmark in
                     Rectangle()
                         .fill(Color(.tertiaryLabel).opacity(0.5))
@@ -137,12 +137,36 @@ struct ClockFaceView: View {
                         .offset(y: -markOffset)
                         .rotationEffect(Angle(degrees: hourmark.angle))
                 }
-
+                
                 ForEach(Array(upcomingAlarms.enumerated()), id: \.element.id) { index, event in
                     VStack(spacing: .zero) {
-                        // Enhanced alarm indicator
-                        ZStack {
-                            // Background capsule with gradient
+                        
+                        HStack(spacing: 2) {
+                            Image(systemName: event.icon)
+                                .font(
+                                    .system(
+                                        size: handLength * 0.08,
+                                        weight: .semibold,
+                                        design: .rounded
+                                    )
+                                )
+                                .foregroundStyle(.white)
+                            
+                            Text(event.displayName)
+                                .font(
+                                    .system(
+                                        size: handLength * 0.08,
+                                        weight: .medium,
+                                        design: .rounded
+                                    )
+                                )
+                                .truncationMode(.tail)
+                                .lineLimit(1)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 4)
+                        }
+                        .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
+                        .background {
                             Capsule()
                                 .fill(
                                     LinearGradient(
@@ -154,32 +178,12 @@ struct ClockFaceView: View {
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .frame(width: handLength * 0.18, height: handLength * 0.6)
+                                .frame(width: handLength * 0.125, height: handLength)
                                 .shadow(color: event.color.opacity(0.3), radius: 4, x: 0, y: 2)
-
-                            // Icon and text
-                            VStack(spacing: 2) {
-                                Image(systemName: event.icon)
-                                    .SmallText()
-                                    .foregroundStyle(.white)
-
-                                Text(event.displayName)
-                                    .Caption2()
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.6)
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 4)
-                            }
-                            .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
                         }
-
-                        // Connection line to clock face
-                        Rectangle()
-                            .fill(event.color.opacity(0.6))
-                            .frame(width: 2, height: handLength * 0.15)
-                            .offset(y: -handLength * 0.075)
+                        
                     }
-                    .offset(y: -handLength * 0.45)
+                    .offset(y: -handLength * 0.5)
                     .rotationEffect(Angle(degrees: event.angle))
                     .scaleEffect(alarmAnimationStates[event.id] == true ? 1.0 : 0.1)
                     .opacity(alarmAnimationStates[event.id] == true ? 1.0 : 0.0)
@@ -189,7 +193,7 @@ struct ClockFaceView: View {
                         value: alarmAnimationStates[event.id]
                     )
                 }
-
+                
                 // Enhanced Hour Hand
                 RoundedRectangle(cornerRadius: 3)
                     .fill(
@@ -206,7 +210,7 @@ struct ClockFaceView: View {
                     .offset(y: -radius * 0.25)
                     .rotationEffect(Angle(degrees: hourAngle))
                     .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.4), radius: 3, x: 0, y: 2)
-
+                
                 // Enhanced Minute Hand
                 RoundedRectangle(cornerRadius: 2)
                     .fill(
@@ -223,7 +227,7 @@ struct ClockFaceView: View {
                     .offset(y: -radius * 0.35)
                     .rotationEffect(Angle(degrees: minuteAngle))
                     .shadow(color: TickerColor.textPrimary(for: colorScheme).opacity(0.4), radius: 3, x: 0, y: 2)
-
+                
                 // Enhanced Second Hand
                 if showSecondsHand {
                     RoundedRectangle(cornerRadius: 1)
@@ -243,14 +247,14 @@ struct ClockFaceView: View {
                         .animation(.none, value: secondAngle)
                         .shadow(color: TickerColor.primary.opacity(0.5), radius: 2, x: 0, y: 1)
                 }
-
+                
                 // Enhanced center dot
                 ZStack {
                     Circle()
                         .fill(TickerColor.primary)
                         .frame(width: radius * 0.04, height: radius * 0.04)
                         .shadow(color: TickerColor.primary.opacity(0.3), radius: 2, x: 0, y: 1)
-
+                    
                     Circle()
                         .fill(.white)
                         .frame(width: radius * 0.02, height: radius * 0.02)
@@ -284,21 +288,21 @@ struct ClockFaceView: View {
             let newAlarmIDs = Set(newAlarms.map { $0.id })
             let oldAlarmIDs = Set(oldAlarms.map { $0.id })
             let addedAlarms = newAlarms.filter { !oldAlarmIDs.contains($0.id) }
-
+            
             // Remove states for alarms that no longer exist
             for oldID in oldAlarmIDs {
                 if !newAlarmIDs.contains(oldID) {
                     alarmAnimationStates.removeValue(forKey: oldID)
                 }
             }
-
+            
             // Add states for new alarms
             if shouldAnimateAlarms {
                 // Start new alarms hidden, then animate them in
                 for alarm in addedAlarms {
                     alarmAnimationStates[alarm.id] = false
                 }
-
+                
                 // Trigger staggered animation for new alarms
                 for (index, alarm) in addedAlarms.enumerated() {
                     DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
@@ -315,9 +319,26 @@ struct ClockFaceView: View {
             }
         }
         .onAppear {
-            // Initialize all alarm animation states to false on appear
-            for alarm in upcomingAlarms {
-                alarmAnimationStates[alarm.id] = false
+            // Initialize all alarm animation states
+            if shouldAnimateAlarms {
+                // Start hidden, then animate in with stagger
+                for alarm in upcomingAlarms {
+                    alarmAnimationStates[alarm.id] = false
+                }
+                
+                // Trigger staggered animation
+                for (index, alarm) in upcomingAlarms.enumerated() {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
+                        withAnimation {
+                            alarmAnimationStates[alarm.id] = true
+                        }
+                    }
+                }
+            } else {
+                // If not animating, set to false and they'll stay hidden
+                for alarm in upcomingAlarms {
+                    alarmAnimationStates[alarm.id] = false
+                }
             }
         }
     }
@@ -331,7 +352,7 @@ struct ClockView: View {
     var upcomingAlarms: [UpcomingAlarmPresentation]
     var shouldAnimateAlarms: Bool = false
     var showSecondsHand: Bool = true
-
+    
     var body: some View {
         TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
             ClockFaceView(
@@ -368,7 +389,7 @@ struct ClockView: View {
         // 3:00 PM - Should be at right (90°)
         UpcomingAlarmPresentation(
             baseAlarmId: UUID(),
-            displayName: "Mid Afternoon",
+            displayName: "Mid Afternoon Snack",
             icon: "cup.and.saucer.fill",
             color: .orange,
             nextAlarmTime: Date(),
@@ -430,7 +451,7 @@ struct ClockView: View {
             hasCountdown: true,
             tickerDataTitle: "Exercise"
         )
-    ], shouldAnimateAlarms: false)
+    ], shouldAnimateAlarms: true)
     .padding()
     .background(Color.clear)
 }
