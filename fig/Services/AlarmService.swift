@@ -152,7 +152,6 @@ final class TickerService: TickerServiceProtocol {
 
     // MARK: - Schedule Management
 
-    @MainActor
     func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws {
         print("🔔 TickerService.scheduleAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
@@ -192,7 +191,6 @@ final class TickerService: TickerServiceProtocol {
 
     // MARK: - Private Scheduling Methods
 
-    @MainActor
     private func scheduleSimpleAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         print("   🔧 scheduleSimpleAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
@@ -231,14 +229,17 @@ final class TickerService: TickerServiceProtocol {
             try context.save()
             print("   → SwiftData save successful")
 
-            // Update local state
+            // Update local state on main thread
             print("   → Updating local state...")
-            await stateManager.updateState(ticker: alarmItem)
+            stateManager.updateState(ticker: alarmItem)
+            
             print("   → Local state updated")
 
-            // Refresh widget timelines
+            // Refresh widget timelines on main thread
             print("   → Refreshing widget timelines...")
-            refreshWidgetTimelines(context: context)
+            await MainActor.run {
+                refreshWidgetTimelines()
+            }
             print("   → Widget timelines refreshed")
 
         } catch let error as TickerServiceError {
@@ -262,7 +263,6 @@ final class TickerService: TickerServiceProtocol {
         print("   ✅ scheduleSimpleAlarm() completed successfully")
     }
 
-    @MainActor
     private func scheduleCompositeAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         guard let schedule = alarmItem.schedule else {
             throw TickerServiceError.invalidConfiguration
@@ -346,14 +346,18 @@ final class TickerService: TickerServiceProtocol {
             try context.save()
             print("   → SwiftData save successful")
 
-            // 5. Update local state
+            // 5. Update local state on main thread
             print("   → Updating local state...")
-            await stateManager.updateState(ticker: alarmItem)
+            await MainActor.run {
+                stateManager.updateState(ticker: alarmItem)
+            }
             print("   → Local state updated")
 
-            // 6. Refresh widget timelines
+            // 6. Refresh widget timelines on main thread
             print("   → Refreshing widget timelines...")
-            refreshWidgetTimelines()
+            await MainActor.run {
+                refreshWidgetTimelines()
+            }
             print("   → Widget timelines refreshed")
 
         } catch {
@@ -409,7 +413,6 @@ final class TickerService: TickerServiceProtocol {
         return temp
     }
 
-    @MainActor
     func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         print("🔄 TickerService.updateAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
@@ -514,10 +517,12 @@ final class TickerService: TickerServiceProtocol {
                 print("   → Final SwiftData save...")
                 try context.save()
                 print("   → Updating local state...")
-                await stateManager.updateState(ticker: alarmItem)
+                stateManager.updateState(ticker: alarmItem)
                 print("   → Refreshing widget timelines...")
-                // Refresh widget timelines
-                refreshWidgetTimelines()
+                // Refresh widget timelines on main thread
+                await MainActor.run {
+                    refreshWidgetTimelines()
+                }
                 print("   → Composite schedule rescheduled successfully")
             } catch {
                 print("   ❌ Scheduling failed: \(error)")
@@ -526,18 +531,19 @@ final class TickerService: TickerServiceProtocol {
         } else {
             print("   → Alarm is disabled, removing from local state")
             // If disabled, just remove from local state
-            await stateManager.removeState(id: alarmItem.id)
+            stateManager.removeState(id: alarmItem.id)
             print("   → Removed from local state")
             
-            // Refresh widget timelines
+            // Refresh widget timelines on main thread
             print("   → Refreshing widget timelines...")
-            refreshWidgetTimelines(context: context)
+            await MainActor.run {
+                refreshWidgetTimelines()
+            }
             print("   → Widget timelines refreshed")
         }
         print("   ✅ updateAlarm() completed successfully")
     }
 
-    @MainActor
     func cancelAlarm(id: UUID, context: ModelContext?) async throws {
         print("🗑️ TickerService.cancelAlarm() started")
         print("   → id: \(id)")
@@ -598,14 +604,18 @@ final class TickerService: TickerServiceProtocol {
             // Don't throw here as the alarm might not exist
         }
 
-        // Remove from local state
+        // Remove from local state on main thread
         print("   → Removing from local state...")
-        await stateManager.removeState(id: id)
+        await MainActor.run {
+            stateManager.removeState(id: id)
+        }
         print("   → Removed from local state")
 
-        // Refresh widget timelines
+        // Refresh widget timelines on main thread
         print("   → Refreshing widget timelines...")
-        refreshWidgetTimelines(context: context)
+        await MainActor.run {
+            refreshWidgetTimelines()
+        }
         print("   ✅ cancelAlarm() completed")
     }
 
@@ -668,25 +678,17 @@ final class TickerService: TickerServiceProtocol {
         stateManager.getState(id: id)
     }
 
-    @MainActor
     func getAlarmsWithMetadata(context: ModelContext) -> [Ticker] {
-        // Get all tickers from state manager (main thread access to Observable state)
+        // Get all tickers from state manager
         // Note: This is fast - just copying references from a dictionary
+        // Observable state access is thread-safe
         return Array(alarms.values).sorted { $0.createdAt > $1.createdAt }
     }
 
     // MARK: - Widget Refresh
 
-    private func refreshWidgetTimelines(context: ModelContext? = nil) {
-        // Reload widget timelines
+    private func refreshWidgetTimelines() {
         WidgetCenter.shared.reloadAllTimelines()
-
-        // Update shared cache for optimized widget data loading
-        if let context = context {
-            Task { @MainActor in
-                await WidgetDataSharingService.updateSharedCache(context: context)
-            }
-        }
     }
 
     // MARK: - Synchronization

@@ -14,9 +14,9 @@ import SwiftUI
 protocol AlarmStateManagerProtocol: Observable {
     var alarms: [UUID: Ticker] { get }
 
-    func updateState(with remoteAlarms: [Alarm]) async
-    func updateState(ticker: Ticker) async
-    func removeState(id: UUID) async
+    func updateState(with remoteAlarms: [Alarm])
+    func updateState(ticker: Ticker)
+    func removeState(id: UUID)
     func getState(id: UUID) -> Ticker?
 }
 
@@ -30,7 +30,6 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
 
     // MARK: - State Management
 
-    @MainActor
     func updateState(with remoteAlarms: [Alarm]) {
         print("   → Updating state with \(remoteAlarms.count) remote alarms")
 
@@ -69,12 +68,10 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
         print("   → State update complete. Total alarms: \(alarms.count)")
     }
 
-    @MainActor
     func updateState(ticker: Ticker) {
         alarms[ticker.id] = ticker
     }
 
-    @MainActor
     func removeState(id: UUID) {
         alarms[id] = nil
     }

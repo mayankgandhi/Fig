@@ -68,7 +68,7 @@ class AITickerGenerator: ObservableObject {
             return
         }
         
-        parsingTask = Task {
+        parsingTask = Task.detached(priority: .userInitiated) {
             do {
                 // Add a small delay to debounce rapid typing
                 try await Task.sleep(for: .milliseconds(500))
@@ -76,8 +76,8 @@ class AITickerGenerator: ObservableObject {
                 // Check if task was cancelled
                 guard !Task.isCancelled else { return }
                 
-                // Perform lightweight parsing
-                let configuration = try await parseConfiguration(from: trimmedInput)
+                // Perform lightweight parsing off main thread
+                let configuration = try await self.parseConfiguration(from: trimmedInput)
                 
                 // Update on main thread
                 await MainActor.run {
@@ -94,6 +94,7 @@ class AITickerGenerator: ObservableObject {
     
     private func parseConfiguration(from input: String) async throws -> TickerConfiguration {
         // Use Natural Language framework for text analysis
+        // Note: Already running off main thread via Task.detached in parseInBackground
         let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass])
         tagger.string = input
         
