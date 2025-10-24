@@ -27,6 +27,12 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
     let hasCountdown: Bool
     let tickerDataTitle: String?
     
+    /// Calculated angle for clock face positioning (0-360 degrees)
+    var angle: Double {
+        let hour12 = hour % 12
+        return Double(hour12) * 30.0 + Double(minute) * 0.5
+    }
+    
     /// Initialize with unique ID generation
     init(baseAlarmId: UUID, displayName: String, icon: String, color: Color, nextAlarmTime: Date, scheduleType: ScheduleType, hour: Int, minute: Int, hasCountdown: Bool, tickerDataTitle: String?) {
         self.baseAlarmId = baseAlarmId
@@ -120,11 +126,4 @@ struct UpcomingAlarmPresentation: Identifiable, Equatable {
         }
     }
 
-    /// Clock angle for visualization (0° at 12, 90° at 3, 180° at 6, 270° at 9)
-    var angle: Double {
-        // Convert to 12-hour format for display
-        let hour12 = hour % 12
-        // Calculate angle: Each hour = 30°, each minute = 0.5°
-        return Double(hour12) * 30.0 + Double(minute) * 0.5
-    }
 }

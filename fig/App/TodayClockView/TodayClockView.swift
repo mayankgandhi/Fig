@@ -29,7 +29,7 @@ struct TodayClockView: View {
             Group {
                 if let viewModel {
                     ScrollView {
-                        VStack(spacing: 0) {
+                        VStack(spacing: TickerSpacing.md) {
                             // Clock View (uses unique alarms only)
                             ClockView(upcomingAlarms: viewModel.upcomingAlarmsForClock, shouldAnimateAlarms: shouldAnimateAlarms)
                                 .frame(height: UIScreen.main.bounds.width)

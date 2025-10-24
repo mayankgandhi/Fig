@@ -51,19 +51,15 @@ final class TodayViewModel {
         return allOccurrences.sorted { $0.nextAlarmTime < $1.nextAlarmTime }
     }
 
-    /// Upcoming alarms for clock display (only first occurrence of each unique alarm)
+    /// Upcoming alarms for clock display (only alarms within next 12 hours)
     @MainActor
     var upcomingAlarmsForClock: [UpcomingAlarmPresentation] {
         let now = Date()
-
-        return allEnabledAlarms
-            .compactMap { alarm -> UpcomingAlarmPresentation? in
-                guard alarm.schedule != nil else { return nil }
-                let nextTime = getNextAlarmTime(for: alarm, from: now)
-                guard nextTime > now && nextTime != Date.distantFuture else { return nil }
-                return createPresentation(from: alarm, at: nextTime)
-            }
-            .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
+        let twelveHoursFromNow = now.addingTimeInterval(12 * 60 * 60) // 12 hours in seconds
+        
+        return upcomingAlarms.filter { alarm in
+            alarm.nextAlarmTime <= twelveHoursFromNow
+        }
     }
 
     /// Number of upcoming alarms
