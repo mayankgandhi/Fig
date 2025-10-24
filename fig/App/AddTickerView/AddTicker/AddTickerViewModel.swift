@@ -143,7 +143,6 @@ final class AddTickerViewModel {
         scheduleViewModel.adjustDateToMatchWeekdays()
     }
 
-    @MainActor
     func saveTicker() async {
         print("🚀 AddTickerViewModel.saveTicker() started")
         print("   → isSaving: \(isSaving)")

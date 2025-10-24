@@ -264,13 +264,10 @@ struct ClockFaceView: View {
         }
         .onChange(of: shouldAnimateAlarms) { oldValue, newValue in
             if newValue && !oldValue {
-                // Trigger staggered animation
-                for (index, alarm) in upcomingAlarms.enumerated() {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
-                        withAnimation {
-                            alarmAnimationStates[alarm.id] = true
-                        }
-                    }
+                // Trigger staggered animation using state updates
+                // SwiftUI's animation system handles the delay
+                for alarm in upcomingAlarms {
+                    alarmAnimationStates[alarm.id] = true
                 }
             } else if !newValue {
                 // Reset all states to false
@@ -294,18 +291,10 @@ struct ClockFaceView: View {
 
             // Add states for new alarms
             if shouldAnimateAlarms {
-                // Start new alarms hidden, then animate them in
+                // Animate new alarms in immediately
+                // SwiftUI's animation system handles the stagger via the delay in the animation modifier
                 for alarm in addedAlarms {
-                    alarmAnimationStates[alarm.id] = false
-                }
-
-                // Trigger staggered animation for new alarms
-                for (index, alarm) in addedAlarms.enumerated() {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + Double(index) * 0.1) {
-                        withAnimation {
-                            alarmAnimationStates[alarm.id] = true
-                        }
-                    }
+                    alarmAnimationStates[alarm.id] = true
                 }
             } else {
                 // If not animating, just set them to false

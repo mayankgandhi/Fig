@@ -68,7 +68,7 @@ class AITickerGenerator: ObservableObject {
             return
         }
         
-        parsingTask = Task {
+        parsingTask = Task.detached(priority: .userInitiated) {
             do {
                 // Add a small delay to debounce rapid typing
                 try await Task.sleep(for: .milliseconds(500))
@@ -76,7 +76,7 @@ class AITickerGenerator: ObservableObject {
                 // Check if task was cancelled
                 guard !Task.isCancelled else { return }
                 
-                // Perform lightweight parsing
+                // Perform lightweight parsing off main thread
                 let configuration = try await parseConfiguration(from: trimmedInput)
                 
                 // Update on main thread
@@ -93,9 +93,11 @@ class AITickerGenerator: ObservableObject {
     }
     
     private func parseConfiguration(from input: String) async throws -> TickerConfiguration {
-        // Use Natural Language framework for text analysis
-        let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass])
-        tagger.string = input
+        // Perform text analysis off main thread for better performance
+        return try await Task.detached(priority: .userInitiated) {
+            // Use Natural Language framework for text analysis
+            let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass])
+            tagger.string = input
         
         // Extract entities and parse the input
         let entities = extractEntities(from: input, using: tagger)
@@ -112,11 +114,12 @@ class AITickerGenerator: ObservableObject {
             date: dateInfo,
             repeatOption: repeatInfo,
             countdown: countdownInfo,
-            icon: activityInfo.icon,
-            colorHex: activityInfo.colorHex
-        )
-        
-        return configuration
+                icon: activityInfo.icon,
+                colorHex: activityInfo.colorHex
+            )
+            
+            return configuration
+        }.value
     }
     
     func generateTickerConfiguration(from input: String) async throws -> TickerConfiguration {
