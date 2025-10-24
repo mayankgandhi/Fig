@@ -14,7 +14,7 @@ struct CalendarGrid: View {
     var showStartDateLabel: Bool = false
     @Environment(\.colorScheme) private var colorScheme
 
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 4), count: 7)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: TickerSpacing.xs), count: 7)
     private let calendar = Calendar.current
     private let weekdaySymbols = [
         (id: "sun", label: "S"),
@@ -48,19 +48,20 @@ struct CalendarGrid: View {
     }
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: TickerSpacing.md) {
             // Start Date Label (when repeat is selected)
             if showStartDateLabel {
                 Text("START DATE")
-                    .Caption2()
+                    .SmallText()
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     .textCase(.uppercase)
                     .tracking(0.8)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.bottom, 4)
+                    .padding(.bottom, TickerSpacing.xs)
             }
 
-            HStack {
+            // Month/Year Header with Navigation
+            HStack(spacing: TickerSpacing.sm) {
                 Button {
                     TickerHaptics.selection()
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
@@ -68,12 +69,14 @@ struct CalendarGrid: View {
                     }
                 } label: {
                     Image(systemName: "chevron.left")
-                        .Caption()
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                        .frame(width: TickerSpacing.tapTargetMin, height: TickerSpacing.tapTargetMin)
                 }
+                .buttonStyle(.plain)
 
                 Text(selectedDate.formatted(.dateTime.month(.wide).year()))
-                    .Body()
+                    .TickerTitle()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .frame(maxWidth: .infinity)
 
@@ -84,21 +87,27 @@ struct CalendarGrid: View {
                     }
                 } label: {
                     Image(systemName: "chevron.right")
-                        .Caption()
+                        .font(.system(size: 16, weight: .semibold, design: .rounded))
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                        .frame(width: TickerSpacing.tapTargetMin, height: TickerSpacing.tapTargetMin)
                 }
+                .buttonStyle(.plain)
             }
+            .padding(.horizontal, TickerSpacing.sm)
             
-            LazyVGrid(columns: columns, spacing: 4) {
+            // Weekday Headers
+            LazyVGrid(columns: columns, spacing: TickerSpacing.xs) {
                 ForEach(weekdaySymbols, id: \.id) { symbol in
                     Text(symbol.label)
-                        .Caption2()
+                        .SmallText()
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .frame(maxWidth: .infinity)
+                        .frame(height: TickerSpacing.lg)
                 }
             }
             
-            LazyVGrid(columns: columns, spacing: 4) {
+            // Calendar Days Grid
+            LazyVGrid(columns: columns, spacing: TickerSpacing.xs) {
                 ForEach(monthDays.indices, id: \.self) { index in
                     if let date = monthDays[index] {
                         CalendarDayCell(
@@ -111,11 +120,12 @@ struct CalendarGrid: View {
                         }
                     } else {
                         Color.clear
-                            .frame(height: 32)
+                            .frame(height: TickerSpacing.tapTargetMin)
                     }
                 }
             }
         }
+        .padding(.horizontal, TickerSpacing.md)
     }
 }
 
@@ -137,19 +147,76 @@ struct CalendarDayCell: View {
     var body: some View {
         Button(action: onTap) {
             Text(dayNumber)
-                .Subheadline()
-                .foregroundStyle(isSelected ? TickerColor.absoluteWhite : TickerColor.textPrimary(for: colorScheme))
+                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                .foregroundStyle(textColor)
                 .frame(maxWidth: .infinity)
-                .frame(height: 32)
-                .background(
-                    Circle()
-                        .fill(isSelected ? TickerColor.primary : .clear)
-                )
+                .frame(height: TickerSpacing.tapTargetMin)
+                .background(backgroundColor)
+                .clipShape(Circle())
                 .overlay(
                     Circle()
-                        .strokeBorder(isToday && !isSelected ? TickerColor.primary : .clear, lineWidth: 1.5)
+                        .strokeBorder(borderColor, lineWidth: borderWidth)
+                )
+                .shadow(
+                    color: shadowColor,
+                    radius: shadowRadius,
+                    x: 0,
+                    y: shadowOffset
                 )
         }
         .buttonStyle(.plain)
+        .scaleEffect(isSelected ? 1.1 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+    }
+    
+    // MARK: - Computed Properties
+    
+    private var textColor: Color {
+        if isSelected {
+            return TickerColor.absoluteWhite
+        }
+        return TickerColor.textPrimary(for: colorScheme)
+    }
+    
+    private var backgroundColor: Color {
+        if isSelected {
+            return TickerColor.primary
+        }
+        return .clear
+    }
+    
+    private var borderColor: Color {
+        if isToday && !isSelected {
+            return TickerColor.primary
+        }
+        return .clear
+    }
+    
+    private var borderWidth: CGFloat {
+        if isToday && !isSelected {
+            return 2.0
+        }
+        return 0
+    }
+    
+    private var shadowColor: Color {
+        if isSelected {
+            return TickerColor.primary.opacity(0.3)
+        }
+        return .clear
+    }
+    
+    private var shadowRadius: CGFloat {
+        if isSelected {
+            return 4
+        }
+        return 0
+    }
+    
+    private var shadowOffset: CGFloat {
+        if isSelected {
+            return 2
+        }
+        return 0
     }
 }

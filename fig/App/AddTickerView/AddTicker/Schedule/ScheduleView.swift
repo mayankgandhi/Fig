@@ -14,7 +14,7 @@ struct ScheduleView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: TickerSpacing.lg) {
+            VStack(spacing: TickerSpacing.md) {
                 // Repeat Options Section (moved to top)
                 repeatOptionsSection
                 
