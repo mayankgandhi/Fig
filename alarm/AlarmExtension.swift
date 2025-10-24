@@ -17,14 +17,14 @@ struct AlarmExtension: WidgetBundle {
         // Live Activity
         AlarmLiveActivity()
 
-        // Home Screen Widgets
-        NextAlarmWidget()           // Small - Shows next alarm
-        AlarmListWidget()            // Medium - Shows alarm list
-        ClockWidget()                // Medium/Large - Shows clock with alarms
-        DetailedAlarmListWidget()    // Large - Shows detailed alarm list
+        // Home Screen Widgets (4 total)
+        NextAlarmWidget()           // Small - Next upcoming alarm only
+        AlarmListWidget()            // Medium - List of upcoming alarms (up to 2)
+        ClockWidget()                // Large - Clock face with alarm indicators and detailed list (up to 4)
+        DetailedAlarmListWidget()    // Large - Detailed alarm list only (up to 6)
 
         // Lock Screen / StandBy Widget
-        StandByAlarmWidget()         // ExtraLarge - Nightstand display
+        StandByAlarmWidget()         // ExtraLarge - Nightstand display for lock screen
 
         // Control Center Widget
         TimerControlWidget()         // Control Center - Quick timer toggle

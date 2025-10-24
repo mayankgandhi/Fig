@@ -64,11 +64,9 @@ let project = Project(
             ]),
             sources: [
                 "alarm/**",
-                "Shared/**",
+                "Shared/**",  // Includes Shared/Extensions, TickerDesignSystem, ClockView, etc.
                 "fig/AppIntents/**",  // Share AppIntents with widget extension
-                "fig/App/TodayClockView/ClockView.swift",  // Clock view for widget
-                "fig/DesignSystem/**",  // Design system for styling
-                "fig/Extensions/**",  // Extensions for Color, Font, etc.
+                "fig/DesignSystem/**",  // Design system previews
                 "fig/Models/AlarmItem.swift"  // Ticker model for SwiftData
             ],
             resources: ["alarm/Assets.xcassets"],
