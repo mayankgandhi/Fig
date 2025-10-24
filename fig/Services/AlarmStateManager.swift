@@ -14,7 +14,7 @@ import SwiftUI
 protocol AlarmStateManagerProtocol: Observable {
     var alarms: [UUID: Ticker] { get }
 
-    func updateState(with remoteAlarms: [Alarm])
+    func updateState(with remoteAlarms: [Alarm]) async
     func updateState(ticker: Ticker) async
     func removeState(id: UUID) async
     func getState(id: UUID) -> Ticker?
@@ -30,35 +30,43 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
 
     // MARK: - State Management
 
+    @MainActor
     func updateState(with remoteAlarms: [Alarm]) {
-        Task { @MainActor in
-            // Update existing alarm states
-            remoteAlarms.forEach { updated in
-                if let existingTicker = alarms[updated.id] {
-                    // Keep existing Ticker, just update its enabled state
-                    existingTicker.isEnabled = true
-                    alarms[updated.id] = existingTicker
-                } else {
-                    // New alarm from old session - create minimal Ticker
-                    let ticker = Ticker(
-                        id: updated.id,
-                        label: "Alarm (Old Session)",
-                        isEnabled: true
-                    )
-                    ticker.generatedAlarmKitIDs = [updated.id]
-                    alarms[updated.id] = ticker
-                }
+        print("   → Updating state with \(remoteAlarms.count) remote alarms")
+
+        // Update existing alarm states
+        remoteAlarms.forEach { updated in
+            if let existingTicker = alarms[updated.id] {
+                // Keep existing Ticker, just update its enabled state
+                existingTicker.isEnabled = true
+                alarms[updated.id] = existingTicker
+                print("   → Updated existing ticker: \(existingTicker.label)")
+            } else {
+                // New alarm from old session - create minimal Ticker
+                let ticker = Ticker(
+                    id: updated.id,
+                    label: "Alarm (Old Session)",
+                    isEnabled: true
+                )
+                ticker.generatedAlarmKitIDs = [updated.id]
+                alarms[updated.id] = ticker
+                print("   → Created new ticker from old session: \(ticker.label)")
             }
+        }
 
-            let knownAlarmIDs = Set(alarms.keys)
-            let incomingAlarmIDs = Set(remoteAlarms.map(\.id))
+        let knownAlarmIDs = Set(alarms.keys)
+        let incomingAlarmIDs = Set(remoteAlarms.map(\.id))
 
-            // Clean up removed alarms
-            let removedAlarmIDs = knownAlarmIDs.subtracting(incomingAlarmIDs)
+        // Clean up removed alarms
+        let removedAlarmIDs = knownAlarmIDs.subtracting(incomingAlarmIDs)
+        if !removedAlarmIDs.isEmpty {
+            print("   → Removing \(removedAlarmIDs.count) alarms from state")
             removedAlarmIDs.forEach {
                 alarms[$0] = nil
             }
         }
+
+        print("   → State update complete. Total alarms: \(alarms.count)")
     }
 
     @MainActor

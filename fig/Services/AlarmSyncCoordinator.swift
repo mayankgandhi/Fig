@@ -32,12 +32,14 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
         print("🔄 Starting alarm synchronization (AlarmKit → SwiftData)...")
 
         // 1. Fetch all alarms from AlarmKit (source of truth)
-        guard let alarmKitAlarms = try? alarmManager.alarms else {
-            print("⚠️ Failed to fetch alarms from AlarmKit")
+        let alarmKitAlarms: [Alarm]
+        do {
+            alarmKitAlarms = try alarmManager.alarms
+            print("⏰ Found \(alarmKitAlarms.count) alarms in AlarmKit")
+        } catch {
+            print("❌ Failed to fetch alarms from AlarmKit: \(error)")
             return
         }
-
-        print("⏰ Found \(alarmKitAlarms.count) alarms in AlarmKit")
 
         // 2. Fetch all Tickers from SwiftData
         let allItemsDescriptor = FetchDescriptor<Ticker>()
@@ -58,7 +60,11 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
             // Check if this alarm belongs to a disabled ticker
             if disabledItemIds.contains(alarm.id) {
                 print("🗑️ Canceling disabled ticker alarm: \(alarm.id)")
-                try? alarmManager.cancel(id: alarm.id)
+                do {
+                    try alarmManager.cancel(id: alarm.id)
+                } catch {
+                    print("⚠️ Failed to cancel disabled alarm \(alarm.id): \(error)")
+                }
                 continue
             }
 
@@ -66,13 +72,19 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
             if let parentTicker = alarmKitIDsToTicker[alarm.id] {
                 // This alarm belongs to a known ticker
                 alarmsToKeep.append(alarm)
+                print("✅ Keeping alarm \(alarm.id) (belongs to ticker: \(parentTicker.label))")
             } else {
                 // Check if this could be a simple alarm (ticker ID matches alarm ID)
-                if allItems.contains(where: { $0.id == alarm.id }) {
+                if let simpleTicker = allItems.first(where: { $0.id == alarm.id }) {
                     alarmsToKeep.append(alarm)
+                    print("✅ Keeping simple alarm \(alarm.id) (ticker: \(simpleTicker.label))")
                 } else {
                     print("🗑️ Canceling orphaned alarm: \(alarm.id)")
-                    try? alarmManager.cancel(id: alarm.id)
+                    do {
+                        try alarmManager.cancel(id: alarm.id)
+                    } catch {
+                        print("⚠️ Failed to cancel orphaned alarm \(alarm.id): \(error)")
+                    }
                 }
             }
         }
@@ -104,6 +116,7 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
         }
 
         // 5. Ensure SwiftData entries exist for all AlarmKit alarms
+        var newEntriesCreated = 0
         for alarm in alarmsToKeep {
             // If no SwiftData entry exists, create one
             if !allItems.contains(where: { $0.id == alarm.id || $0.generatedAlarmKitIDs.contains(alarm.id) }) {
@@ -116,12 +129,20 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
                 )
                 alarmItem.generatedAlarmKitIDs = [alarm.id]
                 context.insert(alarmItem)
+                newEntriesCreated += 1
             }
         }
 
         // Save any new entries
-        try? context.save()
+        if newEntriesCreated > 0 {
+            do {
+                try context.save()
+                print("💾 Saved \(newEntriesCreated) new SwiftData entries")
+            } catch {
+                print("❌ Failed to save SwiftData entries: \(error)")
+            }
+        }
 
-        print("✨ Alarm synchronization complete")
+        print("✨ Alarm synchronization complete (\(alarmsToKeep.count) active alarms)")
     }
 }

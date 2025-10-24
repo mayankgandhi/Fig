@@ -49,12 +49,12 @@ protocol TickerServiceProtocol: Observable {
     func requestAuthorization() async throws -> AlarmAuthorizationStatus
     func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws
     func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws
-    func cancelAlarm(id: UUID, context: ModelContext?) throws
+    func cancelAlarm(id: UUID, context: ModelContext?) async throws
     func pauseAlarm(id: UUID) throws
     func resumeAlarm(id: UUID) throws
     func stopAlarm(id: UUID) throws
     func repeatCountdown(id: UUID) throws
-    func fetchAllAlarms() throws
+    func fetchAllAlarms() async throws
     func getTicker(id: UUID) -> Ticker?
     func getAlarmsWithMetadata(context: ModelContext) -> [Ticker]
     func synchronizeAlarmsOnLaunch(context: ModelContext) async
@@ -218,7 +218,15 @@ final class TickerService: TickerServiceProtocol {
 
             // Save to SwiftData
             print("   → Saving to SwiftData...")
-            context.insert(alarmItem)
+            // Check if item is already in context before inserting
+            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == alarmItem.id })
+            let existingItems = try? context.fetch(descriptor)
+            if existingItems?.isEmpty ?? true {
+                context.insert(alarmItem)
+                print("   → Inserted new alarm into context")
+            } else {
+                print("   → Alarm already exists in context, updating in place")
+            }
             try context.save()
             print("   → SwiftData save successful")
 
@@ -239,7 +247,12 @@ final class TickerService: TickerServiceProtocol {
             print("   ❌ General error: \(error)")
             print("   → Rolling back SwiftData changes...")
             // Rollback: remove from SwiftData if scheduling failed
-            context.delete(alarmItem)
+            // Only delete if we just inserted it
+            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == alarmItem.id })
+            if let existingItem = try? context.fetch(descriptor).first {
+                context.delete(existingItem)
+                try? context.save()
+            }
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
         print("   ✅ scheduleSimpleAlarm() completed successfully")
@@ -315,21 +328,54 @@ final class TickerService: TickerServiceProtocol {
             alarmItem.isEnabled = true
 
             // 4. Save to SwiftData
-            context.insert(alarmItem)
+            print("   → Saving to SwiftData...")
+            // Check if item is already in context before inserting
+            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == alarmItem.id })
+            let existingItems = try? context.fetch(descriptor)
+            if existingItems?.isEmpty ?? true {
+                context.insert(alarmItem)
+                print("   → Inserted new alarm into context")
+            } else {
+                print("   → Alarm already exists in context, updating in place")
+            }
             try context.save()
+            print("   → SwiftData save successful")
 
             // 5. Update local state
+            print("   → Updating local state...")
             await stateManager.updateState(ticker: alarmItem)
+            print("   → Local state updated")
 
             // 6. Refresh widget timelines
+            print("   → Refreshing widget timelines...")
             refreshWidgetTimelines()
+            print("   → Widget timelines refreshed")
 
         } catch {
+            print("   ❌ Composite alarm scheduling failed: \(error)")
+            print("   → Rolling back \(scheduledIDs.count) scheduled alarms...")
             // Rollback: cancel any scheduled alarms
             for id in scheduledIDs {
-                try? alarmManager.cancel(id: id)
+                do {
+                    try alarmManager.cancel(id: id)
+                    print("   → Cancelled alarm: \(id)")
+                } catch {
+                    print("   ⚠️ Failed to cancel alarm \(id): \(error)")
+                }
             }
-            context.delete(alarmItem)
+
+            // Reset generated IDs to ensure clean state
+            alarmItem.generatedAlarmKitIDs = []
+
+            // Only delete if we just inserted it
+            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == alarmItem.id })
+            if let existingItem = try? context.fetch(descriptor).first {
+                context.delete(existingItem)
+                try? context.save()
+                print("   → Deleted alarm from SwiftData")
+            }
+
+            print("   → Rollback complete")
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
@@ -484,45 +530,75 @@ final class TickerService: TickerServiceProtocol {
         print("   ✅ updateAlarm() completed successfully")
     }
 
+    @MainActor
     func cancelAlarm(id: UUID, context: ModelContext?) throws {
+        print("🗑️ TickerService.cancelAlarm() started")
+        print("   → id: \(id)")
+
         // Fetch the alarm to get all generated IDs
         if let context = context {
-            Task { @MainActor in
-                let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
-                if let alarmItem = try? context.fetch(descriptor).first {
-                    // IMPORTANT: Access all properties BEFORE deletion to resolve SwiftData faults
-                    // This prevents "backing data was detached" errors
-                    let generatedIDs = alarmItem.generatedAlarmKitIDs
+            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate { $0.id == id })
+            if let alarmItem = try? context.fetch(descriptor).first {
+                print("   → Found alarm in SwiftData: '\(alarmItem.label)'")
+                print("   → Generated IDs: \(alarmItem.generatedAlarmKitIDs)")
 
-                    // Force-resolve all lazy-loaded properties to prevent fault resolution after deletion
-                    _ = alarmItem.schedule // Accesses scheduleData which has @Attribute(.externalStorage)
-                    _ = alarmItem.tickerData
-                    _ = alarmItem.label
-                    _ = alarmItem.countdown
-                    _ = alarmItem.presentation
+                // IMPORTANT: Access all properties BEFORE deletion to resolve SwiftData faults
+                // This prevents "backing data was detached" errors
+                let generatedIDs = alarmItem.generatedAlarmKitIDs
 
-                    // Cancel all generated alarms
-                    for generatedID in generatedIDs {
-                        try? alarmManager.cancel(id: generatedID)
+                // Force-resolve all lazy-loaded properties to prevent fault resolution after deletion
+                _ = alarmItem.schedule // Accesses scheduleData which has @Attribute(.externalStorage)
+                _ = alarmItem.tickerData
+                _ = alarmItem.label
+                _ = alarmItem.countdown
+                _ = alarmItem.presentation
+
+                // Cancel all generated alarms
+                print("   → Canceling \(generatedIDs.count) AlarmKit alarm(s)...")
+                for generatedID in generatedIDs {
+                    do {
+                        try alarmManager.cancel(id: generatedID)
+                        print("   → Cancelled AlarmKit alarm: \(generatedID)")
+                    } catch {
+                        print("   ⚠️ Failed to cancel AlarmKit alarm \(generatedID): \(error)")
                     }
-
-                    // Delete from SwiftData
-                    context.delete(alarmItem)
-                    try? context.save()
                 }
+
+                // Delete from SwiftData
+                print("   → Deleting from SwiftData...")
+                context.delete(alarmItem)
+                do {
+                    try context.save()
+                    print("   → SwiftData deletion saved")
+                } catch {
+                    print("   ❌ Failed to save SwiftData deletion: \(error)")
+                    throw TickerServiceError.swiftDataSaveFailed(underlying: error)
+                }
+            } else {
+                print("   ⚠️ Alarm not found in SwiftData, attempting direct cancellation")
             }
         } else {
-            // Fallback: just try to cancel the main ID
-            try? alarmManager.cancel(id: id)
+            print("   ⚠️ No context provided, performing fallback cancellation")
+        }
+
+        // Fallback: always try to cancel the main ID
+        do {
+            try alarmManager.cancel(id: id)
+            print("   → Cancelled main alarm ID: \(id)")
+        } catch {
+            print("   ⚠️ Failed to cancel main alarm ID \(id): \(error)")
+            // Don't throw here as the alarm might not exist
         }
 
         // Remove from local state
-        Task {
-            await stateManager.removeState(id: id)
-        }
+        print("   → Removing from local state...")
+        await stateManager.removeState(id: id)
+        print("   → Removed from local state")
 
         // Refresh widget timelines
+        print("   → Refreshing widget timelines...")
         refreshWidgetTimelines()
+        print("   ✅ cancelAlarm() completed")
     }
 
     // MARK: - Alarm Control
@@ -571,10 +647,10 @@ final class TickerService: TickerServiceProtocol {
 
     // MARK: - Queries
 
-    func fetchAllAlarms() throws {
+    func fetchAllAlarms() async throws {
         do {
             let remoteAlarms = try alarmManager.alarms
-            stateManager.updateState(with: remoteAlarms)
+            await stateManager.updateState(with: remoteAlarms)
         } catch {
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
