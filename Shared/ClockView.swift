@@ -368,7 +368,7 @@ struct ClockView: View {
         .background(Color.black)
 }
 
-#Preview("Multiple Alarms") {
+#Preview("Multiple Tickers") {
     ClockView(upcomingAlarms: [
         // 12:00 PM - Should be at top (0°)
         UpcomingAlarmPresentation(

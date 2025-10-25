@@ -89,7 +89,7 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
             }
         }
 
-        print("✅ Kept \(alarmsToKeep.count) valid alarms")
+        print("✅ Kept \(alarmsToKeep.count) valid Tickers")
 
         // 4. Update local TickerService state with valid alarms only
         for alarm in alarmsToKeep {

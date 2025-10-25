@@ -109,7 +109,7 @@ struct NextAlarmWidgetView: View {
                     .font(.system(.title2, design: .rounded, weight: .regular))
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                 
-                Text("No Alarms")
+                Text("No Tickers")
                     .ButtonText()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
@@ -146,7 +146,7 @@ struct AlarmListWidgetView: View {
                 // Header
                 HStack {
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Upcoming Alarms")
+                        Text("Upcoming Tickers")
                             .Headline()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                         
@@ -251,7 +251,7 @@ struct DetailedAlarmListWidgetView: View {
                 
                 // Alarm list (show up to 6)
                 VStack(spacing: TickerSpacing.xs) {
-                    ForEach(entry.upcomingAlarms.prefix(6)) { alarm in
+                    ForEach(entry.upcomingAlarms.prefix(5)) { alarm in
                         DetailedAlarmRow(alarm: alarm, currentDate: entry.date, colorScheme: colorScheme)
                     }
                 }
@@ -298,8 +298,8 @@ struct DetailedAlarmListWidget: Widget {
         StaticConfiguration(kind: kind, provider: AlarmWidgetProvider()) { entry in
             DetailedAlarmListWidgetView(entry: entry)
         }
-        .configurationDisplayName("Detailed Alarms")
-        .description("Shows detailed view of your upcoming alarms")
+        .configurationDisplayName("Detailed Tickers")
+        .description("Shows detailed view of your upcoming Tickers")
         .supportedFamilies([.systemLarge])
     }
 }

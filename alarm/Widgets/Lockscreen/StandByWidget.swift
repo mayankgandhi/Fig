@@ -195,7 +195,7 @@ struct StandByWidgetView: View {
                 }
 
                 VStack(spacing: 8) {
-                    Text("No Alarms")
+                    Text("No Tickers")
                         .LargeTitle()
                         .foregroundStyle(.white.opacity(0.9))
 

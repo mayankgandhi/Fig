@@ -67,7 +67,7 @@ struct TodayClockView: View {
                                             .font(.system(.largeTitle, design: .rounded, weight: .medium))
                                             .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                                         
-                                        Text("No upcoming alarms")
+                                        Text("No upcoming Tickers")
                                             .TickerTitle()
                                             .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 

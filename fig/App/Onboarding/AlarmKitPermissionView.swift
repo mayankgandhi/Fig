@@ -91,7 +91,7 @@ struct AlarmKitPermissionView: View {
 
                 // Title and description
                 VStack(spacing: TickerSpacing.sm) {
-                    Text("Allow Ticker to Schedule Alarms")
+                    Text("Allow Ticker to Schedule Tickers")
                         .Title()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                         .multilineTextAlignment(.center)
@@ -144,7 +144,7 @@ struct AlarmKitPermissionView: View {
                                 } else {
                                     Image(systemName: "clock.badge.checkmark")
                                         .Callout()
-                                    Text("Allow Alarms")
+                                    Text("Allow Tickers")
                                         .TickerTitle()
                                 }
                             }

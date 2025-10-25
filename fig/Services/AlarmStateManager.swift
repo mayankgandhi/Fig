@@ -31,7 +31,7 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
     // MARK: - State Management
 
     func updateState(with remoteAlarms: [Alarm]) {
-        print("   → Updating state with \(remoteAlarms.count) remote alarms")
+        print("   → Updating state with \(remoteAlarms.count) remote Tickers")
 
         // Update existing alarm states
         remoteAlarms.forEach { updated in

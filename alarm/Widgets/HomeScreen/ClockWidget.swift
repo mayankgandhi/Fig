@@ -68,7 +68,7 @@ struct ClockWidget: Widget {
         StaticConfiguration(kind: kind, provider: ClockWidgetProvider()) { entry in
             ClockWidgetView(entry: entry)
         }
-        .configurationDisplayName("Clock with Alarms")
+        .configurationDisplayName("Clock with Tickers")
         .description("View your upcoming alarms on a clock face")
         .supportedFamilies([.systemSmall, .systemLarge])
     }

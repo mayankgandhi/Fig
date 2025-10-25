@@ -48,7 +48,7 @@ struct WidgetDataSharingService {
         // Write to cache
         do {
             try writeToCache(alarms: alarms)
-            print("📦 WidgetDataSharingService: Successfully cached \(alarms.count) alarms")
+            print("📦 WidgetDataSharingService: Successfully cached \(alarms.count) Tickers")
         } catch {
             print("⚠️ WidgetDataSharingService: Failed to write cache: \(error)")
         }

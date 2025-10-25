@@ -140,7 +140,7 @@ struct TypographyScalePreview: View {
                         .Caption2()
                         .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
-                    Text("ALARMS")
+                    Text("Tickers")
                         .LargeTitle()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     Text("XL - 34pt Black")
@@ -485,7 +485,7 @@ struct EmptyStatePreview: View {
                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
 
             VStack(spacing: TickerSpacing.xs) {
-                Text("No Active Alarms")
+                Text("No Active Tickers")
                     .Title()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 

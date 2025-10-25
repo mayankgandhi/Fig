@@ -143,7 +143,7 @@ struct NativeMenuListItem: View {
         NativeMenuListItem(
             icon: "trash",
             title: "Delete All Data",
-            subtitle: "Clear all scheduled alarms",
+            subtitle: "Clear all scheduled Tickers",
             iconColor: TickerColor.danger
         ) {}
     }
@@ -187,7 +187,7 @@ struct NativeMenuListItem: View {
         NativeMenuListItem(
             icon: "trash",
             title: "Delete All Data",
-            subtitle: "Clear all scheduled alarms",
+            subtitle: "Clear all scheduled Tickers",
             iconColor: TickerColor.danger
         ) {}
     }
