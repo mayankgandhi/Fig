@@ -67,17 +67,13 @@ final class TodayViewModel {
         }
         
         let sortedOccurrences = allOccurrences.sorted { $0.nextAlarmTime < $1.nextAlarmTime }
-        
-        // Compute clock alarms
-        let clockAlarms = allEnabledAlarms
-            .compactMap { alarm -> UpcomingAlarmPresentation? in
-                guard alarm.schedule != nil else { return nil }
-                let nextTime = getNextAlarmTime(for: alarm, from: now)
-                guard nextTime > now && nextTime != Date.distantFuture else { return nil }
-                return createPresentation(from: alarm, at: nextTime)
-            }
-            .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
-        
+
+        // Compute clock alarms: just filter sortedOccurrences to next 12 hours
+        let twelveHoursFromNow = calendar.date(byAdding: .hour, value: 12, to: now) ?? now
+        let clockAlarms = sortedOccurrences.filter { occurrence in
+            occurrence.nextAlarmTime > now && occurrence.nextAlarmTime <= twelveHoursFromNow
+        }
+
         // Update state on main thread
         await MainActor.run {
             self.upcomingAlarms = sortedOccurrences
