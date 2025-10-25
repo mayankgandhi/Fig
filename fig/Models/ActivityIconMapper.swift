@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import NaturalLanguage
 import SwiftUI
 
 // MARK: - Activity Mapping Result

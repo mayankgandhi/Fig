@@ -72,7 +72,7 @@ struct NaturalLanguageTickerView: View {
     }
     
     // MARK: - Header Section
-    
+
     private var headerSection: some View {
         VStack(spacing: TickerSpacing.md) {
             // Icon
@@ -89,17 +89,40 @@ struct NaturalLanguageTickerView: View {
                         )
                     )
                     .frame(width: 80, height: 80)
-                
+
                 Image(systemName: "sparkles")
                     .font(.system(.title2, design: .rounded, weight: .medium))
                     .foregroundStyle(TickerColor.primary)
             }
-            
+
             VStack(spacing: TickerSpacing.sm) {
                 Text("Describe Your Ticker")
                     .TickerTitle()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .multilineTextAlignment(.center)
+
+                // AI Status Indicator
+                HStack(spacing: TickerSpacing.xs) {
+                    Image(systemName: aiGenerator.isFoundationModelsAvailable ? "cpu.fill" : "brain.head.profile")
+                        .font(.caption2)
+
+                    Text(aiGenerator.isFoundationModelsAvailable ? "Apple Intelligence" : "Smart Parsing")
+                        .Caption2()
+                }
+                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                .padding(.horizontal, TickerSpacing.md)
+                .padding(.vertical, TickerSpacing.xs)
+                .background(
+                    Capsule()
+                        .fill(TickerColor.surface(for: colorScheme).opacity(0.5))
+                )
+                .overlay(
+                    Capsule()
+                        .strokeBorder(
+                            TickerColor.primary.opacity(0.2),
+                            lineWidth: 0.5
+                        )
+                )
             }
         }
     }

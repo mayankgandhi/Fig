@@ -2,14 +2,15 @@
 //  AITickerGenerator.swift
 //  fig
 //
-//  AI-powered ticker generation using Apple Intelligence
+//  AI-powered ticker generation using Apple Intelligence Foundation Models
 //
 
 import Foundation
+import FoundationModels
 import NaturalLanguage
 import SwiftUI
 
-// MARK: - Ticker Configuration
+// MARK: - Ticker Configuration (Simple Types for Foundation Models)
 
 struct TickerConfiguration: Equatable {
     let label: String
@@ -19,17 +20,57 @@ struct TickerConfiguration: Equatable {
     let countdown: CountdownConfiguration?
     let icon: String
     let colorHex: String
-    
-    struct TimeOfDay: Equatable{
+
+    struct TimeOfDay: Equatable {
         let hour: Int
         let minute: Int
     }
-    
+
     struct CountdownConfiguration: Equatable {
         let hours: Int
         let minutes: Int
         let seconds: Int
     }
+}
+
+// Foundation Models compatible configuration using only simple types
+@Generable
+struct AITickerConfigurationResponse: Equatable {
+    @Guide(description: "A short, descriptive label for the activity or reminder (e.g., 'Morning Yoga', 'Take Medication', 'Team Meeting')")
+    let label: String
+
+    @Guide(description: "Hour in 24-hour format (0-23)")
+    let hour: Int
+
+    @Guide(description: "Minute (0-59)")
+    let minute: Int
+
+    @Guide(description: "Year (e.g., 2025)")
+    let year: Int
+
+    @Guide(description: "Month (1-12)")
+    let month: Int
+
+    @Guide(description: "Day of month (1-31)")
+    let day: Int
+
+    @Guide(.anyOf(["oneTime", "daily", "weekdays", "specificDays"]))
+    let repeatPattern: String
+
+    @Guide(description: "For specificDays pattern: comma-separated weekday names (e.g., 'Monday,Wednesday,Friday'). Empty for other patterns.")
+    let repeatDays: String
+
+    @Guide(description: "Number of hours for countdown before alarm (0-23). Use 0 if no countdown.")
+    let countdownHours: Int
+
+    @Guide(description: "Number of minutes for countdown before alarm (0-59). Use 0 if no countdown.")
+    let countdownMinutes: Int
+
+    @Guide(description: "SF Symbol icon name that represents the activity (e.g., 'sunrise.fill', 'pills.fill', 'person.2.fill', 'dumbbell.fill')")
+    let icon: String
+
+    @Guide(description: "Hex color code for the ticker without # prefix (e.g., 'FF6B6B' for red, '4ECDC4' for teal)")
+    let colorHex: String
 }
 
 
@@ -41,10 +82,12 @@ class AITickerGenerator: ObservableObject {
     @Published var isGenerating = false
     @Published var errorMessage: String?
     @Published var parsedConfiguration: TickerConfiguration?
-    
+    @Published var isFoundationModelsAvailable = false
+
     private let activityMapper = ActivityIconMapper()
     private var parsingTask: Task<Void, Never>?
-    
+    private var languageModelSession: LanguageModelSession?
+
     enum RepeatOption: Equatable {
         case oneTime
         case daily
@@ -55,34 +98,160 @@ class AITickerGenerator: ObservableObject {
         case monthly(day: TickerSchedule.MonthlyDay)
         case yearly(month: Int, day: Int)
     }
+
+    init() {
+        Task {
+            await checkAvailabilityAndInitialize()
+        }
+    }
+
+    private func checkAvailabilityAndInitialize() async {
+        let model = SystemLanguageModel.default
+
+        switch model.availability {
+        case .available:
+            isFoundationModelsAvailable = true
+
+            // Create session with custom instructions for ticker parsing
+            languageModelSession = LanguageModelSession(
+                model: model,
+                instructions: {
+                    """
+                    You are an intelligent assistant that helps users create alarm reminders (called "Tickers") from natural language descriptions.
+
+                    Your task is to extract structured information from user input including:
+                    - Activity label (what they want to be reminded about)
+                    - Time (when the reminder should trigger in 24-hour format)
+                    - Date (which day - use current date if not specified)
+                    - Repeat pattern: "oneTime", "daily", "weekdays", or "specificDays"
+                    - For specificDays: provide weekday names like "Monday,Wednesday,Friday"
+                    - Countdown duration if they mention it (in hours and minutes)
+                    - Appropriate SF Symbol icon that matches the activity
+                    - Hex color code that fits the activity theme (without # prefix)
+
+                    Be intelligent about inferring context:
+                    - "Wake up at 7am every weekday" → weekdays pattern
+                    - "Gym on Monday Wednesday Friday" → specificDays with "Monday,Wednesday,Friday"
+                    - "Take medicine at 9am and 9pm daily" → daily pattern
+                    - "Meeting next Tuesday at 2:30pm" → oneTime, specific date
+
+                    Choose icons wisely:
+                    - Wake up → "sunrise.fill"
+                    - Medication → "pills.fill"
+                    - Exercise/Gym → "dumbbell.fill"
+                    - Meetings → "person.2.fill"
+                    - Food/Meals → "fork.knife"
+                    - Sleep → "moon.stars.fill"
+
+                    Choose colors that match the activity mood and time of day.
+                    """
+                }
+            )
+
+            // Prewarm the session for better performance
+            try? await languageModelSession?.prewarm()
+
+        case .unavailable(let reason):
+            isFoundationModelsAvailable = false
+            print("Foundation Models unavailable: \(reason)")
+        }
+    }
+
+    // Convert AI response to TickerConfiguration
+    private func convertToTickerConfiguration(_ response: AITickerConfigurationResponse) -> TickerConfiguration {
+        let calendar = Calendar.current
+        var dateComponents = DateComponents()
+        dateComponents.year = response.year
+        dateComponents.month = response.month
+        dateComponents.day = response.day
+        let date = calendar.date(from: dateComponents) ?? Date()
+
+        // Parse repeat pattern
+        let repeatOption: AITickerGenerator.RepeatOption
+        switch response.repeatPattern {
+        case "daily":
+            repeatOption = .daily
+        case "weekdays":
+            repeatOption = .weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])
+        case "specificDays":
+            let weekdayNames = response.repeatDays.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+            let weekdays = weekdayNames.compactMap { name -> TickerSchedule.Weekday? in
+                switch name.lowercased() {
+                case "monday": return .monday
+                case "tuesday": return .tuesday
+                case "wednesday": return .wednesday
+                case "thursday": return .thursday
+                case "friday": return .friday
+                case "saturday": return .saturday
+                case "sunday": return .sunday
+                default: return nil
+                }
+            }
+            repeatOption = weekdays.isEmpty ? .oneTime : .weekdays(weekdays)
+        default:
+            repeatOption = .oneTime
+        }
+
+        // Parse countdown
+        let countdown: TickerConfiguration.CountdownConfiguration?
+        if response.countdownHours > 0 || response.countdownMinutes > 0 {
+            countdown = TickerConfiguration.CountdownConfiguration(
+                hours: response.countdownHours,
+                minutes: response.countdownMinutes,
+                seconds: 0
+            )
+        } else {
+            countdown = nil
+        }
+
+        return TickerConfiguration(
+            label: response.label,
+            time: TickerConfiguration.TimeOfDay(hour: response.hour, minute: response.minute),
+            date: date,
+            repeatOption: repeatOption,
+            countdown: countdown,
+            icon: response.icon,
+            colorHex: response.colorHex
+        )
+    }
     
     func parseInBackground(from input: String) {
         // Cancel any existing parsing task
         parsingTask?.cancel()
-        
+
         // Clear previous results
         parsedConfiguration = nil
-        
+
         // Don't parse empty or very short inputs
         let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedInput.count > 3 else {
             return
         }
-        
+
         parsingTask = Task.detached(priority: .userInitiated) {
             do {
                 // Add a small delay to debounce rapid typing
                 try await Task.sleep(for: .milliseconds(500))
-                
+
                 // Check if task was cancelled
                 guard !Task.isCancelled else { return }
-                
-                // Perform lightweight parsing off main thread
-                let configuration = try await self.parseConfiguration(from: trimmedInput)
-                
-                // Update on main thread
+
+                // Try Foundation Models first, fallback to regex parsing
                 await MainActor.run {
-                    self.parsedConfiguration = configuration
+                    if self.isFoundationModelsAvailable, let session = self.languageModelSession {
+                        // Use streaming for real-time feedback
+                        Task {
+                            await self.parseWithFoundationModelsStreaming(input: trimmedInput, session: session)
+                        }
+                    } else {
+                        // Fallback to regex-based parsing
+                        Task.detached(priority: .userInitiated) {
+                            let configuration = try await self.parseConfigurationWithRegex(from: trimmedInput)
+                            await MainActor.run {
+                                self.parsedConfiguration = configuration
+                            }
+                        }
+                    }
                 }
             } catch {
                 // Silently fail for background parsing - don't show errors to user
@@ -92,8 +261,80 @@ class AITickerGenerator: ObservableObject {
             }
         }
     }
+
+    private func parseWithFoundationModelsStreaming(input: String, session: LanguageModelSession) async {
+        guard !session.isResponding else { return }
+
+        do {
+            let options = GenerationOptions(
+                sampling: .greedy, // Deterministic output
+                temperature: 0.3,  // Low temperature for consistent parsing
+                maximumResponseTokens: 500
+            )
+
+            let stream = try await session.streamResponse(
+                to: Prompt("""
+                    Parse this ticker request and extract all relevant information:
+                    "\(input)"
+
+                    Provide a complete ticker configuration with label, time, date, repeat pattern, countdown (if mentioned), icon, and color.
+                    Use current date/time as defaults if not specified.
+                    """),
+                generating: AITickerConfigurationResponse.self,
+                includeSchemaInPrompt: false,
+                options: options
+            )
+
+            for try await snapshot in stream {
+                // Access the partial content from the snapshot
+                let partial = snapshot.content
+
+                // Only update if we have all required fields filled in
+                if let label = partial.label,
+                   let hour = partial.hour,
+                   let minute = partial.minute,
+                   let year = partial.year,
+                   let month = partial.month,
+                   let day = partial.day,
+                   let repeatPattern = partial.repeatPattern,
+                   let repeatDays = partial.repeatDays,
+                   let countdownHours = partial.countdownHours,
+                   let countdownMinutes = partial.countdownMinutes,
+                   let icon = partial.icon,
+                   let colorHex = partial.colorHex {
+
+                    let response = AITickerConfigurationResponse(
+                        label: label,
+                        hour: hour,
+                        minute: minute,
+                        year: year,
+                        month: month,
+                        day: day,
+                        repeatPattern: repeatPattern,
+                        repeatDays: repeatDays,
+                        countdownHours: countdownHours,
+                        countdownMinutes: countdownMinutes,
+                        icon: icon,
+                        colorHex: colorHex
+                    )
+
+                    parsedConfiguration = convertToTickerConfiguration(response)
+                }
+            }
+        } catch {
+            print("Foundation Models streaming error: \(error)")
+            // Fallback to regex parsing
+            Task.detached(priority: .userInitiated) {
+                if let configuration = try? await self.parseConfigurationWithRegex(from: input) {
+                    await MainActor.run {
+                        self.parsedConfiguration = configuration
+                    }
+                }
+            }
+        }
+    }
     
-    private func parseConfiguration(from input: String) async throws -> TickerConfiguration {
+    private func parseConfigurationWithRegex(from input: String) async throws -> TickerConfiguration {
         // Use Natural Language framework for text analysis
         // Note: Already running off main thread via Task.detached in parseInBackground
         let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass])
@@ -125,22 +366,62 @@ class AITickerGenerator: ObservableObject {
         isGenerating = true
         errorMessage = nil
         defer { isGenerating = false }
-        
+
         // Validate input
         let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedInput.isEmpty else {
             throw AITickerGenerationError.invalidInput
         }
-        
-        // Use the shared parsing logic
-        let configuration = try await parseConfiguration(from: trimmedInput)
-        
+
+        // Try Foundation Models first, fallback to regex parsing
+        let configuration: TickerConfiguration
+
+        if isFoundationModelsAvailable, let session = languageModelSession {
+            configuration = try await parseWithFoundationModels(input: trimmedInput, session: session)
+        } else {
+            // Fallback to regex-based parsing
+            configuration = try await parseConfigurationWithRegex(from: trimmedInput)
+        }
+
         // Additional validation
         if configuration.label.isEmpty {
             throw AITickerGenerationError.parsingFailed
         }
-        
+
         return configuration
+    }
+
+    private func parseWithFoundationModels(input: String, session: LanguageModelSession) async throws -> TickerConfiguration {
+        guard !session.isResponding else {
+            throw AITickerGenerationError.parsingFailed
+        }
+
+        let options = GenerationOptions(
+            sampling: .greedy, // Deterministic output for final generation
+            temperature: 0.3,
+            maximumResponseTokens: 500
+        )
+
+        let result = try await session.respond(
+            to: Prompt("""
+                Parse this ticker/alarm request and extract all information:
+                "\(input)"
+
+                Create a complete ticker configuration. Infer reasonable defaults where information is missing.
+                For time: use 24-hour format. If no time specified, suggest an appropriate time based on the activity.
+                For date: use today's date if not specified. Provide year, month, and day separately.
+                For repeatPattern: use "oneTime", "daily", "weekdays", or "specificDays"
+                For specificDays: provide comma-separated weekday names in repeatDays (e.g., "Monday,Wednesday,Friday")
+                For countdown: if no countdown mentioned, use 0 for both hours and minutes
+                For icon: choose an appropriate SF Symbol that matches the activity.
+                For color: choose a hex color that fits the activity and time of day (without # prefix).
+                """),
+            generating: AITickerConfigurationResponse.self,
+            includeSchemaInPrompt: false,
+            options: options
+        )
+
+        return convertToTickerConfiguration(result.content)
     }
     
     // MARK: - Private Parsing Methods
@@ -655,84 +936,122 @@ class AITickerGenerator: ObservableObject {
     }
     
     private func parseCountdownWithMeasurement(_ input: String) -> TickerConfiguration.CountdownConfiguration? {
-        let lowercaseInput = input.lowercased()
-        
-        // Parse duration using NSMeasurement
-        let measurementFormats = [
-            ("(\\d+)\\s*hours?\\s*(?:and\\s*)?(\\d+)?\\s*minutes?", { hours, minutes in
-                TickerConfiguration.CountdownConfiguration(hours: hours, minutes: minutes ?? 0, seconds: 0)
-            }),
-            ("(\\d+)\\s*minutes?\\s*(?:and\\s*)?(\\d+)?\\s*seconds?", { minutes, seconds in
-                TickerConfiguration.CountdownConfiguration(hours: 0, minutes: minutes, seconds: seconds ?? 0)
-            }),
-            ("(\\d+)\\s*hours?", { hours in
-                TickerConfiguration.CountdownConfiguration(hours: hours, minutes: 0, seconds: 0)
-            }),
-            ("(\\d+)\\s*minutes?", { minutes in
-                TickerConfiguration.CountdownConfiguration(hours: 0, minutes: minutes, seconds: 0)
-            }),
-            ("(\\d+)\\s*seconds?", { seconds in
-                TickerConfiguration.CountdownConfiguration(hours: 0, minutes: 0, seconds: seconds)
-            })
-        ]
-        
-        for (pattern, handler) in measurementFormats {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                let range = NSRange(location: 0, length: input.utf16.count)
-                if let match = regex.firstMatch(in: input, options: [], range: range) {
-                    let firstRange = match.range(at: 1)
-                    if let firstString = Range(firstRange, in: input).map({ String(input[$0]) }),
-                       let firstValue = Int(firstString) {
-                        
-                        var secondValue: Int? = nil
-                        if match.numberOfRanges >= 3 {
-                            let secondRange = match.range(at: 2)
-                            if secondRange.location != NSNotFound,
-                               let secondString = Range(secondRange, in: input).map({ String(input[$0]) }),
-                               !secondString.isEmpty {
-                                secondValue = Int(secondString)
-                            }
+        // Try "X hours and Y minutes" pattern
+        if let regex = try? NSRegularExpression(pattern: #"(\d+)\s*hours?\s*(?:and\s*)?(\d+)?\s*minutes?"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range) {
+                let hoursRange = match.range(at: 1)
+                if let hoursString = Range(hoursRange, in: input).map({ String(input[$0]) }),
+                   let hours = Int(hoursString) {
+                    var minutes = 0
+                    if match.numberOfRanges >= 3 {
+                        let minutesRange = match.range(at: 2)
+                        if minutesRange.location != NSNotFound,
+                           let minutesString = Range(minutesRange, in: input).map({ String(input[$0]) }),
+                           !minutesString.isEmpty {
+                            minutes = Int(minutesString) ?? 0
                         }
-                        
-                        return handler(firstValue, secondValue)
                     }
+                    return TickerConfiguration.CountdownConfiguration(hours: hours, minutes: minutes, seconds: 0)
                 }
             }
         }
-        
+
+        // Try "X minutes and Y seconds" pattern
+        if let regex = try? NSRegularExpression(pattern: #"(\d+)\s*minutes?\s*(?:and\s*)?(\d+)?\s*seconds?"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range) {
+                let minutesRange = match.range(at: 1)
+                if let minutesString = Range(minutesRange, in: input).map({ String(input[$0]) }),
+                   let minutes = Int(minutesString) {
+                    var seconds = 0
+                    if match.numberOfRanges >= 3 {
+                        let secondsRange = match.range(at: 2)
+                        if secondsRange.location != NSNotFound,
+                           let secondsString = Range(secondsRange, in: input).map({ String(input[$0]) }),
+                           !secondsString.isEmpty {
+                            seconds = Int(secondsString) ?? 0
+                        }
+                    }
+                    return TickerConfiguration.CountdownConfiguration(hours: 0, minutes: minutes, seconds: seconds)
+                }
+            }
+        }
+
+        // Try simple "X hours" pattern
+        if let regex = try? NSRegularExpression(pattern: #"(\d+)\s*hours?"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range),
+               let hoursString = Range(match.range(at: 1), in: input).map({ String(input[$0]) }),
+               let hours = Int(hoursString) {
+                return TickerConfiguration.CountdownConfiguration(hours: hours, minutes: 0, seconds: 0)
+            }
+        }
+
+        // Try simple "X minutes" pattern
+        if let regex = try? NSRegularExpression(pattern: #"(\d+)\s*minutes?"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range),
+               let minutesString = Range(match.range(at: 1), in: input).map({ String(input[$0]) }),
+               let minutes = Int(minutesString) {
+                return TickerConfiguration.CountdownConfiguration(hours: 0, minutes: minutes, seconds: 0)
+            }
+        }
+
+        // Try simple "X seconds" pattern
+        if let regex = try? NSRegularExpression(pattern: #"(\d+)\s*seconds?"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range),
+               let secondsString = Range(match.range(at: 1), in: input).map({ String(input[$0]) }),
+               let seconds = Int(secondsString) {
+                return TickerConfiguration.CountdownConfiguration(hours: 0, minutes: 0, seconds: seconds)
+            }
+        }
+
         return nil
     }
     
     private func parseCountdownWithSimpleExtraction(from input: String) -> TickerConfiguration.CountdownConfiguration? {
-        // Simple extraction for common patterns like "in 30 minutes", "with 2 hour countdown"
-        let simplePatterns = [
-            ("in (\\d+) hours?", { hours in
-                TickerConfiguration.CountdownConfiguration(hours: hours, minutes: 0, seconds: 0)
-            }),
-            ("in (\\d+) minutes?", { minutes in
-                TickerConfiguration.CountdownConfiguration(hours: 0, minutes: minutes, seconds: 0)
-            }),
-            ("with (\\d+) hour countdown", { hours in
-                TickerConfiguration.CountdownConfiguration(hours: hours, minutes: 0, seconds: 0)
-            }),
-            ("with (\\d+) minute countdown", { minutes in
-                TickerConfiguration.CountdownConfiguration(hours: 0, minutes: minutes, seconds: 0)
-            })
-        ]
-        
-        for (pattern, handler) in simplePatterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                let range = NSRange(location: 0, length: input.utf16.count)
-                if let match = regex.firstMatch(in: input, options: [], range: range) {
-                    let numberRange = match.range(at: 1)
-                    if let numberString = Range(numberRange, in: input).map({ String(input[$0]) }),
-                       let number = Int(numberString) {
-                        return handler(number)
-                    }
-                }
+        // Try "in X hours" pattern
+        if let regex = try? NSRegularExpression(pattern: #"in (\d+) hours?"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range),
+               let hoursString = Range(match.range(at: 1), in: input).map({ String(input[$0]) }),
+               let hours = Int(hoursString) {
+                return TickerConfiguration.CountdownConfiguration(hours: hours, minutes: 0, seconds: 0)
             }
         }
-        
+
+        // Try "in X minutes" pattern
+        if let regex = try? NSRegularExpression(pattern: #"in (\d+) minutes?"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range),
+               let minutesString = Range(match.range(at: 1), in: input).map({ String(input[$0]) }),
+               let minutes = Int(minutesString) {
+                return TickerConfiguration.CountdownConfiguration(hours: 0, minutes: minutes, seconds: 0)
+            }
+        }
+
+        // Try "with X hour countdown" pattern
+        if let regex = try? NSRegularExpression(pattern: #"with (\d+) hour countdown"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range),
+               let hoursString = Range(match.range(at: 1), in: input).map({ String(input[$0]) }),
+               let hours = Int(hoursString) {
+                return TickerConfiguration.CountdownConfiguration(hours: hours, minutes: 0, seconds: 0)
+            }
+        }
+
+        // Try "with X minute countdown" pattern
+        if let regex = try? NSRegularExpression(pattern: #"with (\d+) minute countdown"#, options: .caseInsensitive) {
+            let range = NSRange(location: 0, length: input.utf16.count)
+            if let match = regex.firstMatch(in: input, options: [], range: range),
+               let minutesString = Range(match.range(at: 1), in: input).map({ String(input[$0]) }),
+               let minutes = Int(minutesString) {
+                return TickerConfiguration.CountdownConfiguration(hours: 0, minutes: minutes, seconds: 0)
+            }
+        }
+
         return nil
     }
     
