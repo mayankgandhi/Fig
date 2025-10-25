@@ -69,16 +69,9 @@ final class AddTickerViewModel {
     // MARK: - Computed Properties
 
     var canSave: Bool {
-        labelViewModel.isValid && countdownViewModel.isValid && scheduleViewModel.repeatConfigIsValid && !scheduleViewModel.hasDateWeekdayMismatch
+        labelViewModel.isValid && countdownViewModel.isValid && scheduleViewModel.repeatConfigIsValid
     }
 
-    var hasDateWeekdayMismatch: Bool {
-        scheduleViewModel.hasDateWeekdayMismatch
-    }
-
-    var dateWeekdayMismatchMessage: String? {
-        scheduleViewModel.dateWeekdayMismatchMessage
-    }
 
     /// Aggregated validation messages for inline UI presentation
     var validationMessages: [String] {
@@ -90,7 +83,6 @@ final class AddTickerViewModel {
         if !countdownViewModel.isValid {
             messages.append("Countdown must be greater than 0 seconds")
         }
-        if let mismatch = scheduleViewModel.dateWeekdayMismatchMessage { messages.append(mismatch) }
 
         switch scheduleViewModel.selectedOption {
         case .weekdays:
@@ -139,15 +131,11 @@ final class AddTickerViewModel {
         )
     }
 
-    func adjustDateToMatchWeekdays() {
-        scheduleViewModel.adjustDateToMatchWeekdays()
-    }
 
     func saveTicker() async {
         print("🚀 AddTickerViewModel.saveTicker() started")
         print("   → isSaving: \(isSaving)")
         print("   → canSave: \(canSave)")
-        print("   → hasDateWeekdayMismatch: \(hasDateWeekdayMismatch)")
         print("   → isEditMode: \(isEditMode)")
         print("   → prefillTemplate: \(prefillTemplate?.id.uuidString ?? "nil")")
         
@@ -157,13 +145,8 @@ final class AddTickerViewModel {
         }
         guard canSave else {
             print("   ❌ Cannot save - validation failed")
-            if hasDateWeekdayMismatch {
-                errorMessage = dateWeekdayMismatchMessage ?? "Date and weekday selection don't match"
-                print("   → Date/weekday mismatch error: \(errorMessage ?? "nil")")
-            } else {
-                errorMessage = "Please check your inputs"
-                print("   → Generic validation error")
-            }
+            errorMessage = "Please check your inputs"
+            print("   → Generic validation error")
             showingError = true
             return
         }
@@ -220,7 +203,14 @@ final class AddTickerViewModel {
                 showingError = true
                 return
             }
-            schedule = .weekdays(time: time, days: scheduleViewModel.selectedWeekdays, startDate: scheduleViewModel.selectedDate)
+            // Find the next occurrence of any selected weekday
+            let nextWeekdayDate = findNextWeekdayOccurrence(
+                from: scheduleViewModel.selectedDate,
+                weekdays: scheduleViewModel.selectedWeekdays,
+                time: time
+            )
+            print("   → nextWeekdayDate: \(nextWeekdayDate)")
+            schedule = .weekdays(time: time, days: scheduleViewModel.selectedWeekdays, startDate: nextWeekdayDate)
 
         case .hourly:
             print("   → Creating hourly schedule")
@@ -543,5 +533,44 @@ final class AddTickerViewModel {
         }
 
         print("🎨 Template prefill completed!")
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Finds the next occurrence of any selected weekday from the given date
+    private func findNextWeekdayOccurrence(
+        from startDate: Date,
+        weekdays: [TickerSchedule.Weekday],
+        time: TickerSchedule.TimeOfDay
+    ) -> Date {
+        var searchDate = startDate
+        
+        // Check up to 7 days ahead to find the next occurrence
+        for _ in 0..<7 {
+            let weekday = calendar.component(.weekday, from: searchDate)
+            // Convert Calendar weekday (1=Sunday) to our Weekday enum (0=Sunday)
+            let adjustedWeekday = (weekday == 1) ? 0 : weekday - 1
+            
+            if let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday),
+               weekdays.contains(tickerWeekday) {
+                // Found a matching weekday, create the date with the specified time
+                var components = calendar.dateComponents([.year, .month, .day], from: searchDate)
+                components.hour = time.hour
+                components.minute = time.minute
+                
+                if let finalDate = calendar.date(from: components) {
+                    return finalDate
+                }
+            }
+            
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: searchDate) else { break }
+            searchDate = nextDate
+        }
+        
+        // Fallback: return the original date with the specified time
+        var components = calendar.dateComponents([.year, .month, .day], from: startDate)
+        components.hour = time.hour
+        components.minute = time.minute
+        return calendar.date(from: components) ?? startDate
     }
 }

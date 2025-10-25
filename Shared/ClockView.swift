@@ -33,6 +33,8 @@ struct ClockFaceView: View {
     var upcomingAlarms: [UpcomingAlarmPresentation]
     var shouldAnimateAlarms: Bool = false
     var showSecondsHand: Bool = true
+    var showAlarmLabels: Bool = true
+    
     @State private var alarmAnimationStates: [UUID: Bool] = [:]
     
     let hourMarks: [HourMark] = [
@@ -103,10 +105,10 @@ struct ClockFaceView: View {
                             lineWidth: 1
                         )
                 )
-                .shadow(color: Color(.label).opacity(0.1), radius: 20, x: 0, y: 8)
-                .shadow(color: Color(.label).opacity(0.05), radius: 5, x: 0, y: 2)
-                .shadow(color: Color(.label).opacity(0.02), radius: 1, x: 0, y: 1)
-                
+                .shadow(color: TickerColor.surface(for: colorScheme).opacity(0.1), radius: 20, x: 0, y: 8)
+                .shadow(color: TickerColor.surface(for: colorScheme).opacity(0.05), radius: 5, x: 0, y: 2)
+                .shadow(color: TickerColor.surface(for: colorScheme).opacity(0.02), radius: 1, x: 0, y: 1)
+                // Hour marks
                 ForEach(hourMarks) { hourmark in
                     Rectangle()
                         .fill(hourmark.time != nil ? Color(.label) : Color(.secondaryLabel))
@@ -140,30 +142,32 @@ struct ClockFaceView: View {
                 
                 ForEach(Array(upcomingAlarms.enumerated()), id: \.element.id) { index, event in
                     VStack(spacing: .zero) {
-                        
+
                         HStack(spacing: 2) {
                             Image(systemName: event.icon)
                                 .font(
                                     .system(
-                                        size: handLength * 0.08,
+                                        size: handLength * (showAlarmLabels ? 0.08 : 0.10),
                                         weight: .semibold,
                                         design: .rounded
                                     )
                                 )
                                 .foregroundStyle(.white)
-                            
-                            Text(event.displayName)
-                                .font(
-                                    .system(
-                                        size: handLength * 0.08,
-                                        weight: .medium,
-                                        design: .rounded
+
+                            if showAlarmLabels {
+                                Text(event.displayName)
+                                    .font(
+                                        .system(
+                                            size: handLength * 0.08,
+                                            weight: .medium,
+                                            design: .rounded
+                                        )
                                     )
-                                )
-                                .truncationMode(.tail)
-                                .lineLimit(1)
-                                .foregroundStyle(.white)
-                                .padding(.horizontal, 4)
+                                    .truncationMode(.tail)
+                                    .lineLimit(1)
+                                    .foregroundStyle(.white)
+                                    .padding(.horizontal, 4)
+                            }
                         }
                         .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
                         .background {
@@ -178,10 +182,13 @@ struct ClockFaceView: View {
                                         endPoint: .bottomTrailing
                                     )
                                 )
-                                .frame(width: handLength * 0.125, height: handLength)
+                                .frame(
+                                    width: showAlarmLabels ? handLength * 0.125 : handLength * 0.10,
+                                    height: handLength
+                                )
                                 .shadow(color: event.color.opacity(0.3), radius: 4, x: 0, y: 2)
                         }
-                        
+
                     }
                     .offset(y: -handLength * 0.5)
                     .rotationEffect(Angle(degrees: event.angle))
@@ -265,6 +272,7 @@ struct ClockFaceView: View {
                 height: geometry.size.width,
                 alignment: .center
             )
+            
         }
         .onChange(of: shouldAnimateAlarms) { oldValue, newValue in
             if newValue && !oldValue {
@@ -298,7 +306,6 @@ struct ClockFaceView: View {
                 // Animate new alarms in immediately
                 // SwiftUI's animation system handles the stagger via the delay in the animation modifier
                 for alarm in addedAlarms {
-
                     alarmAnimationStates[alarm.id] = true
                 }
             } else {

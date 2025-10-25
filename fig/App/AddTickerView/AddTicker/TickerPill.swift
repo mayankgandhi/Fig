@@ -90,7 +90,6 @@ struct TickerPill: View {
         .frame(height: size.height)
         .background(backgroundColor)
         .clipShape(Capsule())
-        .glassEffect(in: .capsule)
         .overlay(
             Capsule()
                 .strokeBorder(borderColor, lineWidth: borderWidth)

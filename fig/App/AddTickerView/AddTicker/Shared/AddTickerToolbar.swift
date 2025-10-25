@@ -12,7 +12,6 @@ struct AddTickerToolbar: ToolbarContent {
     let formattedTime: String
     let isSaving: Bool
     let canSave: Bool
-    let hasDateWeekdayMismatch: Bool
     let isExpanded: Bool
     let onDismiss: () -> Void
     let onSave: () -> Void
@@ -50,7 +49,6 @@ struct AddTickerToolbar: ToolbarContent {
             SaveButton(
                 isSaving: isSaving,
                 canSave: canSave,
-                hasDateWeekdayMismatch: hasDateWeekdayMismatch,
                 isExpanded: isExpanded,
                 onCollapse: onCollapse,
                 onSave: onSave
@@ -62,9 +60,9 @@ struct AddTickerToolbar: ToolbarContent {
 // MARK: - Save Button Component
 
 private struct SaveButton: View {
+
     let isSaving: Bool
     let canSave: Bool
-    let hasDateWeekdayMismatch: Bool
     let isExpanded: Bool
     let onCollapse: () -> Void
     let onSave: () -> Void
@@ -75,7 +73,6 @@ private struct SaveButton: View {
             print("   → isExpanded: \(isExpanded)")
             print("   → isSaving: \(isSaving)")
             print("   → canSave: \(canSave)")
-            print("   → hasDateWeekdayMismatch: \(hasDateWeekdayMismatch)")
             
             if isExpanded {
                 print("   → Collapsing expanded field")
@@ -108,8 +105,7 @@ private struct SaveButton: View {
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSaving)
         }
         .disabled(isSaving || !canSave)
-        .opacity(hasDateWeekdayMismatch ? 0.5 : (canSave ? 1.0 : 0.6))
+        .opacity(canSave ? 1.0 : 0.6)
         .animation(.easeInOut(duration: 0.2), value: canSave)
-        .animation(.easeInOut(duration: 0.2), value: hasDateWeekdayMismatch)
     }
 }

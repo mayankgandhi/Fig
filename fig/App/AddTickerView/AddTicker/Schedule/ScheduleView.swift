@@ -41,7 +41,6 @@ struct ScheduleView: View {
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, TickerSpacing.md)
             
             // Main Repeat Type Selector
             VStack(alignment: .leading, spacing: TickerSpacing.xs) {
@@ -51,22 +50,15 @@ struct ScheduleView: View {
                             repeatOptionButton(for: option)
                         }
                     }
-                    .padding(.horizontal, TickerSpacing.md)
                 }
             }
             
-            // Validation Message
-            if let validationMessage = viewModel.dateWeekdayMismatchMessage {
-                validationMessageView(message: validationMessage)
-                    .padding(.horizontal, TickerSpacing.md)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-            
+
             // Configuration View for selected option
             if viewModel.needsConfiguration {
                 configurationView
-                    .padding(.horizontal, TickerSpacing.md)
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    .animation(.easeInOut(duration: 0.2), value: viewModel.selectedOption)
             }
         }
     }
@@ -77,9 +69,7 @@ struct ScheduleView: View {
     private func repeatOptionButton(for option: ScheduleViewModel.RepeatOption) -> some View {
         Button {
             TickerHaptics.selection()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                viewModel.selectOption(option)
-            }
+            viewModel.selectOption(option)
         } label: {
             TickerPill(
                 icon: option.icon,
@@ -88,6 +78,7 @@ struct ScheduleView: View {
                 hasValue: viewModel.selectedOption == option,
                 size: .compact
             )
+            .animation(.easeInOut(duration: 0.15), value: viewModel.selectedOption)
         }
     }
     
@@ -147,56 +138,4 @@ struct ScheduleView: View {
         }
     }
     
-    // MARK: - Validation Message View (Compact)
-    
-    @ViewBuilder
-    private func validationMessageView(message: String) -> some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-            HStack(spacing: TickerSpacing.sm) {
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .Footnote()
-                    .foregroundStyle(TickerColor.warning)
-                
-                Text(message)
-                    .Footnote()
-                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                    .multilineTextAlignment(.leading)
-                
-                Spacer()
-            }
-            
-            // Fix Date button
-            Button {
-                TickerHaptics.selection()
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    viewModel.adjustDateToMatchWeekdays()
-                }
-            } label: {
-                HStack(spacing: TickerSpacing.xs) {
-                    Image(systemName: "arrow.clockwise")
-                        .Caption()
-                    Text("Fix Date")
-                        .Caption()
-                        .fontWeight(.semibold)
-                }
-                .foregroundStyle(TickerColor.primary)
-                .padding(.horizontal, TickerSpacing.md)
-                .padding(.vertical, TickerSpacing.sm)
-                .background(
-                    Capsule()
-                        .fill(TickerColor.primary.opacity(0.12))
-                )
-            }
-        }
-        .padding(TickerSpacing.md)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.medium)
-                .fill(TickerColor.warning.opacity(0.08))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.medium)
-                .strokeBorder(TickerColor.warning.opacity(0.2), lineWidth: 1)
-        )
-    }
 }

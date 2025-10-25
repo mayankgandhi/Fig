@@ -21,7 +21,6 @@ struct HourlyConfigView: View {
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, TickerSpacing.md)
 
             // Interval Picker Section
             configurationSection {

@@ -126,14 +126,70 @@ struct BaseTimelineProvider {
     // MARK: - Placeholder & Snapshot
 
     /// Creates a placeholder entry for widgets
-    /// - Returns: Empty timeline entry
+    /// - Returns: Timeline entry with dummy data for rich preview
     static func createPlaceholder() -> AlarmTimelineEntry {
-        AlarmTimelineEntry(date: Date(), upcomingAlarms: [])
+        AlarmTimelineEntry(date: Date(), upcomingAlarms: createDummyAlarms())
     }
 
     /// Creates a snapshot entry for widgets
-    /// - Returns: Empty timeline entry
+    /// - Returns: Timeline entry with dummy data for rich preview
     static func createSnapshot() -> AlarmTimelineEntry {
-        AlarmTimelineEntry(date: Date(), upcomingAlarms: [])
+        AlarmTimelineEntry(date: Date(), upcomingAlarms: createDummyAlarms())
+    }
+    
+    /// Creates dummy alarm data for rich widget previews
+    /// - Returns: Array of sample alarms with diverse examples
+    private static func createDummyAlarms() -> [UpcomingAlarmPresentation] {
+        let now = Date()
+        return [
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Morning Workout",
+                icon: "figure.run",
+                color: .orange,
+                nextAlarmTime: now.addingTimeInterval(7200), // 2 hours
+                scheduleType: .daily,
+                hour: 7,
+                minute: 0,
+                hasCountdown: true,
+                tickerDataTitle: "Fitness"
+            ),
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Team Standup",
+                icon: "person.3.fill",
+                color: .blue,
+                nextAlarmTime: now.addingTimeInterval(14400), // 4 hours
+                scheduleType: .weekdays([1, 2, 3, 4, 5]),
+                hour: 10,
+                minute: 0,
+                hasCountdown: false,
+                tickerDataTitle: nil
+            ),
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Lunch Break",
+                icon: "fork.knife",
+                color: .green,
+                nextAlarmTime: now.addingTimeInterval(21600), // 6 hours
+                scheduleType: .daily,
+                hour: 12,
+                minute: 30,
+                hasCountdown: false,
+                tickerDataTitle: nil
+            ),
+            UpcomingAlarmPresentation(
+                baseAlarmId: UUID(),
+                displayName: "Afternoon Coffee",
+                icon: "cup.and.saucer.fill",
+                color: .brown,
+                nextAlarmTime: now.addingTimeInterval(28800), // 8 hours
+                scheduleType: .daily,
+                hour: 15,
+                minute: 0,
+                hasCountdown: false,
+                tickerDataTitle: nil
+            ),
+        ]
     }
 }

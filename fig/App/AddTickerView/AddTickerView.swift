@@ -90,7 +90,6 @@ struct AddTickerView: View {
                     formattedTime: viewModel.timePickerViewModel.formattedTime,
                     isSaving: viewModel.isSaving,
                     canSave: viewModel.canSave,
-                    hasDateWeekdayMismatch: viewModel.hasDateWeekdayMismatch,
                     isExpanded: viewModel.optionsPillsViewModel.expandedField != nil,
                     onDismiss: { dismiss() },
                     onSave: {

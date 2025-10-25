@@ -191,33 +191,6 @@ final class ScheduleViewModel {
 
     // MARK: - Validation (moved from AddTickerViewModel)
 
-    /// Checks if the selected date conflicts with the selected weekdays
-    var hasDateWeekdayMismatch: Bool {
-        guard selectedOption == .weekdays else { return false }
-        guard !selectedWeekdays.isEmpty else { return false }
-
-        let selectedWeekday = calendar.component(.weekday, from: selectedDate)
-        // Convert Calendar weekday (1=Sunday) to our Weekday enum (0=Sunday)
-        let adjustedWeekday = (selectedWeekday == 1) ? 0 : selectedWeekday - 1
-
-        guard let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday) else { return true }
-
-        return !selectedWeekdays.contains(tickerWeekday)
-    }
-
-    /// Returns a helpful message about the date/weekday mismatch
-    var dateWeekdayMismatchMessage: String? {
-        guard hasDateWeekdayMismatch else { return nil }
-
-        let selectedWeekday = calendar.component(.weekday, from: selectedDate)
-        let adjustedWeekday = (selectedWeekday == 1) ? 0 : selectedWeekday - 1
-
-        guard let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday) else { return nil }
-
-        let selectedDayNames = selectedWeekdays.map { $0.displayName }.joined(separator: ", ")
-        return "Selected date (\(tickerWeekday.displayName)) doesn't match selected days (\(selectedDayNames))"
-    }
-
     /// Validates configuration specific to the selected repeat option
     var repeatConfigIsValid: Bool {
         switch selectedOption {
@@ -270,29 +243,6 @@ final class ScheduleViewModel {
         }
     }
 
-    /// Automatically adjusts the selected date to the next occurrence of the selected weekdays
-    func adjustDateToMatchWeekdays() {
-        guard selectedOption == .weekdays else { return }
-        guard !selectedWeekdays.isEmpty else { return }
-
-        let currentDate = selectedDate
-
-        // Find the next occurrence of any selected weekday
-        var searchDate = currentDate
-        for _ in 0..<7 { // Check up to 7 days ahead
-            let weekday = calendar.component(.weekday, from: searchDate)
-            let adjustedWeekday = (weekday == 1) ? 0 : weekday - 1
-
-            if let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday),
-               selectedWeekdays.contains(tickerWeekday) {
-                selectedDate = searchDate
-                return
-            }
-
-            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: searchDate) else { break }
-            searchDate = nextDate
-        }
-    }
 
     // MARK: - Repeat Methods
 
