@@ -110,7 +110,16 @@ class ActivityIconMapper {
     func mapActivity(from input: String) -> ActivityMapping {
         let lowercaseInput = input.lowercased()
         
-        // Find the best matching activity
+        // Use NaturalLanguage framework for better text analysis
+        let tagger = NLTagger(tagSchemes: [.lexicalClass, .nameType])
+        tagger.string = input
+        
+        // Find the best matching activity using semantic analysis
+        if let semanticMapping = findSemanticMapping(from: input, tagger: tagger) {
+            return semanticMapping
+        }
+        
+        // Fallback to keyword matching
         for (keyword, mapping) in activityMappings {
             if lowercaseInput.contains(keyword) {
                 return mapping
@@ -118,7 +127,7 @@ class ActivityIconMapper {
         }
         
         // Try to extract a custom label from the input
-        let customLabel = extractCustomLabel(from: input)
+        let customLabel = extractCustomLabelWithNL(from: input, tagger: tagger)
         
         // Default mapping
         return ActivityMapping(
@@ -127,6 +136,61 @@ class ActivityIconMapper {
             colorHex: "#8B5CF6",
             category: .general
         )
+    }
+    
+    private func findSemanticMapping(from input: String, tagger: NLTagger) -> ActivityMapping? {
+        // Use NaturalLanguage to find semantic matches
+        var bestMatch: ActivityMapping?
+        var bestScore = 0.0
+        
+        for (keyword, mapping) in activityMappings {
+            // Check for semantic similarity using word embeddings or simple word overlap
+            let score = calculateSemanticScore(input: input, keyword: keyword)
+            if score > bestScore && score > 0.3 { // Threshold for semantic similarity
+                bestScore = score
+                bestMatch = mapping
+            }
+        }
+        
+        return bestMatch
+    }
+    
+    private func calculateSemanticScore(input: String, keyword: String) -> Double {
+        let inputWords = Set(input.lowercased().components(separatedBy: .whitespacesAndNewlines))
+        let keywordWords = Set(keyword.lowercased().components(separatedBy: .whitespacesAndNewlines))
+        
+        // Calculate Jaccard similarity
+        let intersection = inputWords.intersection(keywordWords)
+        let union = inputWords.union(keywordWords)
+        
+        return union.isEmpty ? 0.0 : Double(intersection.count) / Double(union.count)
+    }
+    
+    private func extractCustomLabelWithNL(from input: String, tagger: NLTagger) -> String {
+        var meaningfulWords: [String] = []
+        
+        // Extract nouns and verbs using NaturalLanguage
+        tagger.enumerateTags(in: input.startIndex..<input.endIndex, unit: .word, scheme: .lexicalClass) { tag, range in
+            if let tag = tag, (tag == .noun || tag == .verb) {
+                let word = String(input[range]).lowercased()
+                if !isTimeRelatedWord(word) {
+                    meaningfulWords.append(word.capitalized)
+                }
+            }
+            return true
+        }
+        
+        if !meaningfulWords.isEmpty {
+            return meaningfulWords.joined(separator: " ")
+        }
+        
+        // Fallback to simple extraction
+        return extractCustomLabel(from: input)
+    }
+    
+    private func isTimeRelatedWord(_ word: String) -> Bool {
+        let timeWords = ["at", "am", "pm", "every", "daily", "tomorrow", "today", "next", "week", "day", "hour", "minute", "with", "remind", "me", "to", "take", "have", "do", "go", "be", "alarm", "ticker", "time", "schedule"]
+        return timeWords.contains(word)
     }
     
     private func extractCustomLabel(from input: String) -> String {

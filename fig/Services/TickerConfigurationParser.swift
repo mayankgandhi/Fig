@@ -54,7 +54,7 @@ class TickerConfigurationParser {
             hour: configuration.time.hour,
             minute: configuration.time.minute
         )
-        
+
         switch configuration.repeatOption {
         case .oneTime:
             return .oneTime(date: configuration.date)
@@ -65,11 +65,19 @@ class TickerConfigurationParser {
         case .weekdays(let weekdays):
             return .weekdays(time: time, days: weekdays)
 
-        case .hourly(let interval):
+        case .hourly(let interval, let startTime, let endTime):
             return .hourly(
                 interval: interval,
-                startTime: configuration.date,
-                endTime: nil
+                startTime: startTime,
+                endTime: endTime
+            )
+
+        case .every(let interval, let unit, let startTime, let endTime):
+            return .every(
+                interval: interval,
+                unit: unit,
+                startTime: startTime,
+                endTime: endTime
             )
 
         case .biweekly(let weekdays):
@@ -78,8 +86,7 @@ class TickerConfigurationParser {
                 weekdays: weekdays
             )
 
-        case .monthly(let day):
-            let monthlyDay = TickerSchedule.MonthlyDay.fixed(day)
+        case .monthly(let monthlyDay):
             return .monthly(day: monthlyDay, time: time)
 
         case .yearly(let month, let day):
@@ -141,13 +148,38 @@ extension TickerConfigurationParser {
             if weekdays.isEmpty {
                 errors.append("No weekdays selected for weekday repeat")
             }
+        case .hourly(let interval, let startTime, let endTime):
+            if interval < 1 || interval > 12 {
+                errors.append("Invalid hourly interval: \(interval)")
+            }
+            if let end = endTime, end <= startTime {
+                errors.append("Hourly end time must be after start time")
+            }
+        case .every(let interval, let unit, let startTime, let endTime):
+            let maxInterval = switch unit {
+            case .minutes: 60
+            case .hours: 24
+            case .days: 30
+            case .weeks: 52
+            }
+            if interval < 1 || interval > maxInterval {
+                errors.append("Invalid interval for \(unit.displayName): \(interval)")
+            }
+            if let end = endTime, end <= startTime {
+                errors.append("End time must be after start time")
+            }
         case .biweekly(let weekdays):
             if weekdays.isEmpty {
                 errors.append("No weekdays selected for biweekly repeat")
             }
-        case .monthly(let day):
-            if day < 1 || day > 31 {
-                errors.append("Invalid day for monthly repeat: \(day)")
+        case .monthly(let monthlyDay):
+            switch monthlyDay {
+            case .fixed(let day):
+                if day < 1 || day > 31 {
+                    errors.append("Invalid day for monthly repeat: \(day)")
+                }
+            default:
+                break // Other monthly day types are always valid
             }
         case .yearly(let month, let day):
             if month < 1 || month > 12 {

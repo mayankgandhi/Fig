@@ -399,13 +399,47 @@ struct NaturalLanguageTickerView: View {
             }
             let dayNames = weekdays.map { $0.shortName }.joined(separator: ", ")
             return dayNames
-        case .hourly(let interval):
-            return "Every \(interval) hour\(interval == 1 ? "" : "s")"
+        case .hourly(let interval, let startTime, let endTime):
+            let timeFormatter = DateFormatter()
+            timeFormatter.dateFormat = "h:mm a"
+            var text = "Every \(interval) hour\(interval == 1 ? "" : "s")"
+            text += " from \(timeFormatter.string(from: startTime))"
+            if let end = endTime {
+                text += " to \(timeFormatter.string(from: end))"
+            }
+            return text
+        case .every(let interval, let unit, let startTime, let endTime):
+            let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
+            let timeFormatter = DateFormatter()
+            switch unit {
+            case .minutes, .hours:
+                timeFormatter.dateFormat = "h:mm a"
+            case .days, .weeks:
+                timeFormatter.dateStyle = .short
+                timeFormatter.timeStyle = .short
+            }
+            var text = "Every \(interval) \(unitName)"
+            text += " from \(timeFormatter.string(from: startTime))"
+            if let end = endTime {
+                text += " to \(timeFormatter.string(from: end))"
+            }
+            return text
         case .biweekly(let weekdays):
             let dayNames = weekdays.map { $0.shortName }.joined(separator: ", ")
             return "Biweekly (\(dayNames))"
-        case .monthly(let day):
-            return "Monthly (day \(day))"
+        case .monthly(let monthlyDay):
+            switch monthlyDay {
+            case .fixed(let day):
+                return "Monthly (day \(day))"
+            case .firstWeekday(let weekday):
+                return "First \(weekday.displayName)"
+            case .lastWeekday(let weekday):
+                return "Last \(weekday.displayName)"
+            case .firstOfMonth:
+                return "First of month"
+            case .lastOfMonth:
+                return "Last of month"
+            }
         case .yearly(let month, let day):
             let monthName = Calendar.current.monthSymbols[month - 1]
             return "Yearly (\(monthName) \(day))"
