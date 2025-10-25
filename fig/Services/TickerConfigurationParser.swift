@@ -58,37 +58,35 @@ class TickerConfigurationParser {
         switch configuration.repeatOption {
         case .oneTime:
             return .oneTime(date: configuration.date)
-            
+
         case .daily:
-            return .daily(time: time, startDate: configuration.date)
-            
+            return .daily(time: time)
+
         case .weekdays(let weekdays):
-            return .weekdays(time: time, days: weekdays, startDate: configuration.date)
-            
+            return .weekdays(time: time, days: weekdays)
+
         case .hourly(let interval):
             return .hourly(
                 interval: interval,
                 startTime: configuration.date,
                 endTime: nil
             )
-            
+
         case .biweekly(let weekdays):
             return .biweekly(
                 time: time,
-                weekdays: weekdays,
-                anchorDate: configuration.date
+                weekdays: weekdays
             )
-            
+
         case .monthly(let day):
             let monthlyDay = TickerSchedule.MonthlyDay.fixed(day)
-            return .monthly(day: monthlyDay, time: time, startDate: configuration.date)
-            
+            return .monthly(day: monthlyDay, time: time)
+
         case .yearly(let month, let day):
             return .yearly(
                 month: month,
                 day: day,
-                time: time,
-                startDate: configuration.date
+                time: time
             )
         }
     }

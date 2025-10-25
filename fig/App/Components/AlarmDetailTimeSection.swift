@@ -44,7 +44,7 @@ struct AlarmDetailTimeSection: View {
             formatter.timeStyle = .short
             return formatter.string(from: date)
 
-        case .daily(let time, _), .weekdays(let time, _, _), .biweekly(let time, _, _), .monthly(_, let time, _), .yearly(_, _, let time, _):
+        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _), .monthly(_, let time), .yearly(_, _, let time):
             let formatter = DateFormatter()
             formatter.timeStyle = .short
             var components = DateComponents()
@@ -96,8 +96,7 @@ struct AlarmDetailTimeSection: View {
             label: "Morning Workout",
             isEnabled: true,
             schedule: .daily(
-                time: TickerSchedule.TimeOfDay(hour: 6, minute: 30),
-                startDate: .now
+                time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)
             )
         )
     )

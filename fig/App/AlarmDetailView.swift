@@ -92,10 +92,9 @@ struct AlarmDetailView: View {
         alarm: Ticker(
             label: "Morning Workout",
             isEnabled: true,
-            schedule: 
+            schedule:
                     .daily(
-                        time: TickerSchedule.TimeOfDay(hour: 6, minute: 30),
-                        startDate: .now
+                        time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)
                     ),
             countdown: TickerCountdown(
                 preAlert: TickerCountdown.CountdownDuration(hours: 0, minutes: 5, seconds: 0),

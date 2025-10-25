@@ -123,7 +123,7 @@ final class TodayViewModel {
             switch schedule {
             case .oneTime: return .oneTime
             case .daily: return .daily
-            case .weekdays(_, let days, _):
+            case .weekdays(_, let days):
                 return .weekdays(days.map { $0.rawValue })
             case .hourly(let interval, _, _):
                 return .hourly(interval: interval)
@@ -180,10 +180,10 @@ final class TodayViewModel {
         case .oneTime(let alarmDate):
             return alarmDate
 
-        case .daily(let time, _):
+        case .daily(let time):
             return getNextOccurrence(for: time, from: date)
 
-        case .weekdays(let time, let days, _):
+        case .weekdays(let time, let days):
             return getNextWeekdayOccurrence(for: time, days: days, from: date)
 
         case .hourly(let interval, let startTime, let endTime):
@@ -192,13 +192,14 @@ final class TodayViewModel {
         case .every(let interval, let unit, let startTime, let endTime):
             return getNextEveryOccurrence(interval: interval, unit: unit, startTime: startTime, endTime: endTime, from: date)
 
-        case .biweekly(let time, let weekdays, let anchorDate):
-            return getNextBiweeklyOccurrence(for: time, weekdays: weekdays, anchorDate: anchorDate, from: date)
+        case .biweekly(let time, let weekdays):
+            // Use current date as implicit anchor for biweekly
+            return getNextBiweeklyOccurrence(for: time, weekdays: weekdays, anchorDate: date, from: date)
 
-        case .monthly(let day, let time, _):
+        case .monthly(let day, let time):
             return getNextMonthlyOccurrence(day: day, time: time, from: date)
 
-        case .yearly(let month, let day, let time, _):
+        case .yearly(let month, let day, let time):
             return getNextYearlyOccurrence(month: month, day: day, time: time, from: date)
         }
     }

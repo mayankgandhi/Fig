@@ -35,7 +35,6 @@ final class RepeatOptionsViewModel {
     
     // Configuration for biweekly option
     var biweeklyWeekdays: Array<TickerSchedule.Weekday> = []
-    var biweeklyAnchorDate: Date = Date()
     
     // Configuration for monthly option
     var monthlyDayType: MonthlyDayType = .fixed
@@ -167,7 +166,6 @@ final class RepeatOptionsViewModel {
                 if biweeklyWeekdays.isEmpty {
                     biweeklyWeekdays = [.monday, .wednesday, .friday]
                 }
-                biweeklyAnchorDate = Date()
             default:
                 break
         }
@@ -184,7 +182,6 @@ final class RepeatOptionsViewModel {
         everyStartTime = Date()
         everyEndTime = nil
         biweeklyWeekdays = []
-        biweeklyAnchorDate = Date()
         monthlyDayType = .fixed
         monthlyFixedDay = 1
         monthlyWeekday = .monday

@@ -9,7 +9,6 @@ import SwiftUI
 
 struct BiweeklyConfigView: View {
     @Binding var selectedWeekdays: Array<TickerSchedule.Weekday>
-    @Binding var anchorDate: Date
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -42,31 +41,11 @@ struct BiweeklyConfigView: View {
                 }
             }
 
-            // Anchor Date Section
-            configurationSection {
-                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                    Text("Starting Week")
-                        .Caption()
-                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-                        .textCase(.uppercase)
-                        .tracking(0.8)
-
-                    DatePicker("", selection: $anchorDate, displayedComponents: .date)
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-
-                    Text("The alarm will repeat every other week starting from this date's week")
-                        .Caption()
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                        .padding(.top, TickerSpacing.xs)
-                }
-            }
-
             // Helper Text
             if !selectedWeekdays.isEmpty {
                 let sortedDays = selectedWeekdays.sorted { $0.rawValue < $1.rawValue }
                 let dayNames = sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
-                Text("Alarms will repeat every other week on \(dayNames)")
+                Text("Alarms will repeat every other week on \(dayNames), starting from this week")
                     .Caption()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -128,8 +107,7 @@ struct BiweeklyConfigView: View {
 
 #Preview {
     @Previewable @State var selectedDays: Array<TickerSchedule.Weekday> = [.monday, .wednesday, .friday]
-    @Previewable @State var anchorDate = Date()
 
-    BiweeklyConfigView(selectedWeekdays: $selectedDays, anchorDate: $anchorDate)
+    BiweeklyConfigView(selectedWeekdays: $selectedDays)
         .padding()
 }

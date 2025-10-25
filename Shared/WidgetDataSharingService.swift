@@ -171,7 +171,7 @@ struct WidgetDataSharingService {
                     case .oneTime: return .oneTime
                     case .daily: return .daily
                     case .hourly(let interval, _, _): return .hourly(interval: interval)
-                    case .weekdays(_, let days, _):
+                    case .weekdays(_, let days):
                         return .weekdays(days.map { $0.rawValue })
                     case .biweekly: return .biweekly
                     case .monthly: return .monthly

@@ -42,17 +42,20 @@ struct ScheduleView: View {
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
             
-            // Main Repeat Type Selector
-            VStack(alignment: .leading, spacing: TickerSpacing.xs) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: TickerSpacing.xs) {
-                        ForEach(ScheduleViewModel.RepeatOption.allCases, id: \.self) { option in
-                            repeatOptionButton(for: option)
-                        }
-                    }
+            // Main Repeat Type Selector with FlowLayout
+            FlowLayout(spacing: TickerSpacing.xs) {
+                ForEach(ScheduleViewModel.RepeatOption.allCases, id: \.self) { option in
+                    repeatOptionButton(for: option)
                 }
             }
             
+            // Description for selected option
+            Text(descriptionForOption(viewModel.selectedOption))
+                .Caption()
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TickerSpacing.xs)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.selectedOption)
 
             // Configuration View for selected option
             if viewModel.needsConfiguration {
@@ -82,19 +85,34 @@ struct ScheduleView: View {
         }
     }
     
+    private func descriptionForOption(_ option: ScheduleViewModel.RepeatOption) -> String {
+        switch option {
+        case .oneTime:
+            return "Set for a specific date"
+        case .daily:
+            return "Perfect for everyday habits"
+        case .weekdays:
+            return "Monday through Friday"
+        case .hourly:
+            return "Repeats every hour or custom interval"
+        case .every:
+            return "Custom time intervals"
+        case .biweekly:
+            return "Every other week"
+        case .monthly:
+            return "Once per month"
+        case .yearly:
+            return "Once per year"
+        }
+    }
+    
     // MARK: - Configuration View
     
     @ViewBuilder
     private var configurationView: some View {
         switch viewModel.selectedOption {
             case .daily:
-                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                    Text("Perfect for everyday habits")
-                        .Caption()
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, TickerSpacing.md)
-                }
+                EmptyView()
                 
             case .weekdays:
                 WeekdayPickerView(selectedWeekdays: $viewModel.selectedWeekdays)
@@ -116,8 +134,7 @@ struct ScheduleView: View {
                 
             case .biweekly:
                 BiweeklyConfigView(
-                    selectedWeekdays: $viewModel.biweeklyWeekdays,
-                    anchorDate: $viewModel.biweeklyAnchorDate
+                    selectedWeekdays: $viewModel.biweeklyWeekdays
                 )
                 
             case .monthly:

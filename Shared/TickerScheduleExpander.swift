@@ -32,8 +32,8 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         case .oneTime(let date):
             return expandOneTime(date: date, within: window)
 
-        case .daily(let time, let startDate):
-            return expandDaily(time: time, startDate: startDate, within: window)
+        case .daily(let time):
+            return expandDaily(time: time, within: window)
 
         case .hourly(let interval, let startTime, let endTime):
             return expandHourly(interval: interval, startTime: startTime, endTime: endTime, within: window)
@@ -41,17 +41,17 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         case .every(let interval, let unit, let startTime, let endTime):
             return expandEvery(interval: interval, unit: unit, startTime: startTime, endTime: endTime, within: window)
 
-        case .weekdays(let time, let days, let startDate):
-            return expandWeekdays(time: time, days: days, startDate: startDate, within: window)
+        case .weekdays(let time, let days):
+            return expandWeekdays(time: time, days: days, within: window)
 
-        case .biweekly(let time, let weekdays, let anchorDate):
-            return expandBiweekly(time: time, weekdays: weekdays, anchorDate: anchorDate, within: window)
+        case .biweekly(let time, let weekdays):
+            return expandBiweekly(time: time, weekdays: weekdays, within: window)
 
-        case .monthly(let day, let time, let startDate):
-            return expandMonthly(day: day, time: time, startDate: startDate, within: window)
+        case .monthly(let day, let time):
+            return expandMonthly(day: day, time: time, within: window)
 
-        case .yearly(let month, let day, let time, let startDate):
-            return expandYearly(month: month, day: day, time: time, startDate: startDate, within: window)
+        case .yearly(let month, let day, let time):
+            return expandYearly(month: month, day: day, time: time, within: window)
         }
     }
 
@@ -77,12 +77,15 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return window.contains(date) ? [date] : []
     }
 
-    private func expandDaily(time: TickerSchedule.TimeOfDay, startDate: Date, within window: DateInterval) -> [Date] {
+    private func expandDaily(time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        var currentDate = max(startDate, window.start)
+
+        // Smart start: begin from window.start
+        var currentDate = window.start
 
         while currentDate <= window.end {
             if let alarmDate = createDate(from: currentDate, with: time) {
+                // Only include if the alarm time is within the window
                 if alarmDate >= window.start && alarmDate <= window.end {
                     dates.append(alarmDate)
                 }
@@ -100,7 +103,19 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     private func expandHourly(interval: Int, startTime: Date, endTime: Date?, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
         let effectiveEndTime = endTime ?? window.end
-        var currentDate = max(startTime, window.start)
+        
+        // Ensure we start from a future date
+        let now = Date()
+        var currentDate: Date
+        
+        if startTime > now {
+            // Start time is in the future, use it
+            currentDate = max(startTime, window.start)
+        } else {
+            // Start time is in the past, find the next occurrence from now
+            currentDate = findNextOccurrence(from: now, interval: interval, unit: .hours, originalStartTime: startTime)
+            currentDate = max(currentDate, window.start)
+        }
 
         while currentDate <= min(effectiveEndTime, window.end) {
             dates.append(currentDate)
@@ -117,7 +132,20 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, startTime: Date, endTime: Date?, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
         let effectiveEndTime = endTime ?? window.end
-        var currentDate = max(startTime, window.start)
+        
+        // Ensure we start from a future date - use the later of startTime or window.start
+        // but if startTime is in the past, find the next occurrence from now
+        let now = Date()
+        var currentDate: Date
+        
+        if startTime > now {
+            // Start time is in the future, use it
+            currentDate = max(startTime, window.start)
+        } else {
+            // Start time is in the past, find the next occurrence from now
+            currentDate = findNextOccurrence(from: now, interval: interval, unit: unit, originalStartTime: startTime)
+            currentDate = max(currentDate, window.start)
+        }
 
         // Map TimeUnit to Calendar.Component
         let component: Calendar.Component
@@ -144,9 +172,11 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandWeekdays(time: TickerSchedule.TimeOfDay, days: Array<TickerSchedule.Weekday>, startDate: Date, within window: DateInterval) -> [Date] {
+    private func expandWeekdays(time: TickerSchedule.TimeOfDay, days: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        var currentDate = max(startDate, window.start)
+
+        // Smart start: begin from window.start
+        var currentDate = window.start
 
         while currentDate <= window.end {
             let weekday = calendar.component(.weekday, from: currentDate)
@@ -156,6 +186,7 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
             if let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday),
                days.contains(tickerWeekday) {
                 if let alarmDate = createDate(from: currentDate, with: time) {
+                    // Only include if the alarm time is within the window
                     if alarmDate >= window.start && alarmDate <= window.end {
                         dates.append(alarmDate)
                     }
@@ -171,11 +202,12 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandBiweekly(time: TickerSchedule.TimeOfDay, weekdays: Array<TickerSchedule.Weekday>, anchorDate: Date, within window: DateInterval) -> [Date] {
+    private func expandBiweekly(time: TickerSchedule.TimeOfDay, weekdays: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
 
-        // Calculate which weeks relative to anchor are "on" weeks
-        let anchorWeekStart = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: anchorDate)
+        // Use window.start as the implicit anchor (week 0)
+        // This means the week containing window.start is always an "on" week
+        let anchorWeekStart = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: window.start)
         guard let anchorWeekDate = calendar.date(from: anchorWeekStart) else {
             return []
         }
@@ -187,10 +219,10 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
                 break
             }
 
-            // Calculate week difference
+            // Calculate week difference from anchor
             let weeksDifference = calendar.dateComponents([.weekOfYear], from: anchorWeekDate, to: currentWeekDate).weekOfYear ?? 0
 
-            // Check if this is an "on" week (even number of weeks from anchor)
+            // Check if this is an "on" week (even number of weeks from anchor, including week 0)
             if weeksDifference % 2 == 0 {
                 let weekday = calendar.component(.weekday, from: currentDate)
                 let adjustedWeekday = (weekday == 1) ? 0 : weekday - 1
@@ -198,6 +230,7 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
                 if let tickerWeekday = TickerSchedule.Weekday(rawValue: adjustedWeekday),
                    weekdays.contains(tickerWeekday) {
                     if let alarmDate = createDate(from: currentDate, with: time) {
+                        // Only include if the alarm time is within the window
                         if alarmDate >= window.start && alarmDate <= window.end {
                             dates.append(alarmDate)
                         }
@@ -214,10 +247,11 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandMonthly(day: TickerSchedule.MonthlyDay, time: TickerSchedule.TimeOfDay, startDate: Date, within window: DateInterval) -> [Date] {
+    private func expandMonthly(day: TickerSchedule.MonthlyDay, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        let effectiveStartDate = max(startDate, window.start)
-        let startComponents = calendar.dateComponents([.year, .month], from: effectiveStartDate)
+
+        // Smart start: begin from window.start
+        let startComponents = calendar.dateComponents([.year, .month], from: window.start)
         let endComponents = calendar.dateComponents([.year, .month], from: window.end)
 
         guard let startYear = startComponents.year,
@@ -249,10 +283,11 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandYearly(month: Int, day: Int, time: TickerSchedule.TimeOfDay, startDate: Date, within window: DateInterval) -> [Date] {
+    private func expandYearly(month: Int, day: Int, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        let effectiveStartDate = max(startDate, window.start)
-        let startYear = calendar.component(.year, from: effectiveStartDate)
+
+        // Smart start: begin from window.start
+        let startYear = calendar.component(.year, from: window.start)
         let endYear = calendar.component(.year, from: window.end)
 
         for year in startYear...endYear {
@@ -274,6 +309,67 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     }
 
     // MARK: - Helper Methods
+
+    private func findNextOccurrence(from now: Date, interval: Int, unit: TickerSchedule.TimeUnit, originalStartTime: Date) -> Date {
+        // For hourly intervals, preserve the minute component
+        if unit == .hours {
+            // Extract the minute from the original start time
+            let originalComponents = calendar.dateComponents([.minute], from: originalStartTime)
+            let originalMinute = originalComponents.minute ?? 0
+            
+            // Find the next hour that preserves the minute
+            let currentHour = calendar.component(.hour, from: now)
+            let nextHour = currentHour + 1
+            
+            // Create the next occurrence with the same minute
+            var components = calendar.dateComponents([.year, .month, .day], from: now)
+            components.hour = nextHour
+            components.minute = originalMinute
+            components.second = 0
+            
+            return calendar.date(from: components) ?? now
+        }
+        
+        // For other units, use the original logic
+        let component: Calendar.Component
+        switch unit {
+        case .minutes:
+            component = .minute
+        case .hours:
+            component = .hour
+        case .days:
+            component = .day
+        case .weeks:
+            component = .weekOfYear
+        }
+        
+        // Calculate how many intervals have passed since the original start time
+        let timeSinceStart = now.timeIntervalSince(originalStartTime)
+        let intervalSeconds: TimeInterval
+        
+        switch unit {
+        case .minutes:
+            intervalSeconds = TimeInterval(interval * 60)
+        case .hours:
+            intervalSeconds = TimeInterval(interval * 3600)
+        case .days:
+            intervalSeconds = TimeInterval(interval * 86400)
+        case .weeks:
+            intervalSeconds = TimeInterval(interval * 604800)
+        }
+        
+        // Find how many complete intervals have passed
+        let intervalsPassed = Int(timeSinceStart / intervalSeconds)
+        
+        // Calculate the next occurrence
+        let nextIntervalCount = intervalsPassed + 1
+        guard let nextDate = calendar.date(byAdding: component, value: interval * nextIntervalCount, to: originalStartTime) else {
+            // Fallback: just add one interval from now
+            return calendar.date(byAdding: component, value: interval, to: now) ?? now
+        }
+        
+        return nextDate
+    }
 
     private func createDate(from baseDate: Date, with time: TickerSchedule.TimeOfDay) -> Date? {
         var components = calendar.dateComponents([.year, .month, .day], from: baseDate)

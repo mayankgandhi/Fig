@@ -124,7 +124,7 @@ struct AlarmCell: View {
         switch schedule {
         case .oneTime(let date):
             Text(date, style: .time)
-        case .daily(let time, _), .weekdays(let time, _, _), .biweekly(let time, _, _), .monthly(_, let time, _), .yearly(_, _, let time, _):
+        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _), .monthly(_, let time), .yearly(_, _, let time):
             Text(formatTime(time))
         case .hourly:
             Text("Hourly")
@@ -169,10 +169,9 @@ struct AlarmCell: View {
 alarmItem: Ticker(
             label: "Lunch Break",
             isEnabled: true,
-            schedule: 
+            schedule:
                     .daily(
-                        time: TickerSchedule.TimeOfDay(hour: 12, minute: 30),
-                        startDate: .now
+                        time: TickerSchedule.TimeOfDay(hour: 12, minute: 30)
                     ),
             countdown: nil,
             presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
@@ -208,10 +207,9 @@ alarmItem: Ticker(
 alarmItem: Ticker(
             label: "Bedtime Reminder",
             isEnabled: false,
-            schedule: 
+            schedule:
                     .daily(
-                        time: TickerSchedule.TimeOfDay(hour: 22, minute: 0),
-                        startDate: .now
+                        time: TickerSchedule.TimeOfDay(hour: 22, minute: 0)
                     ),
             countdown: nil,
             presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),

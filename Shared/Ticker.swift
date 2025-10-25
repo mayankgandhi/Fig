@@ -80,13 +80,13 @@ final class Ticker {
 
 enum TickerSchedule: Codable, Hashable {
     case oneTime(date: Date)
-    case daily(time: TimeOfDay, startDate: Date)
+    case daily(time: TimeOfDay)
     case hourly(interval: Int, startTime: Date, endTime: Date?)
     case every(interval: Int, unit: TimeUnit, startTime: Date, endTime: Date?)
-    case weekdays(time: TimeOfDay, days: Array<Weekday>, startDate: Date)
-    case biweekly(time: TimeOfDay, weekdays: Array<Weekday>, anchorDate: Date)
-    case monthly(day: MonthlyDay, time: TimeOfDay, startDate: Date)
-    case yearly(month: Int, day: Int, time: TimeOfDay, startDate: Date)
+    case weekdays(time: TimeOfDay, days: Array<Weekday>)
+    case biweekly(time: TimeOfDay, weekdays: Array<Weekday>)
+    case monthly(day: MonthlyDay, time: TimeOfDay)
+    case yearly(month: Int, day: Int, time: TimeOfDay)
 
     struct TimeOfDay: Codable, Hashable {
         var hour: Int // 0-23
@@ -234,7 +234,7 @@ extension TickerSchedule {
             formatter.timeStyle = .short
             return formatter.string(from: date)
 
-        case .daily(let time, _):
+        case .daily(let time):
             return "Daily at \(formatTime(time))"
 
         case .hourly(let interval, _, let endTime):
@@ -256,17 +256,17 @@ extension TickerSchedule {
                 return "Every \(interval) \(unitName)"
             }
 
-        case .weekdays(let time, let days, _):
+        case .weekdays(let time, let days):
             let sortedDays = days.sorted { $0.rawValue < $1.rawValue }
             let dayNames = sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
             return "\(dayNames) at \(formatTime(time))"
 
-        case .biweekly(let time, let weekdays, _):
+        case .biweekly(let time, let weekdays):
             let sortedDays = weekdays.sorted { $0.rawValue < $1.rawValue }
             let dayNames = sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
             return "Biweekly \(dayNames) at \(formatTime(time))"
 
-        case .monthly(let day, let time, _):
+        case .monthly(let day, let time):
             let dayDesc: String
             switch day {
             case .fixed(let d):
@@ -282,7 +282,7 @@ extension TickerSchedule {
             }
             return "Monthly \(dayDesc) at \(formatTime(time))"
 
-        case .yearly(let month, let day, let time, _):
+        case .yearly(let month, let day, let time):
             let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
             return "Yearly \(monthNames[month - 1]) \(day) at \(formatTime(time))"
         }
@@ -451,7 +451,7 @@ extension Ticker {
             }
             return .fixed(date)
 
-        case .daily(let time, _):
+        case .daily(let time):
             // If there's a countdown, adjust the time to start the countdown before the alarm time
             if let countdownDuration = countdown?.preAlert?.interval {
                 let countdownStartTime = time.addingTimeInterval(-countdownDuration)

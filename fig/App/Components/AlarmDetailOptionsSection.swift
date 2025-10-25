@@ -96,13 +96,13 @@ struct AlarmDetailOptionsSection: View {
             return "Every day"
         case .hourly(let interval, _, _):
             return "Every \(interval)h"
-        case .weekdays(_, let days, _):
+        case .weekdays(_, let days):
             let sortedDays = days.sorted { $0.rawValue < $1.rawValue }
             return sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
-        case .biweekly(_, let weekdays, _):
+        case .biweekly(_, let weekdays):
             let sortedDays = weekdays.sorted { $0.rawValue < $1.rawValue }
             return "Biweekly " + sortedDays.map { $0.shortDisplayName }.joined(separator: ", ")
-        case .monthly(let day, _, _):
+        case .monthly(let day, _):
             switch day {
             case .fixed(let d): return "Day \(d)"
             case .firstWeekday(let weekday): return "First \(weekday.shortDisplayName)"
@@ -110,7 +110,7 @@ struct AlarmDetailOptionsSection: View {
             case .firstOfMonth: return "1st of month"
             case .lastOfMonth: return "Last of month"
             }
-        case .yearly(let month, let day, _, _):
+        case .yearly(let month, let day, _):
             let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
             return "\(monthNames[month - 1]) \(day)"
 
@@ -166,8 +166,7 @@ struct AlarmDetailOptionsSection: View {
             label: "Morning Workout",
             isEnabled: true,
             schedule: .daily(
-                time: TickerSchedule.TimeOfDay(hour: 6, minute: 30),
-                startDate: .now
+                time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)
             ),
             countdown: TickerCountdown(
                 preAlert: TickerCountdown.CountdownDuration(hours: 0, minutes: 5, seconds: 0),

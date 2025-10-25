@@ -176,7 +176,7 @@ struct ContentView: View {
                     formatter.dateFormat = "HH:mm"
                     timeString = formatter.string(from: date)
 
-                case .daily(let time, _), .weekdays(let time, _, _), .biweekly(let time, _, _), .monthly(_, let time, _), .yearly(_, _, let time, _):
+                case .daily(let time), .weekdays(let time, _), .biweekly(let time, _), .monthly(_, let time), .yearly(_, _, let time):
                     // Format as "HH:mm" for time-based alarms
                     timeString = String(format: "%02d:%02d", time.hour, time.minute)
 
@@ -372,7 +372,7 @@ struct ContentView: View {
             let seconds = (components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60 + (components.second ?? 0)
             return TimeInterval(seconds)
 
-        case .daily(let time, _), .weekdays(let time, _, _), .biweekly(let time, _, _), .monthly(_, let time, _), .yearly(_, _, let time, _):
+        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _), .monthly(_, let time), .yearly(_, _, let time):
             // Convert time to seconds from midnight
             let seconds = time.hour * 3600 + time.minute * 60
             return TimeInterval(seconds)

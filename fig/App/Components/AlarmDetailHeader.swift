@@ -88,8 +88,7 @@ struct AlarmDetailHeader: View {
             label: "Morning Workout",
             isEnabled: true,
             schedule: .daily(
-                time: TickerSchedule.TimeOfDay(hour: 6, minute: 30),
-                startDate: .now
+                time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)
             ),
             tickerData: TickerData(
                 name: "Fitness & Health",

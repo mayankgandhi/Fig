@@ -214,19 +214,21 @@ final class TickerService: TickerServiceProtocol {
             alarmItem.isEnabled = true
             print("   → Updated alarmItem properties")
 
-            // Save to SwiftData
+            // Save to SwiftData on main thread
             print("   → Saving to SwiftData...")
-            // Check if item is already in context before inserting
-            let allItemsDescriptor = FetchDescriptor<Ticker>()
-            let allItems = try? context.fetch(allItemsDescriptor)
-            let existingItems = allItems?.filter { $0.id == alarmItem.id }
-            if existingItems?.isEmpty ?? true {
-                context.insert(alarmItem)
-                print("   → Inserted new alarm into context")
-            } else {
-                print("   → Alarm already exists in context, updating in place")
+            await MainActor.run {
+                // Check if item is already in context before inserting
+                let allItemsDescriptor = FetchDescriptor<Ticker>()
+                let allItems = try? context.fetch(allItemsDescriptor)
+                let existingItems = allItems?.filter { $0.id == alarmItem.id }
+                if existingItems?.isEmpty ?? true {
+                    context.insert(alarmItem)
+                    print("   → Inserted new alarm into context")
+                } else {
+                    print("   → Alarm already exists in context, updating in place")
+                }
+                try? context.save()
             }
-            try context.save()
             print("   → SwiftData save successful")
 
             // Update local state on main thread
@@ -277,14 +279,14 @@ final class TickerService: TickerServiceProtocol {
         case .hourly(_, let startTime, _):
             // Use the start time if it's in the future, otherwise use now
             expansionStartDate = startTime > now ? startTime : now
-        case .daily(_, let startDate):
-            expansionStartDate = max(startDate, now)
-        case .weekdays(_, _, let startDate):
-            expansionStartDate = max(startDate, now)
-        case .monthly(_, _, let startDate):
-            expansionStartDate = max(startDate, now)
-        case .yearly(_, _, _, let startDate):
-            expansionStartDate = max(startDate, now)
+        case .daily:
+            expansionStartDate = now
+        case .weekdays:
+            expansionStartDate = now
+        case .monthly:
+            expansionStartDate = now
+        case .yearly:
+            expansionStartDate = now
         case .every(_, _, let startTime, _):
             // Use the start time if it's in the future, otherwise use now
             expansionStartDate = startTime > now ? startTime : now
@@ -300,13 +302,22 @@ final class TickerService: TickerServiceProtocol {
             print("   ❌ No dates generated from expansion")
             throw TickerServiceError.invalidConfiguration
         }
+        
+        let futureDates = dates.filter { $0 > now }
+        print("   → Future dates after filtering: \(futureDates)")
+        print("   → Number of future dates: \(futureDates.count)")
+        
+        guard !futureDates.isEmpty else {
+            print("   ❌ No future dates found after filtering")
+            throw TickerServiceError.invalidConfiguration
+        }
 
         // 2. Generate alarm configurations for each date
         var scheduledIDs: [UUID] = []
 
         do {
-            for (index, date) in dates.enumerated() {
-                print("   → Processing date \(index + 1)/\(dates.count): \(date)")
+            for (index, date) in futureDates.enumerated() {
+                print("   → Processing date \(index + 1)/\(futureDates.count): \(date)")
                 
                 // Create a temporary one-time schedule for this occurrence
                 let oneTimeSchedule = TickerSchedule.oneTime(date: date)
@@ -331,19 +342,21 @@ final class TickerService: TickerServiceProtocol {
             alarmItem.generatedAlarmKitIDs = scheduledIDs
             alarmItem.isEnabled = true
 
-            // 4. Save to SwiftData
+            // 4. Save to SwiftData on main thread
             print("   → Saving to SwiftData...")
-            // Check if item is already in context before inserting
-            let allItemsDescriptor = FetchDescriptor<Ticker>()
-            let allItems = try? context.fetch(allItemsDescriptor)
-            let existingItems = allItems?.filter { $0.id == alarmItem.id }
-            if existingItems?.isEmpty ?? true {
-                context.insert(alarmItem)
-                print("   → Inserted new alarm into context")
-            } else {
-                print("   → Alarm already exists in context, updating in place")
+            await MainActor.run {
+                // Check if item is already in context before inserting
+                let allItemsDescriptor = FetchDescriptor<Ticker>()
+                let allItems = try? context.fetch(allItemsDescriptor)
+                let existingItems = allItems?.filter { $0.id == alarmItem.id }
+                if existingItems?.isEmpty ?? true {
+                    context.insert(alarmItem)
+                    print("   → Inserted new alarm into context")
+                } else {
+                    print("   → Alarm already exists in context, updating in place")
+                }
+                try? context.save()
             }
-            try context.save()
             print("   → SwiftData save successful")
 
             // 5. Update local state on main thread

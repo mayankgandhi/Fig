@@ -23,16 +23,22 @@ struct RepeatOptionsView: View {
 
     var body: some View {
         VStack(spacing: TickerSpacing.md) {
-            // Main Repeat Type Selector
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: TickerSpacing.xs) {
-                    ForEach(RepeatOptionsViewModel.RepeatOption.allCases, id: \.self) { option in
-                        repeatOptionButton(for: option)
-                    }
+            // Main Repeat Type Selector with FlowLayout
+            FlowLayout(spacing: TickerSpacing.xs) {
+                ForEach(RepeatOptionsViewModel.RepeatOption.allCases, id: \.self) { option in
+                    repeatOptionButton(for: option)
                 }
-                .padding(.horizontal, TickerSpacing.md)
             }
+            .padding(.horizontal, TickerSpacing.md)
             .padding(.vertical, TickerSpacing.sm)
+            
+            // Description for selected option
+            Text(descriptionForOption(viewModel.selectedOption))
+                .Caption()
+                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.horizontal, TickerSpacing.md)
+                .animation(.easeInOut(duration: 0.2), value: viewModel.selectedOption)
 
             // Validation Message
             if let validationMessage = validationMessage {
@@ -63,6 +69,27 @@ struct RepeatOptionsView: View {
             )
         }
     }
+    
+    private func descriptionForOption(_ option: RepeatOptionsViewModel.RepeatOption) -> String {
+        switch option {
+        case .oneTime:
+            return "Set for a specific date"
+        case .daily:
+            return "Perfect for everyday habits"
+        case .weekdays:
+            return "Monday through Friday"
+        case .hourly:
+            return "Repeats every hour or custom interval"
+        case .every:
+            return "Custom time intervals"
+        case .biweekly:
+            return "Every other week"
+        case .monthly:
+            return "Once per month"
+        case .yearly:
+            return "Once per year"
+        }
+    }
 
     @ViewBuilder
     private var configurationView: some View {
@@ -87,8 +114,7 @@ struct RepeatOptionsView: View {
 
         case .biweekly:
             BiweeklyConfigView(
-                selectedWeekdays: $viewModel.biweeklyWeekdays,
-                anchorDate: $viewModel.biweeklyAnchorDate
+                selectedWeekdays: $viewModel.biweeklyWeekdays
             )
 
         case .monthly:

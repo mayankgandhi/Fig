@@ -52,7 +52,7 @@ struct WidgetDataFetcher {
                 guard date >= now && date <= timeWindow else { return nil }
                 nextAlarmTime = date
 
-            case .daily(let time, _):
+            case .daily(let time):
                 let nextOccurrence = getNextOccurrence(for: time, from: now, calendar: calendar)
                 guard nextOccurrence <= timeWindow else { return nil }
                 nextAlarmTime = nextOccurrence
