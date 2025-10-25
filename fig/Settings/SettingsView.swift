@@ -20,9 +20,6 @@ struct SettingsView: View {
                     appSettingsSection
                         .padding(.horizontal, TickerSpacing.md)
 
-                    // Customization Section
-                    customizationSection
-                        .padding(.horizontal, TickerSpacing.md)
 
                     // Data Section
                     dataSection
@@ -61,16 +58,6 @@ struct SettingsView: View {
                 AboutView()
                 FAQView()
                 HelpSupportView()
-            }
-        }
-    }
-
-    private var customizationSection: some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.md) {
-            sectionHeader(title: "Customization", icon: "paintbrush.fill")
-            
-            VStack(spacing: TickerSpacing.xs) {
-                AlarmTypesView()
             }
         }
     }
