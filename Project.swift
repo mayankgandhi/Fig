@@ -55,6 +55,7 @@ let project = Project(
             product: .appExtension,
             bundleId: alarmBundleId,
             infoPlist: .extendingDefault(with: [
+                "CFBundleDisplayName": .string("Ticker"),
                 "CFBundleShortVersionString": .string(version),
                 "CFBundleVersion": .string(buildNumber),
                 "NSExtension": [
