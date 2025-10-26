@@ -57,7 +57,6 @@ struct AlarmCell: View {
                 }
             }
         }
-        .padding(.vertical, TickerSpacing.sm)
         .contentShape(Rectangle())
         .onTapGesture {
             TickerHaptics.selection()
