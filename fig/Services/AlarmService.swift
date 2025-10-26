@@ -319,20 +319,8 @@ final class TickerService: TickerServiceProtocol {
 
         } catch {
             print("   ❌ Composite alarm scheduling failed: \(error)")
-            print("   → Rolling back \(scheduledIDs.count) scheduled alarms...")
-            // Rollback: cancel any scheduled alarms
-            for id in scheduledIDs {
-                do {
-                    try alarmManager.cancel(id: id)
-                    print("   → Cancelled alarm: \(id)")
-                } catch {
-                    print("   ⚠️ Failed to cancel alarm \(id): \(error)")
-                }
-            }
-
-            // Reset generated IDs to ensure clean state
-            alarmItem.generatedAlarmKitIDs = []
-            
+            // Regeneration service handles its own alarm rollback
+            // Just clean up SwiftData record
             let alarmID = alarmItem.id
             let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
                 ticker.id == alarmID
@@ -340,10 +328,8 @@ final class TickerService: TickerServiceProtocol {
             if let existingItem = try? context.fetch(descriptor).first {
                 context.delete(existingItem)
                 try? context.save()
-                print("   → Deleted alarm from SwiftData")
+                print("   → Removed alarm from SwiftData")
             }
-
-            print("   → Rollback complete")
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
