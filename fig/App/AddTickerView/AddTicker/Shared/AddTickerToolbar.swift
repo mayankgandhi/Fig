@@ -69,19 +69,12 @@ private struct SaveButton: View {
 
     var body: some View {
         Button {
-            print("🔘 AddTickerToolbar SaveButton tapped")
-            print("   → isExpanded: \(isExpanded)")
-            print("   → isSaving: \(isSaving)")
-            print("   → canSave: \(canSave)")
-            
             if isExpanded {
-                print("   → Collapsing expanded field")
                 TickerHaptics.selection()
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
                     onCollapse()
                 }
             } else {
-                print("   → Triggering save action")
                 TickerHaptics.criticalAction()
                 onSave()
             }

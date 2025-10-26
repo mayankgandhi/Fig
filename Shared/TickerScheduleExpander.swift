@@ -311,38 +311,6 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     // MARK: - Helper Methods
 
     private func findNextOccurrence(from now: Date, interval: Int, unit: TickerSchedule.TimeUnit, originalStartTime: Date) -> Date {
-        // For hourly intervals, preserve the minute component
-        if unit == .hours {
-            // Extract the minute from the original start time
-            let originalComponents = calendar.dateComponents([.minute], from: originalStartTime)
-            let originalMinute = originalComponents.minute ?? 0
-            
-            // Find the next hour that preserves the minute
-            let currentHour = calendar.component(.hour, from: now)
-            let nextHour = currentHour + 1
-            
-            // Create the next occurrence with the same minute
-            var components = calendar.dateComponents([.year, .month, .day], from: now)
-            components.hour = nextHour
-            components.minute = originalMinute
-            components.second = 0
-            
-            return calendar.date(from: components) ?? now
-        }
-        
-        // For other units, use the original logic
-        let component: Calendar.Component
-        switch unit {
-        case .minutes:
-            component = .minute
-        case .hours:
-            component = .hour
-        case .days:
-            component = .day
-        case .weeks:
-            component = .weekOfYear
-        }
-        
         // Calculate how many intervals have passed since the original start time
         let timeSinceStart = now.timeIntervalSince(originalStartTime)
         let intervalSeconds: TimeInterval
@@ -363,6 +331,21 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         
         // Calculate the next occurrence
         let nextIntervalCount = intervalsPassed + 1
+        
+        // Map TimeUnit to Calendar.Component
+        let component: Calendar.Component
+        switch unit {
+        case .minutes:
+            component = .minute
+        case .hours:
+            component = .hour
+        case .days:
+            component = .day
+        case .weeks:
+            component = .weekOfYear
+        }
+        
+        // Calculate the next occurrence by adding the appropriate number of intervals
         guard let nextDate = calendar.date(byAdding: component, value: interval * nextIntervalCount, to: originalStartTime) else {
             // Fallback: just add one interval from now
             return calendar.date(byAdding: component, value: interval, to: now) ?? now

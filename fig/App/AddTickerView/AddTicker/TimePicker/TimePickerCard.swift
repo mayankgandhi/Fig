@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct TimePickerCard: View {
-    let viewModel: TimePickerViewModel
+    @Bindable var viewModel: TimePickerViewModel
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {

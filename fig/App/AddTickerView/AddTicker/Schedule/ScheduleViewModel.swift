@@ -225,6 +225,16 @@ final class ScheduleViewModel {
 
     func selectDate(_ date: Date) {
         selectedDate = date
+        
+        // Update everyStartTime if "every" option is selected
+        if selectedOption == .every {
+            everyStartTime = date
+        }
+        
+        // Update hourlyStartTime if "hourly" option is selected
+        if selectedOption == .hourly {
+            hourlyStartTime = date
+        }
     }
 
     func updateSmartDate(for hour: Int, minute: Int) {
@@ -235,10 +245,23 @@ final class ScheduleViewModel {
 
         guard let todayWithSelectedTime = calendar.date(from: components) else { return }
 
+        let newDate: Date
         if todayWithSelectedTime < now {
-            selectedDate = calendar.date(byAdding: .day, value: 1, to: todayWithSelectedTime) ?? todayWithSelectedTime
+            newDate = calendar.date(byAdding: .day, value: 1, to: todayWithSelectedTime) ?? todayWithSelectedTime
         } else {
-            selectedDate = todayWithSelectedTime
+            newDate = todayWithSelectedTime
+        }
+        
+        selectedDate = newDate
+        
+        // Update everyStartTime if "every" option is selected
+        if selectedOption == .every {
+            everyStartTime = newDate
+        }
+        
+        // Update hourlyStartTime if "hourly" option is selected
+        if selectedOption == .hourly {
+            hourlyStartTime = newDate
         }
     }
 
@@ -258,6 +281,12 @@ final class ScheduleViewModel {
                 if biweeklyWeekdays.isEmpty {
                     biweeklyWeekdays = [.monday, .wednesday, .friday]
                 }
+            case .every:
+                // Initialize everyStartTime with the selected date
+                everyStartTime = selectedDate
+            case .hourly:
+                // Initialize hourlyStartTime with the selected date
+                hourlyStartTime = selectedDate
             default:
                 break
         }

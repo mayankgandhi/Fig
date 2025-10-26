@@ -22,7 +22,7 @@ struct LabelEditorView: View {
                     .textCase(.uppercase)
                     .tracking(0.8)
 
-                TextField("e.g., Morning Workout, Team Meeting", text: $viewModel.labelText)
+                TextField("e.g., Morning Workout, Team Meeting, Coffee Break", text: $viewModel.labelText)
                     .Body()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     .padding(TickerSpacing.md)
@@ -42,7 +42,7 @@ struct LabelEditorView: View {
             }
 
             // Helper text
-            Text("Add a custom label to help identify this alarm. Leave blank for default time display.")
+            Text("Add a custom label to help identify this alarm. Leave blank to use the default time display.")
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
         }
