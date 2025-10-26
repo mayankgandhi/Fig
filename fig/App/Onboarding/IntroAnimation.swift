@@ -24,12 +24,23 @@ struct DialogueMessage: Identifiable, Equatable {
     }
 
     var alarmPresentation: UpcomingAlarmPresentation {
-        UpcomingAlarmPresentation(
+        // Create a date for today with the specified hour and minute
+        let calendar = Calendar.current
+        let now = Date()
+        let today = calendar.startOfDay(for: now)
+        
+        var components = calendar.dateComponents([.year, .month, .day], from: today)
+        components.hour = hour
+        components.minute = minute
+        
+        let alarmDate = calendar.date(from: components) ?? now
+        
+        return UpcomingAlarmPresentation(
             baseAlarmId: id,
             displayName: text,
             icon: icon,
             color: color,
-            nextAlarmTime: Date(),
+            nextAlarmTime: alarmDate,
             scheduleType: .daily,
             hour: hour,
             minute: minute,
@@ -128,7 +139,11 @@ struct IntroAnimation: View {
                     // Clock View - constrained size
                     if showClock {
                         VStack(spacing: TickerSpacing.sm) {
-                            ClockView(upcomingAlarms: scheduledAlarms, shouldAnimateAlarms: false)
+                            ClockFaceView(
+                                currentDate: Date(),
+                                upcomingAlarms: scheduledAlarms,
+                                shouldAnimateAlarms: true
+                            )
                                 .frame(height: min(280, geometry.size.height * 0.45))
                                 .padding(.horizontal, TickerSpacing.lg)
                                 .transition(
