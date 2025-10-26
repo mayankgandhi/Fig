@@ -24,7 +24,10 @@ let project = Project(
                 "CFBundleShortVersionString": .string(version),
                 "CFBundleVersion": .string(buildNumber),
                 "UILaunchScreen": [:],
-                "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire."
+                "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire.",
+                "BGTaskSchedulerPermittedIdentifiers": .array([
+                    .string("com.fig.alarm.regeneration")
+                ])
             ]),
             sources: [
                 "fig/**",

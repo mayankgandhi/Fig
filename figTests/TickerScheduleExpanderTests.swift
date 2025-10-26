@@ -228,19 +228,19 @@ final class TickerScheduleExpanderTests: XCTestCase {
         }
     }
 
-    // MARK: - Alarm Limiting Tests
-    
-    func testDailySchedule_WithAlarmLimit() {
+    // MARK: - 48-Hour Window Tests
+
+    func test48HourWindow_DailySchedule() {
         let time = TickerSchedule.TimeOfDay(hour: 9, minute: 30)
         let schedule = TickerSchedule.daily(time: time)
 
         let start = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
-        let results = expander.expandSchedule(schedule, startingFrom: start, days: 30, maxAlarms: 2)
+        let results = expander.expandSchedule(schedule, within48HoursFrom: start)
 
-        // Should only return 2 alarms despite 30-day window
+        // Should return 2 alarms (Jan 1 and Jan 2)
         XCTAssertEqual(results.count, 2)
-        
-        // Verify the first two days
+
+        // Verify both days
         for (index, date) in results.enumerated() {
             let components = calendar.dateComponents([.day, .hour, .minute], from: date)
             XCTAssertEqual(components.day, index + 1) // Days 1, 2
@@ -248,29 +248,118 @@ final class TickerScheduleExpanderTests: XCTestCase {
             XCTAssertEqual(components.minute, 30)
         }
     }
-    
-    func testHourlySchedule_WithAlarmLimit() {
+
+    func test48HourWindow_HourlySchedule() {
         let startTime = createDate(year: 2025, month: 1, day: 1, hour: 9, minute: 0)
-        let endTime = createDate(year: 2025, month: 1, day: 1, hour: 17, minute: 0)
-        let schedule = TickerSchedule.hourly(interval: 2, startTime: startTime, endTime: endTime)
+        let endTime = createDate(year: 2025, month: 1, day: 10, hour: 17, minute: 0)
+        let schedule = TickerSchedule.hourly(interval: 6, startTime: startTime, endTime: endTime)
 
-        let results = expander.expandSchedule(schedule, startingFrom: startTime, days: 1, maxAlarms: 2)
+        let results = expander.expandSchedule(schedule, within48HoursFrom: startTime)
 
-        // Should only return 2 alarms despite 5 possible alarms
-        XCTAssertEqual(results.count, 2)
-        XCTAssertEqual(calendar.component(.hour, from: results[0]), 9)
-        XCTAssertEqual(calendar.component(.hour, from: results[1]), 11)
+        // 48 hours / 6 hour interval = 8 alarms
+        // Jan 1: 9:00, 15:00, 21:00
+        // Jan 2: 3:00, 9:00, 15:00, 21:00
+        // Jan 3: 3:00
+        XCTAssertEqual(results.count, 8)
     }
-    
-    func testDefaultAlarmLimit() {
+
+    func test48HourWindow_WeekdaysSchedule() {
+        let time = TickerSchedule.TimeOfDay(hour: 10, minute: 0)
+        let weekdays: Array<TickerSchedule.Weekday> = [.monday, .wednesday, .friday]
+        let schedule = TickerSchedule.weekdays(time: time, days: weekdays)
+
+        // Jan 1, 2025 is a Wednesday
+        let start = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let results = expander.expandSchedule(schedule, within48HoursFrom: start)
+
+        // Within 48 hours: Wed Jan 1, Fri Jan 3
+        XCTAssertEqual(results.count, 2)
+        XCTAssertEqual(calendar.component(.day, from: results[0]), 1) // Wednesday
+        XCTAssertEqual(calendar.component(.day, from: results[1]), 3) // Friday
+    }
+
+    // MARK: - Strategy-Based Expansion Tests
+
+    func testStrategyBasedExpansion_HighFrequency() {
+        // Every 10 minutes
+        let startTime = createDate(year: 2025, month: 1, day: 1, hour: 9, minute: 0)
+        let endTime = createDate(year: 2025, month: 1, day: 10, hour: 17, minute: 0)
+        let schedule = TickerSchedule.every(interval: 10, unit: .minutes, startTime: startTime, endTime: endTime)
+
+        let strategy = AlarmGenerationStrategy.highFrequency
+        let results = expander.expandSchedule(schedule, from: startTime, strategy: strategy)
+
+        // High frequency: 24h window, max 100 alarms
+        // 10 min interval = 6 per hour * 24h = 144 potential alarms
+        // Should be capped at 100
+        XCTAssertEqual(results.count, 100)
+    }
+
+    func testStrategyBasedExpansion_MediumFrequency() {
         let time = TickerSchedule.TimeOfDay(hour: 9, minute: 30)
         let schedule = TickerSchedule.daily(time: time)
 
+        let strategy = AlarmGenerationStrategy.mediumFrequency
         let start = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
-        let results = expander.expandSchedule(schedule, startingFrom: start, days: 30)
+        let results = expander.expandSchedule(schedule, from: start, strategy: strategy)
 
-        // Should default to maximum 2 alarms
+        // Medium frequency: 48h window, unlimited
+        // Daily alarm = 2 alarms in 48 hours
         XCTAssertEqual(results.count, 2)
+    }
+
+    func testStrategyBasedExpansion_LowFrequency() {
+        let time = TickerSchedule.TimeOfDay(hour: 14, minute: 0)
+        let schedule = TickerSchedule.monthly(day: .fixed(15), time: time)
+
+        let strategy = AlarmGenerationStrategy.lowFrequency
+        let start = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let results = expander.expandSchedule(schedule, from: start, strategy: strategy)
+
+        // Low frequency: 7-day window, unlimited
+        // Monthly alarm on 15th: should have Jan 15 within 7 days
+        XCTAssertEqual(results.count, 1)
+        let components = calendar.dateComponents([.day, .hour], from: results[0])
+        XCTAssertEqual(components.day, 15)
+        XCTAssertEqual(components.hour, 14)
+    }
+
+    // MARK: - Custom Window Tests
+
+    func testCustomWindow_WithMaxAlarms() {
+        let time = TickerSchedule.TimeOfDay(hour: 9, minute: 0)
+        let schedule = TickerSchedule.daily(time: time)
+
+        let start = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let duration: TimeInterval = 10 * 24 * 3600 // 10 days
+
+        let results = expander.expandSchedule(
+            schedule,
+            withinCustomWindow: start,
+            duration: duration,
+            maxAlarms: 5
+        )
+
+        // 10 days of daily alarms, limited to 5
+        XCTAssertEqual(results.count, 5)
+    }
+
+    func testCustomWindow_NoLimit() {
+        let time = TickerSchedule.TimeOfDay(hour: 9, minute: 0)
+        let schedule = TickerSchedule.daily(time: time)
+
+        let start = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let duration: TimeInterval = 5 * 24 * 3600 // 5 days
+
+        let results = expander.expandSchedule(
+            schedule,
+            withinCustomWindow: start,
+            duration: duration,
+            maxAlarms: nil
+        )
+
+        // 5 days of daily alarms, no limit
+        XCTAssertEqual(results.count, 5)
     }
 
     // MARK: - Helper Methods

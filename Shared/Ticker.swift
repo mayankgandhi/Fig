@@ -43,7 +43,31 @@ final class Ticker {
 
     // AlarmKit Integration
     var generatedAlarmKitIDs: [UUID] = [] // Multiple alarm IDs for composite schedules
-    var generationWindow: Int // Days ahead to search for alarms, but limited to max 2 alarms (default 60)
+
+    // Alarm Regeneration
+    var lastRegenerationDate: Date? // When alarms were last regenerated
+    var lastRegenerationSuccess: Bool = false // Whether last regeneration succeeded
+    var nextScheduledRegeneration: Date? // When next regeneration should occur
+
+    // Regeneration strategy - stored as JSON Data to support enum
+    @Attribute(.externalStorage)
+    private var regenerationStrategyData: Data?
+
+    var regenerationStrategy: AlarmGenerationStrategy {
+        get {
+            guard let data = regenerationStrategyData else {
+                // Auto-detect strategy from schedule
+                if let schedule = schedule {
+                    return AlarmGenerationStrategy.determineStrategy(for: schedule)
+                }
+                return .mediumFrequency  // Default fallback
+            }
+            return (try? JSONDecoder().decode(AlarmGenerationStrategy.self, from: data)) ?? .mediumFrequency
+        }
+        set {
+            regenerationStrategyData = try? JSONEncoder().encode(newValue)
+        }
+    }
 
     init(
         id: UUID = UUID(),
@@ -53,7 +77,7 @@ final class Ticker {
         countdown: TickerCountdown? = nil,
         presentation: TickerPresentation = .init(),
         tickerData: TickerData? = nil,
-        generationWindow: Int = 60
+        regenerationStrategy: AlarmGenerationStrategy? = nil
     ) {
         self.id = id
         self.label = label
@@ -64,7 +88,18 @@ final class Ticker {
         self.presentation = presentation
         self.tickerData = tickerData
         self.generatedAlarmKitIDs = []
-        self.generationWindow = generationWindow
+
+        // Regeneration properties
+        self.lastRegenerationDate = nil
+        self.lastRegenerationSuccess = false
+        self.nextScheduledRegeneration = nil
+
+        // Set regeneration strategy if provided, otherwise will auto-detect from schedule
+        if let strategy = regenerationStrategy {
+            self.regenerationStrategyData = try? JSONEncoder().encode(strategy)
+        } else {
+            self.regenerationStrategyData = nil
+        }
     }
 
     var displayName: String {
@@ -73,6 +108,46 @@ final class Ticker {
 
     var icon: String {
         "alarm"
+    }
+
+    // MARK: - Computed Properties for Regeneration
+
+    /// Check if this ticker needs alarm regeneration
+    var needsRegeneration: Bool {
+        // Disabled tickers don't need regeneration
+        guard isEnabled else { return false }
+
+        // Never regenerated before
+        guard let lastRegenDate = lastRegenerationDate else {
+            return true
+        }
+
+        // Last regeneration failed
+        guard lastRegenerationSuccess else {
+            return true
+        }
+
+        // Check staleness threshold based on strategy
+        let staleness = Date().timeIntervalSince(lastRegenDate)
+        if staleness > regenerationStrategy.regenerationThreshold {
+            return true
+        }
+
+        // Check if scheduled regeneration time has passed
+        if let nextRegen = nextScheduledRegeneration, Date() >= nextRegen {
+            return true
+        }
+
+        return false
+    }
+
+    /// Get current alarm health status
+    var alarmHealthStatus: AlarmHealth {
+        AlarmHealth(
+            lastRegenerationDate: lastRegenerationDate,
+            lastRegenerationSuccess: lastRegenerationSuccess,
+            activeAlarmCount: generatedAlarmKitIDs.count
+        )
     }
 }
 

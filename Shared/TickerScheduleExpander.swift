@@ -11,9 +11,22 @@ import Foundation
 // MARK: - TickerScheduleExpander Protocol
 
 protocol TickerScheduleExpanderProtocol {
+    /// Expand a schedule within a specific date interval
     func expandSchedule(_ schedule: TickerSchedule, within window: DateInterval) -> [Date]
-    func expandSchedule(_ schedule: TickerSchedule, startingFrom: Date, days: Int) -> [Date]
-    func expandSchedule(_ schedule: TickerSchedule, startingFrom: Date, days: Int, maxAlarms: Int) -> [Date]
+
+    /// Expand a schedule for the next 48 hours (default rolling window)
+    func expandSchedule(_ schedule: TickerSchedule, within48HoursFrom startDate: Date) -> [Date]
+
+    /// Expand a schedule with custom window and optional max alarm limit
+    func expandSchedule(
+        _ schedule: TickerSchedule,
+        withinCustomWindow startDate: Date,
+        duration: TimeInterval,
+        maxAlarms: Int?
+    ) -> [Date]
+
+    /// Expand a schedule using a generation strategy
+    func expandSchedule(_ schedule: TickerSchedule, from startDate: Date, strategy: AlarmGenerationStrategy) -> [Date]
 }
 
 // MARK: - TickerScheduleExpander Implementation
@@ -55,20 +68,42 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         }
     }
 
-    func expandSchedule(_ schedule: TickerSchedule, startingFrom: Date, days: Int) -> [Date] {
-        // Default to maximum 2 alarms for efficiency
-        return expandSchedule(schedule, startingFrom: startingFrom, days: days, maxAlarms: 2)
-    }
-    
-    func expandSchedule(_ schedule: TickerSchedule, startingFrom: Date, days: Int, maxAlarms: Int) -> [Date] {
-        guard let endDate = calendar.date(byAdding: .day, value: days, to: startingFrom) else {
+    func expandSchedule(_ schedule: TickerSchedule, within48HoursFrom startDate: Date) -> [Date] {
+        let duration: TimeInterval = 48 * 3600  // 48 hours
+        guard let endDate = calendar.date(byAdding: .second, value: Int(duration), to: startDate) else {
             return []
         }
-        let window = DateInterval(start: startingFrom, end: endDate)
+        let window = DateInterval(start: startDate, end: endDate)
+        return expandSchedule(schedule, within: window)
+    }
+
+    func expandSchedule(
+        _ schedule: TickerSchedule,
+        withinCustomWindow startDate: Date,
+        duration: TimeInterval,
+        maxAlarms: Int?
+    ) -> [Date] {
+        guard let endDate = calendar.date(byAdding: .second, value: Int(duration), to: startDate) else {
+            return []
+        }
+        let window = DateInterval(start: startDate, end: endDate)
         let allDates = expandSchedule(schedule, within: window)
-        
-        // Limit to specified maximum number of alarms
-        return Array(allDates.prefix(maxAlarms))
+
+        // Apply max alarm limit if specified
+        if let maxAlarms = maxAlarms {
+            return Array(allDates.prefix(maxAlarms))
+        }
+
+        return allDates
+    }
+
+    func expandSchedule(_ schedule: TickerSchedule, from startDate: Date, strategy: AlarmGenerationStrategy) -> [Date] {
+        return expandSchedule(
+            schedule,
+            withinCustomWindow: startDate,
+            duration: strategy.windowDuration,
+            maxAlarms: strategy.maxAlarms
+        )
     }
 
     // MARK: - Private Expansion Methods

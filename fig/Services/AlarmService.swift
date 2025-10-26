@@ -114,6 +114,10 @@ final class TickerService: TickerServiceProtocol {
     @ObservationIgnored
     private let scheduleExpander: TickerScheduleExpanderProtocol
 
+    // Regeneration service
+    @ObservationIgnored
+    private let regenerationService: AlarmRegenerationServiceProtocol
+
     // MARK: - Initialization
 
     init(
@@ -121,13 +125,15 @@ final class TickerService: TickerServiceProtocol {
         configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
         stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
         syncCoordinator: AlarmSyncCoordinatorProtocol = AlarmSyncCoordinator(),
-        scheduleExpander: TickerScheduleExpanderProtocol = TickerScheduleExpander()
+        scheduleExpander: TickerScheduleExpanderProtocol = TickerScheduleExpander(),
+        regenerationService: AlarmRegenerationServiceProtocol = AlarmRegenerationService()
     ) {
         self.alarmManager = alarmManager
         self.configurationBuilder = configurationBuilder
         self.stateManager = stateManager
         self.syncCoordinator = syncCoordinator
         self.scheduleExpander = scheduleExpander
+        self.regenerationService = regenerationService
     }
 
     // MARK: - Authorization
@@ -266,83 +272,21 @@ final class TickerService: TickerServiceProtocol {
     }
 
     private func scheduleCompositeAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
-        guard let schedule = alarmItem.schedule else {
-            throw TickerServiceError.invalidConfiguration
-        }
+        print("   🔧 scheduleCompositeAlarm() using regeneration service")
 
-        // 1. Expand schedule into concrete dates
-        let now = Date()
-        
-        // Use the start date from the schedule for expansion
-        let expansionStartDate: Date
-        switch schedule {
-        case .hourly(_, let startTime, _):
-            // Use the start time if it's in the future, otherwise use now
-            expansionStartDate = startTime > now ? startTime : now
-        case .daily:
-            expansionStartDate = now
-        case .weekdays:
-            expansionStartDate = now
-        case .monthly:
-            expansionStartDate = now
-        case .yearly:
-            expansionStartDate = now
-        case .every(_, _, let startTime, _):
-            // Use the start time if it's in the future, otherwise use now
-            expansionStartDate = startTime > now ? startTime : now
-        default:
-            expansionStartDate = now
-        }
-        
-        let dates = scheduleExpander.expandSchedule(schedule, startingFrom: expansionStartDate, days: alarmItem.generationWindow)
-        print("   → Expanded dates: \(dates)")
-        print("   → Number of dates: \(dates.count)")
-
-        guard !dates.isEmpty else {
-            print("   ❌ No dates generated from expansion")
-            throw TickerServiceError.invalidConfiguration
-        }
-        
-        let futureDates = dates.filter { $0 > now }
-        print("   → Future dates after filtering: \(futureDates)")
-        print("   → Number of future dates: \(futureDates.count)")
-        
-        guard !futureDates.isEmpty else {
-            print("   ❌ No future dates found after filtering")
-            throw TickerServiceError.invalidConfiguration
-        }
-
-        // 2. Generate alarm configurations for each date
-        var scheduledIDs: [UUID] = []
-
+        // Use the regeneration service to handle alarm generation with the new 48-hour window approach
         do {
-            for (index, date) in futureDates.enumerated() {
-                print("   → Processing date \(index + 1)/\(futureDates.count): \(date)")
-                
-                // Create a temporary one-time schedule for this occurrence
-                let oneTimeSchedule = TickerSchedule.oneTime(date: date)
-                let tempAlarmItem = createTemporaryAlarmItem(from: alarmItem, with: oneTimeSchedule)
-                print("   → Created temp alarm item with schedule: \(tempAlarmItem.schedule)")
+            // Force regeneration since this is a new alarm
+            try await regenerationService.regenerateAlarmsIfNeeded(
+                ticker: alarmItem,
+                context: context,
+                force: true
+            )
 
-                guard let configuration = configurationBuilder.buildConfiguration(from: tempAlarmItem) else {
-                    print("   ❌ Failed to build configuration for date: \(date)")
-                    continue
-                }
-                print("   → Configuration built successfully")
-
-                // Generate unique ID for this occurrence
-                let occurrenceID = UUID()
-                print("   → Scheduling alarm with ID: \(occurrenceID)")
-                _ = try await alarmManager.schedule(id: occurrenceID, configuration: configuration)
-                print("   → Alarm scheduled successfully")
-                scheduledIDs.append(occurrenceID)
-            }
-
-            // 3. Update ticker with generated IDs
-            alarmItem.generatedAlarmKitIDs = scheduledIDs
+            // Enable the alarm
             alarmItem.isEnabled = true
 
-            // 4. Save to SwiftData on main thread
+            // Save to SwiftData on main thread
             print("   → Saving to SwiftData...")
             await MainActor.run {
                 // Check if item is already in context before inserting
@@ -359,14 +303,14 @@ final class TickerService: TickerServiceProtocol {
             }
             print("   → SwiftData save successful")
 
-            // 5. Update local state on main thread
+            // Update local state on main thread
             print("   → Updating local state...")
             await MainActor.run {
                 stateManager.updateState(ticker: alarmItem)
             }
             print("   → Local state updated")
 
-            // 6. Refresh widget timelines on main thread
+            // Refresh widget timelines on main thread
             print("   → Refreshing widget timelines...")
             await MainActor.run {
                 refreshWidgetTimelines()
@@ -484,47 +428,14 @@ final class TickerService: TickerServiceProtocol {
                     alarmItem.generatedAlarmKitIDs = [alarmItem.id]
                     print("   → Simple schedule rescheduled successfully")
                 } else {
-                    print("   → Using composite schedule rescheduling")
-                    // Composite schedule
-                    let now = Date()
-                    print("   → Current time: \(now)")
-                    
-                    // For hourly schedules, use the start time from the schedule if it's in the future
-                    let expansionStartDate: Date
-                    switch schedule {
-                    case .hourly(_, let startTime, _):
-                        // Use the start time if it's in the future, otherwise use now
-                        expansionStartDate = startTime > now ? startTime : now
-                        print("   → Hourly schedule, startTime: \(startTime)")
-                    default:
-                        expansionStartDate = now
-                        print("   → Non-hourly schedule, using current time")
-                    }
-                    print("   → Expansion start date: \(expansionStartDate)")
-                    
-                    print("   → Expanding schedule...")
-                    let dates = scheduleExpander.expandSchedule(schedule, startingFrom: expansionStartDate, days: alarmItem.generationWindow)
-                    print("   → Generated \(dates.count) dates")
-
-                    var scheduledIDs: [UUID] = []
-                    for date in dates {
-                        print("   → Processing date: \(date)")
-                        let oneTimeSchedule = TickerSchedule.oneTime(date: date)
-                        let tempAlarmItem = createTemporaryAlarmItem(from: alarmItem, with: oneTimeSchedule)
-
-                        guard let configuration = configurationBuilder.buildConfiguration(from: tempAlarmItem) else {
-                            print("   ❌ Failed to build configuration for date: \(date)")
-                            continue
-                        }
-
-                        let occurrenceID = UUID()
-                        print("   → Scheduling occurrence ID: \(occurrenceID) for date: \(date)")
-                        _ = try await alarmManager.schedule(id: occurrenceID, configuration: configuration)
-                        scheduledIDs.append(occurrenceID)
-                    }
-
-                    alarmItem.generatedAlarmKitIDs = scheduledIDs
-                    print("   → Composite schedule rescheduled with \(scheduledIDs.count) occurrences")
+                    print("   → Using composite schedule rescheduling via regeneration service")
+                    // Use regeneration service for composite schedules
+                    try await regenerationService.regenerateAlarmsIfNeeded(
+                        ticker: alarmItem,
+                        context: context,
+                        force: true
+                    )
+                    print("   → Composite schedule regenerated successfully")
                 }
 
                 print("   → Final SwiftData save...")
