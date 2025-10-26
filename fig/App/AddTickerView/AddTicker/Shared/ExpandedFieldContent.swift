@@ -23,6 +23,10 @@ struct ExpandedFieldContent: View {
     @ViewBuilder
     private var fieldContent: some View {
         switch field {
+        case .time:
+            // Time picker is not used in AddTickerView (shown directly in main view via TimePickerCard)
+            EmptyView()
+
         case .schedule:
             ScheduleView(viewModel: viewModel.scheduleViewModel)
 

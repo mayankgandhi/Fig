@@ -8,6 +8,7 @@
 import Foundation
 
 enum ExpandableField: Hashable {
+    case time
     case schedule
     case label
     case countdown

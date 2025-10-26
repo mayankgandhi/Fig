@@ -81,6 +81,7 @@ final class OptionsPillsViewModel {
 
     func hasValue(for field: ExpandableField) -> Bool {
         switch field {
+        case .time: return false // Time is handled separately in Natural Language view
         case .schedule: return hasScheduleValue
         case .label: return hasLabelValue
         case .countdown: return hasCountdownValue

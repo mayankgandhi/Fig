@@ -1,16 +1,51 @@
 //
-//  OverlayCallout.swift
+//  NaturalLanguageExpandedFieldContent.swift
 //  fig
 //
-//  Overlay callout container for non-distracting inline field editing
-//  Used for all expandable field configurations (schedule, label, countdown, icon)
+//  Handles rendering of expanded field content for NaturalLanguageTickerView
+//  Mirrors ExpandedFieldContent but works with NaturalLanguageViewModel
 //
 
 import SwiftUI
 
-struct OverlayCallout<Content: View>: View {
+struct NaturalLanguageExpandedFieldContent: View {
     let field: ExpandableField
-    let viewModel: AddTickerViewModel
+    let viewModel: NaturalLanguageViewModel
+
+    var body: some View {
+        NaturalLanguageOverlayCallout(field: field, viewModel: viewModel) {
+            fieldContent
+        }
+    }
+
+    // MARK: - Field Content
+
+    @ViewBuilder
+    private var fieldContent: some View {
+        switch field {
+        case .time:
+            TimePickerCard(viewModel: viewModel.timePickerViewModel)
+
+        case .schedule:
+            ScheduleView(viewModel: viewModel.scheduleViewModel)
+
+        case .label:
+            LabelEditorView(viewModel: viewModel.labelViewModel)
+
+        case .countdown:
+            CountdownConfigView(viewModel: viewModel.countdownViewModel)
+
+        case .icon:
+            IconPickerViewMVVM(viewModel: viewModel.iconPickerViewModel)
+        }
+    }
+}
+
+// MARK: - Overlay Callout for Natural Language
+
+struct NaturalLanguageOverlayCallout<Content: View>: View {
+    let field: ExpandableField
+    let viewModel: NaturalLanguageViewModel
     @ViewBuilder let content: () -> Content
 
     @Environment(\.colorScheme) private var colorScheme
@@ -75,7 +110,7 @@ struct OverlayCallout<Content: View>: View {
     private var maxContentHeight: CGFloat {
         switch field {
         case .time:
-            // Time picker (not used in AddTickerView)
+            // Time picker is compact
             return 400
         case .schedule, .icon:
             // Larger fields need more space
