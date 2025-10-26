@@ -45,26 +45,26 @@ struct AITickerConfigurationResponse: Equatable {
     @Guide(description: "Minute (0-59)")
     let minute: Int
 
-    @Guide(description: "Year (e.g., 2025)")
-    let year: Int
+    @Guide(description: "Year (e.g., 2025). If not specified in the user's request, use the current year.")
+    let year: Int?
 
-    @Guide(description: "Month (1-12)")
-    let month: Int
+    @Guide(description: "Month (1-12). If not specified in the user's request, use the current month.")
+    let month: Int?
 
-    @Guide(description: "Day of month (1-31)")
-    let day: Int
+    @Guide(description: "Day of month (1-31). If not specified in the user's request, use today's day.")
+    let day: Int?
 
     @Guide(.anyOf(["oneTime", "daily", "weekdays", "specificDays"]))
     let repeatPattern: String
 
-    @Guide(description: "For specificDays pattern: comma-separated weekday names (e.g., 'Monday,Wednesday,Friday'). Empty for other patterns.")
-    let repeatDays: String
+    @Guide(description: "For specificDays pattern only: comma-separated weekday names (e.g., 'Monday,Wednesday,Friday'). Leave empty or omit for other patterns.")
+    let repeatDays: String?
 
-    @Guide(description: "Number of hours for countdown before alarm (0-23). Use 0 if no countdown.")
-    let countdownHours: Int
+    @Guide(description: "Number of hours for countdown before alarm (0-23). Omit or use 0 if no countdown mentioned.")
+    let countdownHours: Int?
 
-    @Guide(description: "Number of minutes for countdown before alarm (0-59). Use 0 if no countdown.")
-    let countdownMinutes: Int
+    @Guide(description: "Number of minutes for countdown before alarm (0-59). Omit or use 0 if no countdown mentioned.")
+    let countdownMinutes: Int?
 
     @Guide(description: "SF Symbol icon name that represents the activity (e.g., 'sunrise.fill', 'pills.fill', 'person.2.fill', 'dumbbell.fill')")
     let icon: String
@@ -120,20 +120,20 @@ class AITickerGenerator: ObservableObject {
                     You are an intelligent assistant that helps users create alarm reminders (called "Tickers") from natural language descriptions.
 
                     Your task is to extract structured information from user input including:
-                    - Activity label (what they want to be reminded about)
-                    - Time (when the reminder should trigger in 24-hour format)
-                    - Date (which day - use current date if not specified)
-                    - Repeat pattern: "oneTime", "daily", "weekdays", or "specificDays"
-                    - For specificDays: provide weekday names like "Monday,Wednesday,Friday"
-                    - Countdown duration if they mention it (in hours and minutes)
-                    - Appropriate SF Symbol icon that matches the activity
-                    - Hex color code that fits the activity theme (without # prefix)
+                    - Activity label (what they want to be reminded about) - REQUIRED
+                    - Time (when the reminder should trigger in 24-hour format) - REQUIRED
+                    - Date (which day - optional, omit if not specified by user)
+                    - Repeat pattern: "oneTime", "daily", "weekdays", or "specificDays" - REQUIRED
+                    - For specificDays: provide weekday names like "Monday,Wednesday,Friday" - OPTIONAL, only for specificDays pattern
+                    - Countdown duration if they mention it (in hours and minutes) - OPTIONAL
+                    - Appropriate SF Symbol icon that matches the activity - REQUIRED
+                    - Hex color code that fits the activity theme (without # prefix) - REQUIRED
 
                     Be intelligent about inferring context:
-                    - "Wake up at 7am every weekday" → weekdays pattern
+                    - "Wake up at 7am every weekday" → weekdays pattern, no date needed
                     - "Gym on Monday Wednesday Friday" → specificDays with "Monday,Wednesday,Friday"
                     - "Take medicine at 9am and 9pm daily" → daily pattern
-                    - "Meeting next Tuesday at 2:30pm" → oneTime, specific date
+                    - "Meeting next Tuesday at 2:30pm" → oneTime, include specific date
 
                     Choose icons wisely:
                     - Wake up → "sunrise.fill"
@@ -142,8 +142,14 @@ class AITickerGenerator: ObservableObject {
                     - Meetings → "person.2.fill"
                     - Food/Meals → "fork.knife"
                     - Sleep → "moon.stars.fill"
+                    - Study → "book.fill"
+                    - Water → "drop.fill"
 
-                    Choose colors that match the activity mood and time of day.
+                    Choose colors that match the activity mood and time of day:
+                    - Morning activities → warm colors (FDB813, FF9F1C)
+                    - Evening → cool colors (4A5899, 2D3561)
+                    - Health → greens/blues (4ECDC4, 52B788)
+                    - Important → reds/oranges (FF6B6B, E63946)
                     """
                 }
             )
@@ -160,11 +166,14 @@ class AITickerGenerator: ObservableObject {
     // Convert AI response to TickerConfiguration
     private func convertToTickerConfiguration(_ response: AITickerConfigurationResponse) -> TickerConfiguration {
         let calendar = Calendar.current
+        let now = Date()
+
+        // Use provided date components or default to today
         var dateComponents = DateComponents()
-        dateComponents.year = response.year
-        dateComponents.month = response.month
-        dateComponents.day = response.day
-        let date = calendar.date(from: dateComponents) ?? Date()
+        dateComponents.year = response.year ?? calendar.component(.year, from: now)
+        dateComponents.month = response.month ?? calendar.component(.month, from: now)
+        dateComponents.day = response.day ?? calendar.component(.day, from: now)
+        let date = calendar.date(from: dateComponents) ?? now
 
         // Parse repeat pattern
         let repeatOption: AITickerGenerator.RepeatOption
@@ -174,30 +183,37 @@ class AITickerGenerator: ObservableObject {
         case "weekdays":
             repeatOption = .weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])
         case "specificDays":
-            let weekdayNames = response.repeatDays.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-            let weekdays = weekdayNames.compactMap { name -> TickerSchedule.Weekday? in
-                switch name.lowercased() {
-                case "monday": return .monday
-                case "tuesday": return .tuesday
-                case "wednesday": return .wednesday
-                case "thursday": return .thursday
-                case "friday": return .friday
-                case "saturday": return .saturday
-                case "sunday": return .sunday
-                default: return nil
+            // Only parse repeatDays if provided
+            if let repeatDaysString = response.repeatDays, !repeatDaysString.isEmpty {
+                let weekdayNames = repeatDaysString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                let weekdays = weekdayNames.compactMap { name -> TickerSchedule.Weekday? in
+                    switch name.lowercased() {
+                    case "monday": return .monday
+                    case "tuesday": return .tuesday
+                    case "wednesday": return .wednesday
+                    case "thursday": return .thursday
+                    case "friday": return .friday
+                    case "saturday": return .saturday
+                    case "sunday": return .sunday
+                    default: return nil
+                    }
                 }
+                repeatOption = weekdays.isEmpty ? .oneTime : .weekdays(weekdays)
+            } else {
+                repeatOption = .oneTime
             }
-            repeatOption = weekdays.isEmpty ? .oneTime : .weekdays(weekdays)
         default:
             repeatOption = .oneTime
         }
 
-        // Parse countdown
+        // Parse countdown - use provided values or default to 0
+        let countdownHours = response.countdownHours ?? 0
+        let countdownMinutes = response.countdownMinutes ?? 0
         let countdown: TickerConfiguration.CountdownConfiguration?
-        if response.countdownHours > 0 || response.countdownMinutes > 0 {
+        if countdownHours > 0 || countdownMinutes > 0 {
             countdown = TickerConfiguration.CountdownConfiguration(
-                hours: response.countdownHours,
-                minutes: response.countdownMinutes,
+                hours: countdownHours,
+                minutes: countdownMinutes,
                 seconds: 0
             )
         } else {
@@ -277,8 +293,10 @@ class AITickerGenerator: ObservableObject {
                     Parse this ticker request and extract all relevant information:
                     "\(input)"
 
-                    Provide a complete ticker configuration with label, time, date, repeat pattern, countdown (if mentioned), icon, and color.
-                    Use current date/time as defaults if not specified.
+                    Provide a complete ticker configuration with label, time, repeat pattern, icon, and color.
+                    ONLY include date (year/month/day) if explicitly mentioned.
+                    ONLY include countdown if explicitly mentioned.
+                    ONLY include repeatDays if using specificDays pattern.
                     """),
                 generating: AITickerConfigurationResponse.self,
                 includeSchemaInPrompt: false,
@@ -289,17 +307,12 @@ class AITickerGenerator: ObservableObject {
                 // Access the partial content from the snapshot
                 let partial = snapshot.content
 
-                // Only update if we have all required fields filled in
+                // Only update if we have the essential required fields
+                // Optional fields (year, month, day, repeatDays, countdown) can be nil
                 if let label = partial.label,
                    let hour = partial.hour,
                    let minute = partial.minute,
-                   let year = partial.year,
-                   let month = partial.month,
-                   let day = partial.day,
                    let repeatPattern = partial.repeatPattern,
-                   let repeatDays = partial.repeatDays,
-                   let countdownHours = partial.countdownHours,
-                   let countdownMinutes = partial.countdownMinutes,
                    let icon = partial.icon,
                    let colorHex = partial.colorHex {
 
@@ -307,13 +320,13 @@ class AITickerGenerator: ObservableObject {
                         label: label,
                         hour: hour,
                         minute: minute,
-                        year: year,
-                        month: month,
-                        day: day,
+                        year: partial.year,
+                        month: partial.month,
+                        day: partial.day,
                         repeatPattern: repeatPattern,
-                        repeatDays: repeatDays,
-                        countdownHours: countdownHours,
-                        countdownMinutes: countdownMinutes,
+                        repeatDays: partial.repeatDays,
+                        countdownHours: partial.countdownHours,
+                        countdownMinutes: partial.countdownMinutes,
                         icon: icon,
                         colorHex: colorHex
                     )
@@ -409,10 +422,10 @@ class AITickerGenerator: ObservableObject {
 
                 Create a complete ticker configuration. Infer reasonable defaults where information is missing.
                 For time: use 24-hour format. If no time specified, suggest an appropriate time based on the activity.
-                For date: use today's date if not specified. Provide year, month, and day separately.
+                For date: ONLY provide year, month, and day if explicitly mentioned. Otherwise omit these fields.
                 For repeatPattern: use "oneTime", "daily", "weekdays", or "specificDays"
-                For specificDays: provide comma-separated weekday names in repeatDays (e.g., "Monday,Wednesday,Friday")
-                For countdown: if no countdown mentioned, use 0 for both hours and minutes
+                For specificDays: provide comma-separated weekday names in repeatDays (e.g., "Monday,Wednesday,Friday"). Omit for other patterns.
+                For countdown: ONLY provide if explicitly mentioned. Otherwise omit these fields.
                 For icon: choose an appropriate SF Symbol that matches the activity.
                 For color: choose a hex color that fits the activity and time of day (without # prefix).
                 """),
