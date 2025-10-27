@@ -9,7 +9,6 @@ import SwiftUI
 
 struct NaturalLanguageOptionsPillsView: View {
     let viewModel: NaturalLanguageViewModel
-    @ObservedObject var aiGenerator: AITickerGenerator
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -25,7 +24,7 @@ struct NaturalLanguageOptionsPillsView: View {
                 Spacer()
 
                 // Enhanced indicator for active options or parsing indicator
-                if aiGenerator.isParsing {
+                if viewModel.aiGenerator.isParsing {
                     // Parsing indicator
                     HStack(spacing: TickerSpacing.xxs) {
                         ProgressView()
@@ -54,7 +53,7 @@ struct NaturalLanguageOptionsPillsView: View {
 
             // Enhanced pill layout with improved spacing and alignment
             Group {
-                if !aiGenerator.isParsing && aiGenerator.parsedConfiguration != nil {
+                if !viewModel.aiGenerator.isParsing && viewModel.aiGenerator.parsedConfiguration != nil {
                     // Show actual parsed pills
                     actualPillsContent
                 } else {
@@ -62,7 +61,7 @@ struct NaturalLanguageOptionsPillsView: View {
                     shimmerPillsContent
                 }
             }
-            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: aiGenerator.isParsing)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.aiGenerator.isParsing)
         }
     }
 
@@ -72,12 +71,14 @@ struct NaturalLanguageOptionsPillsView: View {
     private var actualPillsContent: some View {
         FlowLayout(spacing: TickerSpacing.md) {
                 // Time pill (unique to Natural Language view)
+                // contentTransition provides smooth updates as AI streams data
                 expandablePillButton(
                     icon: "clock",
                     title: viewModel.timePickerViewModel.formattedTime,
                     field: .time,
                     hasValue: true
                 )
+                .contentTransition(.numericText())
 
                 expandablePillButton(
                     icon: "calendar.badge.clock",
@@ -85,6 +86,7 @@ struct NaturalLanguageOptionsPillsView: View {
                     field: .schedule,
                     hasValue: viewModel.optionsPillsViewModel.hasScheduleValue
                 )
+                .contentTransition(.interpolate)
 
                 expandablePillButton(
                     icon: "tag",
@@ -92,6 +94,7 @@ struct NaturalLanguageOptionsPillsView: View {
                     field: .label,
                     hasValue: viewModel.optionsPillsViewModel.hasLabelValue
                 )
+                .contentTransition(.interpolate)
 
                 expandablePillButton(
                     icon: "timer",
@@ -99,6 +102,7 @@ struct NaturalLanguageOptionsPillsView: View {
                     field: .countdown,
                     hasValue: viewModel.optionsPillsViewModel.hasCountdownValue
                 )
+                .contentTransition(.interpolate)
 
                 // Icon pill uses the selected color as tint
                 expandablePillButton(
@@ -108,6 +112,7 @@ struct NaturalLanguageOptionsPillsView: View {
                     tintHex: viewModel.iconPickerViewModel.selectedColorHex,
                     hasValue: true
                 )
+                .contentTransition(.symbolEffect(.replace))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TickerSpacing.md)

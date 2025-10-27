@@ -48,7 +48,7 @@ final class NaturalLanguageViewModel {
         self.modelContext = modelContext
         self.tickerService = tickerService
 
-        // Initialize AI generator
+        // Initialize AI generator (session will be prepared when view appears)
         self.aiGenerator = AITickerGenerator()
 
         // Initialize child view models
@@ -65,6 +65,18 @@ final class NaturalLanguageViewModel {
             label: labelViewModel,
             countdown: countdownViewModel
         )
+    }
+
+    // MARK: - Lifecycle
+
+    /// Call when view appears to initialize and prewarm the AI session
+    func prepareForAppearance() async {
+        await aiGenerator.prepareSession()
+    }
+
+    /// Call when view is dismissed or done to cleanup resources
+    func cleanup() {
+        aiGenerator.cleanupSession()
     }
 
     // MARK: - Computed Properties

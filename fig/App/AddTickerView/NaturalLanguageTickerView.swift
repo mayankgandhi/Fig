@@ -11,12 +11,16 @@ import Combine
 struct NaturalLanguageTickerView: View {
     @State private var viewModel: NaturalLanguageViewModel?
 
+    #if DEBUG
+    @State private var showDebugView = false
+    #endif
+
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(TickerService.self) private var tickerService
-    
-    
+
+
     var body: some View {
         NavigationStack {
             if let viewModel = viewModel {
@@ -43,12 +47,21 @@ struct NaturalLanguageTickerView: View {
                 inputSection(viewModel: viewModel)
 
                 // Conditional Content - OptionsPillsView (with time pill)
+                // Use contentTransition for smooth streaming animations
                 if viewModel.hasStartedTyping {
                     NaturalLanguageOptionsPillsView(
-                        viewModel: viewModel,
-                        aiGenerator: viewModel.aiGenerator
+                        viewModel: viewModel
                     )
+                    .contentTransition(.interpolate)
                 }
+
+                #if DEBUG
+                // Debug View (if enabled) - Only in Debug builds
+                if showDebugView {
+                    AITickerGeneratorDebugView(aiGenerator: viewModel.aiGenerator)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                #endif
 
                 // Generate Button
                 generateButtonSection(viewModel: viewModel)
@@ -68,9 +81,26 @@ struct NaturalLanguageTickerView: View {
             ToolbarItem(placement: .cancellationAction) {
                 Button("Cancel") {
                     TickerHaptics.selection()
+                    // Cleanup session when dismissing
+                    viewModel.cleanup()
                     dismiss()
                 }
             }
+
+            #if DEBUG
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                        showDebugView.toggle()
+                    }
+                } label: {
+                    Image(systemName: showDebugView ? "terminal.fill" : "terminal")
+                        .font(.callout)
+                        .foregroundStyle(showDebugView ? TickerColor.primary : TickerColor.textSecondary(for: colorScheme))
+                }
+            }
+            #endif
         }
         .toolbarBackground(.hidden, for: .navigationBar)
         .alert("Error", isPresented: Binding(
@@ -83,10 +113,23 @@ struct NaturalLanguageTickerView: View {
                 Text(errorMessage)
             }
         }
+        .task {
+            #if DEBUG
+            // Enable debug mode for event logging (Debug builds only)
+            viewModel.aiGenerator.isDebugMode = true
+            #endif
+
+            // Prepare AI session when view appears for optimal performance
+            // This preloads the model before user starts typing
+            await viewModel.prepareForAppearance()
+        }
         .onReceive(viewModel.aiGenerator.$parsedConfiguration) { newConfig in
             // Update view models when parsed configuration changes
+            // This runs on main thread automatically due to @MainActor on AITickerGenerator
             if newConfig != nil {
-                viewModel.updateViewModelsFromParsedConfig()
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    viewModel.updateViewModelsFromParsedConfig()
+                }
             }
         }
     }
@@ -218,6 +261,8 @@ struct NaturalLanguageTickerView: View {
                 await viewModel.generateAndSave()
                 if !viewModel.showingError {
                     TickerHaptics.success()
+                    // Cleanup session after successful save
+                    viewModel.cleanup()
                     try? await Task.sleep(for: .milliseconds(500))
                     dismiss()
                 }
