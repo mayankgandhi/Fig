@@ -31,10 +31,10 @@ struct AlarmSyncCoordinator: AlarmSyncCoordinatorProtocol {
     ) async {
         print("🔄 Starting alarm synchronization (AlarmKit → SwiftData)...")
 
-        // 1. Fetch all alarms from AlarmKit (source of truth)
+        // 1. Fetch all alarms from AlarmKit (source of truth) via state manager
         let alarmKitAlarms: [Alarm]
         do {
-            alarmKitAlarms = try alarmManager.alarms
+            alarmKitAlarms = try stateManager.queryAlarmKit(alarmManager: alarmManager)
             print("⏰ Found \(alarmKitAlarms.count) alarms in AlarmKit")
         } catch {
             print("❌ Failed to fetch alarms from AlarmKit: \(error)")

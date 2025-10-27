@@ -74,9 +74,6 @@ final class TodayViewModel {
             self.upcomingAlarms = sortedOccurrences
             self.upcomingAlarmsForClock = clockAlarms
         }
-        
-        // Update widget cache
-        await WidgetDataSharingService.updateSharedCache(context: modelContext)
     }
 
     // MARK: - Helper Methods

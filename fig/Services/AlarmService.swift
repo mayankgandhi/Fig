@@ -219,10 +219,7 @@ final class TickerService {
                 refreshWidgetTimelines()
             }
             print("   → Widget timelines refreshed")
-            
-            // Update widget cache
-            await WidgetDataSharingService.updateSharedCache(context: context)
-            
+
         } catch let error as TickerServiceError {
             print("   ❌ TickerServiceError: \(error)")
             throw error
@@ -287,10 +284,7 @@ final class TickerService {
                 refreshWidgetTimelines()
             }
             print("   → Widget timelines refreshed")
-            
-            // Update widget cache
-            await WidgetDataSharingService.updateSharedCache(context: context)
-            
+
         } catch {
             print("   ❌ Composite alarm scheduling failed: \(error)")
             // Regeneration service handles its own alarm rollback
@@ -408,9 +402,6 @@ final class TickerService {
                     refreshWidgetTimelines()
                 }
                 print("   → Composite schedule rescheduled successfully")
-                
-                // Update widget cache
-                await WidgetDataSharingService.updateSharedCache(context: context)
             } catch {
                 print("   ❌ Scheduling failed: \(error)")
                 throw TickerServiceError.schedulingFailed(underlying: error)
@@ -427,9 +418,6 @@ final class TickerService {
                 refreshWidgetTimelines()
             }
             print("   → Widget timelines refreshed")
-            
-            // Update widget cache
-            await WidgetDataSharingService.updateSharedCache(context: context)
         }
     }
     
@@ -506,11 +494,6 @@ final class TickerService {
             refreshWidgetTimelines()
         }
         print("   ✅ cancelAlarm() completed")
-        
-        // Update widget cache
-        if let context = context {
-            await WidgetDataSharingService.updateSharedCache(context: context)
-        }
     }
     
     // MARK: - Alarm Control
@@ -561,7 +544,8 @@ final class TickerService {
     
     func fetchAllAlarms() async throws {
         do {
-            let remoteAlarms = try alarmManager.alarms
+            // Use centralized AlarmKit query through state manager
+            let remoteAlarms = try stateManager.queryAlarmKit(alarmManager: alarmManager)
             await stateManager.updateState(with: remoteAlarms)
         } catch {
             throw TickerServiceError.schedulingFailed(underlying: error)
@@ -573,25 +557,21 @@ final class TickerService {
     }
     
     func getAlarmsWithMetadata(context: ModelContext) -> [Ticker] {
-        // Get all tickers from SwiftData (source of truth for persistence)
-        // This ensures all saved tickers are visible, even if they don't have active AlarmKit alarms
+        // Return cached data from AlarmStateManager (single source of truth)
+        // This eliminates redundant SwiftData queries on every UI refresh
+        return stateManager.getAllTickers()
+    }
+
+    /// Explicitly refresh AlarmStateManager cache from SwiftData
+    /// Call this on app launch or when you need to force a refresh from persistent storage
+    func refreshFromSwiftData(context: ModelContext) {
         let descriptor = FetchDescriptor<Ticker>()
         let allTickers = (try? context.fetch(descriptor)) ?? []
-        
-        // Merge with state manager to get any runtime updates
-        var tickerMap: [UUID: Ticker] = [:]
-        
-        // Start with all SwiftData tickers
+
+        // Update state manager with all persisted tickers
         for ticker in allTickers {
-            tickerMap[ticker.id] = ticker
+            stateManager.updateState(ticker: ticker)
         }
-        
-        // Override with state manager data for active alarms (preserves runtime state)
-        for (id, stateTicker) in alarms {
-            tickerMap[id] = stateTicker
-        }
-        
-        return Array(tickerMap.values).sorted { $0.createdAt > $1.createdAt }
     }
     
     // MARK: - Widget Refresh

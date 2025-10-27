@@ -43,6 +43,7 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     private let scheduleExpander: TickerScheduleExpanderProtocol
     private let rateLimiter: RegenerationRateLimiter
     private let configurationBuilder: AlarmConfigurationBuilderProtocol
+    private let stateManager: AlarmStateManagerProtocol
 
     // MARK: - Initialization
 
@@ -50,12 +51,14 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
         alarmManager: AlarmManager = .shared,
         scheduleExpander: TickerScheduleExpanderProtocol = TickerScheduleExpander(),
         rateLimiter: RegenerationRateLimiter = .shared,
-        configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder()
+        configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
+        stateManager: AlarmStateManagerProtocol = AlarmStateManager()
     ) {
         self.alarmManager = alarmManager
         self.scheduleExpander = scheduleExpander
         self.rateLimiter = rateLimiter
         self.configurationBuilder = configurationBuilder
+        self.stateManager = stateManager
     }
 
     // MARK: - Regeneration Logic
@@ -172,8 +175,8 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     private func queryCurrentAlarms(for ticker: Ticker) async throws -> [(id: UUID, date: Date)] {
         var result: [(UUID, Date)] = []
 
-        // Get all alarms from AlarmKit
-        let allAlarms = try alarmManager.alarms
+        // Get all alarms from AlarmKit via state manager
+        let allAlarms = try stateManager.queryAlarmKit(alarmManager: alarmManager)
 
         // Filter to only this ticker's alarms
         let tickerAlarmIDs = Set(ticker.generatedAlarmKitIDs)
@@ -270,8 +273,8 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
 
     /// Query the count of active alarms from AlarmKit
     private func queryActiveAlarmCount(for ticker: Ticker) async -> Int {
-        // Get all alarms from AlarmKit
-        guard let allAlarms = try? alarmManager.alarms else {
+        // Get all alarms from AlarmKit via state manager
+        guard let allAlarms = try? stateManager.queryAlarmKit(alarmManager: alarmManager) else {
             // If we can't get alarms, return 0
             return 0
         }

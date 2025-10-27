@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import AlarmKit
 
 struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme

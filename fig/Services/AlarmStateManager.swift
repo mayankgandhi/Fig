@@ -18,6 +18,8 @@ protocol AlarmStateManagerProtocol: Observable {
     func updateState(ticker: Ticker)
     func removeState(id: UUID)
     func getState(id: UUID) -> Ticker?
+    func getAllTickers() -> [Ticker]
+    func queryAlarmKit(alarmManager: AlarmManager) throws -> [Alarm]
 }
 
 // MARK: - AlarmStateManager Implementation
@@ -78,5 +80,20 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
 
     func getState(id: UUID) -> Ticker? {
         alarms[id]
+    }
+
+    /// Returns all cached tickers as an array sorted by creation date
+    /// This provides efficient access without querying SwiftData
+    func getAllTickers() -> [Ticker] {
+        return Array(alarms.values).sorted { $0.createdAt > $1.createdAt }
+    }
+
+    /// Centralized AlarmKit query method
+    /// All code should use this instead of directly accessing alarmManager.alarms
+    /// - Parameter alarmManager: The AlarmManager instance to query
+    /// - Returns: Array of Alarm objects from AlarmKit
+    /// - Throws: AlarmKit errors if query fails
+    func queryAlarmKit(alarmManager: AlarmManager) throws -> [Alarm] {
+        return try alarmManager.alarms
     }
 }
