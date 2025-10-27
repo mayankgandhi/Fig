@@ -87,11 +87,7 @@ final class TickerService {
     // Sync coordinator
     @ObservationIgnored
     private let syncCoordinator: AlarmSyncCoordinatorProtocol
-    
-    // Schedule expander
-    @ObservationIgnored
-    private let scheduleExpander: TickerScheduleExpanderProtocol
-    
+
     // Regeneration service
     @ObservationIgnored
     private let regenerationService: AlarmRegenerationServiceProtocol
@@ -103,14 +99,12 @@ final class TickerService {
         configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
         stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
         syncCoordinator: AlarmSyncCoordinatorProtocol = AlarmSyncCoordinator(),
-        scheduleExpander: TickerScheduleExpanderProtocol = TickerScheduleExpander(),
         regenerationService: AlarmRegenerationServiceProtocol = AlarmRegenerationService()
     ) {
         self.alarmManager = alarmManager
         self.configurationBuilder = configurationBuilder
         self.stateManager = stateManager
         self.syncCoordinator = syncCoordinator
-        self.scheduleExpander = scheduleExpander
         self.regenerationService = regenerationService
     }
     
