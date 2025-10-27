@@ -62,11 +62,7 @@ enum AlarmAuthorizationStatus {
 @Observable
 final class TickerService {
     typealias AlarmConfiguration = AlarmManager.AlarmConfiguration<TickerData>
-    
-    // Public state (delegated to state manager)
-    var alarms: [UUID: Ticker] {
-        stateManager.alarms
-    }
+
     
     var authorizationStatus: AlarmAuthorizationStatus {
         AlarmAuthorizationStatus(from: alarmManager.authorizationState)
@@ -579,10 +575,25 @@ final class TickerService {
     }
     
     func getAlarmsWithMetadata(context: ModelContext) -> [Ticker] {
-        // Get all tickers from state manager
-        // Note: This is fast - just copying references from a dictionary
-        // Observable state access is thread-safe
-        return Array(alarms.values).sorted { $0.createdAt > $1.createdAt }
+        // Get all tickers from SwiftData (source of truth for persistence)
+        // This ensures all saved tickers are visible, even if they don't have active AlarmKit alarms
+        let descriptor = FetchDescriptor<Ticker>()
+        let allTickers = (try? context.fetch(descriptor)) ?? []
+        
+        // Merge with state manager to get any runtime updates
+        var tickerMap: [UUID: Ticker] = [:]
+        
+        // Start with all SwiftData tickers
+        for ticker in allTickers {
+            tickerMap[ticker.id] = ticker
+        }
+        
+        // Override with state manager data for active alarms (preserves runtime state)
+        for (id, stateTicker) in stateManager.alarms {
+            tickerMap[id] = stateTicker
+        }
+        
+        return Array(tickerMap.values).sorted { $0.createdAt > $1.createdAt }
     }
     
     // MARK: - Widget Refresh

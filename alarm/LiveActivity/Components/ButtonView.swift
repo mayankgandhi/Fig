@@ -52,32 +52,3 @@ struct ButtonView<I>: View where I: AppIntent {
         .animation(TickerAnimation.quick, value: false)
     }
 }
-
-// MARK: - Previews
-
-#Preview("Button View - Pause Button") {
-    ButtonView(
-        config: AlarmButton(systemImageName: "pause.fill", text: "Pause"),
-        intent: PauseIntent(alarmID: UUID().uuidString),
-        tint: TickerColor.paused
-    )
-    .padding()
-}
-
-#Preview("Button View - Resume Button") {
-    ButtonView(
-        config: AlarmButton(systemImageName: "play.fill", text: "Resume"),
-        intent: ResumeIntent(alarmID: UUID().uuidString),
-        tint: TickerColor.running
-    )
-    .padding()
-}
-
-#Preview("Button View - Stop Button") {
-    ButtonView(
-        config: AlarmButton(systemImageName: "stop.fill", text: "Stop"),
-        intent: StopIntent(alarmID: UUID().uuidString),
-        tint: TickerColor.danger
-    )
-    .padding()
-}

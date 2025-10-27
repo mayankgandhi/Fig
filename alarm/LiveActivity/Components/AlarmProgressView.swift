@@ -77,35 +77,3 @@ struct AlarmProgressView: View {
         }
     }
 }
-
-// MARK: - Previews
-
-#Preview("Alarm Progress - Countdown Mode") {
-    AlarmProgressView(
-        tickerIcon: "figure.run",
-        mode: .countdown(AlarmPresentationState.Countdown(fireDate: Date().addingTimeInterval(3600))),
-        tint: TickerColor.running
-    )
-    .padding()
-}
-
-#Preview("Alarm Progress - Paused Mode") {
-    AlarmProgressView(
-        tickerIcon: "figure.run",
-        mode: .paused(AlarmPresentationState.Paused(
-            totalCountdownDuration: 3600,
-            previouslyElapsedDuration: 1800
-        )),
-        tint: TickerColor.paused
-    )
-    .padding()
-}
-
-#Preview("Alarm Progress - Alert Mode") {
-    AlarmProgressView(
-        tickerIcon: "bell.fill",
-        mode: .alert,
-        tint: TickerColor.alerting
-    )
-    .padding()
-}
