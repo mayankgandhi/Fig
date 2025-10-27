@@ -83,6 +83,7 @@ class AITickerGenerator: ObservableObject {
     @Published var errorMessage: String?
     @Published var parsedConfiguration: TickerConfiguration?
     @Published var isFoundationModelsAvailable = false
+    @Published var isParsing = false
 
     private let activityMapper = ActivityIconMapper()
     private var parsingTask: Task<Void, Never>?
@@ -241,8 +242,13 @@ class AITickerGenerator: ObservableObject {
         // Don't parse empty or very short inputs
         let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedInput.count > 3 else {
+            isParsing = false
             return
         }
+
+        // Set parsing state
+        isParsing = true
+        print("🔍 AITickerGenerator: Starting parse for input: \(trimmedInput)")
 
         parsingTask = Task.detached(priority: .userInitiated) {
             do {
@@ -250,21 +256,43 @@ class AITickerGenerator: ObservableObject {
                 try await Task.sleep(for: .milliseconds(500))
 
                 // Check if task was cancelled
-                guard !Task.isCancelled else { return }
+                guard !Task.isCancelled else {
+                    await MainActor.run {
+                        self.isParsing = false
+                    }
+                    return
+                }
 
                 // Try Foundation Models first, fallback to regex parsing
                 await MainActor.run {
+                    print("🔍 AITickerGenerator: isFoundationModelsAvailable = \(self.isFoundationModelsAvailable)")
                     if self.isFoundationModelsAvailable, let session = self.languageModelSession {
                         // Use streaming for real-time feedback
+                        print("🔍 AITickerGenerator: Using Foundation Models streaming")
                         Task {
                             await self.parseWithFoundationModelsStreaming(input: trimmedInput, session: session)
+                            await MainActor.run {
+                                self.isParsing = false
+                                print("🔍 AITickerGenerator: Foundation Models parsing complete")
+                            }
                         }
                     } else {
                         // Fallback to regex-based parsing
+                        print("🔍 AITickerGenerator: Using regex parsing fallback")
                         Task.detached(priority: .userInitiated) {
-                            let configuration = try await self.parseConfigurationWithRegex(from: trimmedInput)
-                            await MainActor.run {
-                                self.parsedConfiguration = configuration
+                            do {
+                                let configuration = try await self.parseConfigurationWithRegex(from: trimmedInput)
+                                await MainActor.run {
+                                    self.parsedConfiguration = configuration
+                                    self.isParsing = false
+                                    print("🔍 AITickerGenerator: Regex parsing complete - config: \(configuration.label)")
+                                }
+                            } catch {
+                                await MainActor.run {
+                                    self.parsedConfiguration = nil
+                                    self.isParsing = false
+                                    print("🔍 AITickerGenerator: Regex parsing failed: \(error)")
+                                }
                             }
                         }
                     }
@@ -273,6 +301,7 @@ class AITickerGenerator: ObservableObject {
                 // Silently fail for background parsing - don't show errors to user
                 await MainActor.run {
                     self.parsedConfiguration = nil
+                    self.isParsing = false
                 }
             }
         }

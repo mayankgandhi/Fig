@@ -18,7 +18,7 @@ final class NaturalLanguageViewModel {
     private let tickerService: TickerService
 
     // MARK: - AI Generator
-    var aiGenerator: AITickerGenerator
+    @ObservationIgnored var aiGenerator: AITickerGenerator
 
     // MARK: - Child ViewModels
     var timePickerViewModel: TimePickerViewModel
@@ -65,11 +65,6 @@ final class NaturalLanguageViewModel {
             label: labelViewModel,
             countdown: countdownViewModel
         )
-
-        // Start observing parsed configuration changes
-        Task {
-            await observeParsedConfiguration()
-        }
     }
 
     // MARK: - Computed Properties
@@ -88,18 +83,6 @@ final class NaturalLanguageViewModel {
 
         // Trigger background parsing
         aiGenerator.parseInBackground(from: inputText)
-    }
-
-    // MARK: - Observation
-
-    private func observeParsedConfiguration() async {
-        // Watch for changes in parsed configuration
-        while !Task.isCancelled {
-            if let config = aiGenerator.parsedConfiguration {
-                updateViewModelsFromParsedConfig()
-            }
-            try? await Task.sleep(for: .milliseconds(100))
-        }
     }
 
     // MARK: - View Model Synchronization

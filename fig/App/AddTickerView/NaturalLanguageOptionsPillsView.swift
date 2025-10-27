@@ -9,6 +9,7 @@ import SwiftUI
 
 struct NaturalLanguageOptionsPillsView: View {
     let viewModel: NaturalLanguageViewModel
+    @ObservedObject var aiGenerator: AITickerGenerator
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -23,8 +24,19 @@ struct NaturalLanguageOptionsPillsView: View {
 
                 Spacer()
 
-                // Enhanced indicator for active options
-                if hasAnyActiveOptions {
+                // Enhanced indicator for active options or parsing indicator
+                if aiGenerator.isParsing {
+                    // Parsing indicator
+                    HStack(spacing: TickerSpacing.xxs) {
+                        ProgressView()
+                            .scaleEffect(0.7)
+                            .tint(TickerColor.primary)
+
+                        Text("Parsing...")
+                            .Caption2()
+                            .foregroundStyle(TickerColor.primary)
+                    }
+                } else if hasAnyActiveOptions {
                     HStack(spacing: TickerSpacing.xxs) {
                         Circle()
                             .fill(TickerColor.primary)
@@ -41,7 +53,24 @@ struct NaturalLanguageOptionsPillsView: View {
             .padding(.horizontal, TickerSpacing.md)
 
             // Enhanced pill layout with improved spacing and alignment
-            FlowLayout(spacing: TickerSpacing.md) {
+            Group {
+                if !aiGenerator.isParsing && aiGenerator.parsedConfiguration != nil {
+                    // Show actual parsed pills
+                    actualPillsContent
+                } else {
+                    // Show shimmer loading state
+                    shimmerPillsContent
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: aiGenerator.isParsing)
+        }
+    }
+
+    // MARK: - Actual Pills Content
+
+    @ViewBuilder
+    private var actualPillsContent: some View {
+        FlowLayout(spacing: TickerSpacing.md) {
                 // Time pill (unique to Natural Language view)
                 expandablePillButton(
                     icon: "clock",
@@ -83,7 +112,22 @@ struct NaturalLanguageOptionsPillsView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TickerSpacing.md)
             .animation(.spring(response: 0.4, dampingFraction: 0.7), value: activeOptionsCount)
+    }
+
+    // MARK: - Shimmer Pills Content
+
+    @ViewBuilder
+    private var shimmerPillsContent: some View {
+        FlowLayout(spacing: TickerSpacing.md) {
+            ShimmerPill(width: 100, height: 40)
+            ShimmerPill(width: 120, height: 40)
+            ShimmerPill(width: 90, height: 40)
+            ShimmerPill(width: 110, height: 40)
+            ShimmerPill(width: 80, height: 40)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, TickerSpacing.md)
+        .transition(.opacity)
     }
 
     // MARK: - Pill Buttons

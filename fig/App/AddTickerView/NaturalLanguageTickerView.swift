@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct NaturalLanguageTickerView: View {
     @State private var viewModel: NaturalLanguageViewModel?
@@ -43,7 +44,10 @@ struct NaturalLanguageTickerView: View {
 
                 // Conditional Content - OptionsPillsView (with time pill)
                 if viewModel.hasStartedTyping {
-                    NaturalLanguageOptionsPillsView(viewModel: viewModel)
+                    NaturalLanguageOptionsPillsView(
+                        viewModel: viewModel,
+                        aiGenerator: viewModel.aiGenerator
+                    )
                 }
 
                 // Generate Button
@@ -77,6 +81,12 @@ struct NaturalLanguageTickerView: View {
         } message: {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
+            }
+        }
+        .onReceive(viewModel.aiGenerator.$parsedConfiguration) { newConfig in
+            // Update view models when parsed configuration changes
+            if newConfig != nil {
+                viewModel.updateViewModelsFromParsedConfig()
             }
         }
     }
