@@ -37,63 +37,76 @@ struct WidgetDataFetcher {
                 return []
             }
 
-        // Filter for upcoming alarms within the specified time window
+        // Expand schedules to get upcoming dates using TickerScheduleExpander
         let now = Date()
         let timeWindow = now.addingTimeInterval(Double(withinHours) * 60 * 60)
         let calendar = Calendar.current
+        let expander = TickerScheduleExpander(calendar: calendar)
 
-        var upcomingAlarms = alarms.compactMap { alarm -> UpcomingAlarmPresentation? in
-            guard let schedule = alarm.schedule else { return nil }
+        var upcomingAlarms: [UpcomingAlarmPresentation] = []
 
-            let nextAlarmTime: Date
+        for alarm in alarms {
+            guard let schedule = alarm.schedule else { continue }
 
-            switch schedule {
-            case .oneTime(let date):
-                guard date >= now && date <= timeWindow else { return nil }
-                nextAlarmTime = date
+            // Expand schedule
+            let window = DateInterval(start: now, end: timeWindow)
+            let expandedDates = expander.expandSchedule(schedule, within: window)
 
-            case .daily(let time):
-                let nextOccurrence = getNextOccurrence(for: time, from: now, calendar: calendar)
-                guard nextOccurrence <= timeWindow else { return nil }
-                nextAlarmTime = nextOccurrence
+            // Limit to first 3 occurrences per alarm
+            let limitedDates = Array(expandedDates)
 
-            case .hourly, .weekdays, .biweekly, .monthly, .yearly, .every:
-                // For composite schedules, skip in widgets for simplicity
-                return nil
+            for alarmDate in limitedDates {
+                let hour = calendar.component(.hour, from: alarmDate)
+                let minute = calendar.component(.minute, from: alarmDate)
+
+                let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
+                    switch schedule {
+                    case .oneTime: return .oneTime
+                    case .daily: return .daily
+                    case .hourly(let interval, _): return .hourly(interval: interval)
+                    case .weekdays(_, let days):
+                        return .weekdays(days.map { $0.rawValue })
+                    case .biweekly: return .biweekly
+                    case .monthly: return .monthly
+                    case .yearly: return .yearly
+                    case .every(let interval, let unit, _):
+                        let unitString: String
+                        switch unit {
+                        case .minutes: unitString = "minutes"
+                        case .hours: unitString = "hours"
+                        case .days: unitString = "days"
+                        case .weeks: unitString = "weeks"
+                        }
+                        return .every(interval: interval, unit: unitString)
+                    }
+                }()
+
+                let presentation = UpcomingAlarmPresentation(
+                    baseAlarmId: alarm.id,
+                    displayName: alarm.displayName,
+                    icon: alarm.tickerData?.icon ?? "alarm",
+                    color: extractColor(from: alarm),
+                    nextAlarmTime: alarmDate,
+                    scheduleType: scheduleType,
+                    hour: hour,
+                    minute: minute,
+                    hasCountdown: alarm.countdown?.preAlert != nil,
+                    tickerDataTitle: alarm.tickerData?.name
+                )
+
+                upcomingAlarms.append(presentation)
             }
+        }
 
-            let hour = calendar.component(.hour, from: nextAlarmTime)
-            let minute = calendar.component(.minute, from: nextAlarmTime)
+        // Sort by next alarm time
+        upcomingAlarms.sort { $0.nextAlarmTime < $1.nextAlarmTime }
 
-            let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
-                switch schedule {
-                case .oneTime: return .oneTime
-                case .daily: return .daily
-                default: return .oneTime
-                }
-            }()
+        // Apply limit if specified
+        if let limit = limit {
+            upcomingAlarms = Array(upcomingAlarms.prefix(limit))
+        }
 
-            return UpcomingAlarmPresentation(
-                baseAlarmId: alarm.id,
-                displayName: alarm.displayName,
-                icon: alarm.tickerData?.icon ?? "alarm",
-                color: extractColor(from: alarm),
-                nextAlarmTime: nextAlarmTime,
-                scheduleType: scheduleType,
-                hour: hour,
-                minute: minute,
-                hasCountdown: alarm.countdown?.preAlert != nil,
-                tickerDataTitle: alarm.tickerData?.name
-            )
-            }
-            .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
-
-            // Apply limit if specified
-            if let limit = limit {
-                upcomingAlarms = Array(upcomingAlarms.prefix(limit))
-            }
-
-            return upcomingAlarms
+        return upcomingAlarms
         }.value
     }
 
@@ -127,29 +140,6 @@ struct WidgetDataFetcher {
         return ModelContext(modelContainer)
     }
 
-    /// Calculates the next occurrence of a daily alarm
-    /// - Parameters:
-    ///   - time: Time of day for the alarm
-    ///   - date: Reference date to calculate from
-    ///   - calendar: Calendar to use for calculations
-    /// - Returns: Next occurrence date
-    private static func getNextOccurrence(for time: TickerSchedule.TimeOfDay, from date: Date, calendar: Calendar) -> Date {
-        var components = calendar.dateComponents([.year, .month, .day], from: date)
-        components.hour = time.hour
-        components.minute = time.minute
-        components.second = 0
-
-        guard let todayOccurrence = calendar.date(from: components) else {
-            return date
-        }
-
-        // If today's occurrence has passed, return tomorrow's
-        if todayOccurrence <= date {
-            return calendar.date(byAdding: .day, value: 1, to: todayOccurrence) ?? todayOccurrence
-        }
-
-        return todayOccurrence
-    }
 
     /// Extracts color from alarm data with fallback logic
     /// - Parameter alarm: Alarm to extract color from
