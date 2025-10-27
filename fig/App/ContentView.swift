@@ -9,11 +9,11 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-
+    
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Environment(TickerService.self) private var tickerService
-
+    
     @State private var showAddSheet = false
     @State private var showNaturalLanguageSheet = false
     @State private var alarmToEdit: Ticker?
@@ -28,18 +28,23 @@ struct ContentView: View {
     
     var body: some View {
         NavigationStack {
-            content
-                .background(backgroundView)
-                .navigationTitle(Text("Tickers"))
-                .toolbarTitleDisplayMode(.inlineLarge)
-                .toolbar {
-                    ToolbarButtonsView(
-                        showAddSheet: $showAddSheet,
-                        showNaturalLanguageSheet: $showNaturalLanguageSheet,
-                        namespace: addButtonNamespace
-                    )
-                }
-                .searchable(text: viewModel?.searchText ?? .constant(""), prompt: "Search by name or time")
+            if let vm = viewModel {
+                content(viewModel: vm)
+                    .background(backgroundView)
+                    .navigationTitle(Text("Tickers"))
+                    .toolbarTitleDisplayMode(.inlineLarge)
+                    .toolbar {
+                        ToolbarItemGroup(placement: .primaryAction) {
+                            ToolbarButtonsView(
+                                showAddSheet: $showAddSheet,
+                                showNaturalLanguageSheet: $showNaturalLanguageSheet,
+                                namespace: addButtonNamespace
+                            )
+                        }
+                    }
+            } else {
+                ProgressView()
+            }
         }
         .sheet(isPresented: $showNaturalLanguageSheet) {
             NaturalLanguageTickerView()
@@ -117,7 +122,7 @@ struct ContentView: View {
         ZStack {
             TickerColor.liquidGlassGradient(for: colorScheme)
                 .ignoresSafeArea()
-
+            
             Rectangle()
                 .fill(.ultraThinMaterial)
                 .opacity(0.1)
@@ -128,13 +133,13 @@ struct ContentView: View {
     private var sheetBackground: some View {
         ZStack {
             TickerColor.liquidGlassGradient(for: colorScheme)
-
+            
             Rectangle()
                 .fill(.ultraThinMaterial)
                 .opacity(0.5)
         }
     }
-
+    
     // MARK: - Private Methods
     
     private func initializeViewModel() {
@@ -143,17 +148,11 @@ struct ContentView: View {
             viewModel?.loadAlarms()
         }
     }
-
-
+    
+    
     @ViewBuilder
-    var content: some View {
+    func content(viewModel: TickerListViewModel) -> some View {
         VStack {
-            guard let viewModel = viewModel else {
-                ProgressView()
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                return
-            }
-            
             if !viewModel.filteredAlarms.isEmpty {
                 TickerListView(
                     tickers: viewModel.filteredAlarms,
@@ -193,10 +192,10 @@ struct ContentView: View {
             }
         }
     }
-
+    
 }
 
 #Preview {
-   ContentView()
+    ContentView()
         .environment(TickerService())
 }

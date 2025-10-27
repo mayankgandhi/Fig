@@ -14,13 +14,14 @@ struct ToolbarButtonsView: View {
     var namespace: Namespace.ID
     
     var body: some View {
-        ToolbarItemGroup(placement: .primaryAction) {
-            plusButton
-            
-            if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
-                aiButton
+        Group {
+                plusButton
+                
+                if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
+                    aiButton
+                }
             }
-        }
+        
     }
     
     // MARK: - Private Views

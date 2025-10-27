@@ -62,7 +62,11 @@ enum AlarmAuthorizationStatus {
 @Observable
 final class TickerService {
     typealias AlarmConfiguration = AlarmManager.AlarmConfiguration<TickerData>
-
+    
+    // Public state (delegated to state manager)
+    var alarms: [UUID: Ticker] {
+        stateManager.alarms
+    }
     
     var authorizationStatus: AlarmAuthorizationStatus {
         AlarmAuthorizationStatus(from: alarmManager.authorizationState)
@@ -589,7 +593,7 @@ final class TickerService {
         }
         
         // Override with state manager data for active alarms (preserves runtime state)
-        for (id, stateTicker) in stateManager.alarms {
+        for (id, stateTicker) in alarms {
             tickerMap[id] = stateTicker
         }
         
