@@ -2,7 +2,7 @@ import ProjectDescription
 
 // Centralized app configuration
 let appName = "Ticker"
-let productName = "Super Alarm - Ticker"
+let productName = "Ticker"
 let version = "1.0.0"
 let buildNumber = "1"
 let mainBundleId = "m.fig"

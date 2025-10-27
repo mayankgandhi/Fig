@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Ticker** (formerly "fig") is a SwiftUI iOS/iPadOS alarm application using SwiftData for persistence and AlarmKit for system alarm integration. The app features Live Activities, widgets, control center integration, and follows modern iOS 26+ Liquid Glass design patterns.
 
-**Product Name**: Super Alarm - Ticker
+**Product Name**: Ticker
 **Bundle ID**: m.fig
 **Deployment Target**: iOS 26.0+
 **Build System**: Tuist (for project generation)
