@@ -55,18 +55,32 @@ struct AlarmDetailTimeSection: View {
             }
             return "\(time.hour):\(String(format: "%02d", time.minute))"
 
-        case .hourly:
-            // For hourly schedules, show a generic time indicator
-            return "Hourly"
+        case .hourly(let interval, let time):
+            // For hourly schedules, show the time
+            let formatter = DateFormatter()
+            formatter.timeStyle = .short
+            var components = DateComponents()
+            components.hour = time.hour
+            components.minute = time.minute
+            if let date = Calendar.current.date(from: components) {
+                return formatter.string(from: date)
+            }
+            return "\(time.hour):\(String(format: "%02d", time.minute))"
 
-        case .every(let interval, let unit, let startTime, _):
-            // For short intervals (minutes/hours), show start time
+        case .every(let interval, let unit, let time):
+            // For short intervals (minutes/hours), show time
             // For longer intervals (days/weeks), show interval description
             switch unit {
             case .minutes, .hours:
                 let formatter = DateFormatter()
                 formatter.timeStyle = .short
-                return formatter.string(from: startTime)
+                var components = DateComponents()
+                components.hour = time.hour
+                components.minute = time.minute
+                if let date = Calendar.current.date(from: components) {
+                    return formatter.string(from: date)
+                }
+                return "\(time.hour):\(String(format: "%02d", time.minute))"
             case .days, .weeks:
                 let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
                 return "Every \(interval) \(unitName)"

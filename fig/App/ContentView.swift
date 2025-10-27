@@ -377,18 +377,14 @@ struct ContentView: View {
             let seconds = time.hour * 3600 + time.minute * 60
             return TimeInterval(seconds)
 
-        case .hourly(_, let startTime, _):
-            // For hourly alarms, use the start time
-            let calendar = Calendar.current
-            let components = calendar.dateComponents([.hour, .minute, .second], from: startTime)
-            let seconds = (components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60 + (components.second ?? 0)
+        case .hourly(_, let time):
+            // For hourly alarms, use the time
+            let seconds = time.hour * 3600 + time.minute * 60
             return TimeInterval(seconds)
 
-        case .every(_, _, let startTime, _):
-            // For every alarms, use the start time for sorting
-            let calendar = Calendar.current
-            let components = calendar.dateComponents([.hour, .minute, .second], from: startTime)
-            let seconds = (components.hour ?? 0) * 3600 + (components.minute ?? 0) * 60 + (components.second ?? 0)
+        case .every(_, _, let time):
+            // For every alarms, use the time for sorting
+            let seconds = time.hour * 3600 + time.minute * 60
             return TimeInterval(seconds)
         }
     }

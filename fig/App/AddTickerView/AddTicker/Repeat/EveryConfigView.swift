@@ -10,9 +10,6 @@ import SwiftUI
 struct EveryConfigView: View {
     @Binding var interval: Int
     @Binding var unit: TickerSchedule.TimeUnit
-    @Binding var startTime: Date
-    @Binding var endTime: Date?
-    @State private var useEndTime: Bool = false
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -73,65 +70,12 @@ struct EveryConfigView: View {
                 }
             }
 
-            // Start Time Section
-            configurationSection {
-                VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                    Text("Start Time")
-                        .Caption()
-                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-                        .textCase(.uppercase)
-                        .tracking(0.8)
-
-                    DatePicker("", selection: $startTime, displayedComponents: displayComponents)
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                }
-            }
-
-            // End Time Section
-            configurationSection {
-                VStack(alignment: .leading, spacing: TickerSpacing.md) {
-                    Toggle(isOn: $useEndTime) {
-                        Text("Set End Time")
-                            .Subheadline()
-                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                    }
-                    .tint(TickerColor.primary)
-                    .onChange(of: useEndTime) { _, newValue in
-                        TickerHaptics.selection()
-                        if newValue {
-                            // Set end time based on unit
-                            endTime = defaultEndTime
-                        } else {
-                            endTime = nil
-                        }
-                    }
-
-                    if useEndTime, let endTimeBinding = Binding($endTime) {
-                        VStack(alignment: .leading, spacing: TickerSpacing.xs) {
-                            Text("End Time")
-                                .Caption()
-                                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-                                .textCase(.uppercase)
-                                .tracking(0.8)
-
-                            DatePicker("End Time", selection: endTimeBinding, displayedComponents: displayComponents)
-                                .datePickerStyle(.compact)
-                                .labelsHidden()
-                        }
-                        .transition(.opacity.combined(with: .move(edge: .top)))
-                    }
-                }
-            }
 
             // Helper Text
             Text(summaryText)
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .onAppear {
-            useEndTime = endTime != nil
         }
     }
 
@@ -177,59 +121,10 @@ struct EveryConfigView: View {
         interval == 1 ? unit.singularName : unit.displayName.lowercased()
     }
 
-    private var displayComponents: DatePickerComponents {
-        switch unit {
-        case .minutes, .hours:
-            return .hourAndMinute
-        case .days, .weeks:
-            return [.date, .hourAndMinute]
-        }
-    }
-
-    private var defaultEndTime: Date {
-        let calendar = Calendar.current
-        switch unit {
-        case .minutes:
-            return calendar.date(byAdding: .hour, value: 8, to: startTime) ?? startTime
-        case .hours:
-            return calendar.date(byAdding: .hour, value: 12, to: startTime) ?? startTime
-        case .days:
-            return calendar.date(byAdding: .day, value: 7, to: startTime) ?? startTime
-        case .weeks:
-            return calendar.date(byAdding: .day, value: 30, to: startTime) ?? startTime
-        }
-    }
-
-    private var summaryText: String {
-        let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
-        let baseText = "Alarms will repeat every \(interval) \(unitName) from \(formatTime(startTime))"
-
-        if useEndTime, let endTime = endTime {
-            return baseText + " until \(formatTime(endTime))"
-        } else {
-            return baseText
-        }
-    }
-
-    private func formatTime(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        switch unit {
-        case .minutes, .hours:
-            formatter.dateFormat = "h:mm a"
-        case .days, .weeks:
-            formatter.dateStyle = .medium
-            formatter.timeStyle = .short
-        }
-        return formatter.string(from: date)
-    }
-}
-
 #Preview {
     @Previewable @State var interval = 30
     @Previewable @State var unit = TickerSchedule.TimeUnit.minutes
-    @Previewable @State var startTime = Date()
-    @Previewable @State var endTime: Date? = nil
 
-    EveryConfigView(interval: $interval, unit: $unit, startTime: $startTime, endTime: $endTime)
+    EveryConfigView(interval: $interval, unit: $unit)
         .padding()
 }

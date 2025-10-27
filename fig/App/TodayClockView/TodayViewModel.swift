@@ -186,11 +186,11 @@ final class TodayViewModel {
         case .weekdays(let time, let days):
             return getNextWeekdayOccurrence(for: time, days: days, from: date)
 
-        case .hourly(let interval, let startTime, let endTime):
-            return getNextHourlyOccurrence(interval: interval, startTime: startTime, endTime: endTime, from: date)
+        case .hourly(let interval, let time):
+            return getNextHourlyOccurrence(interval: interval, time: time, from: date)
 
-        case .every(let interval, let unit, let startTime, let endTime):
-            return getNextEveryOccurrence(interval: interval, unit: unit, startTime: startTime, endTime: endTime, from: date)
+        case .every(let interval, let unit, let time):
+            return getNextEveryOccurrence(interval: interval, unit: unit, time: time, from: date)
 
         case .biweekly(let time, let weekdays):
             // Use current date as implicit anchor for biweekly
@@ -232,24 +232,53 @@ final class TodayViewModel {
     }
 
     /// Calculates the next occurrence for hourly schedule
-    private func getNextHourlyOccurrence(interval: Int, startTime: Date, endTime: Date?, from date: Date) -> Date {
-        var current = max(startTime, date)
-
-        while current < (endTime ?? Date.distantFuture) {
-            if current > date {
-                return current
-            }
-            current = calendar.date(byAdding: .hour, value: interval, to: current) ?? Date.distantFuture
+    private func getNextHourlyOccurrence(interval: Int, time: TickerSchedule.TimeOfDay, from date: Date) -> Date {
+        // Find the next occurrence of the time today
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.hour = time.hour
+        components.minute = time.minute
+        components.second = 0
+        
+        guard let baseTime = calendar.date(from: components) else {
+            return date.addingTimeInterval(3600) // Fallback to 1 hour from now
         }
-
-        return Date.distantFuture
+        
+        // If the base time is in the past, move to next day
+        var currentTime = baseTime
+        if currentTime <= date {
+            currentTime = calendar.date(byAdding: .day, value: 1, to: currentTime) ?? currentTime
+        }
+        
+        // Now find the next hourly occurrence
+        while currentTime <= date.addingTimeInterval(24 * 3600) { // Look ahead 24 hours
+            if currentTime > date {
+                return currentTime
+            }
+            currentTime = calendar.date(byAdding: .hour, value: interval, to: currentTime) ?? currentTime
+        }
+        
+        return currentTime
     }
 
     /// Calculates the next occurrence for every schedule
-    private func getNextEveryOccurrence(interval: Int, unit: TickerSchedule.TimeUnit, startTime: Date, endTime: Date?, from date: Date) -> Date {
-        var current = max(startTime, date)
-
-        // Map unit to Calendar.Component
+    private func getNextEveryOccurrence(interval: Int, unit: TickerSchedule.TimeUnit, time: TickerSchedule.TimeOfDay, from date: Date) -> Date {
+        // Find the next occurrence of the time today
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.hour = time.hour
+        components.minute = time.minute
+        components.second = 0
+        
+        guard let baseTime = calendar.date(from: components) else {
+            return date.addingTimeInterval(3600) // Fallback to 1 hour from now
+        }
+        
+        // If the base time is in the past, move to next day
+        var currentTime = baseTime
+        if currentTime <= date {
+            currentTime = calendar.date(byAdding: .day, value: 1, to: currentTime) ?? currentTime
+        }
+        
+        // Map TimeUnit to Calendar.Component
         let component: Calendar.Component
         switch unit {
         case .minutes:
@@ -261,15 +290,16 @@ final class TodayViewModel {
         case .weeks:
             component = .weekOfYear
         }
-
-        while current < (endTime ?? Date.distantFuture) {
-            if current > date {
-                return current
+        
+        // Now find the next occurrence
+        while currentTime <= date.addingTimeInterval(7 * 24 * 3600) { // Look ahead 7 days
+            if currentTime > date {
+                return currentTime
             }
-            current = calendar.date(byAdding: component, value: interval, to: current) ?? Date.distantFuture
+            currentTime = calendar.date(byAdding: component, value: interval, to: currentTime) ?? currentTime
         }
-
-        return Date.distantFuture
+        
+        return currentTime
     }
 
     /// Calculates the next occurrence for biweekly schedule

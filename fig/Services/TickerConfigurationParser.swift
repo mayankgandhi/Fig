@@ -107,16 +107,14 @@ class TickerConfigurationParser {
         case .hourly(let interval, let startTime, let endTime):
             return .hourly(
                 interval: interval,
-                startTime: startTime,
-                endTime: endTime
+                time: time
             )
 
         case .every(let interval, let unit, let startTime, let endTime):
             return .every(
                 interval: interval,
                 unit: unit,
-                startTime: startTime,
-                endTime: endTime
+                time: time
             )
 
         case .biweekly(let weekdays):
@@ -491,11 +489,10 @@ class TickerConfigurationParser {
             return .weekdays(selectedWeekdays)
         }
 
-        // Check for hourly patterns with interval parsing and time ranges
+        // Check for hourly patterns with interval parsing
         let hourlyInterval = parseHourlyInterval(from: lowercaseInput, fullInput: input)
         if hourlyInterval > 0 {
-            let (startTime, endTime) = parseTimeRange(from: lowercaseInput, input: input, defaultStart: defaultDate)
-            return .hourly(interval: hourlyInterval, startTime: startTime, endTime: endTime)
+            return .hourly(interval: hourlyInterval, startTime: defaultDate, endTime: nil)
         }
 
         // Check for "every X minutes/hours/days/weeks" patterns (more flexible than hourly)
@@ -834,8 +831,7 @@ class TickerConfigurationParser {
                         }
 
                         if isValid {
-                            let (startTime, endTime) = parseTimeRange(from: lowercaseInput, input: input, defaultStart: defaultStart)
-                            return .every(interval: interval, unit: unit, startTime: startTime, endTime: endTime)
+                            return .every(interval: interval, unit: unit, startTime: defaultStart, endTime: nil)
                         }
                     }
                 }
@@ -950,9 +946,6 @@ extension TickerConfigurationParser {
             if interval < 1 || interval > 12 {
                 errors.append("Invalid hourly interval: \(interval)")
             }
-            if let end = endTime, end <= startTime {
-                errors.append("Hourly end time must be after start time")
-            }
         case .every(let interval, let unit, let startTime, let endTime):
             let maxInterval = switch unit {
             case .minutes: 60
@@ -962,9 +955,6 @@ extension TickerConfigurationParser {
             }
             if interval < 1 || interval > maxInterval {
                 errors.append("Invalid interval for \(unit.displayName): \(interval)")
-            }
-            if let end = endTime, end <= startTime {
-                errors.append("End time must be after start time")
             }
         case .biweekly(let weekdays):
             if weekdays.isEmpty {

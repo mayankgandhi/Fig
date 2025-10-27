@@ -24,14 +24,10 @@ final class RepeatOptionsViewModel {
     
     // Configuration for hourly option
     var hourlyInterval: Int = 1
-    var hourlyStartTime: Date = Date()
-    var hourlyEndTime: Date?
 
     // Configuration for every option
     var everyInterval: Int = 1
     var everyUnit: TickerSchedule.TimeUnit = .hours
-    var everyStartTime: Date = Date()
-    var everyEndTime: Date?
     
     // Configuration for biweekly option
     var biweeklyWeekdays: Array<TickerSchedule.Weekday> = []
@@ -175,12 +171,8 @@ final class RepeatOptionsViewModel {
         selectedOption = .oneTime
         selectedWeekdays = []
         hourlyInterval = 1
-        hourlyStartTime = Date()
-        hourlyEndTime = nil
         everyInterval = 1
         everyUnit = .hours
-        everyStartTime = Date()
-        everyEndTime = nil
         biweeklyWeekdays = []
         monthlyDayType = .fixed
         monthlyFixedDay = 1

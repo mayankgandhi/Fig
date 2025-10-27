@@ -125,14 +125,14 @@ struct AlarmCell: View {
             Text(date, style: .time)
         case .daily(let time), .weekdays(let time, _), .biweekly(let time, _), .monthly(_, let time), .yearly(_, _, let time):
             Text(formatTime(time))
-        case .hourly:
-            Text("Hourly")
-        case .every(let interval, let unit, let startTime, _):
-            // For short intervals (minutes/hours), show start time
+        case .hourly(let interval, let time):
+            Text(formatTime(time))
+        case .every(let interval, let unit, let time):
+            // For short intervals (minutes/hours), show time
             // For longer intervals (days/weeks), show interval
             switch unit {
             case .minutes, .hours:
-                Text(startTime, style: .time)
+                Text(formatTime(time))
             case .days, .weeks:
                 Text("Every \(interval) \(unit.displayName)")
             }

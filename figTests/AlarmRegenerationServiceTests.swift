@@ -236,14 +236,14 @@ final class AlarmRegenerationServiceTests: XCTestCase {
     // MARK: - Strategy Detection Tests
 
     func testStrategyDetection_HighFrequency() {
-        let schedule = TickerSchedule.every(interval: 10, unit: .minutes, startTime: Date(), endTime: nil)
+        let schedule = TickerSchedule.every(interval: 10, unit: .minutes, time: TickerSchedule.TimeOfDay(hour: 9, minute: 0))
         let strategy = AlarmGenerationStrategy.determineStrategy(for: schedule)
 
         XCTAssertEqual(strategy, .highFrequency, "10-minute interval should be high frequency")
     }
 
     func testStrategyDetection_MediumFrequency() {
-        let schedule = TickerSchedule.hourly(interval: 1, startTime: Date(), endTime: nil)
+        let schedule = TickerSchedule.hourly(interval: 1, time: TickerSchedule.TimeOfDay(hour: 9, minute: 0))
         let strategy = AlarmGenerationStrategy.determineStrategy(for: schedule)
 
         XCTAssertEqual(strategy, .mediumFrequency, "Hourly interval should be medium frequency")

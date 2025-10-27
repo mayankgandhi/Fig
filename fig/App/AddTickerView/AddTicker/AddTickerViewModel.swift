@@ -187,15 +187,9 @@ final class AddTickerViewModel {
                 showingError = true
                 return
             }
-            if let end = scheduleViewModel.hourlyEndTime, end <= scheduleViewModel.hourlyStartTime {
-                errorMessage = "Hourly end time must be after start time"
-                showingError = true
-                return
-            }
             schedule = .hourly(
                 interval: scheduleViewModel.hourlyInterval,
-                startTime: scheduleViewModel.hourlyStartTime,
-                endTime: scheduleViewModel.hourlyEndTime
+                time: time
             )
 
         case .every:
@@ -205,16 +199,10 @@ final class AddTickerViewModel {
                 showingError = true
                 return
             }
-            if let end = scheduleViewModel.everyEndTime, end <= scheduleViewModel.everyStartTime {
-                errorMessage = "End time must be after start time"
-                showingError = true
-                return
-            }
             schedule = .every(
                 interval: scheduleViewModel.everyInterval,
                 unit: scheduleViewModel.everyUnit,
-                startTime: scheduleViewModel.everyStartTime,
-                endTime: scheduleViewModel.everyEndTime
+                time: time
             )
 
         case .biweekly:
@@ -325,22 +313,16 @@ final class AddTickerViewModel {
                 timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
                 scheduleViewModel.selectOption(.daily)
 
-            case .hourly(let interval, let startTime, let endTime):
-                timePickerViewModel.setTimeFromDate(startTime)
-                scheduleViewModel.selectedDate = startTime
+            case .hourly(let interval, let time):
+                timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
                 scheduleViewModel.selectOption(.hourly)
                 scheduleViewModel.hourlyInterval = interval
-                scheduleViewModel.hourlyStartTime = startTime
-                scheduleViewModel.hourlyEndTime = endTime
 
-            case .every(let interval, let unit, let startTime, let endTime):
-                timePickerViewModel.setTimeFromDate(startTime)
-                scheduleViewModel.selectedDate = startTime
+            case .every(let interval, let unit, let time):
+                timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
                 scheduleViewModel.selectOption(.every)
                 scheduleViewModel.everyInterval = interval
                 scheduleViewModel.everyUnit = unit
-                scheduleViewModel.everyStartTime = startTime
-                scheduleViewModel.everyEndTime = endTime
 
             case .weekdays(let time, let days):
                 timePickerViewModel.setTime(hour: time.hour, minute: time.minute)

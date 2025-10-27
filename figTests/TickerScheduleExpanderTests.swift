@@ -80,25 +80,24 @@ final class TickerScheduleExpanderTests: XCTestCase {
     func testHourlySchedule() {
         let startTime = createDate(year: 2025, month: 1, day: 1, hour: 9, minute: 0)
         let endTime = createDate(year: 2025, month: 1, day: 1, hour: 17, minute: 0)
-        let schedule = TickerSchedule.hourly(interval: 2, startTime: startTime, endTime: endTime)
+        let schedule = TickerSchedule.hourly(interval: 2, time: TickerSchedule.TimeOfDay(hour: 9, minute: 0))
 
         let window = DateInterval(start: startTime, end: endTime)
         let results = expander.expandSchedule(schedule, within: window)
 
-        // Expected: 9:00, 11:00, 13:00, 15:00, 17:00 = 5 alarms
-        XCTAssertEqual(results.count, 5)
+        // Expected: 9:00, 11:00, 13:00, 15:00 = 4 alarms (within window)
+        XCTAssertEqual(results.count, 4)
         XCTAssertEqual(calendar.component(.hour, from: results[0]), 9)
         XCTAssertEqual(calendar.component(.hour, from: results[1]), 11)
         XCTAssertEqual(calendar.component(.hour, from: results[2]), 13)
         XCTAssertEqual(calendar.component(.hour, from: results[3]), 15)
-        XCTAssertEqual(calendar.component(.hour, from: results[4]), 17)
     }
 
     func testHourlySchedule_FutureStartDate() {
         // Test the scenario where start time is in the future (like October 19th)
         let startTime = createDate(year: 2025, month: 10, day: 19, hour: 9, minute: 0)
         let endTime = createDate(year: 2025, month: 10, day: 19, hour: 17, minute: 0)
-        let schedule = TickerSchedule.hourly(interval: 2, startTime: startTime, endTime: endTime)
+        let schedule = TickerSchedule.hourly(interval: 2, time: TickerSchedule.TimeOfDay(hour: 9, minute: 0))
 
         // Window starts from "now" (January 1st) but should respect the future start time
         let windowStart = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
@@ -284,7 +283,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
         // Every 10 minutes
         let startTime = createDate(year: 2025, month: 1, day: 1, hour: 9, minute: 0)
         let endTime = createDate(year: 2025, month: 1, day: 10, hour: 17, minute: 0)
-        let schedule = TickerSchedule.every(interval: 10, unit: .minutes, startTime: startTime, endTime: endTime)
+        let schedule = TickerSchedule.every(interval: 10, unit: .minutes, time: TickerSchedule.TimeOfDay(hour: 9, minute: 0))
 
         let strategy = AlarmGenerationStrategy.highFrequency
         let results = expander.expandSchedule(schedule, from: startTime, strategy: strategy)

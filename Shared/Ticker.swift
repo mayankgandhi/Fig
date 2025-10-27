@@ -156,8 +156,8 @@ final class Ticker {
 enum TickerSchedule: Codable, Hashable {
     case oneTime(date: Date)
     case daily(time: TimeOfDay)
-    case hourly(interval: Int, startTime: Date, endTime: Date?)
-    case every(interval: Int, unit: TimeUnit, startTime: Date, endTime: Date?)
+    case hourly(interval: Int, time: TimeOfDay)
+    case every(interval: Int, unit: TimeUnit, time: TimeOfDay)
     case weekdays(time: TimeOfDay, days: Array<Weekday>)
     case biweekly(time: TimeOfDay, weekdays: Array<Weekday>)
     case monthly(day: MonthlyDay, time: TimeOfDay)
@@ -312,24 +312,12 @@ extension TickerSchedule {
         case .daily(let time):
             return "Daily at \(formatTime(time))"
 
-        case .hourly(let interval, _, let endTime):
-            if let endTime = endTime {
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                return "Every \(interval)h until \(formatter.string(from: endTime))"
-            } else {
-                return "Every \(interval) hour\(interval == 1 ? "" : "s")"
-            }
+        case .hourly(let interval, _):
+            return "Every \(interval) hour\(interval == 1 ? "" : "s")"
 
-        case .every(let interval, let unit, _, let endTime):
+        case .every(let interval, let unit, _):
             let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
-            if let endTime = endTime {
-                let formatter = DateFormatter()
-                formatter.timeStyle = .short
-                return "Every \(interval) \(unitName) until \(formatter.string(from: endTime))"
-            } else {
-                return "Every \(interval) \(unitName)"
-            }
+            return "Every \(interval) \(unitName)"
 
         case .weekdays(let time, let days):
             let sortedDays = days.sorted { $0.rawValue < $1.rawValue }
@@ -541,7 +529,39 @@ extension Ticker {
                 )
             }
 
-        case .hourly, .every, .weekdays, .biweekly, .monthly, .yearly:
+        case .hourly(let interval, let time):
+            // For hourly schedules, create a recurring alarm at the specified time
+            // If there's a countdown, adjust the time to start the countdown before the alarm time
+            if let countdownDuration = countdown?.preAlert?.interval {
+                let countdownStartTime = time.addingTimeInterval(-countdownDuration)
+                let alarmTime = Alarm.Schedule.Relative.Time(hour: countdownStartTime.hour, minute: countdownStartTime.minute)
+                return .relative(
+                    .init(time: alarmTime, repeats: .hourly(interval: interval))
+                )
+            } else {
+                let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
+                return .relative(
+                    .init(time: alarmTime, repeats: .hourly(interval: interval))
+                )
+            }
+
+        case .every(let interval, let unit, let time):
+            // For every schedules, create a recurring alarm at the specified time
+            // If there's a countdown, adjust the time to start the countdown before the alarm time
+            if let countdownDuration = countdown?.preAlert?.interval {
+                let countdownStartTime = time.addingTimeInterval(-countdownDuration)
+                let alarmTime = Alarm.Schedule.Relative.Time(hour: countdownStartTime.hour, minute: countdownStartTime.minute)
+                return .relative(
+                    .init(time: alarmTime, repeats: .custom(interval: interval, unit: unit))
+                )
+            } else {
+                let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
+                return .relative(
+                    .init(time: alarmTime, repeats: .custom(interval: interval, unit: unit))
+                )
+            }
+
+        case .weekdays, .biweekly, .monthly, .yearly:
             // Composite schedules are expanded into multiple one-time alarms
             // by the TickerService, so they don't need direct AlarmKit mapping
             return nil

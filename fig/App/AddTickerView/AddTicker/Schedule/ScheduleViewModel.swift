@@ -23,14 +23,10 @@ final class ScheduleViewModel {
 
     // Configuration for hourly option
     var hourlyInterval: Int = 1
-    var hourlyStartTime: Date = Date()
-    var hourlyEndTime: Date?
 
     // Configuration for every option
     var everyInterval: Int = 1
     var everyUnit: TickerSchedule.TimeUnit = .hours
-    var everyStartTime: Date = Date()
-    var everyEndTime: Date?
 
     // Configuration for biweekly option
     var biweeklyWeekdays: Array<TickerSchedule.Weekday> = []
@@ -198,17 +194,9 @@ final class ScheduleViewModel {
         case .weekdays:
             return !selectedWeekdays.isEmpty
         case .hourly:
-            if hourlyInterval < 1 { return false }
-            if let end = hourlyEndTime {
-                return end > hourlyStartTime
-            }
-            return true
+            return hourlyInterval >= 1
         case .every:
-            if everyInterval < 1 { return false }
-            if let end = everyEndTime {
-                return end > everyStartTime
-            }
-            return true
+            return everyInterval >= 1
         case .biweekly:
             return !biweeklyWeekdays.isEmpty
         case .monthly:
@@ -225,16 +213,6 @@ final class ScheduleViewModel {
 
     func selectDate(_ date: Date) {
         selectedDate = date
-        
-        // Update everyStartTime if "every" option is selected
-        if selectedOption == .every {
-            everyStartTime = date
-        }
-        
-        // Update hourlyStartTime if "hourly" option is selected
-        if selectedOption == .hourly {
-            hourlyStartTime = date
-        }
     }
 
     func updateSmartDate(for hour: Int, minute: Int) {
@@ -253,16 +231,6 @@ final class ScheduleViewModel {
         }
         
         selectedDate = newDate
-        
-        // Update everyStartTime if "every" option is selected
-        if selectedOption == .every {
-            everyStartTime = newDate
-        }
-        
-        // Update hourlyStartTime if "hourly" option is selected
-        if selectedOption == .hourly {
-            hourlyStartTime = newDate
-        }
     }
 
 
@@ -281,12 +249,8 @@ final class ScheduleViewModel {
                 if biweeklyWeekdays.isEmpty {
                     biweeklyWeekdays = [.monday, .wednesday, .friday]
                 }
-            case .every:
-                // Initialize everyStartTime with the selected date
-                everyStartTime = selectedDate
-            case .hourly:
-                // Initialize hourlyStartTime with the selected date
-                hourlyStartTime = selectedDate
+            case .every, .hourly:
+                // No special initialization needed for these options
             default:
                 break
         }
@@ -297,12 +261,8 @@ final class ScheduleViewModel {
         selectedOption = .oneTime
         selectedWeekdays = []
         hourlyInterval = 1
-        hourlyStartTime = Date()
-        hourlyEndTime = nil
         everyInterval = 1
         everyUnit = .hours
-        everyStartTime = Date()
-        everyEndTime = nil
         biweeklyWeekdays = []
         monthlyDayType = .fixed
         monthlyFixedDay = 1

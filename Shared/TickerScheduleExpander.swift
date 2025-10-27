@@ -48,11 +48,11 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         case .daily(let time):
             return expandDaily(time: time, within: window)
 
-        case .hourly(let interval, let startTime, let endTime):
-            return expandHourly(interval: interval, startTime: startTime, endTime: endTime, within: window)
+        case .hourly(let interval, let time):
+            return expandHourly(interval: interval, time: time, within: window)
 
-        case .every(let interval, let unit, let startTime, let endTime):
-            return expandEvery(interval: interval, unit: unit, startTime: startTime, endTime: endTime, within: window)
+        case .every(let interval, let unit, let time):
+            return expandEvery(interval: interval, unit: unit, time: time, within: window)
 
         case .weekdays(let time, let days):
             return expandWeekdays(time: time, days: days, within: window)
@@ -135,76 +135,94 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandHourly(interval: Int, startTime: Date, endTime: Date?, within window: DateInterval) -> [Date] {
+    private func expandHourly(interval: Int, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        let effectiveEndTime = endTime ?? window.end
         
-        // Ensure we start from a future date
-        let now = Date()
-        var currentDate: Date
+        // Start from the beginning of the window
+        var currentDate = window.start
         
-        if startTime > now {
-            // Start time is in the future, use it
-            currentDate = max(startTime, window.start)
-        } else {
-            // Start time is in the past, find the next occurrence from now
-            currentDate = findNextOccurrence(from: now, interval: interval, unit: .hours, originalStartTime: startTime)
-            currentDate = max(currentDate, window.start)
-        }
-
-        while currentDate <= min(effectiveEndTime, window.end) {
-            dates.append(currentDate)
-
-            guard let nextDate = calendar.date(byAdding: .hour, value: interval, to: currentDate) else {
+        // Find the first occurrence of the time within the window
+        while currentDate <= window.end {
+            if let alarmDate = createDate(from: currentDate, with: time) {
+                if alarmDate >= window.start && alarmDate <= window.end {
+                    dates.append(alarmDate)
+                }
+            }
+            
+            // Move to next day to find the next occurrence
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
                 break
             }
             currentDate = nextDate
         }
-
-        return dates.sorted()
+        
+        // Now generate hourly intervals for each day
+        var hourlyDates: [Date] = []
+        for baseDate in dates {
+            var currentHourly = baseDate
+            while currentHourly <= window.end {
+                hourlyDates.append(currentHourly)
+                
+                guard let nextHourly = calendar.date(byAdding: .hour, value: interval, to: currentHourly) else {
+                    break
+                }
+                currentHourly = nextHourly
+            }
+        }
+        
+        return hourlyDates.sorted()
     }
 
-    private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, startTime: Date, endTime: Date?, within window: DateInterval) -> [Date] {
+    private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        let effectiveEndTime = endTime ?? window.end
         
-        // Ensure we start from a future date - use the later of startTime or window.start
-        // but if startTime is in the past, find the next occurrence from now
-        let now = Date()
-        var currentDate: Date
+        // Start from the beginning of the window
+        var currentDate = window.start
         
-        if startTime > now {
-            // Start time is in the future, use it
-            currentDate = max(startTime, window.start)
-        } else {
-            // Start time is in the past, find the next occurrence from now
-            currentDate = findNextOccurrence(from: now, interval: interval, unit: unit, originalStartTime: startTime)
-            currentDate = max(currentDate, window.start)
-        }
-
-        // Map TimeUnit to Calendar.Component
-        let component: Calendar.Component
-        switch unit {
-        case .minutes:
-            component = .minute
-        case .hours:
-            component = .hour
-        case .days:
-            component = .day
-        case .weeks:
-            component = .weekOfYear
-        }
-
-        while currentDate <= min(effectiveEndTime, window.end) {
-            dates.append(currentDate)
-
-            guard let nextDate = calendar.date(byAdding: component, value: interval, to: currentDate) else {
+        // Find the first occurrence of the time within the window
+        while currentDate <= window.end {
+            if let alarmDate = createDate(from: currentDate, with: time) {
+                if alarmDate >= window.start && alarmDate <= window.end {
+                    dates.append(alarmDate)
+                }
+            }
+            
+            // Move to next day to find the next occurrence
+            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
                 break
             }
             currentDate = nextDate
         }
-
-        return dates.sorted()
+        
+        // Now generate intervals for each base date
+        var intervalDates: [Date] = []
+        for baseDate in dates {
+            var currentInterval = baseDate
+            
+            // Map TimeUnit to Calendar.Component
+            let component: Calendar.Component
+            switch unit {
+            case .minutes:
+                component = .minute
+            case .hours:
+                component = .hour
+            case .days:
+                component = .day
+            case .weeks:
+                component = .weekOfYear
+            }
+            
+            while currentInterval <= window.end {
+                intervalDates.append(currentInterval)
+                
+                guard let nextInterval = calendar.date(byAdding: component, value: interval, to: currentInterval) else {
+                    break
+                }
+                currentInterval = nextInterval
+            }
+        }
+        
+        return intervalDates.sorted()
     }
 
     private func expandWeekdays(time: TickerSchedule.TimeOfDay, days: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
@@ -344,50 +362,6 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     }
 
     // MARK: - Helper Methods
-
-    private func findNextOccurrence(from now: Date, interval: Int, unit: TickerSchedule.TimeUnit, originalStartTime: Date) -> Date {
-        // Calculate how many intervals have passed since the original start time
-        let timeSinceStart = now.timeIntervalSince(originalStartTime)
-        let intervalSeconds: TimeInterval
-        
-        switch unit {
-        case .minutes:
-            intervalSeconds = TimeInterval(interval * 60)
-        case .hours:
-            intervalSeconds = TimeInterval(interval * 3600)
-        case .days:
-            intervalSeconds = TimeInterval(interval * 86400)
-        case .weeks:
-            intervalSeconds = TimeInterval(interval * 604800)
-        }
-        
-        // Find how many complete intervals have passed
-        let intervalsPassed = Int(timeSinceStart / intervalSeconds)
-        
-        // Calculate the next occurrence
-        let nextIntervalCount = intervalsPassed + 1
-        
-        // Map TimeUnit to Calendar.Component
-        let component: Calendar.Component
-        switch unit {
-        case .minutes:
-            component = .minute
-        case .hours:
-            component = .hour
-        case .days:
-            component = .day
-        case .weeks:
-            component = .weekOfYear
-        }
-        
-        // Calculate the next occurrence by adding the appropriate number of intervals
-        guard let nextDate = calendar.date(byAdding: component, value: interval * nextIntervalCount, to: originalStartTime) else {
-            // Fallback: just add one interval from now
-            return calendar.date(byAdding: component, value: interval, to: now) ?? now
-        }
-        
-        return nextDate
-    }
 
     private func createDate(from baseDate: Date, with time: TickerSchedule.TimeOfDay) -> Date? {
         var components = calendar.dateComponents([.year, .month, .day], from: baseDate)
