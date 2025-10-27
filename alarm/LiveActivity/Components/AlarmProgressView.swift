@@ -90,14 +90,14 @@ struct AlarmProgressView: View {
         }
     }
     
-    private func calculateProgress(countdown: AlarmCountdown) -> Double {
+    private func calculateProgress(countdown: AlarmPresentationState.Mode.Countdown) -> Double {
         let totalDuration = countdown.fireDate.timeIntervalSince(countdown.startDate)
         let elapsed = Date.now.timeIntervalSince(countdown.startDate)
         let progress = max(0, min(1, elapsed / totalDuration))
         return progress
     }
     
-    private func calculatePausedProgress(state: AlarmPausedState) -> Double {
+    private func calculatePausedProgress(state: AlarmPresentationState.Mode.Paused) -> Double {
         let totalDuration = Double(state.totalCountdownDuration)
         let elapsed = Double(state.previouslyElapsedDuration)
         let progress = max(0, min(1, elapsed / totalDuration))

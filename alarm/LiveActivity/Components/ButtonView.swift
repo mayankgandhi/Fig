@@ -25,7 +25,11 @@ struct ButtonView<I>: View where I: AppIntent {
     }
 
     var body: some View {
-        Button(intent: intent) {
+        Button {
+            // Execute the intent
+            Task {
+                try? await intent.perform()
+            }
             // Haptic feedback
             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.impactOccurred()

@@ -17,6 +17,8 @@ import WidgetKit
 
 struct AlarmLiveActivity: Widget {
 
+    @Environment(\.colorScheme) var colorScheme
+
     // Helper function to check if mode is countdown
     private func isCountdownMode(_ mode: AlarmPresentationState.Mode) -> Bool {
         switch mode {
@@ -135,7 +137,7 @@ struct AlarmLiveActivity: Widget {
         .padding(.all, TickerSpacing.lg)
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.liquidGlassGradient(for: .light))
+                .fill(TickerColor.surface(for: colorScheme))
                 .overlay(
                     RoundedRectangle(cornerRadius: TickerRadius.large)
                         .strokeBorder(
