@@ -94,7 +94,7 @@ struct AlarmDetailOptionsSection: View {
             return date.formatted(date: .abbreviated, time: .omitted)
         case .daily:
             return "Every day"
-        case .hourly(let interval, _, _):
+        case .hourly(let interval, _):
             return "Every \(interval)h"
         case .weekdays(_, let days):
             let sortedDays = days.sorted { $0.rawValue < $1.rawValue }
@@ -114,7 +114,7 @@ struct AlarmDetailOptionsSection: View {
             let monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
             return "\(monthNames[month - 1]) \(day)"
 
-        case .every(let interval, let unit, _, _):
+        case .every(let interval, let unit, _):
             let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
             return "Every \(interval) \(unitName)"
         }

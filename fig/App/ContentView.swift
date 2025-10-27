@@ -184,7 +184,7 @@ struct ContentView: View {
                     // For hourly alarms, use a generic string
                     timeString = "hourly"
 
-                case .every(let interval, let unit, _, _):
+                case .every(let interval, let unit, _):
                     // For every alarms, create searchable string with interval and unit
                     let unitName = interval == 1 ? unit.singularName : unit.displayName.lowercased()
                     timeString = "every \(interval) \(unitName)"

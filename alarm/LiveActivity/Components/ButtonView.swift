@@ -25,7 +25,7 @@ struct ButtonView<I>: View where I: AppIntent {
 
     var body: some View {
         Button(intent: intent) {
-            HStack(spacing: 6) {
+            HStack(spacing: TickerSpacing.xxs) {
                 Image(systemName: config.systemImageName)
                     .ButtonText()
 
@@ -33,17 +33,51 @@ struct ButtonView<I>: View where I: AppIntent {
                     .SmallText()
                     .lineLimit(1)
             }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .foregroundStyle(TickerColor.absoluteWhite)
+            .padding(.horizontal, TickerSpacing.md)
+            .padding(.vertical, TickerSpacing.xs)
             .background(
                 Capsule()
                     .fill(tint)
-                    .shadow(color: tint.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(
+                        color: TickerShadow.elevated.color,
+                        radius: TickerShadow.elevated.radius,
+                        x: TickerShadow.elevated.x,
+                        y: TickerShadow.elevated.y
+                    )
             )
         }
         .buttonStyle(PlainButtonStyle())
         .scaleEffect(1.0)
-        .animation(.easeInOut(duration: 0.1), value: false)
+        .animation(TickerAnimation.quick, value: false)
     }
+}
+
+// MARK: - Previews
+
+#Preview("Button View - Pause Button") {
+    ButtonView(
+        config: AlarmButton(systemImageName: "pause.fill", text: "Pause"),
+        intent: PauseIntent(alarmID: UUID().uuidString),
+        tint: TickerColor.paused
+    )
+    .padding()
+}
+
+#Preview("Button View - Resume Button") {
+    ButtonView(
+        config: AlarmButton(systemImageName: "play.fill", text: "Resume"),
+        intent: ResumeIntent(alarmID: UUID().uuidString),
+        tint: TickerColor.running
+    )
+    .padding()
+}
+
+#Preview("Button View - Stop Button") {
+    ButtonView(
+        config: AlarmButton(systemImageName: "stop.fill", text: "Stop"),
+        intent: StopIntent(alarmID: UUID().uuidString),
+        tint: TickerColor.danger
+    )
+    .padding()
 }

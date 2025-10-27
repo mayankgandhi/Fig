@@ -104,13 +104,13 @@ class TickerConfigurationParser {
         case .weekdays(let weekdays):
             return .weekdays(time: time, days: weekdays)
 
-        case .hourly(let interval, let startTime, let endTime):
+        case .hourly(let interval):
             return .hourly(
                 interval: interval,
                 time: time
             )
 
-        case .every(let interval, let unit, let startTime, let endTime):
+        case .every(let interval, let unit):
             return .every(
                 interval: interval,
                 unit: unit,
@@ -492,7 +492,7 @@ class TickerConfigurationParser {
         // Check for hourly patterns with interval parsing
         let hourlyInterval = parseHourlyInterval(from: lowercaseInput, fullInput: input)
         if hourlyInterval > 0 {
-            return .hourly(interval: hourlyInterval, startTime: defaultDate, endTime: nil)
+            return .hourly(interval: hourlyInterval)
         }
 
         // Check for "every X minutes/hours/days/weeks" patterns (more flexible than hourly)
@@ -831,7 +831,7 @@ class TickerConfigurationParser {
                         }
 
                         if isValid {
-                            return .every(interval: interval, unit: unit, startTime: defaultStart, endTime: nil)
+                            return .every(interval: interval, unit: unit)
                         }
                     }
                 }
@@ -942,11 +942,11 @@ extension TickerConfigurationParser {
             if weekdays.isEmpty {
                 errors.append("No weekdays selected for weekday repeat")
             }
-        case .hourly(let interval, let startTime, let endTime):
+        case .hourly(let interval):
             if interval < 1 || interval > 12 {
                 errors.append("Invalid hourly interval: \(interval)")
             }
-        case .every(let interval, let unit, let startTime, let endTime):
+        case .every(let interval, let unit):
             let maxInterval = switch unit {
             case .minutes: 60
             case .hours: 24

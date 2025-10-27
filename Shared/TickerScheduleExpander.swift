@@ -174,16 +174,41 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     }
 
     private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
-        var dates: [Date] = []
+        var intervalDates: [Date] = []
         
-        // Start from the beginning of the window
+        // Find the first occurrence of the target time that is >= window.start
         var currentDate = window.start
         
-        // Find the first occurrence of the time within the window
+        // Find the first occurrence of the time within or after the window start
         while currentDate <= window.end {
             if let alarmDate = createDate(from: currentDate, with: time) {
-                if alarmDate >= window.start && alarmDate <= window.end {
-                    dates.append(alarmDate)
+                // If this occurrence is >= window.start, use it as the starting point
+                if alarmDate >= window.start {
+                    // Generate intervals from this starting point
+                    var currentInterval = alarmDate
+                    
+                    // Map TimeUnit to Calendar.Component
+                    let component: Calendar.Component
+                    switch unit {
+                    case .minutes:
+                        component = .minute
+                    case .hours:
+                        component = .hour
+                    case .days:
+                        component = .day
+                    case .weeks:
+                        component = .weekOfYear
+                    }
+                    
+                    while currentInterval <= window.end {
+                        intervalDates.append(currentInterval)
+                        
+                        guard let nextInterval = calendar.date(byAdding: component, value: interval, to: currentInterval) else {
+                            break
+                        }
+                        currentInterval = nextInterval
+                    }
+                    break // Found the starting point and generated intervals, we're done
                 }
             }
             
@@ -192,34 +217,6 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
                 break
             }
             currentDate = nextDate
-        }
-        
-        // Now generate intervals for each base date
-        var intervalDates: [Date] = []
-        for baseDate in dates {
-            var currentInterval = baseDate
-            
-            // Map TimeUnit to Calendar.Component
-            let component: Calendar.Component
-            switch unit {
-            case .minutes:
-                component = .minute
-            case .hours:
-                component = .hour
-            case .days:
-                component = .day
-            case .weeks:
-                component = .weekOfYear
-            }
-            
-            while currentInterval <= window.end {
-                intervalDates.append(currentInterval)
-                
-                guard let nextInterval = calendar.date(byAdding: component, value: interval, to: currentInterval) else {
-                    break
-                }
-                currentInterval = nextInterval
-            }
         }
         
         return intervalDates.sorted()

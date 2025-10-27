@@ -127,106 +127,17 @@ struct WidgetDataSharingService {
         try data.write(to: fileURL, options: [.atomic])
     }
 
-    /// Computes upcoming alarms from SwiftData
-    /// This logic is extracted from WidgetDataFetcher for reuse in the main app
+    /// Computes upcoming alarms from SwiftData using centralized service
     private static func computeUpcomingAlarms(
         context: ModelContext,
         limit: Int,
         withinHours: Int
     ) async -> [UpcomingAlarmPresentation] {
-        // Fetch all enabled alarms
-        let descriptor = FetchDescriptor<Ticker>(
-            predicate: #Predicate { $0.isEnabled },
-            sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
+        return await AlarmOccurrenceService.computeOccurrences(
+            context: context,
+            withinHours: withinHours,
+            limit: limit
         )
-
-        guard let alarms = try? context.fetch(descriptor) else {
-            return []
-        }
-
-        // Expand schedules to get upcoming dates
-        let now = Date()
-        let timeWindow = now.addingTimeInterval(Double(withinHours) * 60 * 60)
-        let calendar = Calendar.current
-        let expander = TickerScheduleExpander(calendar: calendar)
-
-        var upcomingAlarms: [UpcomingAlarmPresentation] = []
-
-        for alarm in alarms {
-            guard let schedule = alarm.schedule else { continue }
-
-            // Expand schedule
-            let window = DateInterval(start: now, end: timeWindow)
-            let expandedDates = expander.expandSchedule(schedule, within: window)
-
-            // Limit to first 3 occurrences per alarm
-            let limitedDates = Array(expandedDates.prefix(3))
-
-            for alarmDate in limitedDates {
-                let hour = calendar.component(.hour, from: alarmDate)
-                let minute = calendar.component(.minute, from: alarmDate)
-
-                let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
-                    switch schedule {
-                    case .oneTime: return .oneTime
-                    case .daily: return .daily
-                    case .hourly(let interval, _, _): return .hourly(interval: interval)
-                    case .weekdays(_, let days):
-                        return .weekdays(days.map { $0.rawValue })
-                    case .biweekly: return .biweekly
-                    case .monthly: return .monthly
-                    case .yearly: return .yearly
-                    case .every(let interval, let unit, _, _):
-                        let unitString: String
-                        switch unit {
-                        case .minutes: unitString = "minutes"
-                        case .hours: unitString = "hours"
-                        case .days: unitString = "days"
-                        case .weeks: unitString = "weeks"
-                        }
-                        return .every(interval: interval, unit: unitString)
-                    }
-                }()
-
-                let presentation = UpcomingAlarmPresentation(
-                    baseAlarmId: alarm.id,
-                    displayName: alarm.displayName,
-                    icon: alarm.tickerData?.icon ?? "alarm",
-                    color: extractColor(from: alarm),
-                    nextAlarmTime: alarmDate,
-                    scheduleType: scheduleType,
-                    hour: hour,
-                    minute: minute,
-                    hasCountdown: alarm.countdown?.preAlert != nil,
-                    tickerDataTitle: alarm.tickerData?.name
-                )
-
-                upcomingAlarms.append(presentation)
-            }
-        }
-
-        // Sort by next alarm time
-        upcomingAlarms.sort { $0.nextAlarmTime < $1.nextAlarmTime }
-
-        // Apply limit
-        return Array(upcomingAlarms.prefix(limit))
     }
 
-    /// Extracts color from alarm with fallback
-    private static func extractColor(from alarm: Ticker) -> Color {
-        // Try ticker data first
-        if let colorHex = alarm.tickerData?.colorHex,
-           let color = Color(hex: colorHex) {
-            return color
-        }
-
-        // Try presentation tint
-        if let tintHex = alarm.presentation.tintColorHex,
-           let color = Color(hex: tintHex) {
-            return color
-        }
-
-        // Default
-        return .accentColor
-    }
 }

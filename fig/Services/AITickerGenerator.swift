@@ -72,8 +72,8 @@ class AITickerGenerator: ObservableObject {
         case oneTime
         case daily
         case weekdays([TickerSchedule.Weekday])
-        case hourly(interval: Int, startTime: Date, endTime: Date?)
-        case every(interval: Int, unit: TickerSchedule.TimeUnit, startTime: Date, endTime: Date?)
+        case hourly(interval: Int)
+        case every(interval: Int, unit: TickerSchedule.TimeUnit)
         case biweekly([TickerSchedule.Weekday])
         case monthly(day: TickerSchedule.MonthlyDay)
         case yearly(month: Int, day: Int)
@@ -612,9 +612,9 @@ class AITickerGenerator: ObservableObject {
             finalMetadata["repeat"] = "daily"
         case .weekdays(let days):
             finalMetadata["repeat"] = "weekdays(\(days.count))"
-        case .hourly(let interval, _, _):
+        case .hourly(let interval):
             finalMetadata["repeat"] = "hourly(\(interval))"
-        case .every(let interval, let unit, _, _):
+        case .every(let interval, let unit):
             finalMetadata["repeat"] = "every(\(interval) \(unit))"
         case .biweekly(let days):
             finalMetadata["repeat"] = "biweekly(\(days.count))"

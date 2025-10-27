@@ -99,17 +99,13 @@ struct RepeatOptionsView: View {
 
         case .hourly:
             HourlyConfigView(
-                interval: $viewModel.hourlyInterval,
-                startTime: $viewModel.hourlyStartTime,
-                endTime: $viewModel.hourlyEndTime
+                interval: $viewModel.hourlyInterval
             )
 
         case .every:
             EveryConfigView(
                 interval: $viewModel.everyInterval,
                 unit: $viewModel.everyUnit,
-                startTime: $viewModel.everyStartTime,
-                endTime: $viewModel.everyEndTime
             )
 
         case .biweekly:

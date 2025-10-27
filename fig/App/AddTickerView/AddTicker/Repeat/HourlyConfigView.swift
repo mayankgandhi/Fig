@@ -10,7 +10,7 @@ import SwiftUI
 struct HourlyConfigView: View {
     @Binding var interval: Int
     @Environment(\.colorScheme) private var colorScheme
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             // Example text
@@ -18,7 +18,7 @@ struct HourlyConfigView: View {
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
-
+            
             // Interval Picker Section
             configurationSection {
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {
@@ -27,7 +27,7 @@ struct HourlyConfigView: View {
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .textCase(.uppercase)
                         .tracking(0.8)
-
+                    
                     HStack(spacing: TickerSpacing.sm) {
                         Picker("Interval", selection: $interval) {
                             ForEach(1...12, id: \.self) { hour in
@@ -37,14 +37,14 @@ struct HourlyConfigView: View {
                         .pickerStyle(.wheel)
                         .frame(width: 80, height: 100)
                         .clipped()
-
+                        
                         Text(interval == 1 ? "hour" : "hours")
                             .Body()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     }
                 }
             }
-
+            
             // Helper Text
             Text("Alarms will repeat every \(interval) hour\(interval == 1 ? "" : "s")")
                 .Caption()
@@ -52,9 +52,9 @@ struct HourlyConfigView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
     }
-
+    
     // MARK: - Configuration Section Container
-
+    
     @ViewBuilder
     private func configurationSection<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
@@ -75,10 +75,12 @@ struct HourlyConfigView: View {
                 y: TickerShadow.subtle.y
             )
     }
+    
+}
 
 #Preview {
     @Previewable @State var interval = 2
-
+    
     HourlyConfigView(interval: $interval)
         .padding()
 }

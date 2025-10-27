@@ -11,7 +11,7 @@ struct EveryConfigView: View {
     @Binding var interval: Int
     @Binding var unit: TickerSchedule.TimeUnit
     @Environment(\.colorScheme) private var colorScheme
-
+    
     var body: some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             // Example text
@@ -20,7 +20,7 @@ struct EveryConfigView: View {
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, TickerSpacing.md)
-
+            
             // Unit Picker Section
             configurationSection {
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {
@@ -29,7 +29,7 @@ struct EveryConfigView: View {
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .textCase(.uppercase)
                         .tracking(0.8)
-
+                    
                     Picker("Unit", selection: $unit) {
                         ForEach(TickerSchedule.TimeUnit.allCases, id: \.self) { timeUnit in
                             Text(timeUnit.displayName).tag(timeUnit)
@@ -43,7 +43,7 @@ struct EveryConfigView: View {
                     }
                 }
             }
-
+            
             // Interval Picker Section
             configurationSection {
                 VStack(alignment: .leading, spacing: TickerSpacing.sm) {
@@ -52,7 +52,7 @@ struct EveryConfigView: View {
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .textCase(.uppercase)
                         .tracking(0.8)
-
+                    
                     HStack(spacing: TickerSpacing.sm) {
                         Picker("Interval", selection: $interval) {
                             ForEach(intervalRange, id: \.self) { value in
@@ -62,25 +62,19 @@ struct EveryConfigView: View {
                         .pickerStyle(.wheel)
                         .frame(width: 80, height: 100)
                         .clipped()
-
+                        
                         Text(intervalDisplayText)
                             .Body()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     }
                 }
             }
-
-
-            // Helper Text
-            Text(summaryText)
-                .Caption()
-                .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                .frame(maxWidth: .infinity, alignment: .leading)
+            
         }
     }
-
+    
     // MARK: - Configuration Section Container
-
+    
     @ViewBuilder
     private func configurationSection<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
@@ -101,30 +95,31 @@ struct EveryConfigView: View {
                 y: TickerShadow.subtle.y
             )
     }
-
+    
     // MARK: - Helper Properties
-
+    
     private var intervalRange: ClosedRange<Int> {
         switch unit {
-        case .minutes:
-            return 1...60
-        case .hours:
-            return 1...24
-        case .days:
-            return 1...30
-        case .weeks:
-            return 1...52
+            case .minutes:
+                return 1...60
+            case .hours:
+                return 1...24
+            case .days:
+                return 1...30
+            case .weeks:
+                return 1...52
         }
     }
-
+    
     private var intervalDisplayText: String {
         interval == 1 ? unit.singularName : unit.displayName.lowercased()
     }
+}
 
 #Preview {
     @Previewable @State var interval = 30
     @Previewable @State var unit = TickerSchedule.TimeUnit.minutes
-
+    
     EveryConfigView(interval: $interval, unit: $unit)
         .padding()
 }

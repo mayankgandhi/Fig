@@ -97,15 +97,9 @@ final class AddTickerViewModel {
             if scheduleViewModel.hourlyInterval < 1 {
                 messages.append("Hourly interval must be at least 1 hour")
             }
-            if let end = scheduleViewModel.hourlyEndTime, end <= scheduleViewModel.hourlyStartTime {
-                messages.append("Hourly end time must be after start time")
-            }
         case .every:
             if scheduleViewModel.everyInterval < 1 {
                 messages.append("Interval must be at least 1")
-            }
-            if let end = scheduleViewModel.everyEndTime, end <= scheduleViewModel.everyStartTime {
-                messages.append("End time must be after start time")
             }
         case .monthly:
             if scheduleViewModel.monthlyDayType == .fixed && !(1...31).contains(scheduleViewModel.monthlyFixedDay) {

@@ -251,7 +251,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
     func test48HourWindow_HourlySchedule() {
         let startTime = createDate(year: 2025, month: 1, day: 1, hour: 9, minute: 0)
         let endTime = createDate(year: 2025, month: 1, day: 10, hour: 17, minute: 0)
-        let schedule = TickerSchedule.hourly(interval: 6, startTime: startTime, endTime: endTime)
+        let schedule = TickerSchedule.hourly(interval: 6, time: TickerSchedule.TimeOfDay(hour: 9, minute: 0))
 
         let results = expander.expandSchedule(schedule, within48HoursFrom: startTime)
 

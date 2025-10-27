@@ -83,7 +83,7 @@ enum AlarmGenerationStrategy: Codable, Equatable, Hashable {
         case .daily:
             return .lowFrequency  // Once per day
 
-        case .hourly(let interval, _, _):
+        case .hourly(let interval, _):
             if interval == 1 {
                 return .mediumFrequency  // Every hour
             } else if interval <= 3 {
@@ -92,7 +92,7 @@ enum AlarmGenerationStrategy: Codable, Equatable, Hashable {
                 return .lowFrequency  // Every 4+ hours
             }
 
-        case .every(let interval, let unit, _, _):
+        case .every(let interval, let unit, _):
             switch unit {
             case .minutes:
                 if interval <= 30 {

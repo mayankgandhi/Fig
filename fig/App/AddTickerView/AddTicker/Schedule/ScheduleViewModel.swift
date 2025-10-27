@@ -249,8 +249,7 @@ final class ScheduleViewModel {
                 if biweeklyWeekdays.isEmpty {
                     biweeklyWeekdays = [.monday, .wednesday, .friday]
                 }
-            case .every, .hourly:
-                // No special initialization needed for these options
+           
             default:
                 break
         }

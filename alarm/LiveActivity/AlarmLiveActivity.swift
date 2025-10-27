@@ -28,6 +28,20 @@ struct AlarmLiveActivity: Widget {
             return false
         }
     }
+    
+    // Helper function to get state color based on mode
+    private func stateColor(for mode: AlarmPresentationState.Mode) -> Color {
+        switch mode {
+        case .countdown:
+            return TickerColor.running
+        case .paused:
+            return TickerColor.paused
+        case .alert:
+            return TickerColor.alerting
+        @unknown default:
+            return TickerColor.disabled
+        }
+    }
 
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: AlarmAttributes<TickerData>.self) { context in
@@ -38,32 +52,34 @@ struct AlarmLiveActivity: Widget {
             DynamicIsland {
                 // The expanded Dynamic Island presentation.
                 DynamicIslandExpandedRegion(.leading) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
+                        // Countdown time (largest, prioritized)
+                        countdown(state: context.state, maxWidth: 120)
+                            .Title()
+                            .foregroundStyle(stateColor(for: context.state.mode))
+                        
+                        // Alarm title below countdown
                         alarmTitle(attributes: context.attributes, state: context.state)
-
-                        // Status indicator for expanded view
-                        HStack(spacing: 6) {
-                            Circle()
-                                .fill(context.attributes.tintColor)
-                                .frame(width: 6, height: 6)
-                                .scaleEffect(isCountdownMode(context.state.mode) ? 1.3 : 1.0)
-                                .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
-
-                            Text(isCountdownMode(context.state.mode) ? "Active" : "Paused")
-                                .font(.caption2)
-                                .fontWeight(.medium)
-                                .foregroundStyle(.secondary)
-                        }
                     }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        tickerCategory(metadata: context.attributes.metadata)
+                    VStack(alignment: .trailing, spacing: TickerSpacing.xxs) {
+                        // Status indicator
+                        HStack(spacing: TickerSpacing.xxs) {
+                            Circle()
+                                .fill(stateColor(for: context.state.mode))
+                                .frame(width: 6, height: 6)
+                                .scaleEffect(isCountdownMode(context.state.mode) ? 1.3 : 1.0)
+                                .animation(TickerAnimation.pulse, value: isCountdownMode(context.state.mode))
 
-                        // Quick countdown in expanded view
-                        countdown(state: context.state, maxWidth: 80)
-                            .ButtonText()
-                            .foregroundStyle(context.attributes.tintColor)
+                            Text(isCountdownMode(context.state.mode) ? "Active" : "Paused")
+                                .Caption2()
+                                .fontWeight(.medium)
+                                .foregroundStyle(TickerColor.textSecondary(for: .light))
+                        }
+                        
+                        // Ticker category badge
+                        tickerCategory(metadata: context.attributes.metadata)
                     }
                 }
                 DynamicIslandExpandedRegion(.bottom) {
@@ -71,44 +87,44 @@ struct AlarmLiveActivity: Widget {
                 }
             } compactLeading: {
                 // The compact leading presentation.
-                HStack(spacing: 4) {
+                HStack(spacing: TickerSpacing.xxs) {
                     Circle()
-                        .fill(context.attributes.tintColor)
+                        .fill(stateColor(for: context.state.mode))
                         .frame(width: 6, height: 6)
                         .scaleEffect(isCountdownMode(context.state.mode) ? 1.2 : 1.0)
-                        .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
+                        .animation(TickerAnimation.pulse, value: isCountdownMode(context.state.mode))
 
                     countdown(state: context.state, maxWidth: 44)
                         .SmallText()
-                        .foregroundStyle(context.attributes.tintColor)
+                        .foregroundStyle(stateColor(for: context.state.mode))
                 }
             } compactTrailing: {
                 // The compact trailing presentation.
                 AlarmProgressView(tickerIcon: context.attributes.metadata?.icon,
                                   mode: context.state.mode,
-                                  tint: context.attributes.tintColor)
+                                  tint: stateColor(for: context.state.mode))
             } minimal: {
                 // The minimal presentation with enhanced styling.
                 ZStack {
                     // Background circle with subtle glow
                     Circle()
-                        .fill(context.attributes.tintColor.opacity(0.1))
+                        .fill(stateColor(for: context.state.mode).opacity(0.1))
                         .frame(width: 20, height: 20)
                         .scaleEffect(isCountdownMode(context.state.mode) ? 1.2 : 1.0)
-                        .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
+                        .animation(TickerAnimation.pulse, value: isCountdownMode(context.state.mode))
 
                     // Progress indicator
                     AlarmProgressView(tickerIcon: context.attributes.metadata?.icon,
                                       mode: context.state.mode,
-                                      tint: context.attributes.tintColor)
+                                      tint: stateColor(for: context.state.mode))
                 }
             }
-            .keylineTint(context.attributes.tintColor)
+            .keylineTint(stateColor(for: context.state.mode))
         }
     }
 
     func lockScreenView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        VStack(spacing: 16) {
+        VStack(spacing: TickerSpacing.md) {
             HStack(alignment: .top) {
                 alarmTitle(attributes: attributes, state: state)
                 Spacer()
@@ -117,66 +133,39 @@ struct AlarmLiveActivity: Widget {
 
             bottomView(attributes: attributes, state: state)
         }
-        .padding(.all, 16)
+        .padding(.all, TickerSpacing.md)
         .background(
-            ZStack {
-                // Glassmorphism background
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 20)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        Color.white.opacity(0.2),
-                                        Color.white.opacity(0.05)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
-
-                // Subtle gradient overlay
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                attributes.tintColor.opacity(0.1),
-                                Color.clear,
-                                attributes.tintColor.opacity(0.05)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
+            TickerColor.liquidGlassGradient(for: .light)
+                .clipShape(RoundedRectangle(cornerRadius: TickerRadius.large))
         )
-        .shadow(color: Color.black.opacity(0.1), radius: 20, x: 0, y: 8)
-        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+        .shadow(
+            color: TickerShadow.elevated.color,
+            radius: TickerShadow.elevated.radius,
+            x: TickerShadow.elevated.x,
+            y: TickerShadow.elevated.y
+        )
     }
 
     func bottomView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        HStack(spacing: 20) {
-            // Enhanced countdown display
-            VStack(alignment: .leading, spacing: 4) {
+        HStack(spacing: TickerSpacing.lg) {
+            // Enhanced countdown display (prioritized)
+            VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
                 countdown(state: state, maxWidth: 150)
-                    .font(.system(.title, design: .rounded, weight: .bold))
-                    .foregroundStyle(attributes.tintColor)
+                    .Title()
+                    .foregroundStyle(stateColor(for: state.mode))
 
                 // Status indicator
-                HStack(spacing: 6) {
+                HStack(spacing: TickerSpacing.xxs) {
                     Circle()
-                        .fill(attributes.tintColor)
+                        .fill(stateColor(for: state.mode))
                         .frame(width: 8, height: 8)
                         .scaleEffect(isCountdownMode(state.mode) ? 1.2 : 1.0)
-                        .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(state.mode))
+                        .animation(TickerAnimation.pulse, value: isCountdownMode(state.mode))
 
                     Text(isCountdownMode(state.mode) ? "Running" : "Paused")
-                        .font(.caption)
+                        .Caption()
                         .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(TickerColor.textSecondary(for: .light))
                 }
             }
 
@@ -216,44 +205,126 @@ struct AlarmLiveActivity: Widget {
             nil
         }
 
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
             Text(title ?? "")
-                .font(.title2)
-                .fontWeight(.bold)
+                .Title3()
                 .lineLimit(1)
-                .foregroundStyle(.primary)
+                .foregroundStyle(TickerColor.textPrimary(for: .light))
 
             Text("Alarm")
-                .font(.caption)
+                .Caption()
                 .fontWeight(.medium)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(TickerColor.textSecondary(for: .light))
         }
     }
 
     @ViewBuilder func tickerCategory(metadata: TickerData?) -> some View {
         if let name = metadata?.name, let icon = metadata?.icon {
-            HStack(spacing: 6) {
+            HStack(spacing: TickerSpacing.xxs) {
                 Image(systemName: icon)
                     .Callout()
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(TickerColor.textPrimary(for: .light))
 
                 Text(name)
-                    .font(.subheadline)
+                    .Subheadline()
                     .fontWeight(.semibold)
                     .lineLimit(1)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.horizontal, TickerSpacing.sm)
+            .padding(.vertical, TickerSpacing.xxs)
             .background(
                 Capsule()
-                    .fill(.ultraThinMaterial)
+                    .fill(TickerColor.surface(for: .light))
                     .overlay(
                         Capsule()
-                            .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                            .strokeBorder(TickerColor.textTertiary(for: .light), lineWidth: 1)
                     )
             )
         } else {
             EmptyView()
         }
     }
+}
+
+// MARK: - Previews
+
+#Preview("Live Activity - Countdown Mode", as: .activity) {
+    AlarmLiveActivity()
+} timeline: {
+    // Mock countdown state
+    ActivityTimelineEntry(
+        date: .now,
+        attributes: AlarmAttributes<TickerData>(
+            presentation: AlarmPresentation(
+                countdown: AlarmPresentationState.CountdownPresentation(
+                    title: "Morning Run",
+                    pauseButton: AlarmButton(systemImageName: "pause.fill", text: "Pause")
+                ),
+                paused: nil,
+                alert: AlarmPresentationState.AlertPresentation(
+                    stopButton: AlarmButton(systemImageName: "stop.fill", text: "Stop")
+                )
+            ),
+            metadata: TickerData(name: "Exercise", icon: "figure.run"),
+            tintColor: .orange
+        ),
+        state: AlarmPresentationState(
+            mode: .countdown(AlarmPresentationState.Countdown(fireDate: Date().addingTimeInterval(3600))),
+            alarmID: UUID()
+        )
+    )
+}
+
+#Preview("Live Activity - Paused Mode", as: .activity) {
+    AlarmLiveActivity()
+} timeline: {
+    // Mock paused state
+    ActivityTimelineEntry(
+        date: .now,
+        attributes: AlarmAttributes<TickerData>(
+            presentation: AlarmPresentation(
+                countdown: nil,
+                paused: AlarmPresentationState.PausedPresentation(
+                    title: "Morning Run",
+                    resumeButton: AlarmButton(systemImageName: "play.fill", text: "Resume")
+                ),
+                alert: AlarmPresentationState.AlertPresentation(
+                    stopButton: AlarmButton(systemImageName: "stop.fill", text: "Stop")
+                )
+            ),
+            metadata: TickerData(name: "Exercise", icon: "figure.run"),
+            tintColor: .orange
+        ),
+        state: AlarmPresentationState(
+            mode: .paused(AlarmPresentationState.Paused(
+                totalCountdownDuration: 3600,
+                previouslyElapsedDuration: 1800
+            )),
+            alarmID: UUID()
+        )
+    )
+}
+
+#Preview("Live Activity - Alert Mode", as: .activity) {
+    AlarmLiveActivity()
+} timeline: {
+    // Mock alert state
+    ActivityTimelineEntry(
+        date: .now,
+        attributes: AlarmAttributes<TickerData>(
+            presentation: AlarmPresentation(
+                countdown: nil,
+                paused: nil,
+                alert: AlarmPresentationState.AlertPresentation(
+                    stopButton: AlarmButton(systemImageName: "stop.fill", text: "Stop")
+                )
+            ),
+            metadata: TickerData(name: "Exercise", icon: "figure.run"),
+            tintColor: .orange
+        ),
+        state: AlarmPresentationState(
+            mode: .alert,
+            alarmID: UUID()
+        )
+    )
 }

@@ -126,18 +126,14 @@ final class NaturalLanguageViewModel {
             scheduleViewModel.selectOption(.weekdays)
             scheduleViewModel.selectedWeekdays = weekdays
 
-        case .hourly(let interval, let startTime, let endTime):
+        case .hourly(let interval):
             scheduleViewModel.selectOption(.hourly)
             scheduleViewModel.hourlyInterval = interval
-            scheduleViewModel.hourlyStartTime = startTime
-            scheduleViewModel.hourlyEndTime = endTime
 
-        case .every(let interval, let unit, let startTime, let endTime):
+        case .every(let interval, let unit):
             scheduleViewModel.selectOption(.every)
             scheduleViewModel.everyInterval = interval
             scheduleViewModel.everyUnit = unit
-            scheduleViewModel.everyStartTime = startTime
-            scheduleViewModel.everyEndTime = endTime
 
         case .biweekly(let weekdays):
             scheduleViewModel.selectOption(.biweekly)
@@ -256,15 +252,11 @@ final class NaturalLanguageViewModel {
         case .hourly:
             return .hourly(
                 interval: scheduleViewModel.hourlyInterval,
-                startTime: scheduleViewModel.hourlyStartTime,
-                endTime: scheduleViewModel.hourlyEndTime
             )
         case .every:
             return .every(
                 interval: scheduleViewModel.everyInterval,
                 unit: scheduleViewModel.everyUnit,
-                startTime: scheduleViewModel.everyStartTime,
-                endTime: scheduleViewModel.everyEndTime
             )
         case .biweekly:
             return .biweekly(scheduleViewModel.biweeklyWeekdays)

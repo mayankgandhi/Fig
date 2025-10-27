@@ -529,39 +529,7 @@ extension Ticker {
                 )
             }
 
-        case .hourly(let interval, let time):
-            // For hourly schedules, create a recurring alarm at the specified time
-            // If there's a countdown, adjust the time to start the countdown before the alarm time
-            if let countdownDuration = countdown?.preAlert?.interval {
-                let countdownStartTime = time.addingTimeInterval(-countdownDuration)
-                let alarmTime = Alarm.Schedule.Relative.Time(hour: countdownStartTime.hour, minute: countdownStartTime.minute)
-                return .relative(
-                    .init(time: alarmTime, repeats: .hourly(interval: interval))
-                )
-            } else {
-                let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
-                return .relative(
-                    .init(time: alarmTime, repeats: .hourly(interval: interval))
-                )
-            }
-
-        case .every(let interval, let unit, let time):
-            // For every schedules, create a recurring alarm at the specified time
-            // If there's a countdown, adjust the time to start the countdown before the alarm time
-            if let countdownDuration = countdown?.preAlert?.interval {
-                let countdownStartTime = time.addingTimeInterval(-countdownDuration)
-                let alarmTime = Alarm.Schedule.Relative.Time(hour: countdownStartTime.hour, minute: countdownStartTime.minute)
-                return .relative(
-                    .init(time: alarmTime, repeats: .custom(interval: interval, unit: unit))
-                )
-            } else {
-                let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
-                return .relative(
-                    .init(time: alarmTime, repeats: .custom(interval: interval, unit: unit))
-                )
-            }
-
-        case .weekdays, .biweekly, .monthly, .yearly:
+        default:
             // Composite schedules are expanded into multiple one-time alarms
             // by the TickerService, so they don't need direct AlarmKit mapping
             return nil
