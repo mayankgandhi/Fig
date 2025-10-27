@@ -53,15 +53,18 @@ struct NaturalLanguageOptionsPillsView: View {
 
             // Enhanced pill layout with improved spacing and alignment
             Group {
-                if !viewModel.aiGenerator.isParsing && viewModel.aiGenerator.parsedConfiguration != nil {
-                    // Show actual parsed pills
-                    actualPillsContent
-                } else {
+                // Show shimmer when: actively parsing OR no configuration available yet
+                // Show actual pills when: not parsing AND configuration is available
+                if viewModel.aiGenerator.isParsing || viewModel.aiGenerator.parsedConfiguration == nil {
                     // Show shimmer loading state
                     shimmerPillsContent
+                } else {
+                    // Show actual parsed pills
+                    actualPillsContent
                 }
             }
             .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.aiGenerator.isParsing)
+            .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.aiGenerator.parsedConfiguration)
         }
     }
 
@@ -124,15 +127,24 @@ struct NaturalLanguageOptionsPillsView: View {
     @ViewBuilder
     private var shimmerPillsContent: some View {
         FlowLayout(spacing: TickerSpacing.md) {
-            ShimmerPill(width: 100, height: 40)
-            ShimmerPill(width: 120, height: 40)
-            ShimmerPill(width: 90, height: 40)
-            ShimmerPill(width: 110, height: 40)
-            ShimmerPill(width: 80, height: 40)
+            // Time pill shimmer
+            IntricateShimmerPill(size: .standard, estimatedWidth: 100)
+
+            // Schedule pill shimmer
+            IntricateShimmerPill(size: .standard, estimatedWidth: 120)
+
+            // Label pill shimmer
+            IntricateShimmerPill(size: .standard, estimatedWidth: 90)
+
+            // Countdown pill shimmer
+            IntricateShimmerPill(size: .standard, estimatedWidth: 110)
+
+            // Icon pill shimmer
+            IntricateShimmerPill(size: .standard, estimatedWidth: 80)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, TickerSpacing.md)
-        .transition(.opacity)
+        .transition(.opacity.combined(with: .scale(scale: 0.95)))
     }
 
     // MARK: - Pill Buttons
