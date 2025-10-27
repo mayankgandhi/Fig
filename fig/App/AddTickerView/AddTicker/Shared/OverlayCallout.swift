@@ -16,58 +16,71 @@ struct OverlayCallout<Content: View>: View {
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Header with dismiss button
-            HStack {
-                Text(headerTitle)
-                    .Headline()
-                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-
-                Spacer()
-
-                Button {
+        ZStack {
+            // Background tap area to dismiss overlay
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
                     TickerHaptics.selection()
                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         viewModel.optionsPillsViewModel.collapseField()
                     }
-                } label: {
-                    Image(systemName: "xmark.circle.fill")
-                        .font(.system(.title2, design: .rounded, weight: .regular))
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                        .symbolRenderingMode(.hierarchical)
                 }
+            
+            // Overlay content
+            VStack(spacing: 0) {
+                // Header with dismiss button
+                HStack {
+                    Text(headerTitle)
+                        .Headline()
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+
+                    Spacer()
+
+                    Button {
+                        TickerHaptics.selection()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.optionsPillsViewModel.collapseField()
+                        }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(.title2, design: .rounded, weight: .regular))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                }
+                .padding(TickerSpacing.md)
+
+                Divider()
+
+                // Content area with adaptive max height
+                ScrollView {
+                    content()
+                        .padding(TickerSpacing.md)
+                }
+                .frame(maxHeight: maxContentHeight)
             }
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: TickerRadius.large)
+                    .fill(TickerColor.surface(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: TickerRadius.large)
+                    .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.15), lineWidth: 1)
+            )
+            .shadow(
+                color: TickerShadow.elevated.color,
+                radius: TickerShadow.elevated.radius,
+                x: TickerShadow.elevated.x,
+                y: TickerShadow.elevated.y
+            )
             .padding(TickerSpacing.md)
-
-            Divider()
-
-            // Content area with adaptive max height
-            ScrollView {
-                content()
-                    .padding(TickerSpacing.md)
-            }
-            .frame(maxHeight: maxContentHeight)
+            .transition(.asymmetric(
+                insertion: .scale(scale: 0.9).combined(with: .opacity),
+                removal: .scale(scale: 0.95).combined(with: .opacity)
+            ))
         }
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.surface(for: colorScheme))
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: TickerRadius.large)
-                .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.15), lineWidth: 1)
-        )
-        .shadow(
-            color: TickerShadow.elevated.color,
-            radius: TickerShadow.elevated.radius,
-            x: TickerShadow.elevated.x,
-            y: TickerShadow.elevated.y
-        )
-        .padding(TickerSpacing.md)
-        .transition(.asymmetric(
-            insertion: .scale(scale: 0.9).combined(with: .opacity),
-            removal: .scale(scale: 0.95).combined(with: .opacity)
-        ))
     }
 
     // MARK: - Computed Properties
