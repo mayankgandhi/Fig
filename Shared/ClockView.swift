@@ -142,7 +142,7 @@ struct ClockFaceView: View {
                 
                 ForEach(Array(upcomingAlarms.enumerated()), id: \.element.id) { index, event in
                     VStack(spacing: .zero) {
-
+                        
                         HStack(spacing: 2) {
                             Image(systemName: event.icon)
                                 .font(
@@ -153,7 +153,7 @@ struct ClockFaceView: View {
                                     )
                                 )
                                 .foregroundStyle(.white)
-
+                            
                             if showAlarmLabels {
                                 Text(event.displayName)
                                     .font(
@@ -169,6 +169,9 @@ struct ClockFaceView: View {
                                     .padding(.horizontal, 4)
                             }
                         }
+                        .frame(
+                            width: handLength,
+                        )
                         .rotationEffect(Angle(degrees: event.angle > 180 ? 90 : -90))
                         .background {
                             Capsule()
@@ -188,7 +191,7 @@ struct ClockFaceView: View {
                                 )
                                 .shadow(color: event.color.opacity(0.3), radius: 4, x: 0, y: 2)
                         }
-
+                        
                     }
                     .offset(y: -handLength * 0.5)
                     .rotationEffect(Angle(degrees: event.angle))
@@ -386,7 +389,7 @@ struct ClockView: View {
         // 3:00 PM - Should be at right (90°)
         UpcomingAlarmPresentation(
             baseAlarmId: UUID(),
-            displayName: "Mid Afternoon Snack",
+            displayName: "Mid Afternoon Snack of all time",
             icon: "cup.and.saucer.fill",
             color: .orange,
             nextAlarmTime: Date(),
@@ -412,7 +415,7 @@ struct ClockView: View {
         // 9:00 PM - Should be at left (270°)
         UpcomingAlarmPresentation(
             baseAlarmId: UUID(),
-            displayName: "Bedtime",
+            displayName: "Bedtime Bedtime Bedtime Bedtime Bedtime",
             icon: "bed.double.fill",
             color: .purple,
             nextAlarmTime: Date(),
