@@ -17,11 +17,14 @@ final class MockConfigurationBuilder: AlarmConfigurationBuilderProtocol {
     var buildCallCount = 0
     var lastAlarmItem: Ticker?
 
-    func buildConfiguration(from alarmItem: Ticker) -> AlarmManager.AlarmConfiguration<TickerData>? {
+    func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>? {
         buildCallCount += 1
         lastAlarmItem = alarmItem
 
         guard !shouldReturnNil else { return nil }
+
+        // Use the specific occurrence ID if provided, otherwise fall back to the ticker's main ID
+        let alarmID = occurrenceAlarmID ?? alarmItem.id
 
         // Return a valid configuration
         let attributes = AlarmAttributes(
@@ -39,7 +42,7 @@ final class MockConfigurationBuilder: AlarmConfigurationBuilderProtocol {
             countdownDuration: alarmItem.alarmKitCountdownDuration,
             schedule: alarmItem.alarmKitSchedule,
             attributes: attributes,
-            stopIntent: StopIntent(alarmID: alarmItem.id.uuidString),
+            stopIntent: StopIntent(alarmID: alarmID.uuidString),
             secondaryIntent: nil
         )
     }

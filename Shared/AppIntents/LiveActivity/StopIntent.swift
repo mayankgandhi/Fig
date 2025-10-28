@@ -13,6 +13,7 @@ import AppIntents
 /// This intent is used in Live Activities and Dynamic Island presentations
 /// to allow users to stop an alerting alarm.
 struct StopIntent: LiveActivityIntent {
+
     func perform() throws -> some IntentResult {
         try AlarmManager.shared.stop(id: UUID(uuidString: alarmID)!)
         return .result()

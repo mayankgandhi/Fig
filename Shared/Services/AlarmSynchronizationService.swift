@@ -138,11 +138,22 @@ struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
                 }
             }
 
-            // If no alarms found in AlarmManager, mark for deletion
+            // If no alarms found in AlarmManager, check if this is a composite schedule
+            // that should be regenerated rather than deleted
             if !hasActiveAlarm {
-                print("🗑️ Ticker '\(ticker.displayName)' (ID: \(ticker.id)) has NO alarms in AlarmManager - marking for deletion")
-                print("    → Checked IDs: [\(ticker.id)] + generated: \(ticker.generatedAlarmKitIDs)")
-                tickersToDelete.append(ticker)
+                let shouldRegenerate = ticker.isEnabled && 
+                                     ticker.schedule != nil && 
+                                     !isSimpleSchedule(ticker.schedule!) &&
+                                     ticker.needsRegeneration
+                
+                if shouldRegenerate {
+                    print("🔄 Ticker '\(ticker.displayName)' has no active alarms but needs regeneration - keeping for regeneration")
+                    // Don't mark for deletion - let regeneration service handle it
+                } else {
+                    print("🗑️ Ticker '\(ticker.displayName)' (ID: \(ticker.id)) has NO alarms in AlarmManager - marking for deletion")
+                    print("    → Checked IDs: [\(ticker.id)] + generated: \(ticker.generatedAlarmKitIDs)")
+                    tickersToDelete.append(ticker)
+                }
             }
         }
 
@@ -197,5 +208,17 @@ struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         print("   → Cancelled \(alarmsCancelled) invalid alarms")
         print("   → Deleted \(tickersDeleted) orphaned Tickers")
         print("   → Updated state manager with \(alarmsToKeep.count) Tickers")
+    }
+    
+    // MARK: - Helper Methods
+    
+    /// Determine if a schedule is simple (1:1 AlarmKit mapping) or composite (requires regeneration)
+    private func isSimpleSchedule(_ schedule: TickerSchedule) -> Bool {
+        switch schedule {
+        case .oneTime, .daily:
+            return true
+        case .hourly, .weekdays, .biweekly, .monthly, .yearly, .every:
+            return false
+        }
     }
 }

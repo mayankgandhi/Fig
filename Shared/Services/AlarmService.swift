@@ -180,7 +180,7 @@ final class TickerService {
         
         // Build AlarmKit configuration
         print("   → Building AlarmKit configuration...")
-        guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
+        guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem, occurrenceAlarmID: alarmItem.id) else {
             print("   ❌ Failed to build configuration")
             throw TickerServiceError.invalidConfiguration
         }
@@ -378,7 +378,7 @@ final class TickerService {
                     print("   → Using simple schedule rescheduling")
                     // Simple schedule
                     print("   → Building configuration...")
-                    guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem) else {
+                    guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem, occurrenceAlarmID: alarmItem.id) else {
                         print("   ❌ Failed to build configuration")
                         throw TickerServiceError.invalidConfiguration
                     }

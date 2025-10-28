@@ -242,7 +242,7 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
                 let oneTimeSchedule = TickerSchedule.oneTime(date: date)
                 let tempTicker = createTemporaryTicker(from: ticker, with: oneTimeSchedule)
 
-                guard let configuration = configurationBuilder.buildConfiguration(from: tempTicker) else {
+                guard let configuration = configurationBuilder.buildConfiguration(from: tempTicker, occurrenceAlarmID: alarmID) else {
                     throw TickerServiceError.invalidConfiguration
                 }
 

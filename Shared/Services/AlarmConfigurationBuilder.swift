@@ -14,14 +14,17 @@ import ActivityKit
 // MARK: - AlarmConfigurationBuilder Protocol
 
 protocol AlarmConfigurationBuilderProtocol {
-    func buildConfiguration(from alarmItem: Ticker) -> AlarmManager.AlarmConfiguration<TickerData>?
+    func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>?
 }
 
 // MARK: - AlarmConfigurationBuilder Implementation
 
 struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
 
-    func buildConfiguration(from alarmItem: Ticker) -> AlarmManager.AlarmConfiguration<TickerData>? {
+    func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>? {
+        // Use the specific occurrence ID if provided, otherwise fall back to the ticker's main ID
+        let alarmID = occurrenceAlarmID ?? alarmItem.id
+        
         // Build attributes
         let attributes = AlarmAttributes(
             presentation: buildPresentation(from: alarmItem),
@@ -37,7 +40,7 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
             countdownDuration: alarmItem.alarmKitCountdownDuration,
             schedule: alarmItem.alarmKitSchedule,
             attributes: attributes,
-            stopIntent: StopIntent(alarmID: alarmItem.id.uuidString),
+            stopIntent: StopIntent(alarmID: alarmID.uuidString),
             secondaryIntent: buildSecondaryIntent(for: alarmItem),
             sound: sound
         )
