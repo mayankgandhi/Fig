@@ -272,3 +272,36 @@ struct AlarmLiveActivity: Widget {
         }
     }
 }
+
+// MARK: - Widget Previews
+
+#Preview("Live Activity - Countdown", as: .content, using: AlarmLiveActivity.mockAttributes()) {
+    AlarmLiveActivity()
+} contentStates: {
+    AlarmLiveActivity.mockCountdownState()
+}
+
+#Preview("Live Activity - Paused", as: .content, using: AlarmLiveActivity.mockAttributes(title: "Workout Timer", icon: "figure.run")) {
+    AlarmLiveActivity()
+} contentStates: {
+    AlarmLiveActivity.mockPausedState()
+}
+
+#Preview("Live Activity - Alert", as: .content, using: AlarmLiveActivity.mockAttributes(title: "Meeting Reminder", icon: "calendar")) {
+    AlarmLiveActivity()
+} contentStates: {
+    AlarmLiveActivity.mockAlertState()
+}
+
+#Preview("Live Activity - Dynamic Island Expanded", as: .dynamicIsland(.expanded), using: AlarmLiveActivity.mockAttributes()) {
+    AlarmLiveActivity()
+} contentStates: {
+    AlarmLiveActivity.mockCountdownState()
+}
+
+#Preview("Live Activity - Dynamic Island Minimal", as: .dynamicIsland(.minimal), using: AlarmLiveActivity.mockAttributes()) {
+    AlarmLiveActivity()
+} contentStates: {
+    AlarmLiveActivity.mockCountdownState()
+}
+
