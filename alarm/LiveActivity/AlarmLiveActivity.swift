@@ -52,19 +52,8 @@ struct AlarmLiveActivity: Widget {
         } dynamicIsland: { context in
             // The presentations that appear in the Dynamic Island.
             DynamicIsland {
-                // The expanded Dynamic Island presentation.
                 DynamicIslandExpandedRegion(.leading) {
-                    VStack(alignment: .leading, spacing: TickerSpacing.xs) {
-                        // Countdown time (largest, prioritized)
-                        countdown(state: context.state, maxWidth: 120)
-                            .TimeDisplay()
-                        
-                        // Alarm title below countdown
-                        tickerCategory(metadata: context.attributes.metadata)
-                    }
-                }
-                DynamicIslandExpandedRegion(.trailing) {
-                    VStack(alignment: .trailing, spacing: TickerSpacing.xs) {
+                    VStack(alignment: .trailing) {
                         // Enhanced status indicator with better visual hierarchy
                         HStack(spacing: TickerSpacing.xs) {
                             Circle()
@@ -190,24 +179,22 @@ struct AlarmLiveActivity: Widget {
         if let name = metadata?.name, let icon = metadata?.icon, let colorHex = metadata?.colorHex {
             HStack(spacing: TickerSpacing.xs) {
                 Image(systemName: icon)
-                    .Title3()
+                    .Title2()
+                    .bold()
                     .foregroundStyle(
                         Color(hex: colorHex) ?? TickerColor
                             .textPrimary(for: colorScheme)
                     )
                 Text(name)
-                    .Title3()
+                    .Title2()
+                    .bold()
                     .lineLimit(1)
                     .foregroundStyle(
                         Color(hex: colorHex) ?? TickerColor
                             .textPrimary(for: colorScheme)
                     )
             }
-            .padding(.horizontal, TickerSpacing.sm)
-            .padding(.vertical, TickerSpacing.xs)
-            .background {
-                Capsule()
-            }
+            
             
         } else {
             EmptyView()

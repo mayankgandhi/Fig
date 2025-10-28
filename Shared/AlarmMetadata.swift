@@ -7,7 +7,7 @@ The metadata structure for the activity attribues shared between the app and the
 
 import AlarmKit
 
-struct TickerData: AlarmMetadata {
+struct TickerData: AlarmMetadata, Codable, Hashable {
     let createdAt: Date
     let name: String?
     let icon: String?

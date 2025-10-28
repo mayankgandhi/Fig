@@ -28,11 +28,11 @@ struct ButtonView<I>: View where I: AppIntent {
         Button(intent: intent) {
             HStack(spacing: TickerSpacing.xs) {
                 Image(systemName: config.systemImageName)
-                    .font(.system(size: 16, weight: .bold))
-                
-                Text(config.text)
-                    .font(.system(size: 15, weight: .semibold))
-                    .lineLimit(1)
+                    .Subheadline()
+//                
+//                Text(config.text)
+//                    .font(.system(size: 15, weight: .semibold))
+//                    .lineLimit(1)
             }
             .foregroundStyle(TickerColor.absoluteWhite)
             .padding(TickerSpacing.md)
