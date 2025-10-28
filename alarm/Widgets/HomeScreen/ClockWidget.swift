@@ -51,7 +51,7 @@ struct ClockWidgetView: View {
                 showAlarmLabels: widgetFamily != .systemSmall
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .padding(widgetFamily == .systemSmall ? 8 : 16)
+            .padding(widgetFamily == .systemSmall ? 2 : 4)
         }
         .containerBackground(for: .widget) {
             Color.clear

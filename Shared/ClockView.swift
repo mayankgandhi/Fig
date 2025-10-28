@@ -59,7 +59,7 @@ struct ClockFaceView: View {
     var body: some View {
         GeometryReader { geometry in
             let radius = min(geometry.size.width, geometry.size.height) / 2
-            let markOffset = radius * 0.95
+            let markOffset = radius * 0.98
             let handLength = radius
             
             let calendar = Calendar.current
@@ -124,7 +124,7 @@ struct ClockFaceView: View {
                             .rotationEffect(Angle(degrees: textAngle))
                             .Title2()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                            .offset(y: -radius * 0.7)
+                            .offset(y: -radius * 0.75)
                             .rotationEffect(Angle(degrees: hourmark.angle))
                     }
                 }
@@ -195,7 +195,7 @@ struct ClockFaceView: View {
                         }
                         
                     }
-                    .offset(y: -handLength * 0.5)
+                    .offset(y: -handLength * 0.48)
                     .rotationEffect(Angle(degrees: event.angle))
                     .scaleEffect(alarmAnimationStates[event.id] == true ? 1.0 : 0.1)
                     .opacity(alarmAnimationStates[event.id] == true ? 1.0 : 0.0)
