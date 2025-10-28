@@ -54,7 +54,7 @@ struct ClockWidgetView: View {
             .padding(widgetFamily == .systemSmall ? 2 : 4)
         }
         .containerBackground(for: .widget) {
-            Color.clear
+            TickerColor.liquidGlassGradient(for: colorScheme)
         }
     }
 }

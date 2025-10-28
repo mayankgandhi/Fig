@@ -26,14 +26,8 @@ struct ButtonView<I>: View where I: AppIntent {
     
     var body: some View {
         Button(intent: intent) {
-            HStack(spacing: TickerSpacing.xs) {
-                Image(systemName: config.systemImageName)
-                    .Subheadline()
-//                
-//                Text(config.text)
-//                    .font(.system(size: 15, weight: .semibold))
-//                    .lineLimit(1)
-            }
+            Image(systemName: config.systemImageName)
+            .Subheadline()
             .foregroundStyle(TickerColor.absoluteWhite)
             .padding(TickerSpacing.md)
             .background(
@@ -43,12 +37,6 @@ struct ButtonView<I>: View where I: AppIntent {
                         Capsule()
                             .fill(Color.white.opacity(isPressed ? 0.3 : 0))
                             .animation(.easeInOut(duration: 0.1), value: isPressed)
-                    )
-                    .shadow(
-                        color: tint.opacity(0.6),
-                        radius: isPressed ? 6 : 12,
-                        x: 0,
-                        y: isPressed ? 3 : 6
                     )
             )
         }
