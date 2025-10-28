@@ -75,14 +75,14 @@ struct StandByWidgetView: View {
                     // Alarm name
                     Text(alarm.displayName)
                         .Title2()
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
 
                     // Schedule badge
                     Text(alarm.scheduleType.badgeText)
                         .ButtonText()
-                        .foregroundStyle(.white)
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
                         .background(
@@ -99,7 +99,7 @@ struct StandByWidgetView: View {
                     VStack(alignment: .trailing, spacing: 4) {
                         Text("NEXT ALARM")
                             .ButtonText()
-                            .foregroundStyle(.white.opacity(0.6))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                             .tracking(1.5)
 
                         HStack(alignment: .lastTextBaseline, spacing: 6) {
@@ -135,7 +135,7 @@ struct StandByWidgetView: View {
 
                         Text(alarm.timeUntilAlarm(from: entry.date))
                             .Title3()
-                            .foregroundStyle(.white)
+                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 10)
@@ -153,8 +153,8 @@ struct StandByWidgetView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerBackground(for: .widget) {
                 ZStack {
-                    // Deep black background
-                    Color.black
+                    // Background using TickerColor system
+                    TickerColor.background(for: colorScheme)
 
                     // Radial glow from alarm color
                     RadialGradient(
@@ -197,16 +197,16 @@ struct StandByWidgetView: View {
                 VStack(spacing: 8) {
                     Text("No Tickers")
                         .LargeTitle()
-                        .foregroundStyle(.white.opacity(0.9))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
                     Text("Enjoy your rest")
                         .Title3()
-                        .foregroundStyle(.white.opacity(0.5))
+                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .containerBackground(for: .widget) {
-                Color.black
+                TickerColor.background(for: colorScheme)
             }
         }
     }

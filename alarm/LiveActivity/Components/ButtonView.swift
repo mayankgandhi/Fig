@@ -16,35 +16,26 @@ struct ButtonView<I>: View where I: AppIntent {
     var intent: I
     var tint: Color
     @State private var isPressed = false
-
+    
     init?(config: AlarmButton?, intent: I, tint: Color) {
         guard let config else { return nil }
         self.config = config
         self.intent = intent
         self.tint = tint
     }
-
+    
     var body: some View {
-        Button {
-            // Execute the intent
-            Task {
-                try? await intent.perform()
-            }
-            // Haptic feedback
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-            impactFeedback.impactOccurred()
-        } label: {
+        Button(intent: intent) {
             HStack(spacing: TickerSpacing.xs) {
                 Image(systemName: config.systemImageName)
                     .font(.system(size: 16, weight: .bold))
-
+                
                 Text(config.text)
                     .font(.system(size: 15, weight: .semibold))
                     .lineLimit(1)
             }
             .foregroundStyle(TickerColor.absoluteWhite)
-            .padding(.horizontal, TickerSpacing.lg)
-            .padding(.vertical, TickerSpacing.md)
+            .padding(TickerSpacing.md)
             .background(
                 Capsule()
                     .fill(tint)
