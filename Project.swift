@@ -69,10 +69,10 @@ let project = Project(
             ]),
             sources: [
                 "alarm/**",
-                "Shared/**",  // Includes Shared/Extensions, TickerDesignSystem, ClockView, etc.
-                "fig/AppIntents/**",  // Share AppIntents with widget extension
+                "Shared/**",  // Includes Shared/Extensions, TickerDesignSystem, ClockView, Shared/AppIntents, Shared/Services, etc.
                 "fig/DesignSystem/**",  // Design system previews
-                "fig/Models/AlarmItem.swift"  // Ticker model for SwiftData
+                "fig/Models/ActivityIconMapper.swift",  // Activity icon mapper for ticker data
+                "fig/Models/IconColorPair.swift"  // Icon color pair for ticker data
             ],
             resources: ["alarm/Assets.xcassets"],
             entitlements: .dictionary([

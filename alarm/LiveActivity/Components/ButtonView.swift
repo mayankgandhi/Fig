@@ -34,30 +34,30 @@ struct ButtonView<I>: View where I: AppIntent {
             let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
             impactFeedback.impactOccurred()
         } label: {
-            HStack(spacing: TickerSpacing.xxs) {
+            HStack(spacing: TickerSpacing.xs) {
                 Image(systemName: config.systemImageName)
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 16, weight: .bold))
 
                 Text(config.text)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 15, weight: .semibold))
                     .lineLimit(1)
             }
             .foregroundStyle(TickerColor.absoluteWhite)
-            .padding(.horizontal, TickerSpacing.md)
-            .padding(.vertical, TickerSpacing.sm)
+            .padding(.horizontal, TickerSpacing.lg)
+            .padding(.vertical, TickerSpacing.md)
             .background(
                 Capsule()
                     .fill(tint)
                     .overlay(
                         Capsule()
-                            .fill(Color.white.opacity(isPressed ? 0.2 : 0))
+                            .fill(Color.white.opacity(isPressed ? 0.3 : 0))
                             .animation(.easeInOut(duration: 0.1), value: isPressed)
                     )
                     .shadow(
-                        color: tint.opacity(0.4),
-                        radius: isPressed ? 4 : 8,
+                        color: tint.opacity(0.6),
+                        radius: isPressed ? 6 : 12,
                         x: 0,
-                        y: isPressed ? 2 : 4
+                        y: isPressed ? 3 : 6
                     )
             )
         }

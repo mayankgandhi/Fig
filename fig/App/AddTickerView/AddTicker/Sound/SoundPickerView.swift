@@ -56,7 +56,7 @@ struct SoundPickerView: View {
     }
 
     private func previewSound(_ sound: AlarmSound) {
-        TickerHaptics.light()
+        TickerHaptics.standardAction()
         viewModel.previewSound(sound.fileName)
     }
 }

@@ -12,7 +12,7 @@ import SwiftUI
 
 /// Assistant Intent variant that enables proactive Siri suggestions
 @available(iOS 26.0, *)
-struct CreateAlarmAssistantIntent: AssistantIntent {
+struct CreateAlarmAssistantIntent: AppIntent {
     
     static var title: LocalizedStringResource = "Create Ticker"
     static var description = IntentDescription("Create a new ticker alarm with intelligent suggestions")
@@ -164,17 +164,11 @@ struct CreateAlarmAssistantIntent: AssistantIntent {
     
     private func donateAssistantAction() async {
         // Donate this action with rich context for Assistant learning
-        let interaction = INInteraction(intent: self, response: nil)
-        interaction.identifier = "assistant-create-ticker-\(UUID().uuidString)"
-        
-        await MainActor.run {
-            interaction.donate { error in
-                if let error = error {
-                    print("⚠️ Failed to donate assistant action: \(error)")
-                } else {
-                    print("✅ Donated assistant action to SiriKit")
-                }
-            }
+        do {
+            try await self.donate()
+            print("✅ Donated assistant action to SiriKit")
+        } catch {
+            print("⚠️ Failed to donate assistant action: \(error)")
         }
     }
     

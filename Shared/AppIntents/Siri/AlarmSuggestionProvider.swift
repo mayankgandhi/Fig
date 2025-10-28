@@ -35,14 +35,13 @@ class AlarmSuggestionProvider {
             soundName: soundName
         )
         
-        let interaction = INInteraction(intent: intent, response: nil)
-        interaction.identifier = "ticker-creation-\(UUID().uuidString)"
-        
-        interaction.donate { error in
-            if let error = error {
-                print("⚠️ Failed to donate ticker creation: \(error)")
-            } else {
+        // Donate using AppIntents framework
+        Task {
+            do {
+                try await intent.donate()
                 print("✅ Donated ticker creation to SiriKit")
+            } catch {
+                print("⚠️ Failed to donate ticker creation: \(error)")
             }
         }
     }
@@ -59,14 +58,13 @@ class AlarmSuggestionProvider {
             repeatFrequency: .oneTime
         )
         
-        let interaction = INInteraction(intent: intent, response: nil)
-        interaction.identifier = "ai-ticker-creation-\(UUID().uuidString)"
-        
-        interaction.donate { error in
-            if let error = error {
-                print("⚠️ Failed to donate AI ticker creation: \(error)")
-            } else {
+        // Donate using AppIntents framework
+        Task {
+            do {
+                try await intent.donate()
                 print("✅ Donated AI ticker creation to SiriKit")
+            } catch {
+                print("⚠️ Failed to donate AI ticker creation: \(error)")
             }
         }
     }

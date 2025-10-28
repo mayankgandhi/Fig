@@ -20,14 +20,14 @@ struct AlarmProgressView: View {
             switch mode {
             case .countdown(let countdown):
                 ZStack {
-                    // Background circle with subtle glow
+                    // Background circle with enhanced glow
                     Circle()
-                        .stroke(tint.opacity(0.15), lineWidth: 2.5)
-                        .frame(width: 20, height: 20)
+                        .stroke(tint.opacity(0.3), lineWidth: 3)
+                        .frame(width: 22, height: 22)
                         .background(
                             Circle()
-                                .fill(tint.opacity(0.05))
-                                .frame(width: 24, height: 24)
+                                .fill(tint.opacity(0.1))
+                                .frame(width: 26, height: 26)
                         )
 
                     // Progress circle with gradient
@@ -35,21 +35,22 @@ struct AlarmProgressView: View {
                         .trim(from: 0, to: calculateProgress(countdown: countdown))
                         .stroke(
                             AngularGradient(
-                                colors: [tint, tint.opacity(0.8), tint.opacity(0.6)],
+                                colors: [tint, tint.opacity(0.9), tint.opacity(0.7)],
                                 center: .center,
                                 startAngle: .degrees(-90),
                                 endAngle: .degrees(270)
                             ),
-                            style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
+                            style: StrokeStyle(lineWidth: 3, lineCap: .round)
                         )
-                        .frame(width: 20, height: 20)
+                        .frame(width: 22, height: 22)
                         .rotationEffect(.degrees(-90))
                         .animation(.easeInOut(duration: 0.5), value: countdown.fireDate)
 
                     // Icon with subtle pulse
                     Image(systemName: tickerIcon ?? "bell.fill")
-                        .font(.system(size: 8, weight: .semibold))
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundStyle(tint)
+                        .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
                         .scaleEffect(1.0)
                         .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: countdown.fireDate)
                 }
@@ -57,12 +58,12 @@ struct AlarmProgressView: View {
                 ZStack {
                     // Background circle
                     Circle()
-                        .stroke(tint.opacity(0.2), lineWidth: 2.5)
-                        .frame(width: 20, height: 20)
+                        .stroke(tint.opacity(0.3), lineWidth: 3)
+                        .frame(width: 22, height: 22)
                         .background(
                             Circle()
-                                .fill(tint.opacity(0.05))
-                                .frame(width: 24, height: 24)
+                                .fill(tint.opacity(0.1))
+                                .frame(width: 26, height: 26)
                         )
 
                     // Paused progress with static gradient
@@ -70,19 +71,20 @@ struct AlarmProgressView: View {
                         .trim(from: 0, to: calculatePausedProgress(state: state))
                         .stroke(
                             LinearGradient(
-                                colors: [tint.opacity(0.7), tint.opacity(0.5)],
+                                colors: [tint.opacity(0.8), tint.opacity(0.6)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
+                            style: StrokeStyle(lineWidth: 3, lineCap: .round)
                         )
-                        .frame(width: 20, height: 20)
+                        .frame(width: 22, height: 22)
                         .rotationEffect(.degrees(-90))
 
                     // Pause icon
                     Image(systemName: "pause.fill")
-                        .font(.system(size: 8, weight: .semibold))
-                        .foregroundStyle(tint.opacity(0.8))
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundStyle(tint)
+                        .shadow(color: .black.opacity(0.3), radius: 1, x: 0, y: 1)
                 }
             default:
                 EmptyView()

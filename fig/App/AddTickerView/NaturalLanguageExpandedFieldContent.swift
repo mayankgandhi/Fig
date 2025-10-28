@@ -37,6 +37,9 @@ struct NaturalLanguageExpandedFieldContent: View {
 
         case .icon:
             IconPickerViewMVVM(viewModel: viewModel.iconPickerViewModel)
+
+        case .sound:
+            SoundPickerView(viewModel: viewModel.soundPickerViewModel)
         }
     }
 }
@@ -134,6 +137,9 @@ struct NaturalLanguageOverlayCallout<Content: View>: View {
         case .countdown:
             // Countdown needs medium space
             return 350
+        case .sound:
+            // Sound picker needs medium space
+            return 400
         }
     }
 
@@ -149,6 +155,8 @@ struct NaturalLanguageOverlayCallout<Content: View>: View {
             return "Pre-Alert Countdown"
         case .icon:
             return "Alarm Icon"
+        case .sound:
+            return "Alarm Sound"
         }
     }
 }

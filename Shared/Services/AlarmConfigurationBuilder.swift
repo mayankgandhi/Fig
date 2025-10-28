@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import AlarmKit
 import AppIntents
+import ActivityKit
 
 // MARK: - AlarmConfigurationBuilder Protocol
 

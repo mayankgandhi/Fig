@@ -57,8 +57,9 @@ struct AlarmLiveActivity: Widget {
                     VStack(alignment: .leading, spacing: TickerSpacing.xs) {
                         // Countdown time (largest, prioritized)
                         countdown(state: context.state, maxWidth: 120)
-                            .font(.system(size: 20, weight: .bold, design: .monospaced))
+                            .font(.system(size: 22, weight: .bold, design: .monospaced))
                             .foregroundStyle(stateColor(for: context.state.mode))
+                            .shadow(color: .black.opacity(0.5), radius: 2, x: 0, y: 1)
                         
                         // Alarm title below countdown
                         alarmTitle(attributes: context.attributes, state: context.state)
@@ -75,8 +76,9 @@ struct AlarmLiveActivity: Widget {
                                 .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
 
                             Text(isCountdownMode(context.state.mode) ? "Active" : "Paused")
-                                .font(.system(size: 11, weight: .semibold))
-                                .foregroundStyle(TickerColor.textSecondary(for: .light))
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(TickerColor.absoluteWhite)
+                                .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
                         }
                         
                         // Enhanced ticker category badge
@@ -96,8 +98,9 @@ struct AlarmLiveActivity: Widget {
                         .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(context.state.mode))
 
                     countdown(state: context.state, maxWidth: 50)
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
                         .foregroundStyle(stateColor(for: context.state.mode))
+                        .shadow(color: .black.opacity(0.4), radius: 1, x: 0, y: 1)
                 }
             } compactTrailing: {
                 // The compact trailing presentation with enhanced progress
@@ -137,24 +140,24 @@ struct AlarmLiveActivity: Widget {
         .padding(.all, TickerSpacing.lg)
         .background(
             RoundedRectangle(cornerRadius: TickerRadius.large)
-                .fill(TickerColor.surface(for: colorScheme))
+                .fill(Color.black.opacity(0.4))
                 .overlay(
                     RoundedRectangle(cornerRadius: TickerRadius.large)
                         .strokeBorder(
                             LinearGradient(
-                                colors: [stateColor(for: state.mode).opacity(0.3), stateColor(for: state.mode).opacity(0.1)],
+                                colors: [stateColor(for: state.mode).opacity(0.6), stateColor(for: state.mode).opacity(0.3)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 1
+                            lineWidth: 2
                         )
                 )
         )
         .shadow(
-            color: stateColor(for: state.mode).opacity(0.2),
-            radius: TickerShadow.elevated.radius,
+            color: stateColor(for: state.mode).opacity(0.4),
+            radius: TickerShadow.elevated.radius + 4,
             x: TickerShadow.elevated.x,
-            y: TickerShadow.elevated.y
+            y: TickerShadow.elevated.y + 2
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Alarm countdown: \(state.mode)")
@@ -163,22 +166,25 @@ struct AlarmLiveActivity: Widget {
     func bottomView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
         HStack(spacing: TickerSpacing.lg) {
             // Enhanced countdown display (prioritized)
-            VStack(alignment: .leading, spacing: TickerSpacing.xs) {
+            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
                 countdown(state: state, maxWidth: 150)
-                    .font(.system(size: 28, weight: .bold, design: .monospaced))
+                    .font(.system(size: 32, weight: .bold, design: .monospaced))
                     .foregroundStyle(stateColor(for: state.mode))
+                    .shadow(color: .black.opacity(0.6), radius: 3, x: 0, y: 2)
 
                 // Enhanced status indicator with better visual hierarchy
-                HStack(spacing: TickerSpacing.xs) {
+                HStack(spacing: TickerSpacing.sm) {
                     Circle()
                         .fill(stateColor(for: state.mode))
-                        .frame(width: 10, height: 10)
+                        .frame(width: 12, height: 12)
                         .scaleEffect(isCountdownMode(state.mode) ? 1.3 : 1.0)
                         .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(state.mode))
+                        .shadow(color: stateColor(for: state.mode).opacity(0.5), radius: 2, x: 0, y: 1)
 
                     Text(isCountdownMode(state.mode) ? "Running" : "Paused")
-                        .font(.system(size: 13, weight: .semibold))
-                        .foregroundStyle(TickerColor.textSecondary(for: .light))
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(TickerColor.absoluteWhite)
+                        .shadow(color: .black.opacity(0.5), radius: 1, x: 0, y: 1)
                 }
             }
 
@@ -209,7 +215,7 @@ struct AlarmLiveActivity: Widget {
         .minimumScaleFactor(0.5)
         .frame(maxWidth: maxWidth, alignment: .leading)
         .foregroundStyle(stateColor(for: state.mode))
-        .shadow(color: .black.opacity(0.3), radius: 2, x: 0, y: 1)
+        .shadow(color: .black.opacity(0.7), radius: 4, x: 0, y: 2)
     }
 
     @ViewBuilder func alarmTitle(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
@@ -224,14 +230,15 @@ struct AlarmLiveActivity: Widget {
 
         VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
             Text(title ?? "")
-                .font(.system(size: 16, weight: .semibold, design: .default))
+                .font(.system(size: 18, weight: .bold, design: .default))
                 .lineLimit(1)
-                .foregroundStyle(TickerColor.textPrimary(for: .light))
-                .shadow(color: .black.opacity(0.2), radius: 1, x: 0, y: 1)
+                .foregroundStyle(TickerColor.absoluteWhite)
+                .shadow(color: .black.opacity(0.6), radius: 2, x: 0, y: 1)
 
             Text("Alarm")
-                .font(.system(size: 12, weight: .medium, design: .default))
-                .foregroundStyle(TickerColor.textSecondary(for: .light))
+                .font(.system(size: 14, weight: .medium, design: .default))
+                .foregroundStyle(TickerColor.absoluteWhite)
+                .shadow(color: .black.opacity(0.4), radius: 1, x: 0, y: 1)
         }
     }
 
@@ -239,23 +246,26 @@ struct AlarmLiveActivity: Widget {
         if let name = metadata?.name, let icon = metadata?.icon {
             HStack(spacing: TickerSpacing.xs) {
                 Image(systemName: icon)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundStyle(TickerColor.textPrimary(for: .light))
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(TickerColor.absoluteWhite)
+                    .shadow(color: .black.opacity(0.4), radius: 1, x: 0, y: 1)
 
                 Text(name)
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(.system(size: 13, weight: .semibold))
                     .lineLimit(1)
+                    .foregroundStyle(TickerColor.absoluteWhite)
+                    .shadow(color: .black.opacity(0.4), radius: 1, x: 0, y: 1)
             }
             .padding(.horizontal, TickerSpacing.sm)
             .padding(.vertical, TickerSpacing.xs)
             .background(
                 Capsule()
-                    .fill(TickerColor.surface(for: .light))
+                    .fill(Color.black.opacity(0.3))
                     .overlay(
                         Capsule()
-                            .strokeBorder(TickerColor.textTertiary(for: .light), lineWidth: 0.5)
+                            .strokeBorder(Color.white.opacity(0.2), lineWidth: 1)
                     )
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                    .shadow(color: .black.opacity(0.3), radius: 3, x: 0, y: 2)
             )
         } else {
             EmptyView()

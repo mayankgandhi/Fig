@@ -26,6 +26,7 @@ final class NaturalLanguageViewModel {
     var labelViewModel: LabelEditorViewModel
     var countdownViewModel: CountdownConfigViewModel
     var iconPickerViewModel: IconPickerViewModel
+    var soundPickerViewModel: SoundPickerViewModel
     var optionsPillsViewModel: OptionsPillsViewModel
 
     // MARK: - State
@@ -57,13 +58,15 @@ final class NaturalLanguageViewModel {
         self.labelViewModel = LabelEditorViewModel()
         self.countdownViewModel = CountdownConfigViewModel()
         self.iconPickerViewModel = IconPickerViewModel()
+        self.soundPickerViewModel = SoundPickerViewModel()
         self.optionsPillsViewModel = OptionsPillsViewModel()
 
         // Configure OptionsPillsViewModel with references to child view models
         self.optionsPillsViewModel.configure(
             schedule: scheduleViewModel,
             label: labelViewModel,
-            countdown: countdownViewModel
+            countdown: countdownViewModel,
+            sound: soundPickerViewModel
         )
     }
 
@@ -251,7 +254,12 @@ final class NaturalLanguageViewModel {
             colorHex: iconPickerViewModel.selectedColorHex
         )
 
-        return parser.parseToTicker(from: configuration)
+        let ticker = parser.parseToTicker(from: configuration)
+
+        // Set sound from sound picker view model
+        ticker.soundName = soundPickerViewModel.selectedSound
+
+        return ticker
     }
 
     private func mapScheduleToAIRepeatOption() -> AITickerGenerator.RepeatOption {

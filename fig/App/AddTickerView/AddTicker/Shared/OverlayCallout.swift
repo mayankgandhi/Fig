@@ -99,21 +99,25 @@ struct OverlayCallout<Content: View>: View {
         case .countdown:
             // Countdown needs medium space
             return 350
+        case .sound:
+            return 400
         }
     }
 
     private var headerTitle: String {
         switch field {
-        case .time:
-            return "Alarm Time"
-        case .schedule:
-            return "Schedule"
-        case .label:
-            return "Alarm Label"
-        case .countdown:
-            return "Pre-Alert Countdown"
-        case .icon:
-            return "Alarm Icon"
+            case .time:
+                return "Alarm Time"
+            case .schedule:
+                return "Schedule"
+            case .label:
+                return "Alarm Label"
+            case .countdown:
+                return "Pre-Alert Countdown"
+            case .icon:
+                return "Alarm Icon"
+            case .sound:
+                return "Alarm Sound"
         }
     }
 }

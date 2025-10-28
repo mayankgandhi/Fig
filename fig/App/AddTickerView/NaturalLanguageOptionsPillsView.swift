@@ -107,6 +107,14 @@ struct NaturalLanguageOptionsPillsView: View {
                 )
                 .contentTransition(.interpolate)
 
+                expandablePillButton(
+                    icon: "speaker.wave.2",
+                    title: viewModel.optionsPillsViewModel.displaySound,
+                    field: .sound,
+                    hasValue: viewModel.optionsPillsViewModel.hasSoundValue
+                )
+                .contentTransition(.interpolate)
+
                 // Icon pill uses the selected color as tint
                 expandablePillButton(
                     icon: viewModel.iconPickerViewModel.selectedIcon,
@@ -138,6 +146,9 @@ struct NaturalLanguageOptionsPillsView: View {
 
             // Countdown pill shimmer
             IntricateShimmerPill(size: .standard, estimatedWidth: 110)
+
+            // Sound pill shimmer
+            IntricateShimmerPill(size: .standard, estimatedWidth: 90)
 
             // Icon pill shimmer
             IntricateShimmerPill(size: .standard, estimatedWidth: 80)

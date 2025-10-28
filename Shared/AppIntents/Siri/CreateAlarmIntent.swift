@@ -67,20 +67,66 @@ struct CreateAlarmIntent: AppIntent {
         print("   → icon: \(icon ?? "nil")")
         print("   → colorHex: \(colorHex ?? "nil")")
         print("   → soundName: \(soundName ?? "nil")")
-        
-        // Check if this is a complex command that needs AI processing
-        if shouldUseAIProcessor() {
-            print("   → Using AI processor for complex command")
-            return try await performWithAIProcessor()
+
+        // Extract time components
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.hour, .minute], from: time)
+        let timeOfDay = TickerSchedule.TimeOfDay(
+            hour: components.hour ?? 0,
+            minute: components.minute ?? 0
+        )
+
+        // Create schedule based on repeat frequency
+        let schedule: TickerSchedule
+        if repeatFrequency == .oneTime {
+            schedule = .oneTime(date: time)
+        } else {
+            schedule = repeatFrequency.toTickerSchedule(time: timeOfDay)
         }
-        
-        // Simple command path
-        print("   → Using simple parameter mapping")
-        return try await performSimpleCreation()
+
+        // Create ticker data
+        let tickerData = TickerData(
+            name: label ?? "Ticker",
+            icon: icon,
+            colorHex: colorHex
+        )
+
+        // Create ticker
+        let ticker = Ticker(
+            label: label ?? "Ticker",
+            isEnabled: true,
+            schedule: schedule,
+            countdown: nil,
+            presentation: TickerPresentation(),
+            soundName: soundName,
+            tickerData: tickerData
+        )
+
+        // Schedule the ticker
+        let context = getSharedModelContext()
+        let tickerService = TickerService()
+
+        do {
+            try await tickerService.scheduleAlarm(from: ticker, context: context)
+
+            // Donate this action to SiriKit for learning
+            await donateActionToSiriKit()
+
+            print("   ✅ Ticker creation successful")
+
+            return .result(
+                dialog: "Created ticker \"\(ticker.displayName)\" for \(formatTimeForSiri(time))",
+                view: TickerCreatedView(ticker: ticker)
+            )
+
+        } catch {
+            print("   ❌ Ticker creation failed: \(error)")
+            throw error
+        }
     }
-    
-    // MARK: - Simple Creation Path
-    
+
+    // MARK: - Simple Creation Path (Deprecated - inlined into perform)
+
     private func performSimpleCreation() async throws -> some IntentResult {
         // Extract time components
         let calendar = Calendar.current
@@ -140,14 +186,14 @@ struct CreateAlarmIntent: AppIntent {
     }
     
     // MARK: - AI Processor Path
-    
-    private func performWithAIProcessor() async throws -> some IntentResult {
+
+    private func performWithAIProcessor() async throws -> some IntentResult & ProvidesDialog & ShowsSnippetView {
         // Construct natural language query from parameters
         let aiInput = constructNaturalLanguageQuery()
         print("   → AI input: \(aiInput)")
         
         // Use AI processor with Siri-specific processing
-        let aiGenerator = AITickerGenerator()
+        let aiGenerator = await AITickerGenerator()
         let configuration = try await aiGenerator.processSiriInput(aiInput)
         
         // Create ticker from AI configuration
@@ -256,17 +302,11 @@ struct CreateAlarmIntent: AppIntent {
     
     private func donateActionToSiriKit() async {
         // Donate this action to SiriKit for learning patterns
-        let interaction = INInteraction(intent: self, response: nil)
-        interaction.identifier = "create-ticker-\(UUID().uuidString)"
-        
-        await MainActor.run {
-            interaction.donate { error in
-                if let error = error {
-                    print("⚠️ Failed to donate action to SiriKit: \(error)")
-                } else {
-                    print("✅ Donated action to SiriKit")
-                }
-            }
+        do {
+            try await self.donate()
+            print("✅ Donated action to SiriKit")
+        } catch {
+            print("⚠️ Failed to donate action to SiriKit: \(error)")
         }
     }
 }
