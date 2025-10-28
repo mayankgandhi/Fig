@@ -70,7 +70,7 @@ struct BaseTimelineProvider {
             // Each entry filters alarms based on its own date to remove stale alarms
             var entries: [AlarmTimelineEntry] = []
             for minuteOffset in stride(from: 0, through: timeWindowMinutes, by: 1) {
-                let entryDate = calendar.date(byAdding: .minute, value: minuteOffset, to: nextMinute)!
+                let entryDate = calendar.date(byAdding: .minute, value: minuteOffset, to: currentMinute)!
 
                 // Filter alarms that are still in the future for this entry's date
                 let filteredAlarms = upcomingAlarms.filter { $0.nextAlarmTime > entryDate }
@@ -127,7 +127,7 @@ struct BaseTimelineProvider {
             // Each entry filters alarm based on its own date to remove stale alarm
             var entries: [AlarmTimelineEntry] = []
             for minuteOffset in stride(from: 0, through: timeWindowMinutes, by: 1) {
-                let entryDate = calendar.date(byAdding: .minute, value: minuteOffset, to: nextMinute)!
+                let entryDate = calendar.date(byAdding: .minute, value: minuteOffset, to: currentMinute)!
 
                 // Only show alarm if it's still in the future for this entry's date
                 let filteredAlarm: UpcomingAlarmPresentation? = {
