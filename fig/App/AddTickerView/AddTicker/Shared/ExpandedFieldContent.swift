@@ -36,6 +36,9 @@ struct ExpandedFieldContent: View {
         case .countdown:
             CountdownConfigView(viewModel: viewModel.countdownViewModel)
 
+        case .sound:
+            SoundPickerView(viewModel: viewModel.soundPickerViewModel)
+
         case .icon:
             IconPickerViewMVVM(viewModel: viewModel.iconPickerViewModel)
         }

@@ -35,10 +35,12 @@ let project = Project(
             ],
             resources: [
                 .glob(pattern: "fig/Resources/Assets.xcassets"),
-                .glob(pattern: "fig/Resources/AppIcon.icon/**")
+                .glob(pattern: "fig/Resources/AppIcon.icon/**"),
+                .glob(pattern: "fig/Resources/Sounds/*.caf")
             ],
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")]),
+                "com.apple.developer.siri": .boolean(true),
             ]),
             dependencies: [
                 .target(name: "alarm")

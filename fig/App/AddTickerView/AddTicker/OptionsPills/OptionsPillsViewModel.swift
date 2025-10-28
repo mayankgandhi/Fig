@@ -15,6 +15,7 @@ final class OptionsPillsViewModel {
     private(set) weak var scheduleViewModel: ScheduleViewModel?
     private(set) weak var labelViewModel: LabelEditorViewModel?
     private(set) weak var countdownViewModel: CountdownConfigViewModel?
+    private(set) weak var soundViewModel: SoundPickerViewModel?
 
     // MARK: - Computed Display Values
 
@@ -30,6 +31,10 @@ final class OptionsPillsViewModel {
         countdownViewModel?.displayText ?? "Countdown"
     }
 
+    var displaySound: String {
+        soundViewModel?.displayText ?? "Default"
+    }
+
     // Computed value flags
     var hasScheduleValue: Bool {
         scheduleViewModel?.hasScheduleValue ?? false
@@ -43,8 +48,12 @@ final class OptionsPillsViewModel {
         countdownViewModel?.isEnabled ?? false
     }
 
+    var hasSoundValue: Bool {
+        soundViewModel?.hasValue ?? false
+    }
+
     var hasAnyActiveOptions: Bool {
-        hasScheduleValue || hasLabelValue || hasCountdownValue
+        hasScheduleValue || hasLabelValue || hasCountdownValue || hasSoundValue
     }
 
     var activeOptionsCount: Int {
@@ -52,6 +61,7 @@ final class OptionsPillsViewModel {
         if hasScheduleValue { count += 1 }
         if hasLabelValue { count += 1 }
         if hasCountdownValue { count += 1 }
+        if hasSoundValue { count += 1 }
         return count
     }
 
@@ -60,11 +70,13 @@ final class OptionsPillsViewModel {
     func configure(
         schedule: ScheduleViewModel,
         label: LabelEditorViewModel,
-        countdown: CountdownConfigViewModel
+        countdown: CountdownConfigViewModel,
+        sound: SoundPickerViewModel
     ) {
         self.scheduleViewModel = schedule
         self.labelViewModel = label
         self.countdownViewModel = countdown
+        self.soundViewModel = sound
     }
 
     func toggleField(_ field: ExpandableField) {
@@ -86,6 +98,7 @@ final class OptionsPillsViewModel {
         case .label: return hasLabelValue
         case .countdown: return hasCountdownValue
         case .icon: return false
+        case .sound: return hasSoundValue
         }
     }
 }

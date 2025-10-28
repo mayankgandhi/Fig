@@ -21,6 +21,7 @@ final class AddTickerViewModel {
     var scheduleViewModel: ScheduleViewModel
     var labelViewModel: LabelEditorViewModel
     var countdownViewModel: CountdownConfigViewModel
+    var soundPickerViewModel: SoundPickerViewModel
     var iconPickerViewModel: IconPickerViewModel
 
     // MARK: - State
@@ -49,6 +50,7 @@ final class AddTickerViewModel {
         self.scheduleViewModel = ScheduleViewModel()
         self.labelViewModel = LabelEditorViewModel()
         self.countdownViewModel = CountdownConfigViewModel()
+        self.soundPickerViewModel = SoundPickerViewModel()
         self.iconPickerViewModel = IconPickerViewModel()
         self.optionsPillsViewModel = OptionsPillsViewModel()
 
@@ -57,7 +59,8 @@ final class AddTickerViewModel {
         self.optionsPillsViewModel.configure(
             schedule: scheduleViewModel,
             label: labelViewModel,
-            countdown: countdownViewModel
+            countdown: countdownViewModel,
+            sound: soundPickerViewModel
         )
 
         // Prefill if editing
@@ -266,6 +269,7 @@ final class AddTickerViewModel {
                 existingTicker.schedule = schedule
                 existingTicker.countdown = countdown
                 existingTicker.presentation = presentation
+                existingTicker.soundName = soundPickerViewModel.selectedSound
                 existingTicker.tickerData = tickerData
 
                 try await tickerService.updateAlarm(existingTicker, context: modelContext)
@@ -276,11 +280,15 @@ final class AddTickerViewModel {
                     schedule: schedule,
                     countdown: countdown,
                     presentation: presentation,
+                    soundName: soundPickerViewModel.selectedSound,
                     tickerData: tickerData
                 )
 
                 try await tickerService.scheduleAlarm(from: ticker, context: modelContext)
             }
+
+            // Donate action to SiriKit for learning
+            await donateActionToSiriKit(ticker: ticker)
 
             TickerHaptics.success()
         } catch {
@@ -291,6 +299,60 @@ final class AddTickerViewModel {
     }
 
     // MARK: - Private Methods
+    
+    private func donateActionToSiriKit(ticker: Ticker) async {
+        // Extract time from schedule for donation
+        let time: Date
+        if let schedule = ticker.schedule {
+            switch schedule {
+            case .oneTime(let date):
+                time = date
+            case .daily(let timeOfDay), .weekdays(let timeOfDay, _), .biweekly(let timeOfDay, _):
+                let calendar = Calendar.current
+                let today = Date()
+                time = calendar.date(bySettingHour: timeOfDay.hour, minute: timeOfDay.minute, second: 0, of: today) ?? today
+            case .hourly(let interval, let timeOfDay), .every(let interval, let unit, let timeOfDay):
+                let calendar = Calendar.current
+                let today = Date()
+                time = calendar.date(bySettingHour: timeOfDay.hour, minute: timeOfDay.minute, second: 0, of: today) ?? today
+            case .monthly(let day, let timeOfDay), .yearly(let month, let day, let timeOfDay):
+                let calendar = Calendar.current
+                let today = Date()
+                time = calendar.date(bySettingHour: timeOfDay.hour, minute: timeOfDay.minute, second: 0, of: today) ?? today
+            }
+        } else {
+            time = Date()
+        }
+        
+        // Determine repeat frequency
+        let repeatFrequency: RepeatFrequencyEnum
+        if let schedule = ticker.schedule {
+            switch schedule {
+            case .oneTime:
+                repeatFrequency = .oneTime
+            case .daily:
+                repeatFrequency = .daily
+            case .weekdays:
+                repeatFrequency = .weekdays
+            case .biweekly:
+                repeatFrequency = .weekdays // Map biweekly to weekdays
+            case .hourly, .every, .monthly, .yearly:
+                repeatFrequency = .daily // Default to daily for complex schedules
+            }
+        } else {
+            repeatFrequency = .oneTime
+        }
+        
+        // Donate to SiriKit
+        await AlarmSuggestionProvider.shared.donateTickerCreation(
+            time: time,
+            label: ticker.displayName,
+            repeatFrequency: repeatFrequency,
+            icon: ticker.tickerData?.icon,
+            colorHex: ticker.tickerData?.colorHex,
+            soundName: ticker.soundName
+        )
+    }
 
     private func prefillFromTemplate(_ template: Ticker) {
         let now = Date()
@@ -381,6 +443,11 @@ final class AddTickerViewModel {
             iconPickerViewModel.selectIcon(icon, colorHex: colorHex)
         } else {
             iconPickerViewModel.selectIcon("alarm", colorHex: "#8B5CF6")
+        }
+
+        // Populate sound
+        if let soundName = template.soundName {
+            soundPickerViewModel.selectSound(soundName)
         }
     }
 }

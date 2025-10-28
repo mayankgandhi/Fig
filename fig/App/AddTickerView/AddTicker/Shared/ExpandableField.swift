@@ -13,4 +13,5 @@ enum ExpandableField: Hashable {
     case label
     case countdown
     case icon
+    case sound
 }

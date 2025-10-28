@@ -62,6 +62,12 @@ struct OptionsPillsView: View {
                     field: .countdown
                 )
 
+                expandablePillButton(
+                    icon: "speaker.wave.2",
+                    title: viewModel.displaySound,
+                    field: .sound
+                )
+
                 // Icon pill uses the selected color as tint
                 expandablePillButton(
                     icon: selectedIcon,

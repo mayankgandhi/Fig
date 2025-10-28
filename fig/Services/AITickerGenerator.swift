@@ -111,6 +111,83 @@ class AITickerGenerator: ObservableObject {
         #endif
         await checkAvailabilityAndInitialize()
     }
+    
+    // MARK: - Siri Integration
+    
+    /// Process Siri voice input for ticker creation
+    /// This method is specifically designed for Siri intents and handles voice-specific input patterns
+    func processSiriInput(_ input: String) async throws -> TickerConfiguration {
+        #if DEBUG
+        logDebug(.info, "Processing Siri input: \(input)")
+        #endif
+        
+        // Preprocess Siri input to handle common voice patterns
+        let processedInput = preprocessSiriInput(input)
+        
+        // Use the existing generation method with processed input
+        return try await generateTickerConfiguration(from: processedInput)
+    }
+    
+    /// Preprocess Siri input to handle voice-specific patterns and improve parsing
+    private func preprocessSiriInput(_ input: String) -> String {
+        var processed = input
+        
+        // Handle common Siri voice patterns
+        let voicePatterns = [
+            // Time patterns
+            ("eight a m", "8am"),
+            ("eight thirty a m", "8:30am"),
+            ("seven o'clock", "7:00"),
+            ("seven thirty", "7:30"),
+            ("nine a m", "9am"),
+            ("ten a m", "10am"),
+            
+            // Day patterns
+            ("tomorrow morning", "tomorrow at 8am"),
+            ("this morning", "today at 8am"),
+            ("next week", "next week"),
+            ("every day", "daily"),
+            ("weekdays", "weekdays"),
+            ("weekends", "weekends"),
+            
+            // Common phrases
+            ("wake up", "wake up alarm"),
+            ("bedtime", "bedtime alarm"),
+            ("morning alarm", "morning wake up alarm"),
+            ("exercise", "exercise reminder"),
+            ("medication", "medication reminder"),
+            
+            // Sound patterns
+            ("gentle", "gentle sound"),
+            ("nature sounds", "nature sound"),
+            ("chimes", "chimes sound"),
+            ("bells", "bells sound"),
+            ("ocean", "ocean sound"),
+            ("rain", "rain sound"),
+            ("birds", "birds sound"),
+            
+            // Remove filler words that Siri often adds
+            ("please", ""),
+            ("can you", ""),
+            ("would you", ""),
+            ("hey siri", ""),
+            ("siri", "")
+        ]
+        
+        for (pattern, replacement) in voicePatterns {
+            processed = processed.replacingOccurrences(of: pattern, with: replacement, options: .caseInsensitive)
+        }
+        
+        // Clean up extra spaces
+        processed = processed.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
+        processed = processed.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        #if DEBUG
+        logDebug(.parsing, "Preprocessed Siri input: \(processed)")
+        #endif
+        
+        return processed
+    }
 
     /// Call this when view disappears or is done
     func cleanupSession() {

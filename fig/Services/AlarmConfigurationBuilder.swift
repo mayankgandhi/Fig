@@ -28,19 +28,30 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
             tintColor: Color.accentColor
         )
 
+        // Build sound configuration
+        let sound = buildSound(from: alarmItem)
+
         // Build configuration
         let configuration = AlarmManager.AlarmConfiguration<TickerData>(
             countdownDuration: alarmItem.alarmKitCountdownDuration,
             schedule: alarmItem.alarmKitSchedule,
             attributes: attributes,
             stopIntent: StopIntent(alarmID: alarmItem.id.uuidString),
-            secondaryIntent: buildSecondaryIntent(for: alarmItem)
+            secondaryIntent: buildSecondaryIntent(for: alarmItem),
+            sound: sound
         )
 
         return configuration
     }
 
     // MARK: - Private Helpers
+
+    private func buildSound(from alarmItem: Ticker) -> AlertConfiguration.AlertSound {
+        if let soundName = alarmItem.soundName {
+            return .named(soundName)
+        }
+        return .default
+    }
 
     private func buildPresentation(from alarmItem: Ticker) -> AlarmPresentation {
         let secondaryButtonBehavior = alarmItem.alarmKitSecondaryButtonBehavior

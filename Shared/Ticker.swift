@@ -38,6 +38,9 @@ final class Ticker {
     // Presentation
     var presentation: TickerPresentation
 
+    // Sound
+    var soundName: String? // nil = system default, or custom sound file name
+
     // Template metadata
     var tickerData: TickerData?
 
@@ -76,6 +79,7 @@ final class Ticker {
         schedule: TickerSchedule? = nil,
         countdown: TickerCountdown? = nil,
         presentation: TickerPresentation = .init(),
+        soundName: String? = nil,
         tickerData: TickerData? = nil,
         regenerationStrategy: AlarmGenerationStrategy? = nil
     ) {
@@ -86,6 +90,7 @@ final class Ticker {
         self.scheduleData = try? JSONEncoder().encode(schedule)
         self.countdown = countdown
         self.presentation = presentation
+        self.soundName = soundName
         self.tickerData = tickerData
         self.generatedAlarmKitIDs = []
 
