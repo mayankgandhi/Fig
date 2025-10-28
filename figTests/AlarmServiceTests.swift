@@ -18,7 +18,7 @@ struct TickerServiceTests {
 
     var mockConfigurationBuilder: MockConfigurationBuilder!
     var mockStateManager: MockStateManager!
-    var mockSyncCoordinator: MockSyncCoordinator!
+    var mockSynchronizationService: MockSynchronizationService!
     var tickerService: TickerService!
     var modelContainer: ModelContainer!
 
@@ -27,12 +27,12 @@ struct TickerServiceTests {
     init() {
         mockConfigurationBuilder = MockConfigurationBuilder()
         mockStateManager = MockStateManager()
-        mockSyncCoordinator = MockSyncCoordinator()
+        mockSynchronizationService = MockSynchronizationService()
 
         tickerService = TickerService(
             configurationBuilder: mockConfigurationBuilder,
             stateManager: mockStateManager,
-            syncCoordinator: mockSyncCoordinator
+            synchronizationService: mockSynchronizationService
         )
 
         // Create in-memory model container for testing

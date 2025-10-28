@@ -269,7 +269,7 @@ final class AddTickerViewModel {
                 existingTicker.schedule = schedule
                 existingTicker.countdown = countdown
                 existingTicker.presentation = presentation
-                existingTicker.soundName = soundPickerViewModel.selectedSoundObject?.fileName
+                existingTicker.soundName = soundPickerViewModel.selectedSound
                 existingTicker.tickerData = tickerData
                 
                 try await tickerService.updateAlarm(existingTicker, context: modelContext)
@@ -283,7 +283,7 @@ final class AddTickerViewModel {
                     schedule: schedule,
                     countdown: countdown,
                     presentation: presentation,
-                    soundName: soundPickerViewModel.selectedSoundObject?.fileName,
+                    soundName: soundPickerViewModel.selectedSound,
                     tickerData: tickerData
                 )
                 

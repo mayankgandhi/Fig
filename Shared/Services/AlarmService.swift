@@ -89,17 +89,13 @@ final class TickerService {
     @ObservationIgnored
     private let _stateManager: AlarmStateManagerProtocol
     
-    // Sync coordinator
+    // Synchronization service
     @ObservationIgnored
-    private let syncCoordinator: AlarmSyncCoordinatorProtocol
+    private let synchronizationService: AlarmSynchronizationServiceProtocol
 
     // Regeneration service
     @ObservationIgnored
     private let regenerationService: AlarmRegenerationServiceProtocol
-
-    // Cleanup service
-    @ObservationIgnored
-    private let cleanupService: AlarmCleanupServiceProtocol
 
     // MARK: - Initialization
 
@@ -107,16 +103,14 @@ final class TickerService {
         alarmManager: AlarmManager = AlarmManager.shared,
         configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
         stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
-        syncCoordinator: AlarmSyncCoordinatorProtocol = AlarmSyncCoordinator(),
-        regenerationService: AlarmRegenerationServiceProtocol = AlarmRegenerationService(),
-        cleanupService: AlarmCleanupServiceProtocol = AlarmCleanupService()
+        synchronizationService: AlarmSynchronizationServiceProtocol = AlarmSynchronizationService(),
+        regenerationService: AlarmRegenerationServiceProtocol = AlarmRegenerationService()
     ) {
         self.alarmManager = alarmManager
         self.configurationBuilder = configurationBuilder
         self._stateManager = stateManager
-        self.syncCoordinator = syncCoordinator
+        self.synchronizationService = synchronizationService
         self.regenerationService = regenerationService
-        self.cleanupService = cleanupService
     }
     
     // MARK: - Authorization
@@ -596,28 +590,20 @@ final class TickerService {
 
     @MainActor
     func synchronizeAlarmsOnLaunch(context: ModelContext) async {
-        await syncCoordinator.synchronizeOnLaunch(
+        await synchronizationService.synchronize(
             alarmManager: alarmManager,
             stateManager: stateManager,
             context: context
         )
-
-        // Clean up stale alarms after sync
-        let cleanedCount = await cleanupService.cleanupStaleAlarms(
-            stateManager: stateManager,
-            context: context
-        )
-
-        if cleanedCount > 0 {
-            print("🧹 Cleaned up \(cleanedCount) stale alarm(s) after launch sync")
-        }
     }
 
-    /// Manually trigger cleanup of stale alarms
+    /// Manually trigger synchronization
+    /// Uses AlarmManager.alarms as source of truth
     /// Call this when app comes to foreground or after stopping an alarm
     @MainActor
-    func cleanupStaleAlarms(context: ModelContext) async -> Int {
-        return await cleanupService.cleanupStaleAlarms(
+    func synchronizeAlarms(context: ModelContext) async {
+        await synchronizationService.synchronize(
+            alarmManager: alarmManager,
             stateManager: stateManager,
             context: context
         )

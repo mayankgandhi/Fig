@@ -48,13 +48,44 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
     // MARK: - Private Helpers
 
     private func buildSound(from alarmItem: Ticker) -> AlertConfiguration.AlertSound {
-        if let soundName = alarmItem.soundName {
-            // Remove file extension for AlarmKit
-            // e.g., "classic_digital_alarm.wav" -> "classic_digital_alarm"
-            let nameWithoutExtension = (soundName as NSString).deletingPathExtension
-            return .named(nameWithoutExtension)
+        guard let soundID = alarmItem.soundName else {
+            print("🔊 Using default sound")
+            return .default
         }
-        return .default
+
+        // Map sound ID to actual filename
+        let soundMap: [String: String] = [
+            "classic_digital_alarm": "classic_digital_alarm",
+            "casino_jackpot": "mixkit-casino-jackpot-alarm-and-coins-1991",
+            "happy_countdown": "mixkit-children-happy-countdown-923",
+            "marimba_ringtone": "mixkit-marimba-ringtone-1359",
+            "retro_game_alarm": "mixkit-retro-game-emergency-alarm-1000",
+            "tick_tock_clock": "mixkit-tick-tock-clock-timer-1045"
+        ]
+
+        let fileName = soundMap[soundID] ?? soundID
+
+        // Verify the sound file exists in the bundle before using it
+        let extensions = ["wav", "caf", "mp3", "m4a"]
+        var foundURL: URL?
+
+        for ext in extensions {
+            if let url = Bundle.main.url(forResource: fileName, withExtension: ext) {
+                foundURL = url
+                print("🔊 Using custom sound: \(fileName).\(ext) (found at \(url.path))")
+                break
+            }
+        }
+
+        if foundURL != nil {
+            // Sound file exists in bundle, use it
+            return .named(fileName)
+        } else {
+            // Sound file not found, log and fall back to default
+            print("⚠️ Custom sound '\(fileName)' not found in bundle with extensions: \(extensions.joined(separator: ", "))")
+            print("⚠️ Falling back to default sound")
+            return .default
+        }
     }
 
     private func buildPresentation(from alarmItem: Ticker) -> AlarmPresentation {

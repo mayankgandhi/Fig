@@ -79,12 +79,11 @@ struct BaseTimelineProvider {
                 entries.append(entry)
             }
 
-            // Calculate smart refresh date: next alarm fire time + 2 minutes
+            // Calculate smart refresh date: next alarm fire time
             // This ensures widgets update soon after an alarm fires
             let refreshPolicy: TimelineReloadPolicy
             if let nextAlarmTime = upcomingAlarms.first?.nextAlarmTime {
-                let refreshDate = calendar.date(byAdding: .minute, value: 2, to: nextAlarmTime)!
-                refreshPolicy = .after(refreshDate)
+                refreshPolicy = .after(nextAlarmTime)
             } else {
                 // No upcoming alarms, use default policy
                 refreshPolicy = .atEnd
@@ -140,12 +139,11 @@ struct BaseTimelineProvider {
                 entries.append(entry)
             }
 
-            // Calculate smart refresh date: next alarm fire time + 2 minutes
+            // Calculate smart refresh date: next alarm fire time
             // This ensures widgets update soon after an alarm fires
             let refreshPolicy: TimelineReloadPolicy
             if let nextAlarmTime = nextAlarm?.nextAlarmTime {
-                let refreshDate = calendar.date(byAdding: .minute, value: 2, to: nextAlarmTime)!
-                refreshPolicy = .after(refreshDate)
+                refreshPolicy = .after(nextAlarmTime)
             } else {
                 // No upcoming alarms, use default policy
                 refreshPolicy = .atEnd

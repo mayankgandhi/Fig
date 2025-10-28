@@ -104,14 +104,13 @@ final class MockStateManager: AlarmStateManagerProtocol {
     }
 }
 
-// MARK: - MockSyncCoordinator
+// MARK: - MockSynchronizationService
 
-final class MockSyncCoordinator: AlarmSyncCoordinatorProtocol {
+final class MockSynchronizationService: AlarmSynchronizationServiceProtocol {
     var synchronizeCallCount = 0
     var shouldThrow = false
 
-    @MainActor
-    func synchronizeOnLaunch(
+    func synchronize(
         alarmManager: AlarmManager,
         stateManager: AlarmStateManagerProtocol,
         context: ModelContext
