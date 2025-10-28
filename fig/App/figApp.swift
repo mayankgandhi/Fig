@@ -96,6 +96,13 @@ struct figApp: App {
             print("🌅 App entered foreground - triggering alarm regeneration check")
             Task {
                 await regenerateAllEnabledTickers()
+
+                // Clean up stale alarms after regeneration
+                let context = ModelContext(sharedModelContainer)
+                let cleanedCount = await tickerService.cleanupStaleAlarms(context: context)
+                if cleanedCount > 0 {
+                    print("🧹 Cleaned up \(cleanedCount) stale alarm(s) on foreground")
+                }
             }
 
             // Schedule next background task

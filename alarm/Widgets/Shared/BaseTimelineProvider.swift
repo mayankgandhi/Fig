@@ -67,15 +67,30 @@ struct BaseTimelineProvider {
             )
 
             // Generate timeline entries for the specified time window, updating every minute
+            // Each entry filters alarms based on its own date to remove stale alarms
             var entries: [AlarmTimelineEntry] = []
             for minuteOffset in stride(from: 0, through: timeWindowMinutes, by: 1) {
                 let entryDate = calendar.date(byAdding: .minute, value: minuteOffset, to: nextMinute)!
-                let entry = AlarmTimelineEntry(date: entryDate, upcomingAlarms: upcomingAlarms)
+
+                // Filter alarms that are still in the future for this entry's date
+                let filteredAlarms = upcomingAlarms.filter { $0.nextAlarmTime > entryDate }
+
+                let entry = AlarmTimelineEntry(date: entryDate, upcomingAlarms: filteredAlarms)
                 entries.append(entry)
             }
 
-            // Update policy: Refresh after the last entry
-            let timeline = Timeline(entries: entries, policy: .atEnd)
+            // Calculate smart refresh date: next alarm fire time + 2 minutes
+            // This ensures widgets update soon after an alarm fires
+            let refreshPolicy: TimelineReloadPolicy
+            if let nextAlarmTime = upcomingAlarms.first?.nextAlarmTime {
+                let refreshDate = calendar.date(byAdding: .minute, value: 2, to: nextAlarmTime)!
+                refreshPolicy = .after(refreshDate)
+            } else {
+                // No upcoming alarms, use default policy
+                refreshPolicy = .atEnd
+            }
+
+            let timeline = Timeline(entries: entries, policy: refreshPolicy)
             completion(timeline)
         }
     }
@@ -110,15 +125,33 @@ struct BaseTimelineProvider {
             let nextAlarm = await WidgetDataFetcher.fetchNextAlarm(withinHours: alarmTimeWindowHours)
 
             // Generate timeline entries for the specified time window, updating every minute
+            // Each entry filters alarm based on its own date to remove stale alarm
             var entries: [AlarmTimelineEntry] = []
             for minuteOffset in stride(from: 0, through: timeWindowMinutes, by: 1) {
                 let entryDate = calendar.date(byAdding: .minute, value: minuteOffset, to: nextMinute)!
-                let entry = AlarmTimelineEntry(date: entryDate, nextAlarm: nextAlarm)
+
+                // Only show alarm if it's still in the future for this entry's date
+                let filteredAlarm: UpcomingAlarmPresentation? = {
+                    guard let alarm = nextAlarm else { return nil }
+                    return alarm.nextAlarmTime > entryDate ? alarm : nil
+                }()
+
+                let entry = AlarmTimelineEntry(date: entryDate, nextAlarm: filteredAlarm)
                 entries.append(entry)
             }
 
-            // Update policy: Refresh after the last entry
-            let timeline = Timeline(entries: entries, policy: .atEnd)
+            // Calculate smart refresh date: next alarm fire time + 2 minutes
+            // This ensures widgets update soon after an alarm fires
+            let refreshPolicy: TimelineReloadPolicy
+            if let nextAlarmTime = nextAlarm?.nextAlarmTime {
+                let refreshDate = calendar.date(byAdding: .minute, value: 2, to: nextAlarmTime)!
+                refreshPolicy = .after(refreshDate)
+            } else {
+                // No upcoming alarms, use default policy
+                refreshPolicy = .atEnd
+            }
+
+            let timeline = Timeline(entries: entries, policy: refreshPolicy)
             completion(timeline)
         }
     }

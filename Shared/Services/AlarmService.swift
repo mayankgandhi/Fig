@@ -67,22 +67,27 @@ final class TickerService {
     var alarms: [UUID: Ticker] {
         stateManager.alarms
     }
-    
+
     var authorizationStatus: AlarmAuthorizationStatus {
         AlarmAuthorizationStatus(from: alarmManager.authorizationState)
     }
-    
+
+    // State manager access (needed for TodayViewModel and widgets)
+    var stateManager: AlarmStateManagerProtocol {
+        _stateManager
+    }
+
     // Private AlarmKit manager
     @ObservationIgnored
     private let alarmManager: AlarmManager
-    
+
     // Configuration builder
     @ObservationIgnored
     private let configurationBuilder: AlarmConfigurationBuilderProtocol
-    
-    // State manager
+
+    // State manager (private backing, public via computed property)
     @ObservationIgnored
-    private let stateManager: AlarmStateManagerProtocol
+    private let _stateManager: AlarmStateManagerProtocol
     
     // Sync coordinator
     @ObservationIgnored
@@ -91,21 +96,27 @@ final class TickerService {
     // Regeneration service
     @ObservationIgnored
     private let regenerationService: AlarmRegenerationServiceProtocol
-    
+
+    // Cleanup service
+    @ObservationIgnored
+    private let cleanupService: AlarmCleanupServiceProtocol
+
     // MARK: - Initialization
-    
+
     init(
         alarmManager: AlarmManager = AlarmManager.shared,
         configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
         stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
         syncCoordinator: AlarmSyncCoordinatorProtocol = AlarmSyncCoordinator(),
-        regenerationService: AlarmRegenerationServiceProtocol = AlarmRegenerationService()
+        regenerationService: AlarmRegenerationServiceProtocol = AlarmRegenerationService(),
+        cleanupService: AlarmCleanupServiceProtocol = AlarmCleanupService()
     ) {
         self.alarmManager = alarmManager
         self.configurationBuilder = configurationBuilder
-        self.stateManager = stateManager
+        self._stateManager = stateManager
         self.syncCoordinator = syncCoordinator
         self.regenerationService = regenerationService
+        self.cleanupService = cleanupService
     }
     
     // MARK: - Authorization
@@ -582,11 +593,31 @@ final class TickerService {
     }
     
     // MARK: - Synchronization
-    
+
     @MainActor
     func synchronizeAlarmsOnLaunch(context: ModelContext) async {
         await syncCoordinator.synchronizeOnLaunch(
             alarmManager: alarmManager,
+            stateManager: stateManager,
+            context: context
+        )
+
+        // Clean up stale alarms after sync
+        let cleanedCount = await cleanupService.cleanupStaleAlarms(
+            stateManager: stateManager,
+            context: context
+        )
+
+        if cleanedCount > 0 {
+            print("🧹 Cleaned up \(cleanedCount) stale alarm(s) after launch sync")
+        }
+    }
+
+    /// Manually trigger cleanup of stale alarms
+    /// Call this when app comes to foreground or after stopping an alarm
+    @MainActor
+    func cleanupStaleAlarms(context: ModelContext) async -> Int {
+        return await cleanupService.cleanupStaleAlarms(
             stateManager: stateManager,
             context: context
         )

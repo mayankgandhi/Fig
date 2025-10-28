@@ -98,6 +98,9 @@ struct WidgetDataFetcher {
             }
         }
 
+        // Filter out past alarms (critical for removing triggered alarms)
+        upcomingAlarms = upcomingAlarms.filter { $0.nextAlarmTime > now }
+
         // Sort by next alarm time
         upcomingAlarms.sort { $0.nextAlarmTime < $1.nextAlarmTime }
 

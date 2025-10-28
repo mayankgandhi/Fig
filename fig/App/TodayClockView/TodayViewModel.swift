@@ -18,6 +18,7 @@ final class TodayViewModel {
     // MARK: - Dependencies
 
     private let tickerService: TickerService
+    private let alarmStateManager: AlarmStateManagerProtocol
     private let modelContext: ModelContext
     private let calendar: Calendar
 
@@ -37,34 +38,94 @@ final class TodayViewModel {
 
     // MARK: - Initialization
 
-    init(tickerService: TickerService, modelContext: ModelContext, calendar: Calendar = .current) {
+    init(
+        tickerService: TickerService,
+        alarmStateManager: AlarmStateManagerProtocol,
+        modelContext: ModelContext,
+        calendar: Calendar = .current
+    ) {
         self.tickerService = tickerService
+        self.alarmStateManager = alarmStateManager
         self.modelContext = modelContext
         self.calendar = calendar
     }
 
     // MARK: - Public Methods
-    
+
     /// Refreshes upcoming alarms (call this when alarms change)
     /// Computation happens off main thread for better performance
+    /// Uses AlarmStateManager as single source of truth
     func refreshAlarms() async {
         let now = Date()
-        let twentyFourHoursFromNow = Date().addingTimeInterval(24*60*60)
+        let timeWindow = now.addingTimeInterval(24 * 60 * 60)
 
-        // Get all upcoming occurrences using centralized service
-        let allOccurrences = await AlarmOccurrenceService.computeOccurrences(
-            context: modelContext,
-            withinHours: 24,
-            limit: nil
-        )
-        
-        // Filter to only future occurrences
-        let sortedOccurrences = allOccurrences.filter { $0.nextAlarmTime > now }
+        // Get all tickers from AlarmStateManager (single source of truth)
+        let allTickers = alarmStateManager.getAllTickers()
+
+        // Filter for enabled alarms
+        let enabledTickers = allTickers.filter { $0.isEnabled }
+
+        // Expand schedules to get upcoming dates
+        let expander = TickerScheduleExpander(calendar: calendar)
+        var upcomingOccurrences: [UpcomingAlarmPresentation] = []
+
+        for ticker in enabledTickers {
+            guard let schedule = ticker.schedule else { continue }
+
+            // Expand schedule within time window
+            let window = DateInterval(start: now, end: timeWindow)
+            let expandedDates = expander.expandSchedule(schedule, within: window)
+
+            for alarmDate in expandedDates {
+                let hour = calendar.component(.hour, from: alarmDate)
+                let minute = calendar.component(.minute, from: alarmDate)
+
+                let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
+                    switch schedule {
+                    case .oneTime: return .oneTime
+                    case .daily: return .daily
+                    case .hourly(let interval, _): return .hourly(interval: interval)
+                    case .weekdays(_, let days):
+                        return .weekdays(days.map { $0.rawValue })
+                    case .biweekly: return .biweekly
+                    case .monthly: return .monthly
+                    case .yearly: return .yearly
+                    case .every(let interval, let unit, _):
+                        let unitString: String
+                        switch unit {
+                        case .minutes: unitString = "minutes"
+                        case .hours: unitString = "hours"
+                        case .days: unitString = "days"
+                        case .weeks: unitString = "weeks"
+                        }
+                        return .every(interval: interval, unit: unitString)
+                    }
+                }()
+
+                let presentation = UpcomingAlarmPresentation(
+                    baseAlarmId: ticker.id,
+                    displayName: ticker.displayName,
+                    icon: ticker.tickerData?.icon ?? "alarm",
+                    color: extractColor(from: ticker),
+                    nextAlarmTime: alarmDate,
+                    scheduleType: scheduleType,
+                    hour: hour,
+                    minute: minute,
+                    hasCountdown: ticker.countdown?.preAlert != nil,
+                    tickerDataTitle: ticker.tickerData?.name
+                )
+
+                upcomingOccurrences.append(presentation)
+            }
+        }
+
+        // Filter to only future occurrences and sort
+        let sortedOccurrences = upcomingOccurrences
+            .filter { $0.nextAlarmTime > now }
             .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
 
-        // Compute clock alarms: just filter sortedOccurrences to next 12 hours
+        // Compute clock alarms: filter to next 12 hours
         let twelveHoursFromNow = calendar.date(byAdding: .hour, value: 12, to: now) ?? now
-        
         let clockAlarms = sortedOccurrences.filter { occurrence in
             occurrence.nextAlarmTime > now && occurrence.nextAlarmTime <= twelveHoursFromNow
         }

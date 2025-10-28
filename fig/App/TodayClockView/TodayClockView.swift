@@ -203,14 +203,18 @@ struct TodayClockView: View {
             }
             .onAppear {
                 if viewModel == nil {
-                    viewModel = TodayViewModel(tickerService: tickerService, modelContext: modelContext)
+                    viewModel = TodayViewModel(
+                        tickerService: tickerService,
+                        alarmStateManager: tickerService.stateManager,
+                        modelContext: modelContext
+                    )
                 }
-                
+
                 // Refresh alarms when view appears
                 Task {
                     await viewModel?.refreshAlarms()
                 }
-                
+
                 // Reset and trigger animation when view appears
                 shouldAnimateAlarms = false
                 Task { @MainActor in
