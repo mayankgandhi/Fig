@@ -36,8 +36,8 @@ let project = Project(
             resources: [
                 .glob(pattern: "fig/Resources/Assets.xcassets"),
                 .glob(pattern: "fig/Resources/AppIcon.icon/**"),
-                .glob(pattern: "fig/Resources/Sounds/*.caf"),
-                .glob(pattern: "fig/Resources/Sounds/*.wav")
+                .glob(pattern: "fig/Resources/*.caf"),
+                .glob(pattern: "fig/Resources/*.wav")
             ],
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")]),
@@ -77,8 +77,8 @@ let project = Project(
             ],
             resources: [
                 "alarm/Assets.xcassets",
-                .glob(pattern: "fig/Resources/Sounds/*.caf"),
-                .glob(pattern: "fig/Resources/Sounds/*.wav")
+                .glob(pattern: "fig/Resources/*.caf"),
+                .glob(pattern: "fig/Resources/*.wav")
             ],
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")])

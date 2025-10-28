@@ -29,11 +29,19 @@ struct SoundPickerView: View {
                         SoundCell(
                             sound: sound,
                             isSelected: viewModel.selectedSound == sound.id,
+                            isPlaying: viewModel.isPlaying && viewModel.currentlyPlayingSound == sound.fileName,
+                            isPaused: !viewModel.isPlaying && viewModel.currentlyPlayingSound == sound.fileName,
                             onSelect: {
                                 selectSound(sound)
                             },
                             onPreview: {
                                 previewSound(sound)
+                            },
+                            onPause: {
+                                viewModel.pausePreview()
+                            },
+                            onResume: {
+                                viewModel.resumePreview()
                             }
                         )
                     }
@@ -45,6 +53,9 @@ struct SoundPickerView: View {
             Text("Choose a sound that will play when your alarm goes off. Tap the play button to preview each sound.")
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+        }
+        .onDisappear {
+            viewModel.stopPreview()
         }
     }
 
@@ -66,8 +77,12 @@ struct SoundPickerView: View {
 private struct SoundCell: View {
     let sound: AlarmSound
     let isSelected: Bool
+    let isPlaying: Bool
+    let isPaused: Bool
     let onSelect: () -> Void
     let onPreview: () -> Void
+    let onPause: () -> Void
+    let onResume: () -> Void
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -80,10 +95,18 @@ private struct SoundCell: View {
 
                 Spacer()
 
-                // Preview button (only for non-default sounds)
+                // Preview/Pause/Resume button (only for non-default sounds)
                 if sound.fileName != nil {
-                    Button(action: onPreview) {
-                        Image(systemName: "play.circle.fill")
+                    Button(action: {
+                        if isPlaying {
+                            onPause()
+                        } else if isPaused {
+                            onResume()
+                        } else {
+                            onPreview()
+                        }
+                    }) {
+                        Image(systemName: isPlaying ? "pause.circle.fill" : "play.circle.fill")
                             .font(.title3)
                             .foregroundStyle(TickerColor.primary)
                     }

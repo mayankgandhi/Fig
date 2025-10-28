@@ -49,7 +49,10 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
 
     private func buildSound(from alarmItem: Ticker) -> AlertConfiguration.AlertSound {
         if let soundName = alarmItem.soundName {
-            return .named(soundName)
+            // Remove file extension for AlarmKit
+            // e.g., "classic_digital_alarm.wav" -> "classic_digital_alarm"
+            let nameWithoutExtension = (soundName as NSString).deletingPathExtension
+            return .named(nameWithoutExtension)
         }
         return .default
     }

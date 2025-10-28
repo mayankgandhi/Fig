@@ -25,6 +25,8 @@ struct AlarmSound: Identifiable, Hashable {
 @Observable
 final class SoundPickerViewModel {
     var selectedSound: String? = nil  // nil = system default
+    var isPlaying: Bool = false
+    var currentlyPlayingSound: String? = nil
     private var audioPlayer: AVAudioPlayer?
 
     // MARK: - Available Sounds
@@ -69,6 +71,7 @@ final class SoundPickerViewModel {
         guard let fileName = fileName else {
             // Play system default alarm sound
             playSystemSound()
+            currentlyPlayingSound = nil
             return
         }
 
@@ -77,6 +80,7 @@ final class SoundPickerViewModel {
         guard components.count >= 2 else {
             print("⚠️ Invalid sound file name format: \(fileName)")
             playSystemSound()
+            currentlyPlayingSound = nil
             return
         }
 
@@ -87,6 +91,7 @@ final class SoundPickerViewModel {
             print("⚠️ Sound file not found: \(fileName)")
             // Fallback to system sound
             playSystemSound()
+            currentlyPlayingSound = nil
             return
         }
 
@@ -97,16 +102,31 @@ final class SoundPickerViewModel {
 
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.play()
+            isPlaying = true
+            currentlyPlayingSound = fileName
         } catch {
             print("⚠️ Error playing sound: \(error)")
             // Fallback to system sound
             playSystemSound()
+            currentlyPlayingSound = nil
         }
+    }
+
+    func pausePreview() {
+        audioPlayer?.pause()
+        isPlaying = false
+    }
+
+    func resumePreview() {
+        audioPlayer?.play()
+        isPlaying = true
     }
 
     func stopPreview() {
         audioPlayer?.stop()
         audioPlayer = nil
+        isPlaying = false
+        currentlyPlayingSound = nil
     }
 
     func reset() {

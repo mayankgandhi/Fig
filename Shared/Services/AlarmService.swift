@@ -224,7 +224,8 @@ final class TickerService {
             print("   ❌ TickerServiceError: \(error)")
             throw error
         } catch {
-            print("   ❌ General error: \(error)")
+            print("   ❌ General error")
+            dump(error)
             print("   → Rolling back SwiftData changes...")
             // Rollback: remove from SwiftData if scheduling failed
             // Only delete if we just inserted it
