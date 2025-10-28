@@ -33,6 +33,10 @@ struct ContentView: View {
                     .background(backgroundView)
                     .navigationTitle(Text("Tickers"))
                     .toolbarTitleDisplayMode(.inlineLarge)
+                    .searchable(text: Binding(
+                        get: { vm.searchText },
+                        set: { vm.searchText = $0 }
+                    ), prompt: "Search tickers...")
                     .toolbar {
                         ToolbarItemGroup(placement: .primaryAction) {
                             ToolbarButtonsView(
