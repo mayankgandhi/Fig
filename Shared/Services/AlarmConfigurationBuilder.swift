@@ -14,14 +14,14 @@ import ActivityKit
 // MARK: - AlarmConfigurationBuilder Protocol
 
 protocol AlarmConfigurationBuilderProtocol {
-    func buildConfiguration(from alarmItem: Ticker) -> AlarmManager.AlarmConfiguration<TickerData>?
+    func buildConfiguration(from alarmItem: Ticker, generatedAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>?
 }
 
 // MARK: - AlarmConfigurationBuilder Implementation
 
 struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
 
-    func buildConfiguration(from alarmItem: Ticker) -> AlarmManager.AlarmConfiguration<TickerData>? {
+    func buildConfiguration(from alarmItem: Ticker, generatedAlarmID: UUID? = nil) -> AlarmManager.AlarmConfiguration<TickerData>? {
         // Build attributes
         let attributes = AlarmAttributes(
             presentation: buildPresentation(from: alarmItem),
@@ -32,13 +32,16 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
         // Build sound configuration
         let sound = buildSound(from: alarmItem)
 
+        // Use generatedAlarmID if provided (for composite alarms), otherwise use ticker's ID
+        let alarmIDForIntent = generatedAlarmID ?? alarmItem.id
+
         // Build configuration
         let configuration = AlarmManager.AlarmConfiguration<TickerData>(
             countdownDuration: alarmItem.alarmKitCountdownDuration,
             schedule: alarmItem.alarmKitSchedule,
             attributes: attributes,
-            stopIntent: StopIntent(alarmID: alarmItem.id.uuidString),
-            secondaryIntent: buildSecondaryIntent(for: alarmItem),
+            stopIntent: StopIntent(alarmID: alarmIDForIntent.uuidString),
+            secondaryIntent: buildSecondaryIntent(for: alarmItem, generatedAlarmID: generatedAlarmID),
             sound: sound
         )
 
@@ -122,14 +125,17 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
         return AlarmPresentation(alert: alertContent, countdown: countdownContent, paused: pausedContent)
     }
 
-    private func buildSecondaryIntent(for alarmItem: Ticker) -> (any LiveActivityIntent)? {
+    private func buildSecondaryIntent(for alarmItem: Ticker, generatedAlarmID: UUID? = nil) -> (any LiveActivityIntent)? {
+        // Use generatedAlarmID if provided (for composite alarms), otherwise use ticker's ID
+        let alarmIDForIntent = generatedAlarmID ?? alarmItem.id
+        
         switch alarmItem.presentation.secondaryButtonType {
         case .none:
             return nil
         case .countdown:
-            return RepeatIntent(alarmID: alarmItem.id.uuidString)
+            return RepeatIntent(alarmID: alarmIDForIntent.uuidString)
         case .openApp:
-            return OpenAlarmAppIntent(alarmID: alarmItem.id.uuidString)
+            return OpenAlarmAppIntent(alarmID: alarmIDForIntent.uuidString)
         }
     }
 }
