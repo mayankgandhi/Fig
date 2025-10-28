@@ -277,6 +277,69 @@ final class TickerScheduleExpanderTests: XCTestCase {
         XCTAssertEqual(calendar.component(.day, from: results[1]), 3) // Friday
     }
 
+    // MARK: - Every Schedule Tests
+
+    func testEverySchedule_MinuteInterval() {
+        // Test 4-minute intervals starting from current time
+        let startTime = createDate(year: 2025, month: 1, day: 1, hour: 9, minute: 2) // Start at 9:02
+        let endTime = createDate(year: 2025, month: 1, day: 1, hour: 9, minute: 20)   // End at 9:20
+        let schedule = TickerSchedule.every(interval: 4, unit: .minutes, time: TickerSchedule.TimeOfDay(hour: 9, minute: 0))
+
+        let window = DateInterval(start: startTime, end: endTime)
+        let results = expander.expandSchedule(schedule, within: window)
+
+        // Should generate alarms every 4 minutes starting from window.start (9:02)
+        // Expected: 9:02, 9:06, 9:10, 9:14, 9:18 = 5 alarms
+        XCTAssertEqual(results.count, 5)
+        
+        // Verify the intervals are correct
+        for (index, date) in results.enumerated() {
+            let expectedMinute = 2 + (index * 4)
+            let actualMinute = calendar.component(.minute, from: date)
+            XCTAssertEqual(actualMinute, expectedMinute, "Alarm \(index) should be at minute \(expectedMinute)")
+        }
+    }
+
+    func testEverySchedule_MinuteInterval_FromSpecificTime() {
+        // Test minute intervals starting from a specific time (not current time)
+        let startTime = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 0)
+        let endTime = createDate(year: 2025, month: 1, day: 1, hour: 0, minute: 20)
+        let schedule = TickerSchedule.every(interval: 5, unit: .minutes, time: TickerSchedule.TimeOfDay(hour: 0, minute: 0))
+
+        let window = DateInterval(start: startTime, end: endTime)
+        let results = expander.expandSchedule(schedule, within: window)
+
+        // Should generate alarms every 5 minutes starting from 0:00
+        // Expected: 0:00, 0:05, 0:10, 0:15, 0:20 = 5 alarms
+        XCTAssertEqual(results.count, 5)
+        
+        for (index, date) in results.enumerated() {
+            let expectedMinute = index * 5
+            let actualMinute = calendar.component(.minute, from: date)
+            XCTAssertEqual(actualMinute, expectedMinute, "Alarm \(index) should be at minute \(expectedMinute)")
+        }
+    }
+
+    func testEverySchedule_HourInterval() {
+        // Test hour intervals (should use the old logic)
+        let startTime = createDate(year: 2025, month: 1, day: 1, hour: 8, minute: 0)
+        let endTime = createDate(year: 2025, month: 1, day: 1, hour: 20, minute: 0)
+        let schedule = TickerSchedule.every(interval: 3, unit: .hours, time: TickerSchedule.TimeOfDay(hour: 9, minute: 0))
+
+        let window = DateInterval(start: startTime, end: endTime)
+        let results = expander.expandSchedule(schedule, within: window)
+
+        // Should find 9:00 AM and then generate every 3 hours
+        // Expected: 9:00, 12:00, 15:00, 18:00 = 4 alarms
+        XCTAssertEqual(results.count, 4)
+        
+        let expectedHours = [9, 12, 15, 18]
+        for (index, date) in results.enumerated() {
+            let actualHour = calendar.component(.hour, from: date)
+            XCTAssertEqual(actualHour, expectedHours[index], "Alarm \(index) should be at hour \(expectedHours[index])")
+        }
+    }
+
     // MARK: - Strategy-Based Expansion Tests
 
     func testStrategyBasedExpansion_HighFrequency() {

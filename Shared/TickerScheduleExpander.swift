@@ -176,47 +176,63 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
         var intervalDates: [Date] = []
         
-        // Find the first occurrence of the target time that is >= window.start
-        var currentDate = window.start
+        // Map TimeUnit to Calendar.Component
+        let component: Calendar.Component
+        switch unit {
+        case .minutes:
+            component = .minute
+        case .hours:
+            component = .hour
+        case .days:
+            component = .day
+        case .weeks:
+            component = .weekOfYear
+        }
         
-        // Find the first occurrence of the time within or after the window start
-        while currentDate <= window.end {
-            if let alarmDate = createDate(from: currentDate, with: time) {
-                // If this occurrence is >= window.start, use it as the starting point
-                if alarmDate >= window.start {
-                    // Generate intervals from this starting point
-                    var currentInterval = alarmDate
-                    
-                    // Map TimeUnit to Calendar.Component
-                    let component: Calendar.Component
-                    switch unit {
-                    case .minutes:
-                        component = .minute
-                    case .hours:
-                        component = .hour
-                    case .days:
-                        component = .day
-                    case .weeks:
-                        component = .weekOfYear
-                    }
-                    
-                    while currentInterval <= window.end {
-                        intervalDates.append(currentInterval)
-                        
-                        guard let nextInterval = calendar.date(byAdding: component, value: interval, to: currentInterval) else {
-                            break
-                        }
-                        currentInterval = nextInterval
-                    }
-                    break // Found the starting point and generated intervals, we're done
-                }
-            }
+        // For minute intervals, start from window.start and generate intervals immediately
+        // For other intervals, find the first occurrence of the target time
+        if unit == .minutes {
+            // For minute intervals, start generating from window.start
+            var currentInterval = window.start
             
-            // Move to next day to find the next occurrence
-            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
-                break
+            while currentInterval <= window.end {
+                intervalDates.append(currentInterval)
+                
+                guard let nextInterval = calendar.date(byAdding: component, value: interval, to: currentInterval) else {
+                    break
+                }
+                currentInterval = nextInterval
             }
-            currentDate = nextDate
+        } else {
+            // For other intervals, find the first occurrence of the target time
+            var currentDate = window.start
+            
+            // Find the first occurrence of the time within or after the window start
+            while currentDate <= window.end {
+                if let alarmDate = createDate(from: currentDate, with: time) {
+                    // If this occurrence is >= window.start, use it as the starting point
+                    if alarmDate >= window.start {
+                        // Generate intervals from this starting point
+                        var currentInterval = alarmDate
+                        
+                        while currentInterval <= window.end {
+                            intervalDates.append(currentInterval)
+                            
+                            guard let nextInterval = calendar.date(byAdding: component, value: interval, to: currentInterval) else {
+                                break
+                            }
+                            currentInterval = nextInterval
+                        }
+                        break // Found the starting point and generated intervals, we're done
+                    }
+                }
+                
+                // Move to next day to find the next occurrence
+                guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+                    break
+                }
+                currentDate = nextDate
+            }
         }
         
         return intervalDates.sorted()

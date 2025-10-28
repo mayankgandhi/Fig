@@ -167,21 +167,6 @@ struct ClockFaceView: View {
                                         .truncationMode(.tail)
                                         .lineLimit(1)
                                         .foregroundStyle(.white)
-                                    
-                                    // Ticker category display
-                                    if let tickerTitle = event.tickerDataTitle {
-                                        Text(tickerTitle)
-                                            .font(
-                                                .system(
-                                                    size: handLength * 0.06,
-                                                    weight: .regular,
-                                                    design: .rounded
-                                                )
-                                            )
-                                            .truncationMode(.tail)
-                                            .lineLimit(1)
-                                            .foregroundStyle(.white.opacity(0.8))
-                                    }
                                 }
                                 .padding(.horizontal, 4)
                             }

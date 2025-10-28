@@ -26,8 +26,8 @@ struct ClockWidgetProvider: TimelineProvider {
         BaseTimelineProvider.generateTimeline(
             in: context,
             completion: completion,
-            timeWindowMinutes: 120,
-            alarmTimeWindowHours: 12,
+            timeWindowMinutes: 60,
+            alarmTimeWindowHours: 24,
             alarmLimit: nil
         )
     }
