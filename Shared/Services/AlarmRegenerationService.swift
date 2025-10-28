@@ -242,7 +242,8 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
                 let oneTimeSchedule = TickerSchedule.oneTime(date: date)
                 let tempTicker = createTemporaryTicker(from: ticker, with: oneTimeSchedule)
 
-                guard let configuration = configurationBuilder.buildConfiguration(from: tempTicker) else {
+                // Pass the generated alarm ID so StopIntent uses the correct ID
+                guard let configuration = configurationBuilder.buildConfiguration(from: tempTicker, generatedAlarmID: alarmID) else {
                     throw TickerServiceError.invalidConfiguration
                 }
 

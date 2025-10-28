@@ -16,12 +16,17 @@ final class MockConfigurationBuilder: AlarmConfigurationBuilderProtocol {
     var shouldReturnNil = false
     var buildCallCount = 0
     var lastAlarmItem: Ticker?
+    var lastGeneratedAlarmID: UUID?
 
-    func buildConfiguration(from alarmItem: Ticker) -> AlarmManager.AlarmConfiguration<TickerData>? {
+    func buildConfiguration(from alarmItem: Ticker, generatedAlarmID: UUID? = nil) -> AlarmManager.AlarmConfiguration<TickerData>? {
         buildCallCount += 1
         lastAlarmItem = alarmItem
+        lastGeneratedAlarmID = generatedAlarmID
 
         guard !shouldReturnNil else { return nil }
+
+        // Use generatedAlarmID if provided (for composite alarms), otherwise use ticker's ID
+        let alarmIDForIntent = generatedAlarmID ?? alarmItem.id
 
         // Return a valid configuration
         let attributes = AlarmAttributes(
@@ -39,7 +44,7 @@ final class MockConfigurationBuilder: AlarmConfigurationBuilderProtocol {
             countdownDuration: alarmItem.alarmKitCountdownDuration,
             schedule: alarmItem.alarmKitSchedule,
             attributes: attributes,
-            stopIntent: StopIntent(alarmID: alarmItem.id.uuidString),
+            stopIntent: StopIntent(alarmID: alarmIDForIntent.uuidString),
             secondaryIntent: nil
         )
     }
@@ -48,6 +53,7 @@ final class MockConfigurationBuilder: AlarmConfigurationBuilderProtocol {
         shouldReturnNil = false
         buildCallCount = 0
         lastAlarmItem = nil
+        lastGeneratedAlarmID = nil
     }
 }
 
