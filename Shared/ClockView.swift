@@ -155,18 +155,35 @@ struct ClockFaceView: View {
                                 .foregroundStyle(.white)
                             
                             if showAlarmLabels {
-                                Text(event.displayName)
-                                    .font(
-                                        .system(
-                                            size: handLength * 0.08,
-                                            weight: .medium,
-                                            design: .rounded
+                                VStack(spacing: 1) {
+                                    Text(event.displayName)
+                                        .font(
+                                            .system(
+                                                size: handLength * 0.08,
+                                                weight: .medium,
+                                                design: .rounded
+                                            )
                                         )
-                                    )
-                                    .truncationMode(.tail)
-                                    .lineLimit(1)
-                                    .foregroundStyle(.white)
-                                    .padding(.horizontal, 4)
+                                        .truncationMode(.tail)
+                                        .lineLimit(1)
+                                        .foregroundStyle(.white)
+                                    
+                                    // Ticker category display
+                                    if let tickerTitle = event.tickerDataTitle {
+                                        Text(tickerTitle)
+                                            .font(
+                                                .system(
+                                                    size: handLength * 0.06,
+                                                    weight: .regular,
+                                                    design: .rounded
+                                                )
+                                            )
+                                            .truncationMode(.tail)
+                                            .lineLimit(1)
+                                            .foregroundStyle(.white.opacity(0.8))
+                                    }
+                                }
+                                .padding(.horizontal, 4)
                             }
                         }
                         .frame(
@@ -376,7 +393,7 @@ struct ClockView: View {
         // 12:00 PM - Should be at top (0°)
         UpcomingAlarmPresentation(
             baseAlarmId: UUID(),
-            displayName: "Noon",
+            displayName: "Lunch Time",
             icon: "sun.max.fill",
             color: .yellow,
             nextAlarmTime: Date(),
@@ -384,7 +401,7 @@ struct ClockView: View {
             hour: 12,
             minute: 0,
             hasCountdown: false,
-            tickerDataTitle: nil
+            tickerDataTitle: "Meals"
         ),
         // 3:00 PM - Should be at right (90°)
         UpcomingAlarmPresentation(
@@ -410,7 +427,7 @@ struct ClockView: View {
             hour: 18,
             minute: 0,
             hasCountdown: false,
-            tickerDataTitle: nil
+            tickerDataTitle: "Meals"
         ),
         // 9:00 PM - Should be at left (270°)
         UpcomingAlarmPresentation(
@@ -423,7 +440,7 @@ struct ClockView: View {
             hour: 21,
             minute: 0,
             hasCountdown: false,
-            tickerDataTitle: nil
+            tickerDataTitle: "Sleep"
         ),
         // 12:30 AM - Should be slightly past top (15°)
         UpcomingAlarmPresentation(
@@ -436,7 +453,7 @@ struct ClockView: View {
             hour: 0,
             minute: 30,
             hasCountdown: false,
-            tickerDataTitle: nil
+            tickerDataTitle: "Snacks"
         ),
         // 6:30 AM - Should be at bottom + offset (195°)
         UpcomingAlarmPresentation(

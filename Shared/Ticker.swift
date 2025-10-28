@@ -38,7 +38,7 @@ final class Ticker {
     // Presentation
     var presentation: TickerPresentation
 
-    // Category/Template metadata
+    // Template metadata
     var tickerData: TickerData?
 
     // AlarmKit Integration
