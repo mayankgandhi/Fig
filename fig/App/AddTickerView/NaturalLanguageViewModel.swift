@@ -256,8 +256,8 @@ final class NaturalLanguageViewModel {
 
         let ticker = parser.parseToTicker(from: configuration)
 
-        // Set sound from sound picker view model
-        ticker.soundName = soundPickerViewModel.selectedSound
+        // Set sound from sound picker view model (use fileName, not ID)
+        ticker.soundName = soundPickerViewModel.selectedSoundObject?.fileName
 
         return ticker
     }

@@ -36,7 +36,8 @@ let project = Project(
             resources: [
                 .glob(pattern: "fig/Resources/Assets.xcassets"),
                 .glob(pattern: "fig/Resources/AppIcon.icon/**"),
-                .glob(pattern: "fig/Resources/Sounds/*.caf")
+                .glob(pattern: "fig/Resources/Sounds/*.caf"),
+                .glob(pattern: "fig/Resources/Sounds/*.wav")
             ],
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")]),
@@ -74,7 +75,11 @@ let project = Project(
                 "fig/Models/ActivityIconMapper.swift",  // Activity icon mapper for ticker data
                 "fig/Models/IconColorPair.swift"  // Icon color pair for ticker data
             ],
-            resources: ["alarm/Assets.xcassets"],
+            resources: [
+                "alarm/Assets.xcassets",
+                .glob(pattern: "fig/Resources/Sounds/*.caf"),
+                .glob(pattern: "fig/Resources/Sounds/*.wav")
+            ],
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")])
             ]),

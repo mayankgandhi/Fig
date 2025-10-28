@@ -30,13 +30,12 @@ final class SoundPickerViewModel {
     // MARK: - Available Sounds
 
     let availableSounds: [AlarmSound] = [
-        AlarmSound(id: nil, name: "Default", fileName: nil),
-        AlarmSound(id: "gentle-chime", name: "Gentle Chime", fileName: "gentle-chime.caf"),
-        AlarmSound(id: "radar", name: "Radar", fileName: "radar.caf"),
-        AlarmSound(id: "digital", name: "Digital", fileName: "digital.caf"),
-        AlarmSound(id: "bell", name: "Bell", fileName: "bell.caf"),
-        AlarmSound(id: "marimba", name: "Marimba", fileName: "marimba.caf"),
-        AlarmSound(id: "ascending", name: "Ascending", fileName: "ascending.caf")
+        AlarmSound(id: "classic_digital_alarm", name: "Classic Digital Alarm", fileName: "classic_digital_alarm.wav"),
+        AlarmSound(id: "casino_jackpot", name: "Casino Jackpot", fileName: "mixkit-casino-jackpot-alarm-and-coins-1991.wav"),
+        AlarmSound(id: "happy_countdown", name: "Happy Countdown", fileName: "mixkit-children-happy-countdown-923.wav"),
+        AlarmSound(id: "marimba_ringtone", name: "Marimba Ringtone", fileName: "mixkit-marimba-ringtone-1359.wav"),
+        AlarmSound(id: "retro_game_alarm", name: "Retro Game Alarm", fileName: "mixkit-retro-game-emergency-alarm-1000.wav"),
+        AlarmSound(id: "tick_tock_clock", name: "Tick Tock Clock", fileName: "mixkit-tick-tock-clock-timer-1045.wav")
     ]
 
     // MARK: - Computed Properties
@@ -73,10 +72,18 @@ final class SoundPickerViewModel {
             return
         }
 
-        // Remove extension for Bundle lookup
-        let fileNameWithoutExtension = fileName.replacingOccurrences(of: ".caf", with: "")
+        // Extract extension from filename
+        let components = fileName.components(separatedBy: ".")
+        guard components.count >= 2 else {
+            print("⚠️ Invalid sound file name format: \(fileName)")
+            playSystemSound()
+            return
+        }
 
-        guard let url = Bundle.main.url(forResource: fileNameWithoutExtension, withExtension: "caf") else {
+        let fileExtension = components.last!
+        let fileNameWithoutExtension = components.dropLast().joined(separator: ".")
+
+        guard let url = Bundle.main.url(forResource: fileNameWithoutExtension, withExtension: fileExtension) else {
             print("⚠️ Sound file not found: \(fileName)")
             // Fallback to system sound
             playSystemSound()
