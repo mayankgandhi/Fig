@@ -11,10 +11,10 @@ import SwiftData
 @Observable
 final class AddTickerViewModel {
     // MARK: - Dependencies
-    private let modelContext: ModelContext
-    private let tickerService: TickerService
+    private var modelContext: ModelContext!
+    private var tickerService: TickerService!
     private let calendar: Calendar
-    
+
     // MARK: - Child ViewModels
     var timePickerViewModel: TimePickerViewModel
     var optionsPillsViewModel: OptionsPillsViewModel
@@ -23,28 +23,24 @@ final class AddTickerViewModel {
     var countdownViewModel: CountdownConfigViewModel
     var soundPickerViewModel: SoundPickerViewModel
     var iconPickerViewModel: IconPickerViewModel
-    
+
     // MARK: - State
     var isSaving: Bool = false
     var errorMessage: String?
     var showingError: Bool = false
     let isEditMode: Bool
     private let prefillTemplate: Ticker?
-    
+
     // MARK: - Initialization
-    
+
     init(
-        modelContext: ModelContext,
-        tickerService: TickerService,
         prefillTemplate: Ticker? = nil,
         isEditMode: Bool = false
     ) {
-        self.modelContext = modelContext
-        self.tickerService = tickerService
         self.calendar = .current
         self.prefillTemplate = prefillTemplate
         self.isEditMode = isEditMode
-        
+
         // Initialize child ViewModels
         self.timePickerViewModel = TimePickerViewModel()
         self.scheduleViewModel = ScheduleViewModel()
@@ -53,7 +49,7 @@ final class AddTickerViewModel {
         self.soundPickerViewModel = SoundPickerViewModel()
         self.iconPickerViewModel = IconPickerViewModel()
         self.optionsPillsViewModel = OptionsPillsViewModel()
-        
+
         // Configure OptionsPillsViewModel with references to child view models
         // This enables reactive computed properties
         self.optionsPillsViewModel.configure(
@@ -62,11 +58,18 @@ final class AddTickerViewModel {
             countdown: countdownViewModel,
             sound: soundPickerViewModel
         )
-        
+
         // Prefill if editing
         if let template = prefillTemplate {
             prefillFromTemplate(template)
         }
+    }
+
+    // MARK: - Configuration
+
+    func configure(modelContext: ModelContext, tickerService: TickerService) {
+        self.modelContext = modelContext
+        self.tickerService = tickerService
     }
     
     // MARK: - Computed Properties

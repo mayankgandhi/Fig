@@ -21,7 +21,7 @@ struct AddTickerView: View {
     @Environment(TickerService.self) private var tickerService
     @Environment(\.colorScheme) private var colorScheme
 
-    @State private var viewModel: AddTickerViewModel?
+    @State private var viewModel: AddTickerViewModel
 
     // MARK: - Initialization
 
@@ -29,30 +29,31 @@ struct AddTickerView: View {
         self.namespace = namespace
         self.prefillTemplate = prefillTemplate
         self.isEditMode = isEditMode
+
+        // Initialize viewModel immediately (will be properly configured in onAppear with environment values)
+        self._viewModel = State(initialValue: AddTickerViewModel(
+            prefillTemplate: prefillTemplate,
+            isEditMode: isEditMode
+        ))
     }
 
     // MARK: - Body
 
     var body: some View {
         NavigationStack {
-            if let viewModel = viewModel {
-                contentView
-            } else {
-                ProgressView()
-                    .onAppear {
-                        initializeViewModel()
-                    }
-            }
+            contentView
         }
         .navigationTransition(.zoom(sourceID: "addButton", in: namespace))
+        .onAppear {
+            viewModel.configure(modelContext: modelContext, tickerService: tickerService)
+        }
     }
-    
+
     // MARK: - Content View
 
     @ViewBuilder
     private var contentView: some View {
-        if let viewModel = viewModel {
-            ScrollView {
+        ScrollView {
                 VStack(spacing: TickerSpacing.xl) {
                     // Time Picker Card
                     TimePickerCard(viewModel: viewModel.timePickerViewModel)
@@ -142,9 +143,8 @@ struct AddTickerView: View {
             .onChange(of: viewModel.scheduleViewModel.selectedWeekdays) { _, _ in
                 // Trigger validation update when weekdays change
             }
-        }
     }
-    
+
     // MARK: - Background View
 
     private var backgroundView: some View {
@@ -158,17 +158,6 @@ struct AddTickerView: View {
                 .opacity(0.1)
                 .ignoresSafeArea()
         }
-    }
-
-    // MARK: - Initialization
-
-    private func initializeViewModel() {
-        viewModel = AddTickerViewModel(
-            modelContext: modelContext,
-            tickerService: tickerService,
-            prefillTemplate: prefillTemplate,
-            isEditMode: isEditMode
-        )
     }
 }
 

@@ -58,17 +58,6 @@ struct figApp: App {
                         .task {
                             let context = ModelContext(sharedModelContainer)
 
-                            // Run migration if needed
-                            let didMigrate = await AlarmMigrationV2.migrateIfNeeded(context: context)
-
-                            // If migration just completed, force regenerate all tickers
-                            if didMigrate {
-                                await AlarmMigrationV2.forceRegenerateAllTickers(
-                                    context: context,
-                                    regenerationService: regenerationService
-                                )
-                            }
-
                             // Synchronize alarms on app launch
                             await tickerService.synchronizeAlarmsOnLaunch(context: context)
                         }
