@@ -14,26 +14,28 @@ import ActivityKit
 // MARK: - AlarmConfigurationBuilder Protocol
 
 public protocol AlarmConfigurationBuilderProtocol {
-    func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>?
+    func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID) -> AlarmManager.AlarmConfiguration<TickerData>?
 }
 
 // MARK: - AlarmConfigurationBuilder Implementation
 
 public struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
 
-    public func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>? {
+    public func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID) -> AlarmManager.AlarmConfiguration<TickerData>? {
         // Use the specific occurrence ID if provided, otherwise fall back to the ticker's main ID
-        let alarmID = occurrenceAlarmID ?? alarmItem.id
+        let alarmID = occurrenceAlarmID
         print("🔧 AlarmConfigurationBuilder: Building configuration")
         print("   → Main ticker ID: \(alarmItem.id)")
-        print("   → Occurrence alarm ID: \(occurrenceAlarmID?.uuidString ?? "nil")")
+        print("   → Occurrence alarm ID: \(occurrenceAlarmID.uuidString)")
         print("   → Final alarm ID for StopIntent: \(alarmID)")
         
         // Build attributes
         let attributes = AlarmAttributes(
             presentation: buildPresentation(from: alarmItem),
             metadata: alarmItem.tickerData ?? TickerData(),
-            tintColor: Color.accentColor
+            tintColor: Color(
+                hex: alarmItem.tickerData?.colorHex ?? "#F97330"
+            ) ?? TickerColor.primary
         )
 
         // Build sound configuration

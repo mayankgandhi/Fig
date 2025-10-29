@@ -109,7 +109,9 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
             if hasTicker {
                 alarmsToKeep.append(alarm)
                 if hasTickerInMapping {
-                    print("✅ Keeping alarm \(alarm.id) (found in generatedAlarmKitIDs mapping)")
+                    print(
+                        "✅ Keeping alarm \(alarm.id) \(alarm.alertingTime) (found in generatedAlarmKitIDs mapping)"
+                    )
                 } else if hasTickerByMainID {
                     print("✅ Keeping alarm \(alarm.id) (matches main ticker ID)")
                 }
