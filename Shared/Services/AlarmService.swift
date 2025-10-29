@@ -178,24 +178,30 @@ final class TickerService {
         print("   🔧 scheduleSimpleAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
         
-        // Build AlarmKit configuration
+        // Generate a unique ID for this alarm instance to prevent stopping all future alarms
+        let uniqueAlarmID = UUID()
+        print("   → Generated unique alarm ID: \(uniqueAlarmID)")
+        print("   → Main ticker ID: \(alarmItem.id)")
+        print("   → This unique ID will be used for StopIntent to prevent stopping all future alarms")
+        
+        // Build AlarmKit configuration with the unique ID
         print("   → Building AlarmKit configuration...")
-        guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem, occurrenceAlarmID: alarmItem.id) else {
+        guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem, occurrenceAlarmID: uniqueAlarmID) else {
             print("   ❌ Failed to build configuration")
             throw TickerServiceError.invalidConfiguration
         }
         print("   → Configuration built successfully")
         
-        // Schedule with AlarmKit
+        // Schedule with AlarmKit using the unique ID
         do {
             print("   → Scheduling with AlarmKit...")
-            _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
+            _ = try await alarmManager.schedule(id: uniqueAlarmID, configuration: configuration)
             print("   → AlarmKit scheduling successful")
             
-            // Update generatedAlarmKitIDs for tracking
-            alarmItem.generatedAlarmKitIDs = [alarmItem.id]
+            // Store the generated ID in the ticker's generatedAlarmKitIDs array
+            alarmItem.generatedAlarmKitIDs = [uniqueAlarmID]
             alarmItem.isEnabled = true
-            print("   → Updated alarmItem properties")
+            print("   → Updated alarmItem properties with unique alarm ID: \(uniqueAlarmID)")
             
             // Save to SwiftData on main thread
             print("   → Saving to SwiftData...")
@@ -376,17 +382,21 @@ final class TickerService {
             do {
                 if isSimpleSchedule {
                     print("   → Using simple schedule rescheduling")
+                    // Generate a unique ID for this alarm instance
+                    let uniqueAlarmID = UUID()
+                    print("   → Generated unique alarm ID for reschedule: \(uniqueAlarmID)")
+                    
                     // Simple schedule
                     print("   → Building configuration...")
-                    guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem, occurrenceAlarmID: alarmItem.id) else {
+                    guard let configuration = configurationBuilder.buildConfiguration(from: alarmItem, occurrenceAlarmID: uniqueAlarmID) else {
                         print("   ❌ Failed to build configuration")
                         throw TickerServiceError.invalidConfiguration
                     }
                     
                     print("   → Scheduling with AlarmKit...")
-                    _ = try await alarmManager.schedule(id: alarmItem.id, configuration: configuration)
-                    alarmItem.generatedAlarmKitIDs = [alarmItem.id]
-                    print("   → Simple schedule rescheduled successfully")
+                    _ = try await alarmManager.schedule(id: uniqueAlarmID, configuration: configuration)
+                    alarmItem.generatedAlarmKitIDs = [uniqueAlarmID]
+                    print("   → Simple schedule rescheduled successfully with unique ID: \(uniqueAlarmID)")
                 } else {
                     print("   → Using composite schedule rescheduling via regeneration service")
                     // Use regeneration service for composite schedules
@@ -529,9 +539,31 @@ final class TickerService {
     func stopAlarm(id: UUID) throws {
         do {
             try alarmManager.stop(id: id)
+            print("✅ Successfully stopped alarm \(id)")
+            
+            // Remove the stopped alarm ID from all tickers' generatedAlarmKitIDs arrays
+            // This prevents the synchronization service from keeping orphaned IDs
+            print("🧹 Cleaning up stopped alarm ID from ticker tracking...")
+            let allTickers = stateManager.getAllTickers()
+            var tickersUpdated = 0
+            
+            for ticker in allTickers {
+                if ticker.generatedAlarmKitIDs.contains(id) {
+                    ticker.generatedAlarmKitIDs = ticker.generatedAlarmKitIDs.filter { $0 != id }
+                    print("   → Removed stopped alarm \(id) from ticker '\(ticker.label)'")
+                    print("   → Remaining generatedAlarmKitIDs: \(ticker.generatedAlarmKitIDs)")
+                    tickersUpdated += 1
+                }
+            }
+            
+            if tickersUpdated > 0 {
+                print("✅ Updated \(tickersUpdated) tickers after stopping alarm")
+            }
+            
             // Refresh widget timelines to show updated alarm state
             refreshWidgetTimelines()
         } catch {
+            print("❌ Failed to stop alarm \(id): \(error)")
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
     }
@@ -567,6 +599,7 @@ final class TickerService {
         // This eliminates redundant SwiftData queries on every UI refresh
         return stateManager.getAllTickers()
     }
+
 
     /// Explicitly refresh AlarmStateManager cache from SwiftData
     /// Call this on app launch or when you need to force a refresh from persistent storage

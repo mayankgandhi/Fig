@@ -24,6 +24,10 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
     func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>? {
         // Use the specific occurrence ID if provided, otherwise fall back to the ticker's main ID
         let alarmID = occurrenceAlarmID ?? alarmItem.id
+        print("🔧 AlarmConfigurationBuilder: Building configuration")
+        print("   → Main ticker ID: \(alarmItem.id)")
+        print("   → Occurrence alarm ID: \(occurrenceAlarmID?.uuidString ?? "nil")")
+        print("   → Final alarm ID for StopIntent: \(alarmID)")
         
         // Build attributes
         let attributes = AlarmAttributes(
@@ -126,6 +130,8 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
     }
 
     private func buildSecondaryIntent(for alarmItem: Ticker) -> (any LiveActivityIntent)? {
+        // Note: Secondary intents should use the main ticker ID since they operate on the ticker level
+        // (e.g., repeating the countdown, opening the app) rather than stopping a specific alarm instance
         switch alarmItem.presentation.secondaryButtonType {
         case .none:
             return nil

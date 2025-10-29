@@ -7,6 +7,7 @@
 
 import AlarmKit
 import AppIntents
+import SwiftData
 
 /// An intent that opens the app and stops the alarm
 ///
@@ -15,7 +16,23 @@ import AppIntents
 /// and opens the main app.
 struct OpenAlarmAppIntent: LiveActivityIntent {
     func perform() throws -> some IntentResult {
-        try AlarmManager.shared.stop(id: UUID(uuidString: alarmID)!)
+        let alarmUUID = UUID(uuidString: alarmID)!
+        print("🛑 OpenAlarmAppIntent.perform() called with alarmID: \(alarmUUID)")
+        
+        // Use TickerService to ensure proper cleanup
+        let context = getSharedModelContext()
+        let tickerService = TickerService()
+        
+        do {
+            try tickerService.stopAlarm(id: alarmUUID)
+            print("   ✅ Successfully stopped alarm \(alarmUUID) with proper cleanup")
+        } catch {
+            print("   ❌ Failed to stop alarm \(alarmUUID): \(error)")
+            // Fallback to direct AlarmManager call
+            try AlarmManager.shared.stop(id: alarmUUID)
+            print("   ⚠️ Used fallback AlarmManager.stop() - cleanup may be incomplete")
+        }
+        
         return .result()
     }
 

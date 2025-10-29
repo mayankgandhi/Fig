@@ -68,6 +68,7 @@ struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         // Build map of AlarmKit IDs to Tickers (for composite schedules)
         var alarmKitIDsToTicker: [UUID: Ticker] = [:]
         for ticker in allTickers {
+            print("🔍 Ticker '\(ticker.label)' (ID: \(ticker.id)) has generatedAlarmKitIDs: \(ticker.generatedAlarmKitIDs)")
             for generatedID in ticker.generatedAlarmKitIDs {
                 alarmKitIDsToTicker[generatedID] = ticker
             }
@@ -75,6 +76,7 @@ struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
 
         print("🔍 Active alarm IDs: \(activeAlarmIDs)")
         print("🚫 Disabled ticker IDs: \(disabledTickerIDs)")
+        print("🔍 alarmKitIDsToTicker mapping has \(alarmKitIDsToTicker.count) entries")
 
         // CLEANUP ALARMKIT (AlarmManager → SwiftData)
         print("🧹 Cleaning up AlarmKit alarms...")
@@ -95,14 +97,19 @@ struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
             }
 
             // Check if this is an orphaned alarm (no Ticker exists)
-            let hasTicker = alarmKitIDsToTicker[alarm.id] != nil || 
-                           allTickers.contains { $0.id == alarm.id }
+            let hasTickerInMapping = alarmKitIDsToTicker[alarm.id] != nil
+            let hasTickerByMainID = allTickers.contains { $0.id == alarm.id }
+            let hasTicker = hasTickerInMapping || hasTickerByMainID
             
             if hasTicker {
                 alarmsToKeep.append(alarm)
-                print("✅ Keeping alarm \(alarm.id) (has valid Ticker)")
+                if hasTickerInMapping {
+                    print("✅ Keeping alarm \(alarm.id) (found in generatedAlarmKitIDs mapping)")
+                } else if hasTickerByMainID {
+                    print("✅ Keeping alarm \(alarm.id) (matches main ticker ID)")
+                }
             } else {
-                print("🗑️ Canceling orphaned alarm: \(alarm.id)")
+                print("🗑️ Canceling orphaned alarm: \(alarm.id) (no matching ticker found)")
                 do {
                     try alarmManager.cancel(id: alarm.id)
                     alarmsCancelled += 1
@@ -113,6 +120,27 @@ struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         }
 
         print("✅ Kept \(alarmsToKeep.count) valid alarms, cancelled \(alarmsCancelled) invalid alarms")
+
+        // CLEANUP GENERATED ALARM IDs FROM TICKERS
+        print("🧹 Cleaning up stopped alarm IDs from ticker generatedAlarmKitIDs...")
+        let activeAlarmIDsSet = Set(alarmKitAlarms.map { $0.id })
+        var tickersUpdated = 0
+        
+        for ticker in allTickers {
+            let originalCount = ticker.generatedAlarmKitIDs.count
+            ticker.generatedAlarmKitIDs = ticker.generatedAlarmKitIDs.filter { activeAlarmIDsSet.contains($0) }
+            let newCount = ticker.generatedAlarmKitIDs.count
+            
+            if originalCount != newCount {
+                print("🧹 Cleaned up \(originalCount - newCount) stopped alarm IDs from ticker '\(ticker.label)'")
+                print("   → Remaining generatedAlarmKitIDs: \(ticker.generatedAlarmKitIDs)")
+                tickersUpdated += 1
+            }
+        }
+        
+        if tickersUpdated > 0 {
+            print("✅ Updated \(tickersUpdated) tickers with cleaned generatedAlarmKitIDs")
+        }
 
         // CLEANUP SWIFTDATA (SwiftData → AlarmManager)
         print("🧹 Cleaning up SwiftData Tickers...")

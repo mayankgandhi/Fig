@@ -7,6 +7,7 @@
 
 import AlarmKit
 import AppIntents
+import SwiftData
 
 /// An intent that stops an active alarm
 ///
@@ -15,7 +16,24 @@ import AppIntents
 struct StopIntent: LiveActivityIntent {
 
     func perform() throws -> some IntentResult {
-        try AlarmManager.shared.stop(id: UUID(uuidString: alarmID)!)
+        let alarmUUID = UUID(uuidString: alarmID)!
+        print("🛑 StopIntent.perform() called with alarmID: \(alarmUUID)")
+        print("   → This should only stop the current alarm instance, not future ones")
+        
+        // Use TickerService to ensure proper cleanup
+        let context = getSharedModelContext()
+        let tickerService = TickerService()
+        
+        do {
+            try tickerService.stopAlarm(id: alarmUUID)
+            print("   ✅ Successfully stopped alarm \(alarmUUID) with proper cleanup")
+        } catch {
+            print("   ❌ Failed to stop alarm \(alarmUUID): \(error)")
+            // Fallback to direct AlarmManager call
+            try AlarmManager.shared.stop(id: alarmUUID)
+            print("   ⚠️ Used fallback AlarmManager.stop() - cleanup may be incomplete")
+        }
+        
         return .result()
     }
 
