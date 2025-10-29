@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct NaturalLanguageExpandedFieldContent: View {
     let field: ExpandableField

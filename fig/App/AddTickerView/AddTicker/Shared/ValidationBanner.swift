@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct ValidationBanner: View {
     let message: String

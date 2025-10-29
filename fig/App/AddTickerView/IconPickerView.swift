@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct IconPickerView: View {
     @Binding var selectedIcon: String

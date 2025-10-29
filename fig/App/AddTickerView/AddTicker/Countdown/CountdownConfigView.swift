@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct CountdownConfigView: View {
     @Bindable var viewModel: CountdownConfigViewModel

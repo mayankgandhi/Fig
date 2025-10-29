@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct BiweeklyConfigView: View {
     @Binding var selectedWeekdays: Array<TickerSchedule.Weekday>

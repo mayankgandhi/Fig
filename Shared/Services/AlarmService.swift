@@ -12,6 +12,7 @@ import SwiftData
 import AlarmKit
 import AppIntents
 import WidgetKit
+import TickerCore
 
 // MARK: - TickerService Error Types
 

@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import TickerCore
 
 @Observable
 final class AddTickerViewModel {
@@ -277,8 +278,6 @@ final class AddTickerViewModel {
                 
                 try await tickerService.updateAlarm(existingTicker, context: modelContext)
                 
-                // Donate action to SiriKit for learning
-                await donateActionToSiriKit(ticker: existingTicker)
             } else {
                 let ticker = Ticker(
                     label: labelViewModel.labelText.isEmpty ? "Alarm" : labelViewModel.labelText,
@@ -292,8 +291,6 @@ final class AddTickerViewModel {
                 
                 try await tickerService.scheduleAlarm(from: ticker, context: modelContext)
                 
-                // Donate action to SiriKit for learning
-                await donateActionToSiriKit(ticker: ticker)
             }
             
             
@@ -307,67 +304,6 @@ final class AddTickerViewModel {
     
     // MARK: - Private Methods
     
-    private func donateActionToSiriKit(ticker: Ticker) async {
-        // Extract time from schedule for donation
-        let time: Date
-        if let schedule = ticker.schedule {
-            switch schedule {
-                case .oneTime(let date):
-                    time = date
-                case .daily(let timeOfDay), .weekdays(let timeOfDay, _), .biweekly(let timeOfDay, _):
-                    let calendar = Calendar.current
-                    let today = Date()
-                    time = calendar.date(bySettingHour: timeOfDay.hour, minute: timeOfDay.minute, second: 0, of: today) ?? today
-                case .hourly(let interval, let timeOfDay):
-                    let calendar = Calendar.current
-                    let today = Date()
-                    time = calendar.date(bySettingHour: timeOfDay.hour, minute: timeOfDay.minute, second: 0, of: today) ?? today
-                case .every(let interval, let unit, let timeOfDay):
-                    let calendar = Calendar.current
-                    let today = Date()
-                    time = calendar.date(bySettingHour: timeOfDay.hour, minute: timeOfDay.minute, second: 0, of: today) ?? today
-                case .monthly(let day, let timeOfDay):
-                    let calendar = Calendar.current
-                    let today = Date()
-                    time = calendar.date(bySettingHour: timeOfDay.hour, minute: timeOfDay.minute, second: 0, of: today) ?? today
-                case .yearly(let month, let day, let timeOfDay):
-                    let calendar = Calendar.current
-                    let today = Date()
-                    time = calendar.date(bySettingHour: timeOfDay.hour, minute: timeOfDay.minute, second: 0, of: today) ?? today
-            }
-        } else {
-            time = Date()
-        }
-        
-        // Determine repeat frequency
-        let repeatFrequency: RepeatFrequencyEnum
-        if let schedule = ticker.schedule {
-            switch schedule {
-                case .oneTime:
-                    repeatFrequency = .oneTime
-                case .daily:
-                    repeatFrequency = .daily
-                case .weekdays:
-                    repeatFrequency = .weekdays
-                case .biweekly:
-                    repeatFrequency = .weekdays // Map biweekly to weekdays
-                case .hourly, .every, .monthly, .yearly:
-                    repeatFrequency = .daily // Default to daily for complex schedules
-            }
-        } else {
-            repeatFrequency = .oneTime
-        }
-        
-        // Donate to SiriKit
-        await AlarmSuggestionProvider.shared.donateTickerCreation(
-            time: time,
-            label: ticker.displayName,
-            repeatFrequency: repeatFrequency,
-            icon: ticker.tickerData?.icon,
-            colorHex: ticker.tickerData?.colorHex,
-            soundName: ticker.soundName
-        )
-    }
     
     private func prefillFromTemplate(_ template: Ticker) {
         let now = Date()

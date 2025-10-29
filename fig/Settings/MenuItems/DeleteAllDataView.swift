@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import TickerCore
 
 struct DeleteAllDataView: View {
     @Environment(TickerService.self) private var tickerService

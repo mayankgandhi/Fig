@@ -8,6 +8,7 @@
 
 import WidgetKit
 import SwiftUI
+import TickerCore
 
 /// Base timeline entry for widgets displaying upcoming alarms
 struct AlarmTimelineEntry: TimelineEntry {

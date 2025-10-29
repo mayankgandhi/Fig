@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 // MARK: - Color System Preview
 

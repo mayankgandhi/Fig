@@ -9,6 +9,7 @@
 import AppIntents
 import AlarmKit
 import SwiftUI
+import TickerCore
 
 /// Generic button view for Live Activity actions
 struct ButtonView<I>: View where I: AppIntent {

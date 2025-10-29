@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct IconPickerViewMVVM: View {
     @Bindable var viewModel: IconPickerViewModel

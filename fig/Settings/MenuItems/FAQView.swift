@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct FAQView: View {
     @State private var showFAQ = false

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import MessageUI
+import TickerCore
 
 struct HelpSupportView: View {
     @State private var showMailCompose = false

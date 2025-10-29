@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct ShimmerView: View {
     @State private var isAnimating = false

@@ -9,6 +9,7 @@ import SwiftUI
 import ActivityKit
 import AlarmKit
 import WidgetKit
+import TickerCore
 
 // MARK: - Mock Data
 

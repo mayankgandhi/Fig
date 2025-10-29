@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UserNotifications
+import TickerCore
 
 struct GetStartedView: View {
     @Environment(\.colorScheme) private var colorScheme

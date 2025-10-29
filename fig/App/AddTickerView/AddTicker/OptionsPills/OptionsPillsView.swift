@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct OptionsPillsView: View {
     @Bindable var viewModel: OptionsPillsViewModel

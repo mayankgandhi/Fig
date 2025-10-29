@@ -31,7 +31,7 @@ let project = Project(
             ]),
             sources: [
                 "fig/**",
-                "Shared/**"
+                "Shared/Services/**"
             ],
             resources: [
                 .glob(pattern: "fig/Resources/Assets.xcassets"),
@@ -44,7 +44,8 @@ let project = Project(
                 "com.apple.developer.siri": .boolean(true),
             ]),
             dependencies: [
-                .target(name: "alarm")
+                .target(name: "alarm"),
+                .project(target: "TickerCore", path: "TickerCore")
             ],
             settings: .settings(
                 base: [
@@ -70,9 +71,8 @@ let project = Project(
             ]),
             sources: [
                 "alarm/**",
-                "Shared/**",  // Includes Shared/Extensions, TickerDesignSystem, ClockView, Shared/AppIntents, Shared/Services, etc.
+                "Shared/Services/**",  // Service layer files
                 "fig/DesignSystem/**",  // Design system previews
-                "fig/Models/ActivityIconMapper.swift",  // Activity icon mapper for ticker data
                 "fig/Models/IconColorPair.swift"  // Icon color pair for ticker data
             ],
             resources: [
@@ -83,7 +83,9 @@ let project = Project(
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")])
             ]),
-            dependencies: [],
+            dependencies: [
+                .project(target: "TickerCore", path: "TickerCore")
+            ],
             settings: .settings(
                 base: [
                     "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget),

@@ -14,6 +14,7 @@ import AlarmKit
 import AppIntents
 import SwiftUI
 import WidgetKit
+import TickerCore
 
 struct AlarmLiveActivity: Widget {
     

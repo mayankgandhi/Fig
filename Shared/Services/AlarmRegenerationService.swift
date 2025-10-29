@@ -9,6 +9,7 @@
 import Foundation
 import SwiftData
 import AlarmKit
+import TickerCore
 
 // MARK: - RegenerationTrigger
 

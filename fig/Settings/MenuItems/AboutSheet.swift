@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct AboutSheet: View {
     @Environment(\.dismiss) private var dismiss

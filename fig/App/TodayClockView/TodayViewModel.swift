@@ -9,7 +9,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
-
+import TickerCore
 // MARK: - TodayViewModel
 
 @Observable

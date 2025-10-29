@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct AlarmDetailTimeSection: View {
     let alarm: Ticker

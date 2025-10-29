@@ -6,6 +6,7 @@ A view that displays an individual alarm cell in the list.
 */
 
 import SwiftUI
+import TickerCore
 
 struct AlarmCell: View {
 

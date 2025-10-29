@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Foundation
+import TickerCore
 
 // MARK: - Upcoming Alarm Row
 

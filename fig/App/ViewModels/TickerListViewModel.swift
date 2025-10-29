@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import TickerCore
 
 @Observable
 final class TickerListViewModel {

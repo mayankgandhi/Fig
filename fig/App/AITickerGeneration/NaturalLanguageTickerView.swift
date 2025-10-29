@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Combine
+import TickerCore
 
 struct NaturalLanguageTickerView: View {
     @State private var viewModel: NaturalLanguageViewModel?

@@ -10,6 +10,7 @@
 import WidgetKit
 import SwiftUI
 import SwiftData
+import TickerCore
 
 // MARK: - StandBy Widget Provider
 

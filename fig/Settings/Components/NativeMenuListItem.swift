@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct NativeMenuListItem: View {
     let icon: String

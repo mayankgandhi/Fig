@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct TimePickerView: View {
     @Bindable var viewModel: TimePickerViewModel

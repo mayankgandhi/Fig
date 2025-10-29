@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct ScheduleView: View {
     @Bindable var viewModel: ScheduleViewModel

@@ -6,14 +6,13 @@
 //
 
 import Foundation
+import TickerCore
 
 extension Array {
     subscript(safe index: Int) -> Element? {
         return indices.contains(index) ? self[index] : nil
     }
 }
-
-
 
 @Observable
 final class RepeatOptionsViewModel {

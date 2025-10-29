@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct OverlayCallout<Content: View>: View {
     let field: ExpandableField

@@ -8,6 +8,7 @@
 import Foundation
 import AlarmKit
 import SwiftUI
+import TickerCore
 
 // MARK: - AlarmStateManager Protocol
 

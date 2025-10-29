@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct AddTickerToolbar: ToolbarContent {
     let isEditMode: Bool

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct SettingsView: View {
     @Environment(\.colorScheme) private var colorScheme

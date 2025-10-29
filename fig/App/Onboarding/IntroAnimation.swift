@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-
+import TickerCore
 // MARK: - Dialogue Message Model
 
 struct DialogueMessage: Identifiable, Equatable {

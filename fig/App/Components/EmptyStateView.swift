@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct EmptyStateView: View {
     
@@ -32,9 +33,9 @@ struct EmptyStateView: View {
                 } label: {
                     HStack(spacing: TickerSpacing.xs) {
                         Image(systemName: "plus.circle.fill")
-                            .Callout()
+                            .Headline()
                         Text("Add Ticker")
-                            .ButtonText()
+                            .Headline()
                     }
                     .foregroundStyle(TickerColor.absoluteWhite)
                     .padding(.horizontal, TickerSpacing.xl)
@@ -72,7 +73,7 @@ struct EmptyStateView: View {
     .padding()
     .background(
         ZStack {
-            TickerColor.liquidGlassGradient(for: .dark)
+            TickerColor.liquidGlassGradient(for: .light)
                 .ignoresSafeArea()
             
             Rectangle()

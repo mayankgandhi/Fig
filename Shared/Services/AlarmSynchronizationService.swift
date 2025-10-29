@@ -15,6 +15,7 @@ import SwiftUI
 import SwiftData
 import WidgetKit
 import AlarmKit
+import TickerCore
 
 // MARK: - AlarmSynchronizationService Protocol
 

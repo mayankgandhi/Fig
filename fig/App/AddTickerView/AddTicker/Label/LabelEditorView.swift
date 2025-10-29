@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct LabelEditorView: View {
     @Bindable var viewModel: LabelEditorViewModel

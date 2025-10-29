@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct SoundPickerView: View {
     @Bindable var viewModel: SoundPickerViewModel

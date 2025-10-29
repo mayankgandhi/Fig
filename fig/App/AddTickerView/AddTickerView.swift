@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftData
+import TickerCore
 
 struct AddTickerView: View {
     // MARK: - Properties

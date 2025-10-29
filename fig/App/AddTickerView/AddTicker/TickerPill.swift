@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 // MARK: - Pill Size
 

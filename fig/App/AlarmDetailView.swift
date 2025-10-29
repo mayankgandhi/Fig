@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import TickerCore
 
 struct AlarmDetailView: View {
     let alarm: Ticker

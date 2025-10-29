@@ -10,6 +10,7 @@ import SwiftUI
 import AlarmKit
 import AppIntents
 import ActivityKit
+import TickerCore
 
 // MARK: - AlarmConfigurationBuilder Protocol
 

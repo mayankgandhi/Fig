@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 @Observable
 final class IconPickerViewModel {

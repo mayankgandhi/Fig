@@ -7,7 +7,7 @@
 //
 
 import SwiftUI
-
+import TickerCore
 // MARK: - Alarm Row Components
 
 /// Standard alarm row with icon, name, and time display

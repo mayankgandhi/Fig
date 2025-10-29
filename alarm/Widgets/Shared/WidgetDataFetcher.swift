@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftData
+import TickerCore
 
 /// Centralized service for fetching alarm data in widgets
 struct WidgetDataFetcher {

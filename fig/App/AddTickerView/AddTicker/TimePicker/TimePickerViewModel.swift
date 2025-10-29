@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import TickerCore
 
 @Observable
 final class TimePickerViewModel {

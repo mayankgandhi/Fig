@@ -9,6 +9,7 @@ import Foundation
 import SwiftData
 import NaturalLanguage
 import SwiftUI
+import TickerCore
 
 // MARK: - Ticker Configuration Parser
 

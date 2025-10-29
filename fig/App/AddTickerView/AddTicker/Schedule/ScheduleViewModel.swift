@@ -7,6 +7,7 @@
 //
 
 import Foundation
+import TickerCore
 
 @Observable
 final class ScheduleViewModel {

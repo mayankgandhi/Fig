@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct HourlyConfigView: View {
     @Binding var interval: Int

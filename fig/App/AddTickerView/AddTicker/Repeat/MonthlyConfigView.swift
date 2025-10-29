@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct MonthlyConfigView: View {
     @Binding var dayType: RepeatOptionsViewModel.MonthlyDayType

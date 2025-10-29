@@ -9,6 +9,7 @@
 import Foundation
 import SwiftData
 import Observation
+import TickerCore
 
 @MainActor
 @Observable
@@ -210,9 +211,6 @@ final class NaturalLanguageViewModel {
             // Schedule the alarm
             try await tickerService.scheduleAlarm(from: ticker, context: modelContext)
 
-            // Donate AI-generated action to SiriKit for learning
-            await donateAIActionToSiriKit(ticker: ticker)
-
             TickerHaptics.success()
         } catch {
             TickerHaptics.error()
@@ -223,13 +221,7 @@ final class NaturalLanguageViewModel {
 
     // MARK: - SiriKit Donation
     
-    private func donateAIActionToSiriKit(ticker: Ticker) async {
-        // Donate AI-generated ticker creation to SiriKit
-        await AlarmSuggestionProvider.shared.donateAITickerCreation(
-            naturalLanguageInput: inputText,
-            resultingTicker: ticker
-        )
-    }
+
 
     // MARK: - Ticker Creation
 

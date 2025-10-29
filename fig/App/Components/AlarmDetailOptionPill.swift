@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct AlarmDetailOptionPill: View {
     let icon: String

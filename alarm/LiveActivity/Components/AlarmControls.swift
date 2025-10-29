@@ -8,6 +8,7 @@
 
 import AlarmKit
 import SwiftUI
+import TickerCore
 
 /// Control buttons for Live Activity alarm management
 struct AlarmControls: View {

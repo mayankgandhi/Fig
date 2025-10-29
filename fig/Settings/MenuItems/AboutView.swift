@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 struct AboutView: View {
     @State private var showAboutSheet = false

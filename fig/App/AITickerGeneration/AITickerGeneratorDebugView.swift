@@ -7,6 +7,7 @@
 //
 
 import SwiftUI
+import TickerCore
 
 #if DEBUG
 struct AITickerGeneratorDebugView: View {

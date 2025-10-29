@@ -9,6 +9,7 @@ import Foundation
 import FoundationModels
 import NaturalLanguage
 import SwiftUI
+import TickerCore
 
 
 // MARK: - AI Ticker Generator
