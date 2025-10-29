@@ -137,40 +137,51 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
 
     private func expandHourly(interval: Int, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
-        
-        // Start from the beginning of the window
-        var currentDate = window.start
-        
-        // Find the first occurrence of the time within the window
-        while currentDate <= window.end {
-            if let alarmDate = createDate(from: currentDate, with: time) {
-                if alarmDate >= window.start && alarmDate <= window.end {
-                    dates.append(alarmDate)
-                }
-            }
-            
-            // Move to next day to find the next occurrence
-            guard let nextDate = calendar.date(byAdding: .day, value: 1, to: currentDate) else {
+
+        // For hourly alarms, `time.minute` represents the minute offset within each hour
+        // (e.g., :38 means alarm fires at XX:38 every hour)
+        // `time.hour` is ignored for hourly schedules (should always be 0)
+
+        let targetMinute = time.minute
+
+        // Find the first occurrence at or after window.start
+        let startComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: window.start)
+        guard let currentHour = startComponents.hour, let currentMinute = startComponents.minute else {
+            return []
+        }
+
+        // Calculate the first occurrence
+        var firstOccurrence: Date
+        if currentMinute <= targetMinute {
+            // Can use the current hour with the target minute
+            var components = startComponents
+            components.minute = targetMinute
+            components.second = 0
+            guard let date = calendar.date(from: components) else { return [] }
+            firstOccurrence = date
+        } else {
+            // Need to move to the next hour
+            guard let nextHourDate = calendar.date(byAdding: .hour, value: 1, to: window.start) else { return [] }
+            let nextHourComponents = calendar.dateComponents([.year, .month, .day, .hour], from: nextHourDate)
+            var components = nextHourComponents
+            components.minute = targetMinute
+            components.second = 0
+            guard let date = calendar.date(from: components) else { return [] }
+            firstOccurrence = date
+        }
+
+        // Generate all occurrences from firstOccurrence with the specified interval
+        var currentOccurrence = firstOccurrence
+        while currentOccurrence <= window.end {
+            dates.append(currentOccurrence)
+
+            guard let nextOccurrence = calendar.date(byAdding: .hour, value: interval, to: currentOccurrence) else {
                 break
             }
-            currentDate = nextDate
+            currentOccurrence = nextOccurrence
         }
-        
-        // Now generate hourly intervals for each day
-        var hourlyDates: [Date] = []
-        for baseDate in dates {
-            var currentHourly = baseDate
-            while currentHourly <= window.end {
-                hourlyDates.append(currentHourly)
-                
-                guard let nextHourly = calendar.date(byAdding: .hour, value: interval, to: currentHourly) else {
-                    break
-                }
-                currentHourly = nextHourly
-            }
-        }
-        
-        return hourlyDates.sorted()
+
+        return dates.sorted()
     }
 
     private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {

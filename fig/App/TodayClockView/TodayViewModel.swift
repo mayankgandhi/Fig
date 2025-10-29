@@ -61,20 +61,36 @@ final class TodayViewModel {
 
         // Get all tickers from AlarmStateManager (single source of truth)
         let allTickers = alarmStateManager.getAllTickers()
+        print("📊 TodayViewModel: Found \(allTickers.count) total tickers from AlarmStateManager")
+
+        // Debug: Print all tickers
+        for ticker in allTickers {
+            print("   📋 Ticker: '\(ticker.label)' (ID: \(ticker.id))")
+            print("      - Enabled: \(ticker.isEnabled)")
+            print("      - Schedule: \(String(describing: ticker.schedule))")
+            print("      - Generated AlarmKit IDs: \(ticker.generatedAlarmKitIDs.count)")
+        }
 
         // Filter for enabled alarms
         let enabledTickers = allTickers.filter { $0.isEnabled }
+        print("📊 TodayViewModel: \(enabledTickers.count) enabled tickers")
 
         // Expand schedules to get upcoming dates
         let expander = TickerScheduleExpander(calendar: calendar)
         var upcomingOccurrences: [UpcomingAlarmPresentation] = []
 
         for ticker in enabledTickers {
-            guard let schedule = ticker.schedule else { continue }
+            guard let schedule = ticker.schedule else {
+                print("⚠️ TodayViewModel: Ticker '\(ticker.label)' has no schedule, skipping")
+                continue
+            }
+
+            print("🔍 TodayViewModel: Expanding schedule for '\(ticker.label)': \(schedule)")
 
             // Expand schedule within time window
             let window = DateInterval(start: now, end: timeWindow)
             let expandedDates = expander.expandSchedule(schedule, within: window)
+            print("   → Found \(expandedDates.count) occurrences in next 24 hours")
 
             for alarmDate in expandedDates {
                 let hour = calendar.component(.hour, from: alarmDate)
@@ -124,16 +140,21 @@ final class TodayViewModel {
             .filter { $0.nextAlarmTime > now }
             .sorted { $0.nextAlarmTime < $1.nextAlarmTime }
 
+        print("✅ TodayViewModel: Total upcoming occurrences: \(sortedOccurrences.count)")
+
         // Compute clock alarms: filter to next 12 hours
         let twelveHoursFromNow = calendar.date(byAdding: .hour, value: 12, to: now) ?? now
         let clockAlarms = sortedOccurrences.filter { occurrence in
             occurrence.nextAlarmTime > now && occurrence.nextAlarmTime <= twelveHoursFromNow
         }
 
+        print("✅ TodayViewModel: Clock alarms (next 12 hours): \(clockAlarms.count)")
+
         // Update state on main thread
         await MainActor.run {
             self.upcomingAlarms = sortedOccurrences
             self.upcomingAlarmsForClock = clockAlarms
+            print("✅ TodayViewModel: State updated - upcomingAlarms: \(self.upcomingAlarms.count), clockAlarms: \(self.upcomingAlarmsForClock.count)")
         }
     }
 

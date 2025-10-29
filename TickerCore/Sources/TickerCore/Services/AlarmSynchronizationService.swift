@@ -74,6 +74,8 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         var alarmKitIDsToTicker: [UUID: Ticker] = [:]
         for ticker in allTickers {
             print("🔍 Ticker '\(ticker.label)' (ID: \(ticker.id)) has generatedAlarmKitIDs: \(ticker.generatedAlarmKitIDs)")
+            print("   → Schedule: \(String(describing: ticker.schedule))")
+            print("   → Enabled: \(ticker.isEnabled)")
             for generatedID in ticker.generatedAlarmKitIDs {
                 alarmKitIDsToTicker[generatedID] = ticker
             }
@@ -211,14 +213,22 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         // FINALIZE
         print("💾 Finalizing synchronization...")
 
-        // Update state manager with valid Tickers only
+        // Collect unique tickers from valid alarms (deduplicate by ticker ID)
+        var uniqueTickers: [UUID: Ticker] = [:]
         for alarm in alarmsToKeep {
-            // Look up the corresponding Ticker
             let ticker = alarmKitIDsToTicker[alarm.id] ?? allTickers.first { $0.id == alarm.id }
-            
             if let ticker = ticker {
-                await stateManager.updateState(ticker: ticker)
-                print("✅ Updated state for Ticker: \(ticker.displayName)")
+                uniqueTickers[ticker.id] = ticker
+            }
+        }
+
+        // Update state manager with unique Tickers only (once per ticker)
+        for (_, ticker) in uniqueTickers {
+            await stateManager.updateState(ticker: ticker)
+            print("✅ Updated state for Ticker: \(ticker.displayName) (with \(ticker.generatedAlarmKitIDs.count) generated alarms)")
+            print("   → Has schedule: \(ticker.schedule != nil)")
+            if let schedule = ticker.schedule {
+                print("   → Schedule type: \(schedule)")
             }
         }
 
@@ -242,7 +252,7 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         print("   → Kept \(alarmsToKeep.count) valid alarms")
         print("   → Cancelled \(alarmsCancelled) invalid alarms")
         print("   → Deleted \(tickersDeleted) orphaned Tickers")
-        print("   → Updated state manager with \(alarmsToKeep.count) Tickers")
+        print("   → Updated state manager with \(uniqueTickers.count) unique Tickers")
     }
     
     // MARK: - Helper Methods
