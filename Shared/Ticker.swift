@@ -481,7 +481,7 @@ struct TickerPresentation: Codable, Hashable {
         case openApp
     }
 
-    init(tintColorHex: String? = nil, secondaryButtonType: SecondaryButtonType = .none) {
+    init(tintColorHex: String? = nil, secondaryButtonType: SecondaryButtonType = .openApp) {
         self.tintColorHex = tintColorHex
         self.secondaryButtonType = secondaryButtonType
     }
