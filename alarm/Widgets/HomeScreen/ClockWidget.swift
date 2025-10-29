@@ -28,7 +28,7 @@ struct ClockWidgetProvider: TimelineProvider {
             in: context,
             completion: completion,
             timeWindowMinutes: 60,
-            alarmTimeWindowHours: 24,
+            alarmTimeWindowHours: 12,
             alarmLimit: nil
         )
     }

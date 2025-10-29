@@ -10,19 +10,18 @@ import SwiftUI
 import AlarmKit
 import AppIntents
 import ActivityKit
-import TickerCore
 
 // MARK: - AlarmConfigurationBuilder Protocol
 
-protocol AlarmConfigurationBuilderProtocol {
+public protocol AlarmConfigurationBuilderProtocol {
     func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>?
 }
 
 // MARK: - AlarmConfigurationBuilder Implementation
 
-struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
+public struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
 
-    func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>? {
+    public func buildConfiguration(from alarmItem: Ticker, occurrenceAlarmID: UUID?) -> AlarmManager.AlarmConfiguration<TickerData>? {
         // Use the specific occurrence ID if provided, otherwise fall back to the ticker's main ID
         let alarmID = occurrenceAlarmID ?? alarmItem.id
         print("🔧 AlarmConfigurationBuilder: Building configuration")
@@ -52,6 +51,8 @@ struct AlarmConfigurationBuilder: AlarmConfigurationBuilderProtocol {
 
         return configuration
     }
+    
+    public init() { }
 
     // MARK: - Private Helpers
 

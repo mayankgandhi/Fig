@@ -13,8 +13,12 @@ import TickerCore
 
 // MARK: - Ticker Configuration Parser
 
-class TickerConfigurationParser {
+public class TickerConfigurationParser {
     private let activityMapper = ActivityIconMapper()
+    
+    public init() {
+    
+    }
 
     // MARK: - Natural Language Parsing
 
@@ -22,7 +26,7 @@ class TickerConfigurationParser {
     /// - Parameter input: The natural language input to parse
     /// - Returns: A TickerConfiguration with parsed values
     /// - Throws: AITickerGenerationError if parsing fails
-    func parseConfiguration(from input: String) async throws -> TickerConfiguration {
+    public func parseConfiguration(from input: String) async throws -> TickerConfiguration {
         // Use Natural Language framework for text analysis
         // Note: Already running off main thread
         let tagger = NLTagger(tagSchemes: [.nameType, .lexicalClass])
@@ -52,7 +56,7 @@ class TickerConfigurationParser {
 
     // MARK: - Ticker Conversion
 
-    func parseToTicker(from configuration: TickerConfiguration) -> Ticker {
+    public func parseToTicker(from configuration: TickerConfiguration) -> Ticker {
         let calendar = Calendar.current
         
         // Build the schedule
@@ -910,7 +914,7 @@ class TickerConfigurationParser {
 
 // MARK: - Validation
 
-extension TickerConfigurationParser {
+public extension TickerConfigurationParser {
     
     func validateConfiguration(_ configuration: TickerConfiguration) -> ValidationResult {
         var errors: [String] = []
@@ -1050,20 +1054,20 @@ extension TickerConfigurationParser {
 
 // MARK: - Validation Result
 
-struct ValidationResult {
-    let isValid: Bool
-    let errors: [String]
-    let warnings: [String]
+public struct ValidationResult {
+    public let isValid: Bool
+    public let errors: [String]
+    public let warnings: [String]
     
-    var hasErrors: Bool {
+    public var hasErrors: Bool {
         !errors.isEmpty
     }
     
-    var hasWarnings: Bool {
+    public var hasWarnings: Bool {
         !warnings.isEmpty
     }
     
-    var allMessages: [String] {
+    public var allMessages: [String] {
         errors + warnings
     }
 }

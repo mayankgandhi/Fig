@@ -8,24 +8,53 @@
 import Foundation
 import FoundationModels
 
-struct TickerConfiguration: Equatable {
-    let label: String
-    let time: TimeOfDay
-    let date: Date
-    let repeatOption: AITickerGenerator.RepeatOption
-    let countdown: CountdownConfiguration?
-    let icon: String
-    let colorHex: String
+public struct TickerConfiguration: Equatable {
+    public let label: String
+    public let time: TimeOfDay
+    public let date: Date
+    public let repeatOption: AITickerGenerator.RepeatOption
+    public let countdown: CountdownConfiguration?
+    public let icon: String
+    public let colorHex: String
 
-    struct TimeOfDay: Equatable {
-        let hour: Int
-        let minute: Int
+    public struct TimeOfDay: Equatable {
+        public let hour: Int
+        public let minute: Int
+        
+        public init(hour: Int, minute: Int) {
+            self.hour = hour
+            self.minute = minute
+        }
     }
 
-    struct CountdownConfiguration: Equatable {
-        let hours: Int
-        let minutes: Int
-        let seconds: Int
+    public struct CountdownConfiguration: Equatable {
+        public let hours: Int
+        public let minutes: Int
+        public let seconds: Int
+        
+        public init(hours: Int, minutes: Int, seconds: Int) {
+            self.hours = hours
+            self.minutes = minutes
+            self.seconds = seconds
+        }
+    }
+    
+    public init(
+        label: String,
+        time: TimeOfDay,
+        date: Date,
+        repeatOption: AITickerGenerator.RepeatOption,
+        countdown: CountdownConfiguration?,
+        icon: String,
+        colorHex: String
+    ) {
+        self.label = label
+        self.time = time
+        self.date = date
+        self.repeatOption = repeatOption
+        self.countdown = countdown
+        self.icon = icon
+        self.colorHex = colorHex
     }
 }
 

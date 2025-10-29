@@ -9,7 +9,7 @@ let project = Project(
             destinations: [.iPhone, .iPad],
             product: .framework,
             bundleId: "m.fig.tickercore",
-            deploymentTargets: .iOS("17.0"),
+            deploymentTargets: .iOS("26.0"),
             infoPlist: .default,
             sources: ["Sources/TickerCore/**"],
             dependencies: []
@@ -21,7 +21,7 @@ let project = Project(
             destinations: [.iPhone, .iPad],
             product: .unitTests,
             bundleId: "m.fig.tickercore.tests",
-            deploymentTargets: .iOS("17.0"),
+            deploymentTargets: .iOS("26.0"),
             infoPlist: .default,
             sources: ["Tests/TickerCoreTests/**"],
             dependencies: [

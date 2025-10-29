@@ -226,6 +226,7 @@ final class NaturalLanguageViewModel {
     // MARK: - Ticker Creation
 
     private func createTickerFromViewModels() throws -> Ticker {
+    
         let parser = TickerConfigurationParser()
 
         // Build configuration from view models

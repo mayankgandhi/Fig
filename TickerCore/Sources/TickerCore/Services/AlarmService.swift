@@ -12,7 +12,6 @@ import SwiftData
 import AlarmKit
 import AppIntents
 import WidgetKit
-import TickerCore
 
 // MARK: - TickerService Error Types
 
@@ -39,7 +38,7 @@ enum TickerServiceError: LocalizedError {
     }
 }
 
-enum AlarmAuthorizationStatus {
+public enum AlarmAuthorizationStatus {
     case notDetermined
     case denied
     case authorized
@@ -61,20 +60,21 @@ enum AlarmAuthorizationStatus {
 // MARK: - TickerService Implementation
 
 @Observable
-final class TickerService {
+public final class TickerService {
+
     typealias AlarmConfiguration = AlarmManager.AlarmConfiguration<TickerData>
     
     // Public state (delegated to state manager)
-    var alarms: [UUID: Ticker] {
-        stateManager.alarms
+    public var alarms: [Ticker] {
+        stateManager.getAllTickers()
     }
 
-    var authorizationStatus: AlarmAuthorizationStatus {
+    public var authorizationStatus: AlarmAuthorizationStatus {
         AlarmAuthorizationStatus(from: alarmManager.authorizationState)
     }
 
     // State manager access (needed for TodayViewModel and widgets)
-    var stateManager: AlarmStateManagerProtocol {
+    public var stateManager: AlarmStateManagerProtocol {
         _stateManager
     }
 
@@ -100,7 +100,7 @@ final class TickerService {
 
     // MARK: - Initialization
 
-    init(
+    public init(
         alarmManager: AlarmManager = AlarmManager.shared,
         configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
         stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
@@ -116,7 +116,7 @@ final class TickerService {
     
     // MARK: - Authorization
     
-    func requestAuthorization() async throws -> AlarmAuthorizationStatus {
+    public func requestAuthorization() async throws -> AlarmAuthorizationStatus {
         switch alarmManager.authorizationState {
             case .notDetermined:
                 do {
@@ -136,7 +136,7 @@ final class TickerService {
     
     // MARK: - Schedule Management
     
-    func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws {
+    public func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws {
         print("🔔 TickerService.scheduleAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
         print("   → alarmItem label: '\(alarmItem.label)'")
@@ -337,7 +337,7 @@ final class TickerService {
         return temp
     }
     
-    func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
+    public func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         print("🔄 TickerService.updateAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
         print("   → alarmItem label: '\(alarmItem.label)'")
@@ -438,7 +438,7 @@ final class TickerService {
         }
     }
     
-    func cancelAlarm(id: UUID, context: ModelContext?) async throws {
+    public func cancelAlarm(id: UUID, context: ModelContext?) async throws {
         print("🗑️ TickerService.cancelAlarm() started")
         print("   → id: \(id)")
         
@@ -517,7 +517,7 @@ final class TickerService {
     
     
     // Pausing only works for alarm in countdown mode
-    func pauseAlarm(id: UUID) throws {
+    public func pauseAlarm(id: UUID) throws {
         do {
             try alarmManager.pause(id: id)
             // Refresh widget timelines to show updated alarm state
@@ -527,7 +527,7 @@ final class TickerService {
         }
     }
     
-    func resumeAlarm(id: UUID) throws {
+    public func resumeAlarm(id: UUID) throws {
         do {
             try alarmManager.resume(id: id)
             // Refresh widget timelines to show updated alarm state
@@ -537,7 +537,7 @@ final class TickerService {
         }
     }
     
-    func stopAlarm(id: UUID) throws {
+    public func stopAlarm(id: UUID) throws {
         do {
             try alarmManager.stop(id: id)
             print("✅ Successfully stopped alarm \(id)")
@@ -569,7 +569,7 @@ final class TickerService {
         }
     }
     
-    func repeatCountdown(id: UUID) throws {
+    public func repeatCountdown(id: UUID) throws {
         do {
             try alarmManager.countdown(id: id)
             // Refresh widget timelines to show updated alarm state
@@ -581,7 +581,7 @@ final class TickerService {
     
     // MARK: - Queries
     
-    func fetchAllAlarms() async throws {
+    public func fetchAllAlarms() async throws {
         do {
             // Use centralized AlarmKit query through state manager
             let remoteAlarms = try stateManager.queryAlarmKit(alarmManager: alarmManager)
@@ -591,11 +591,11 @@ final class TickerService {
         }
     }
     
-    func getTicker(id: UUID) -> Ticker? {
+    public func getTicker(id: UUID) -> Ticker? {
         stateManager.getState(id: id)
     }
     
-    func getAlarmsWithMetadata(context: ModelContext) -> [Ticker] {
+    public func getAlarmsWithMetadata(context: ModelContext) -> [Ticker] {
         // Return cached data from AlarmStateManager (single source of truth)
         // This eliminates redundant SwiftData queries on every UI refresh
         return stateManager.getAllTickers()
@@ -604,7 +604,7 @@ final class TickerService {
 
     /// Explicitly refresh AlarmStateManager cache from SwiftData
     /// Call this on app launch or when you need to force a refresh from persistent storage
-    func refreshFromSwiftData(context: ModelContext) {
+    public func refreshFromSwiftData(context: ModelContext) {
         let descriptor = FetchDescriptor<Ticker>()
         let allTickers = (try? context.fetch(descriptor)) ?? []
 
@@ -623,7 +623,7 @@ final class TickerService {
     // MARK: - Synchronization
 
     @MainActor
-    func synchronizeAlarmsOnLaunch(context: ModelContext) async {
+    public func synchronizeAlarmsOnLaunch(context: ModelContext) async {
         await synchronizationService.synchronize(
             alarmManager: alarmManager,
             stateManager: stateManager,
@@ -635,7 +635,7 @@ final class TickerService {
     /// Uses AlarmManager.alarms as source of truth
     /// Call this when app comes to foreground or after stopping an alarm
     @MainActor
-    func synchronizeAlarms(context: ModelContext) async {
+    public func synchronizeAlarms(context: ModelContext) async {
         await synchronizationService.synchronize(
             alarmManager: alarmManager,
             stateManager: stateManager,
@@ -645,7 +645,7 @@ final class TickerService {
 }
 
 extension Alarm {
-    var alertingTime: Date? {
+    public var alertingTime: Date? {
         guard let schedule else { return nil }
         
         switch schedule {

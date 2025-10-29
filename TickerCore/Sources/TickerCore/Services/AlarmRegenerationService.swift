@@ -13,7 +13,7 @@ import TickerCore
 
 // MARK: - RegenerationTrigger
 
-enum RegenerationTrigger {
+public enum RegenerationTrigger {
     case appForeground       // App entered foreground (PRIMARY - guaranteed)
     case backgroundTask      // Daily background task (best effort)
     case timeZoneChange      // System time zone changed
@@ -24,7 +24,7 @@ enum RegenerationTrigger {
 
 // MARK: - AlarmRegenerationServiceProtocol
 
-protocol AlarmRegenerationServiceProtocol {
+public protocol AlarmRegenerationServiceProtocol {
     func regenerateAlarmsIfNeeded(
         ticker: Ticker,
         context: ModelContext,
@@ -38,7 +38,7 @@ protocol AlarmRegenerationServiceProtocol {
 // MARK: - AlarmRegenerationService
 
 @Observable
-class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
+public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     // Dependencies
     private let alarmManager: AlarmManager
     private let scheduleExpander: TickerScheduleExpanderProtocol
@@ -48,7 +48,7 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
 
     // MARK: - Initialization
 
-    init(
+    public init(
         alarmManager: AlarmManager = .shared,
         scheduleExpander: TickerScheduleExpanderProtocol = TickerScheduleExpander(),
         rateLimiter: RegenerationRateLimiter = .shared,
@@ -69,7 +69,7 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     ///   - ticker: The ticker to regenerate alarms for
     ///   - context: SwiftData model context
     ///   - force: If true, bypass rate limiting and regeneration checks
-    func regenerateAlarmsIfNeeded(
+    public func regenerateAlarmsIfNeeded(
         ticker: Ticker,
         context: ModelContext,
         force: Bool = false
@@ -104,7 +104,7 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     /// Check if a ticker needs regeneration
     /// - Parameter ticker: The ticker to check
     /// - Returns: True if regeneration is needed
-    func shouldRegenerate(ticker: Ticker) -> Bool {
+    public func shouldRegenerate(ticker: Ticker) -> Bool {
         // Use ticker's built-in logic
         return ticker.needsRegeneration
     }
@@ -112,7 +112,7 @@ class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     /// Calculate the current alarm health for a ticker
     /// - Parameter ticker: The ticker to evaluate
     /// - Returns: AlarmHealth status
-    func calculateAlarmHealth(ticker: Ticker) async -> AlarmHealth {
+    public func calculateAlarmHealth(ticker: Ticker) async -> AlarmHealth {
         // Query AlarmKit for actual alarm count
         let activeCount = await queryActiveAlarmCount(for: ticker)
 

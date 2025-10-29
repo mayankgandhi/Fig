@@ -19,7 +19,7 @@ import TickerCore
 
 // MARK: - AlarmSynchronizationService Protocol
 
-protocol AlarmSynchronizationServiceProtocol {
+public protocol AlarmSynchronizationServiceProtocol {
     func synchronize(
         alarmManager: AlarmManager,
         stateManager: AlarmStateManagerProtocol,
@@ -29,7 +29,11 @@ protocol AlarmSynchronizationServiceProtocol {
 
 // MARK: - AlarmSynchronizationService Implementation
 
-struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
+public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
+
+    public init() {
+    
+    }
 
     /// Performs full bidirectional synchronization between AlarmKit and SwiftData
     /// Uses AlarmManager.alarms as the single source of truth
@@ -37,7 +41,7 @@ struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
     ///   - alarmManager: AlarmManager to query for active alarms
     ///   - stateManager: State manager to update
     ///   - context: SwiftData context for persistence
-    func synchronize(
+    public func synchronize(
         alarmManager: AlarmManager,
         stateManager: AlarmStateManagerProtocol,
         context: ModelContext

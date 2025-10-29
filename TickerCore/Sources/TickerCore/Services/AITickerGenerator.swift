@@ -9,22 +9,20 @@ import Foundation
 import FoundationModels
 import NaturalLanguage
 import SwiftUI
-import TickerCore
-
 
 // MARK: - AI Ticker Generator
 
 #if DEBUG
 // MARK: - Debug Event Model (Debug builds only)
 
-struct AIDebugEvent: Identifiable, Equatable {
-    let id = UUID()
-    let timestamp: Date
-    let type: EventType
-    let message: String
-    let metadata: [String: String]
-
-    enum EventType: String {
+public struct AIDebugEvent: Identifiable, Equatable {
+    public let id = UUID()
+    public let timestamp: Date
+    public let type: EventType
+    public let message: String
+    public let metadata: [String: String]
+    
+    public enum EventType: String {
         case info = "ℹ️"
         case success = "✅"
         case warning = "⚠️"
@@ -33,8 +31,8 @@ struct AIDebugEvent: Identifiable, Equatable {
         case parsing = "🔍"
         case streaming = "🔄"
     }
-
-    var formattedTime: String {
+    
+    public var formattedTime: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "HH:mm:ss.SSS"
         return formatter.string(from: timestamp)
@@ -43,33 +41,33 @@ struct AIDebugEvent: Identifiable, Equatable {
 #endif
 
 @MainActor
-class AITickerGenerator: ObservableObject {
-    @Published var isGenerating = false
-    @Published var errorMessage: String?
-    @Published var parsedConfiguration: TickerConfiguration?
-    @Published var isFoundationModelsAvailable = false
-    @Published var isParsing = false
-
-    #if DEBUG
+public class AITickerGenerator: ObservableObject {
+    @Published public  var isGenerating = false
+    @Published public  var errorMessage: String?
+    @Published public  var parsedConfiguration: TickerConfiguration?
+    @Published public var isFoundationModelsAvailable = false
+    @Published public  var isParsing = false
+    
+#if DEBUG
     // Debug events for testing (only in Debug/Development builds)
-    @Published var debugEvents: [AIDebugEvent] = []
-    var isDebugMode = false
-    #endif
-
+    @Published public var debugEvents: [AIDebugEvent] = []
+    public var isDebugMode = false
+#endif
+    
     private let configurationParser = TickerConfigurationParser()
     private var parsingTask: Task<Void, Never>?
     private var languageModelSession: LanguageModelSession?
     private var lastStreamUpdate: Date = .distantPast
     private let streamThrottleInterval: TimeInterval = 0.1 // Throttle UI updates to 100ms
-
+    
     // Performance tracking
     private var generationStartTime: Date?
     private var sessionPrewarmed = false
-
+    
     // Token limit for context window (on-device model has 4096 token limit)
     private let maxInputTokens = 1000 // Conservative estimate leaving room for schema and response
-
-    enum RepeatOption: Equatable {
+    
+    public enum RepeatOption: Equatable {
         case oneTime
         case daily
         case weekdays([TickerSchedule.Weekday])
@@ -79,14 +77,14 @@ class AITickerGenerator: ObservableObject {
         case monthly(day: TickerSchedule.MonthlyDay)
         case yearly(month: Int, day: Int)
     }
-
-    init() {
+    
+    public init() {
         // Don't initialize session in init - do it when view appears for better lifecycle management
     }
-
+    
     // MARK: - Debug Logging
-
-    #if DEBUG
+    
+#if DEBUG
     private func logDebug(_ type: AIDebugEvent.EventType, _ message: String, metadata: [String: String] = [:]) {
         guard isDebugMode else { return }
         let event = AIDebugEvent(timestamp: Date(), type: type, message: message, metadata: metadata)
@@ -96,20 +94,20 @@ class AITickerGenerator: ObservableObject {
             debugEvents.removeFirst(debugEvents.count - 100)
         }
     }
-
-    func clearDebugEvents() {
+    
+    public func clearDebugEvents() {
         debugEvents.removeAll()
     }
-    #endif
-
+#endif
+    
     // MARK: - Session Lifecycle
-
+    
     /// Call this when the view appears to initialize and prewarm the session
-    func prepareSession() async {
+    public func prepareSession() async {
         guard languageModelSession == nil else { return }
-        #if DEBUG
+#if DEBUG
         logDebug(.info, "Preparing session...")
-        #endif
+#endif
         await checkAvailabilityAndInitialize()
     }
     
@@ -118,9 +116,9 @@ class AITickerGenerator: ObservableObject {
     /// Process Siri voice input for ticker creation
     /// This method is specifically designed for Siri intents and handles voice-specific input patterns
     func processSiriInput(_ input: String) async throws -> TickerConfiguration {
-        #if DEBUG
+#if DEBUG
         logDebug(.info, "Processing Siri input: \(input)")
-        #endif
+#endif
         
         // Preprocess Siri input to handle common voice patterns
         let processedInput = preprocessSiriInput(input)
@@ -183,43 +181,43 @@ class AITickerGenerator: ObservableObject {
         processed = processed.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
         processed = processed.trimmingCharacters(in: .whitespacesAndNewlines)
         
-        #if DEBUG
+#if DEBUG
         logDebug(.parsing, "Preprocessed Siri input: \(processed)")
-        #endif
+#endif
         
         return processed
     }
-
+    
     /// Call this when view disappears or is done
-    func cleanupSession() {
+    public func cleanupSession() {
         parsingTask?.cancel()
         // Note: LanguageModelSession doesn't require explicit cleanup
         // but we can nil it out to free memory
         languageModelSession = nil
         sessionPrewarmed = false
-        #if DEBUG
+#if DEBUG
         logDebug(.info, "Session cleaned up")
-        #endif
+#endif
     }
-
+    
     private func checkAvailabilityAndInitialize() async {
         let model = SystemLanguageModel.default
-
+        
         switch model.availability {
-        case .available:
-            isFoundationModelsAvailable = true
-            #if DEBUG
-            logDebug(.success, "Foundation Models available")
-            #endif
-
-            // Create session with custom instructions for ticker parsing
-            // Including a full example helps reduce token usage by allowing includeSchemaInPrompt: false
-            languageModelSession = LanguageModelSession(
-                model: model,
-                instructions: {
+            case .available:
+                isFoundationModelsAvailable = true
+#if DEBUG
+                logDebug(.success, "Foundation Models available")
+#endif
+                
+                // Create session with custom instructions for ticker parsing
+                // Including a full example helps reduce token usage by allowing includeSchemaInPrompt: false
+                languageModelSession = LanguageModelSession(
+                    model: model,
+                    instructions: {
                     """
                     You are an intelligent assistant that helps users create alarm reminders (called "Tickers") from natural language descriptions.
-
+                    
                     Your task is to extract structured information from user input including:
                     - Activity label (what they want to be reminded about) - REQUIRED
                     - Time (when the reminder should trigger in 24-hour format) - REQUIRED
@@ -229,13 +227,13 @@ class AITickerGenerator: ObservableObject {
                     - Countdown duration if they mention it (in hours and minutes) - OPTIONAL
                     - Appropriate SF Symbol icon that matches the activity - REQUIRED
                     - Hex color code that fits the activity theme (without # prefix) - REQUIRED
-
+                    
                     Be intelligent about inferring context:
                     - "Wake up at 7am every weekday" → weekdays pattern, no date needed
                     - "Gym on Monday Wednesday Friday" → specificDays with "Monday,Wednesday,Friday"
                     - "Take medicine at 9am and 9pm daily" → daily pattern
                     - "Meeting next Tuesday at 2:30pm" → oneTime, include specific date
-
+                    
                     Choose icons wisely:
                     - Wake up → "sunrise.fill"
                     - Medication → "pills.fill"
@@ -245,13 +243,13 @@ class AITickerGenerator: ObservableObject {
                     - Sleep → "moon.stars.fill"
                     - Study → "book.fill"
                     - Water → "drop.fill"
-
+                    
                     Choose colors that match the activity mood and time of day:
                     - Morning activities → warm colors (FDB813, FF9F1C)
                     - Evening → cool colors (4A5899, 2D3561)
                     - Health → greens/blues (4ECDC4, 52B788)
                     - Important → reds/oranges (FF6B6B, E63946)
-
+                    
                     Example input: "Wake up at 7am every weekday"
                     Example output: {
                         "label": "Wake Up",
@@ -261,7 +259,7 @@ class AITickerGenerator: ObservableObject {
                         "icon": "sunrise.fill",
                         "colorHex": "FF9F1C"
                     }
-
+                    
                     Example input: "Take medication at 9am and 9pm daily with 1 hour countdown"
                     Example output: {
                         "label": "Take Medication",
@@ -274,76 +272,76 @@ class AITickerGenerator: ObservableObject {
                         "colorHex": "4ECDC4"
                     }
                     """
+                    }
+                )
+                
+                // Prewarm the session with the instruction prefix for better first-response performance
+                // This loads the model ahead of time instead of when first request is made
+                if !sessionPrewarmed {
+#if DEBUG
+                    logDebug(.info, "Prewarming session...")
+#endif
+                    let prewarmPrefix = "Parse this ticker request and extract all relevant information:"
+                    try? await languageModelSession?.prewarm(promptPrefix: Prompt(prewarmPrefix))
+                    sessionPrewarmed = true
+#if DEBUG
+                    logDebug(.success, "Session prewarmed successfully")
+#endif
+                    print("✅ AITickerGenerator: Session prewarmed successfully")
                 }
-            )
-
-            // Prewarm the session with the instruction prefix for better first-response performance
-            // This loads the model ahead of time instead of when first request is made
-            if !sessionPrewarmed {
-                #if DEBUG
-                logDebug(.info, "Prewarming session...")
-                #endif
-                let prewarmPrefix = "Parse this ticker request and extract all relevant information:"
-                try? await languageModelSession?.prewarm(promptPrefix: Prompt(prewarmPrefix))
-                sessionPrewarmed = true
-                #if DEBUG
-                logDebug(.success, "Session prewarmed successfully")
-                #endif
-                print("✅ AITickerGenerator: Session prewarmed successfully")
-            }
-
-        case .unavailable(let reason):
-            isFoundationModelsAvailable = false
-            #if DEBUG
-            logDebug(.warning, "Foundation Models unavailable", metadata: ["reason": "reason"])
-            #endif
-            print("⚠️ AITickerGenerator: Foundation Models unavailable - \(reason)")
+                
+            case .unavailable(let reason):
+                isFoundationModelsAvailable = false
+#if DEBUG
+                logDebug(.warning, "Foundation Models unavailable", metadata: ["reason": "reason"])
+#endif
+                print("⚠️ AITickerGenerator: Foundation Models unavailable - \(reason)")
         }
     }
-
+    
     // Convert AI response to TickerConfiguration
     private func convertToTickerConfiguration(_ response: AITickerConfigurationResponse) -> TickerConfiguration {
         let calendar = Calendar.current
         let now = Date()
-
+        
         // Use provided date components or default to today
         var dateComponents = DateComponents()
         dateComponents.year = response.year ?? calendar.component(.year, from: now)
         dateComponents.month = response.month ?? calendar.component(.month, from: now)
         dateComponents.day = response.day ?? calendar.component(.day, from: now)
         let date = calendar.date(from: dateComponents) ?? now
-
+        
         // Parse repeat pattern
         let repeatOption: AITickerGenerator.RepeatOption
         switch response.repeatPattern {
-        case "daily":
-            repeatOption = .daily
-        case "weekdays":
-            repeatOption = .weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])
-        case "specificDays":
-            // Only parse repeatDays if provided
-            if let repeatDaysString = response.repeatDays, !repeatDaysString.isEmpty {
-                let weekdayNames = repeatDaysString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                let weekdays = weekdayNames.compactMap { name -> TickerSchedule.Weekday? in
-                    switch name.lowercased() {
-                    case "monday": return .monday
-                    case "tuesday": return .tuesday
-                    case "wednesday": return .wednesday
-                    case "thursday": return .thursday
-                    case "friday": return .friday
-                    case "saturday": return .saturday
-                    case "sunday": return .sunday
-                    default: return nil
+            case "daily":
+                repeatOption = .daily
+            case "weekdays":
+                repeatOption = .weekdays([.monday, .tuesday, .wednesday, .thursday, .friday])
+            case "specificDays":
+                // Only parse repeatDays if provided
+                if let repeatDaysString = response.repeatDays, !repeatDaysString.isEmpty {
+                    let weekdayNames = repeatDaysString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+                    let weekdays = weekdayNames.compactMap { name -> TickerSchedule.Weekday? in
+                        switch name.lowercased() {
+                            case "monday": return .monday
+                            case "tuesday": return .tuesday
+                            case "wednesday": return .wednesday
+                            case "thursday": return .thursday
+                            case "friday": return .friday
+                            case "saturday": return .saturday
+                            case "sunday": return .sunday
+                            default: return nil
+                        }
                     }
+                    repeatOption = weekdays.isEmpty ? .oneTime : .weekdays(weekdays)
+                } else {
+                    repeatOption = .oneTime
                 }
-                repeatOption = weekdays.isEmpty ? .oneTime : .weekdays(weekdays)
-            } else {
+            default:
                 repeatOption = .oneTime
-            }
-        default:
-            repeatOption = .oneTime
         }
-
+        
         // Parse countdown - use provided values or default to 0
         let countdownHours = response.countdownHours ?? 0
         let countdownMinutes = response.countdownMinutes ?? 0
@@ -357,7 +355,7 @@ class AITickerGenerator: ObservableObject {
         } else {
             countdown = nil
         }
-
+        
         return TickerConfiguration(
             label: response.label,
             time: TickerConfiguration.TimeOfDay(hour: response.hour, minute: response.minute),
@@ -373,53 +371,53 @@ class AITickerGenerator: ObservableObject {
     private func estimateTokenCount(for text: String) -> Int {
         return text.count / 4
     }
-
+    
     /// Truncates input if it exceeds token limits while preserving meaning
     private func truncateIfNeeded(_ input: String) -> String {
         let estimatedTokens = estimateTokenCount(for: input)
         guard estimatedTokens > maxInputTokens else { return input }
-
+        
         // Truncate to approximate character limit
         let maxChars = maxInputTokens * 4
         let truncated = String(input.prefix(maxChars))
         print("⚠️ AITickerGenerator: Input truncated from \(input.count) to \(truncated.count) chars (est. \(estimatedTokens) → \(estimateTokenCount(for: truncated)) tokens)")
         return truncated
     }
-
-    func parseInBackground(from input: String) {
+    
+    public func parseInBackground(from input: String) {
         // Cancel any existing parsing task
         parsingTask?.cancel()
-
+        
         // Clear previous results
         parsedConfiguration = nil
-
+        
         // Don't parse empty or very short inputs
         let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmedInput.count > 3 else {
             isParsing = false
             return
         }
-
+        
         // Validate and truncate input if needed to stay within context window
         let validatedInput = truncateIfNeeded(trimmedInput)
-
+        
         // Set parsing state
         isParsing = true
         let tokenCount = estimateTokenCount(for: validatedInput)
-        #if DEBUG
+#if DEBUG
         logDebug(.parsing, "Starting parse", metadata: [
             "input": "\"\(validatedInput)\"",
             "length": "\(validatedInput.count) chars",
             "tokens": "~\(tokenCount)"
         ])
-        #endif
+#endif
         print("🔍 AITickerGenerator: Starting parse for input (est. \(tokenCount) tokens)")
-
+        
         parsingTask = Task.detached(priority: .userInitiated) {
             do {
                 // Add a small delay to debounce rapid typing
                 try await Task.sleep(for: .milliseconds(500))
-
+                
                 // Check if task was cancelled
                 guard !Task.isCancelled else {
                     await MainActor.run {
@@ -427,7 +425,7 @@ class AITickerGenerator: ObservableObject {
                     }
                     return
                 }
-
+                
                 // Try Foundation Models first, fallback to regex parsing
                 await MainActor.run {
                     print("🔍 AITickerGenerator: isFoundationModelsAvailable = \(self.isFoundationModelsAvailable)")
@@ -471,7 +469,7 @@ class AITickerGenerator: ObservableObject {
             }
         }
     }
-
+    
     /// Parses user input using Foundation Models with streaming for real-time UI updates
     /// - Parameters:
     ///   - input: The natural language input to parse
@@ -480,24 +478,24 @@ class AITickerGenerator: ObservableObject {
     ///         Uses throttling (100ms) to prevent excessive updates and maintain performance
     private func parseWithFoundationModelsStreaming(input: String, session: LanguageModelSession) async {
         guard !session.isResponding else { return }
-
+        
         // Start performance tracking
         let streamStartTime = Date()
-
+        
         do {
             let options = GenerationOptions(
                 sampling: .greedy, // Deterministic output
                 temperature: 0.3,  // Low temperature for consistent parsing
                 maximumResponseTokens: 500
             )
-
+            
             // Note: includeSchemaInPrompt is false because we provided examples in instructions
             // This saves tokens and reduces latency on each request
             let stream = try await session.streamResponse(
                 to: Prompt("""
                     Parse this ticker request and extract all relevant information:
                     "\(input)"
-
+                    
                     Provide a complete ticker configuration with label, time, repeat pattern, icon, and color.
                     ONLY include date (year/month/day) if explicitly mentioned.
                     ONLY include countdown if explicitly mentioned.
@@ -507,24 +505,24 @@ class AITickerGenerator: ObservableObject {
                 includeSchemaInPrompt: false, // Schema already in examples, saves ~200 tokens per request
                 options: options
             )
-
+            
             var updateCount = 0
             for try await snapshot in stream {
                 // Access the partial content from the snapshot
                 let partial = snapshot.content
-
+                
                 // Throttle UI updates to avoid overwhelming the main thread
                 // Only update if enough time has passed since last update
                 let now = Date()
                 let timeSinceLastUpdate = now.timeIntervalSince(lastStreamUpdate)
-
+                
                 // PROGRESSIVE UPDATES: Update UI as fields become available
                 // Check if we have at least some meaningful partial data
                 let hasPartialData = partial.label != nil ||
-                                    partial.hour != nil ||
-                                    partial.icon != nil ||
-                                    partial.repeatPattern != nil
-
+                partial.hour != nil ||
+                partial.icon != nil ||
+                partial.repeatPattern != nil
+                
                 // Update UI when we have partial data AND throttle interval has passed
                 if hasPartialData && timeSinceLastUpdate >= streamThrottleInterval {
                     // Track which fields are available for progressive updates
@@ -536,12 +534,12 @@ class AITickerGenerator: ObservableObject {
                         partial.icon != nil ? "icon" : nil,
                         partial.colorHex != nil ? "color" : nil
                     ].compactMap { $0 }
-
+                    
                     // Build detailed metadata with actual values
                     var metadata: [String: String] = [
                         "fields": availableFields.joined(separator: ", ")
                     ]
-
+                    
                     // Add actual parsed values for debugging
                     if let label = partial.label {
                         metadata["label"] = "\"\(label)\""
@@ -579,15 +577,15 @@ class AITickerGenerator: ObservableObject {
                     if let day = partial.day {
                         metadata["day"] = "\(day)"
                     }
-
+                    
                     let fieldsStr = availableFields.joined(separator: ", ")
-                    #if DEBUG
+#if DEBUG
                     await MainActor.run {
                         self.logDebug(.streaming, "Progressive update #\(updateCount + 1)", metadata: metadata)
                     }
-                    #endif
+#endif
                     print("🔄 AITickerGenerator: Progressive update #\(updateCount + 1) with fields: \(fieldsStr)")
-
+                    
                     // Create response with available fields + defaults for missing ones
                     let response = AITickerConfigurationResponse(
                         label: partial.label ?? "Alarm",  // Default label
@@ -603,27 +601,27 @@ class AITickerGenerator: ObservableObject {
                         icon: partial.icon ?? "bell.fill",  // Default icon
                         colorHex: partial.colorHex ?? "4ECDC4"  // Default teal color
                     )
-
+                    
                     parsedConfiguration = convertToTickerConfiguration(response)
                     lastStreamUpdate = now
                     updateCount += 1
                 }
             }
-
+            
             // Performance logging
             let streamDuration = Date().timeIntervalSince(streamStartTime)
-            #if DEBUG
+#if DEBUG
             logDebug(.timing, "Streaming completed", metadata: [
                 "duration": String(format: "%.2f", streamDuration),
                 "updates": "\(updateCount)"
             ])
-            #endif
+#endif
             print("✅ AITickerGenerator: Streaming completed in \(String(format: "%.2f", streamDuration))s with \(updateCount) UI updates")
-
+            
         } catch {
-            #if DEBUG
+#if DEBUG
             logDebug(.error, "Streaming error", metadata: ["error": error.localizedDescription])
-            #endif
+#endif
             print("❌ AITickerGenerator: Streaming error - \(error)")
             // Fallback to regex parsing on background thread
             Task.detached(priority: .userInitiated) {
@@ -636,8 +634,8 @@ class AITickerGenerator: ObservableObject {
             }
         }
     }
-
-    func generateTickerConfiguration(from input: String) async throws -> TickerConfiguration {
+    
+    public func generateTickerConfiguration(from input: String) async throws -> TickerConfiguration {
         isGenerating = true
         errorMessage = nil
         generationStartTime = Date()
@@ -648,18 +646,18 @@ class AITickerGenerator: ObservableObject {
                 print("⏱️ AITickerGenerator: Total generation time: \(String(format: "%.2f", duration))s")
             }
         }
-
+        
         // Validate and truncate input to stay within context window
         let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedInput.isEmpty else {
             throw AITickerGenerationError.invalidInput
         }
-
+        
         let validatedInput = truncateIfNeeded(trimmedInput)
-
+        
         // Try Foundation Models first, fallback to regex parsing
         let configuration: TickerConfiguration
-
+        
         if isFoundationModelsAvailable, let session = languageModelSession {
             print("🤖 AITickerGenerator: Generating with Foundation Models")
             configuration = try await parseWithFoundationModels(input: validatedInput, session: session)
@@ -668,12 +666,12 @@ class AITickerGenerator: ObservableObject {
             // Fallback to regex-based parsing
             configuration = try await configurationParser.parseConfiguration(from: validatedInput)
         }
-
+        
         // Additional validation
         if configuration.label.isEmpty {
             throw AITickerGenerationError.parsingFailed
         }
-
+        
         // Log final configuration with all values
         var finalMetadata: [String: String] = [
             "label": "\"\(configuration.label)\"",
@@ -681,52 +679,52 @@ class AITickerGenerator: ObservableObject {
             "icon": configuration.icon,
             "color": "#\(configuration.colorHex)"
         ]
-
+        
         // Add repeat option
         switch configuration.repeatOption {
-        case .oneTime:
-            finalMetadata["repeat"] = "oneTime"
-        case .daily:
-            finalMetadata["repeat"] = "daily"
-        case .weekdays(let days):
-            finalMetadata["repeat"] = "weekdays(\(days.count))"
-        case .hourly(let interval):
-            finalMetadata["repeat"] = "hourly(\(interval))"
-        case .every(let interval, let unit):
-            finalMetadata["repeat"] = "every(\(interval) \(unit))"
-        case .biweekly(let days):
-            finalMetadata["repeat"] = "biweekly(\(days.count))"
-        case .monthly(let day):
-            finalMetadata["repeat"] = "monthly"
-        case .yearly(let month, let day):
-            finalMetadata["repeat"] = "yearly(\(month)/\(day))"
+            case .oneTime:
+                finalMetadata["repeat"] = "oneTime"
+            case .daily:
+                finalMetadata["repeat"] = "daily"
+            case .weekdays(let days):
+                finalMetadata["repeat"] = "weekdays(\(days.count))"
+            case .hourly(let interval):
+                finalMetadata["repeat"] = "hourly(\(interval))"
+            case .every(let interval, let unit):
+                finalMetadata["repeat"] = "every(\(interval) \(unit))"
+            case .biweekly(let days):
+                finalMetadata["repeat"] = "biweekly(\(days.count))"
+            case .monthly(let day):
+                finalMetadata["repeat"] = "monthly"
+            case .yearly(let month, let day):
+                finalMetadata["repeat"] = "yearly(\(month)/\(day))"
         }
-
+        
         // Add countdown if present
         if let countdown = configuration.countdown {
             finalMetadata["countdown"] = "\(countdown.hours)h \(countdown.minutes)m"
         }
-
-        #if DEBUG
+        
+#if DEBUG
         logDebug(.success, "Configuration generated", metadata: finalMetadata)
-        #endif
+#endif
         print("✅ AITickerGenerator: Configuration generated - \(configuration.label)")
         return configuration
     }
-
+    
     private func parseWithFoundationModels(input: String, session: LanguageModelSession) async throws -> TickerConfiguration {
         guard !session.isResponding else {
             throw AITickerGenerationError.parsingFailed
         }
-
+        
         let methodStartTime = Date()
-
+        
         let options = GenerationOptions(
             sampling: .greedy, // Deterministic output for final generation
             temperature: 0.3,
             maximumResponseTokens: 500
         )
-
+        
         // Note: includeSchemaInPrompt is false because we provided examples in instructions
         // This reduces tokens sent with each request, improving latency
         let result = try await session.respond(
@@ -738,10 +736,10 @@ class AITickerGenerator: ObservableObject {
             includeSchemaInPrompt: false, // Schema already in examples, saves ~200 tokens
             options: options
         )
-
+        
         let methodDuration = Date().timeIntervalSince(methodStartTime)
         print("⏱️ AITickerGenerator: Model inference completed in \(String(format: "%.2f", methodDuration))s")
-
+        
         return convertToTickerConfiguration(result.content)
     }
 }

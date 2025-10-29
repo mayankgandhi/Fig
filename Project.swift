@@ -30,8 +30,7 @@ let project = Project(
                 ])
             ]),
             sources: [
-                "fig/**",
-                "Shared/Services/**"
+                "fig/**"
             ],
             resources: [
                 .glob(pattern: "fig/Resources/Assets.xcassets"),
@@ -71,7 +70,6 @@ let project = Project(
             ]),
             sources: [
                 "alarm/**",
-                "Shared/Services/**",  // Service layer files
                 "fig/DesignSystem/**",  // Design system previews
                 "fig/Models/IconColorPair.swift"  // Icon color pair for ticker data
             ],

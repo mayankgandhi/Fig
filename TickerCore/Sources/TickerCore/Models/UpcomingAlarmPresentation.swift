@@ -214,7 +214,8 @@ public struct UpcomingAlarmPresentation: Identifiable, Equatable, Codable {
     /// Dynamically formatted time until alarm
     public func timeUntilAlarm(from currentDate: Date) -> String {
         let interval = nextAlarmTime.timeIntervalSince(currentDate)
-        let totalSeconds = Int(interval)
+        let totalSeconds = max(0, Int(interval))
+
         let days = totalSeconds / 86400
         let hours = (totalSeconds % 86400) / 3600
         let minutes = (totalSeconds % 3600) / 60
@@ -229,7 +230,10 @@ public struct UpcomingAlarmPresentation: Identifiable, Equatable, Codable {
         } else if hours > 0 {
             return "in \(hours)h \(minutes)m"
         } else if minutes > 0 {
-            return "in \(minutes)m"
+            // Round up minutes when showing minutes alone to avoid off-by-one error
+            // E.g., 119 seconds (1:59) should show "in 2m" not "in 1m"
+            let roundedMinutes = (totalSeconds + 59) / 60
+            return "in \(roundedMinutes)m"
         } else {
             return "now"
         }

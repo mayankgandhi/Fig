@@ -8,13 +8,10 @@
 import Foundation
 import AlarmKit
 import SwiftUI
-import TickerCore
 
 // MARK: - AlarmStateManager Protocol
 
-protocol AlarmStateManagerProtocol: Observable {
-    var alarms: [UUID: Ticker] { get }
-
+public protocol AlarmStateManagerProtocol: Observable {
     func updateState(with remoteAlarms: [Alarm])
     func updateState(ticker: Ticker)
     func removeState(id: UUID)
@@ -26,14 +23,18 @@ protocol AlarmStateManagerProtocol: Observable {
 // MARK: - AlarmStateManager Implementation
 
 @Observable
-final class AlarmStateManager: AlarmStateManagerProtocol {
+public final class AlarmStateManager: AlarmStateManagerProtocol {
 
     // Public state
-    private(set) var alarms: [UUID: Ticker] = [:]
+    private(set) var alarms: [UUID: Ticker]
 
     // MARK: - State Management
+    
+    public init() {
+        self.alarms = [:]
+    }
 
-    func updateState(with remoteAlarms: [Alarm]) {
+    public func updateState(with remoteAlarms: [Alarm]) {
         print("   → Updating state with \(remoteAlarms.count) remote Tickers")
 
         // Update existing alarm states
@@ -71,21 +72,21 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
         print("   → State update complete. Total alarms: \(alarms.count)")
     }
 
-    func updateState(ticker: Ticker) {
+    public func updateState(ticker: Ticker) {
         alarms[ticker.id] = ticker
     }
 
-    func removeState(id: UUID) {
+    public func removeState(id: UUID) {
         alarms[id] = nil
     }
 
-    func getState(id: UUID) -> Ticker? {
+    public func getState(id: UUID) -> Ticker? {
         alarms[id]
     }
 
     /// Returns all cached tickers as an array sorted by creation date
     /// This provides efficient access without querying SwiftData
-    func getAllTickers() -> [Ticker] {
+    public func getAllTickers() -> [Ticker] {
         return Array(alarms.values).sorted { $0.createdAt > $1.createdAt }
     }
 
@@ -94,7 +95,7 @@ final class AlarmStateManager: AlarmStateManagerProtocol {
     /// - Parameter alarmManager: The AlarmManager instance to query
     /// - Returns: Array of Alarm objects from AlarmKit
     /// - Throws: AlarmKit errors if query fails
-    func queryAlarmKit(alarmManager: AlarmManager) throws -> [Alarm] {
+    public func queryAlarmKit(alarmManager: AlarmManager) throws -> [Alarm] {
         return try alarmManager.alarms
     }
 }
