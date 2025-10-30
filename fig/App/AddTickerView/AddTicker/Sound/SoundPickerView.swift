@@ -29,7 +29,7 @@ struct SoundPickerView: View {
                     ForEach(viewModel.availableSounds) { sound in
                         SoundCell(
                             sound: sound,
-                            isSelected: viewModel.selectedSound == sound.id,
+                            isSelected: viewModel.selectedSound == sound,
                             isPlaying: viewModel.isPlaying && viewModel.currentlyPlayingSound == sound.fileName,
                             isPaused: !viewModel.isPlaying && viewModel.currentlyPlayingSound == sound.fileName,
                             onSelect: {
@@ -63,7 +63,7 @@ struct SoundPickerView: View {
     private func selectSound(_ sound: AlarmSound) {
         TickerHaptics.selection()
         withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
-            viewModel.selectSound(sound.id)
+            viewModel.selectSound(sound)
         }
     }
 

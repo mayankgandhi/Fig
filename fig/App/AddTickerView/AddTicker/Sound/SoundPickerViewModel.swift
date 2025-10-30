@@ -14,7 +14,7 @@ struct AlarmSound: Identifiable, Hashable {
     let id: String?  // nil = system default
     let name: String
     let fileName: String?  // Full filename including extension (e.g., "gentle-chime.caf")
-
+    
     var displayName: String {
         name
     }
@@ -24,13 +24,13 @@ struct AlarmSound: Identifiable, Hashable {
 
 @Observable
 final class SoundPickerViewModel {
-    var selectedSound: String? = nil  // nil = system default
+    var selectedSound: AlarmSound? = nil  // nil = system default
     var isPlaying: Bool = false
     var currentlyPlayingSound: String? = nil
     private var audioPlayer: AVAudioPlayer?
-
+    
     // MARK: - Available Sounds
-
+    
     let availableSounds: [AlarmSound] = [
         AlarmSound(id: "classic_digital_alarm", name: "Classic Digital Alarm", fileName: "classic_digital_alarm.wav"),
         AlarmSound(id: "casino_jackpot", name: "Casino Jackpot", fileName: "mixkit-casino-jackpot-alarm-and-coins-1991.wav"),
@@ -39,42 +39,46 @@ final class SoundPickerViewModel {
         AlarmSound(id: "retro_game_alarm", name: "Retro Game Alarm", fileName: "mixkit-retro-game-emergency-alarm-1000.wav"),
         AlarmSound(id: "tick_tock_clock", name: "Tick Tock Clock", fileName: "mixkit-tick-tock-clock-timer-1045.wav")
     ]
-
+    
     // MARK: - Computed Properties
-
+    
     var displayText: String {
-        if let selectedId = selectedSound,
-           let sound = availableSounds.first(where: { $0.id == selectedId }) {
-            return sound.displayName
+        if let selected = selectedSound {
+            return selected.displayName
         }
         return "Default"
     }
-
+    
     var hasValue: Bool {
         selectedSound != nil
     }
-
-    var selectedSoundObject: AlarmSound? {
-        availableSounds.first { $0.id == selectedSound }
-    }
-
+    
     // MARK: - Methods
-
-    func selectSound(_ soundId: String?) {
-        selectedSound = soundId
+    
+    func selectSound(_ sound: AlarmSound) {
+        selectedSound = sound
         stopPreview()
     }
-
+    
+    func selectSound(_ soundID: String) {
+        if let firstIndex = availableSounds.firstIndex(where: { sound in
+            sound.id == soundID
+        }) {
+            selectedSound = availableSounds[firstIndex]
+            stopPreview()
+        }
+    }
+    
     func previewSound(_ fileName: String?) {
         stopPreview()
-
+        
         guard let fileName = fileName else {
             // Play system default alarm sound
             playSystemSound()
             currentlyPlayingSound = nil
             return
         }
-
+        
         // Extract extension from filename
         let components = fileName.components(separatedBy: ".")
         guard components.count >= 2 else {
@@ -83,10 +87,10 @@ final class SoundPickerViewModel {
             currentlyPlayingSound = nil
             return
         }
-
+        
         let fileExtension = components.last!
         let fileNameWithoutExtension = components.dropLast().joined(separator: ".")
-
+        
         guard let url = Bundle.main.url(forResource: fileNameWithoutExtension, withExtension: fileExtension) else {
             print("⚠️ Sound file not found: \(fileName)")
             // Fallback to system sound
@@ -94,12 +98,12 @@ final class SoundPickerViewModel {
             currentlyPlayingSound = nil
             return
         }
-
+        
         do {
             // Configure audio session for playback
             try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
             try AVAudioSession.sharedInstance().setActive(true)
-
+            
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.play()
             isPlaying = true
@@ -111,31 +115,31 @@ final class SoundPickerViewModel {
             currentlyPlayingSound = nil
         }
     }
-
+    
     func pausePreview() {
         audioPlayer?.pause()
         isPlaying = false
     }
-
+    
     func resumePreview() {
         audioPlayer?.play()
         isPlaying = true
     }
-
+    
     func stopPreview() {
         audioPlayer?.stop()
         audioPlayer = nil
         isPlaying = false
         currentlyPlayingSound = nil
     }
-
+    
     func reset() {
         selectedSound = nil
         stopPreview()
     }
-
+    
     // MARK: - Private Methods
-
+    
     private func playSystemSound() {
         // Play system alarm sound (sound ID 1005 is a typical alarm sound)
         AudioServicesPlaySystemSound(1005)
