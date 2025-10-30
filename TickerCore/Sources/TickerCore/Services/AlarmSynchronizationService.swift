@@ -175,15 +175,40 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
                 }
             }
 
-            // If no alarms found in AlarmManager, check if this is a composite schedule
-            // that should be regenerated rather than deleted
+            // If no alarms found in AlarmManager, check if this ticker has upcoming alarms
+            // or should be regenerated rather than deleted
             if !hasActiveAlarm {
-                let shouldRegenerate = ticker.isEnabled && 
-                                     ticker.schedule != nil && 
+                // Check if this Ticker has upcoming alarms scheduled
+                var hasUpcomingAlarms = false
+                if let schedule = ticker.schedule, ticker.isEnabled {
+                    let expander = TickerScheduleExpander()
+                    // Check for alarms in the next year (to catch annual alarms)
+                    let oneYear: TimeInterval = 365 * 24 * 3600
+                    let upcomingDates = expander.expandSchedule(
+                        schedule,
+                        withinCustomWindow: Date(),
+                        duration: oneYear,
+                        maxAlarms: 1
+                    )
+                    hasUpcomingAlarms = !upcomingDates.isEmpty
+
+                    if hasUpcomingAlarms {
+                        let nextAlarm = upcomingDates[0]
+                        let formatter = DateFormatter()
+                        formatter.dateStyle = .medium
+                        formatter.timeStyle = .short
+                        print("📅 Ticker '\(ticker.displayName)' has next alarm at \(formatter.string(from: nextAlarm)) - keeping")
+                    }
+                }
+
+                let shouldRegenerate = ticker.isEnabled &&
+                                     ticker.schedule != nil &&
                                      !isSimpleSchedule(ticker.schedule!) &&
                                      ticker.needsRegeneration
-                
-                if shouldRegenerate {
+
+                if hasUpcomingAlarms {
+                    // Don't delete - this ticker has future alarms scheduled
+                } else if shouldRegenerate {
                     print("🔄 Ticker '\(ticker.displayName)' has no active alarms but needs regeneration - keeping for regeneration")
                     // Don't mark for deletion - let regeneration service handle it
                 } else {
