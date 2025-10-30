@@ -57,6 +57,7 @@ struct SettingsView: View {
             VStack(spacing: TickerSpacing.xs) {
                 AboutView()
                 FAQView()
+                RoadmapMenuItemView()
                 HelpSupportView()
             }
         }

@@ -12,6 +12,9 @@ let deploymentTarget = "26.0"
 
 let project = Project(
     name: appName,
+    packages: [
+        .package(url: "https://github.com/AvdLee/Roadmap.git", from: "1.1.0")
+    ],
     targets: [
         // Main app target
         .target(
@@ -44,7 +47,8 @@ let project = Project(
             ]),
             dependencies: [
                 .target(name: "alarm"),
-                .project(target: "TickerCore", path: "TickerCore")
+                .project(target: "TickerCore", path: "TickerCore"),
+                .package(product: "Roadmap")
             ],
             settings: .settings(
                 base: [
