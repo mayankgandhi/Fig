@@ -9,7 +9,6 @@
 import Foundation
 import SwiftData
 import AlarmKit
-import TickerCore
 
 // MARK: - RegenerationTrigger
 
@@ -32,7 +31,6 @@ public protocol AlarmRegenerationServiceProtocol {
     ) async throws
 
     func shouldRegenerate(ticker: Ticker) -> Bool
-    func calculateAlarmHealth(ticker: Ticker) async -> AlarmHealth
 }
 
 // MARK: - AlarmRegenerationService
@@ -107,20 +105,6 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     public func shouldRegenerate(ticker: Ticker) -> Bool {
         // Use ticker's built-in logic
         return ticker.needsRegeneration
-    }
-
-    /// Calculate the current alarm health for a ticker
-    /// - Parameter ticker: The ticker to evaluate
-    /// - Returns: AlarmHealth status
-    public func calculateAlarmHealth(ticker: Ticker) async -> AlarmHealth {
-        // Query AlarmKit for actual alarm count
-        let activeCount = await queryActiveAlarmCount(for: ticker)
-
-        return AlarmHealth(
-            lastRegenerationDate: ticker.lastRegenerationDate,
-            lastRegenerationSuccess: ticker.lastRegenerationSuccess,
-            activeAlarmCount: activeCount
-        )
     }
 
     // MARK: - Private: Core Regeneration
@@ -233,7 +217,7 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
         do {
             // Delete stale alarms
             for alarmID in toDelete {
-                try await alarmManager.cancel(id: alarmID)
+                try alarmManager.cancel(id: alarmID)
                 print("     → Deleted alarm \(alarmID)")
             }
 
@@ -247,7 +231,7 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
                     throw TickerServiceError.invalidConfiguration
                 }
 
-                try await alarmManager.schedule(id: alarmID, configuration: configuration)
+                let _ = try await alarmManager.schedule(id: alarmID, configuration: configuration)
                 newIDs.append(alarmID)
                 rollbackIDs.append(alarmID)
                 print("     → Added alarm \(alarmID) for \(date)")
@@ -264,7 +248,7 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
             // Rollback: delete any newly created alarms
             print("     ⚠️ Transaction failed, rolling back...")
             for alarmID in rollbackIDs {
-                try? await alarmManager.cancel(id: alarmID)
+                try? alarmManager.cancel(id: alarmID)
             }
             throw error
         }

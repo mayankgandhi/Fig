@@ -121,10 +121,10 @@ class ActivityIconMapper {
         }
         
         // Fallback to keyword matching
-        for (keyword, mapping) in activityMappings {
-            if lowercaseInput.contains(keyword) {
-                return mapping
-            }
+        let (bestMapping, bestScore) = bestKeywordMatch(for: lowercaseInput)
+
+        if let bestMapping, bestScore > 0 {
+            return bestMapping
         }
         
         // Try to extract a custom label from the input
@@ -137,6 +137,40 @@ class ActivityIconMapper {
             colorHex: "#8B5CF6",
             category: .general
         )
+    }
+
+    private func bestKeywordMatch(for input: String) -> (ActivityMapping?, Int) {
+        var bestMapping: ActivityMapping?
+        var highestScore = 0
+        let tokens = tokenize(input)
+
+        for (keyword, mapping) in activityMappings {
+            if keywordContains(keyword, in: input, tokens: tokens) {
+                let score = keyword.count
+                if score > highestScore {
+                    highestScore = score
+                    bestMapping = mapping
+                }
+            }
+        }
+
+        return (bestMapping, highestScore)
+    }
+
+    private func tokenize(_ input: String) -> Set<String> {
+        let separators = CharacterSet.alphanumerics.inverted
+        let parts = input.components(separatedBy: separators).filter { !$0.isEmpty }
+        return Set(parts)
+    }
+
+    private func keywordContains(_ keyword: String, in input: String, tokens: Set<String>) -> Bool {
+        if keyword.contains(" ") {
+            let escaped = NSRegularExpression.escapedPattern(for: keyword)
+            let pattern = "(?i)\\b" + escaped + "\\b"
+            return input.range(of: pattern, options: [.regularExpression]) != nil
+        } else {
+            return tokens.contains(keyword.lowercased())
+        }
     }
     
     private func findSemanticMapping(from input: String, tagger: NLTagger) -> ActivityMapping? {

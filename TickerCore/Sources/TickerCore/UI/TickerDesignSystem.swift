@@ -66,6 +66,11 @@ public enum TickerColor {
     
     // MARK: Text Hierarchy
     
+    /// Primary
+    public static func primary(for colorScheme: ColorScheme) -> Color {
+        colorScheme == .dark ? primaryDark : primary
+    }
+    
     /// Primary text - maximum contrast
     public static func textPrimary(for colorScheme: ColorScheme) -> Color {
         colorScheme == .dark ? absoluteWhite : absoluteBlack

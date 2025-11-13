@@ -11,8 +11,8 @@ let project = Project(
             bundleId: "m.fig.tickercore",
             deploymentTargets: .iOS("26.0"),
             infoPlist: .default,
-            sources: ["Sources/TickerCore/**"],
-            dependencies: []
+            sources: ["Sources/**"],
+            dependencies: [ ]
         ),
 
         // Test target
@@ -23,10 +23,10 @@ let project = Project(
             bundleId: "m.fig.tickercore.tests",
             deploymentTargets: .iOS("26.0"),
             infoPlist: .default,
-            sources: ["Tests/TickerCoreTests/**"],
+            sources: ["Tests/**"],
             dependencies: [
-                .target(name: "TickerCore")
+                .target(name: "TickerCore"),
             ]
         )
-    ]
+    ],
 )

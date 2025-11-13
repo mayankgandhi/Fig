@@ -9,7 +9,6 @@ import Foundation
 import SwiftData
 import NaturalLanguage
 import SwiftUI
-import TickerCore
 
 // MARK: - Ticker Configuration Parser
 
@@ -33,12 +32,12 @@ public class TickerConfigurationParser {
         tagger.string = input
 
         // Extract entities and parse the input
-        let entities = extractEntities(from: input, using: tagger)
-        let timeInfo = parseTime(from: input, entities: entities)
-        let dateInfo = parseDate(from: input, entities: entities)
-        let repeatInfo = parseRepeatPattern(from: input, entities: entities, defaultDate: dateInfo)
-        let countdownInfo = parseCountdown(from: input)
-        let activityInfo = parseActivity(from: input, entities: entities)
+        let parsedEntities = extractEntities(from: input, using: tagger)
+        let timeInfo = parseTime(from: input, entities: parsedEntities)
+        let dateInfo = parseDate(from: input, entities: parsedEntities)
+        let repeatInfo = parseRepeatPattern(from: input, entities: parsedEntities, defaultDate: dateInfo)
+        let countdownInfo = parseCountdown(from: input, entities: parsedEntities)
+        let activityInfo = parseActivity(from: input, entities: parsedEntities)
 
         // Generate configuration
         let configuration = TickerConfiguration(
@@ -155,38 +154,110 @@ public class TickerConfigurationParser {
     }
 
     // MARK: - Private Parsing Methods
+    
+    // Enhanced entity structure with position and context
+    private struct EntityInfo {
+        let text: String
+        let position: Int // Character position in input
+        let range: Range<String.Index>
+    }
+    
+    private struct ParsedEntities {
+        var namedEntities: [String: [EntityInfo]] = [:]
+        var lexicalClasses: [String: [EntityInfo]] = [:]
+        var numbers: [EntityInfo] = []
+        var personNames: [EntityInfo] = []
+        var organizations: [EntityInfo] = []
+        var timeWords: [EntityInfo] = []
+        
+        func getAllEntities() -> [String: [String]] {
+            var result: [String: [String]] = [:]
+            
+            // Combine named entities
+            for (key, infos) in namedEntities {
+                result[key] = infos.map { $0.text }
+            }
+            
+            // Combine lexical classes
+            for (key, infos) in lexicalClasses {
+                if result[key] == nil {
+                    result[key] = []
+                }
+                result[key]?.append(contentsOf: infos.map { $0.text })
+            }
+            
+            return result
+        }
+    }
 
-    private func extractEntities(from input: String, using tagger: NLTagger) -> [String: [String]] {
-        var entities: [String: [String]] = [:]
+    private func extractEntities(from input: String, using tagger: NLTagger) -> ParsedEntities {
+        var parsed = ParsedEntities()
+        let lowercaseInput = input.lowercased()
+        
+        // Time-related keywords for context
+        let timeKeywords = ["at", "am", "pm", "hour", "hours", "minute", "minutes", "time", "o'clock", "oclock"]
+        let countdownKeywords = ["countdown", "before", "prior", "earlier", "in", "with"]
+        let intervalKeywords = ["every", "each", "interval", "repeat"]
+        let dateKeywords = ["tomorrow", "today", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday", "week", "month", "year"]
 
-        // Extract named entities
+        // Extract named entities with position
         tagger.enumerateTags(in: input.startIndex..<input.endIndex, unit: .word, scheme: .nameType) { tag, range in
             if let tag = tag {
                 let entity = String(input[range])
-                if entities[tag.rawValue] == nil {
-                    entities[tag.rawValue] = []
+                let position = input.distance(from: input.startIndex, to: range.lowerBound)
+                let info = EntityInfo(text: entity, position: position, range: range)
+                
+                if parsed.namedEntities[tag.rawValue] == nil {
+                    parsed.namedEntities[tag.rawValue] = []
                 }
-                entities[tag.rawValue]?.append(entity)
+                parsed.namedEntities[tag.rawValue]?.append(info)
+                
+                // Track person names and organizations separately for activity labels
+                if tag == .personalName {
+                    parsed.personNames.append(info)
+                } else if tag == .organizationName {
+                    parsed.organizations.append(info)
+                }
             }
             return true
         }
 
-        // Extract lexical classes for better context understanding
+        // Extract lexical classes with position and context
         tagger.enumerateTags(in: input.startIndex..<input.endIndex, unit: .word, scheme: .lexicalClass) { tag, range in
             if let tag = tag {
                 let word = String(input[range])
-                if entities[tag.rawValue] == nil {
-                    entities[tag.rawValue] = []
+                let position = input.distance(from: input.startIndex, to: range.lowerBound)
+                let info = EntityInfo(text: word, position: position, range: range)
+                
+                if parsed.lexicalClasses[tag.rawValue] == nil {
+                    parsed.lexicalClasses[tag.rawValue] = []
                 }
-                entities[tag.rawValue]?.append(word)
+                parsed.lexicalClasses[tag.rawValue]?.append(info)
+                
+                // Track numbers separately for disambiguation
+                if tag == .number {
+                    parsed.numbers.append(info)
+                }
+                
+                // Track time-related words
+                if timeKeywords.contains(word.lowercased()) || countdownKeywords.contains(word.lowercased()) || 
+                   intervalKeywords.contains(word.lowercased()) || dateKeywords.contains(word.lowercased()) {
+                    parsed.timeWords.append(info)
+                }
             }
             return true
         }
 
-        return entities
+        return parsed
+    }
+    
+    // Legacy method for backward compatibility
+    private func extractEntitiesLegacy(from input: String, using tagger: NLTagger) -> [String: [String]] {
+        let parsed = extractEntities(from: input, using: tagger)
+        return parsed.getAllEntities()
     }
 
-    private func parseTime(from input: String, entities: [String: [String]]) -> TickerConfiguration.TimeOfDay {
+    private func parseTime(from input: String, entities: ParsedEntities) -> TickerConfiguration.TimeOfDay {
         let lowercaseInput = input.lowercased()
 
         // First, try to parse natural language time expressions
@@ -194,13 +265,18 @@ public class TickerConfigurationParser {
             return naturalTime
         }
 
-        // Use NSDateFormatter for time parsing
-        if let time = parseTimeWithDateFormatter(input) {
+        // Use system data detectors and regex-based parsing for explicit times
+        if let time = parseTimeWithDataDetector(input) {
             return time
         }
 
-        // Try to extract time from entities if available
-        if let timeFromEntities = extractTimeFromEntities(entities) {
+        // Parse relative expressions like "in 2 hours"
+        if let relativeTime = parseRelativeTimeExpressions(from: input) {
+            return relativeTime
+        }
+
+        // Enhanced: Try to extract time from entities with context awareness
+        if let timeFromEntities = extractTimeFromEntitiesEnhanced(input: input, entities: entities) {
             return timeFromEntities
         }
 
@@ -244,45 +320,49 @@ public class TickerConfigurationParser {
         return nil
     }
 
-    private func parseTimeWithDateFormatter(_ input: String) -> TickerConfiguration.TimeOfDay? {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "en_US_POSIX")
+    private func parseTimeWithDataDetector(_ input: String) -> TickerConfiguration.TimeOfDay? {
+        guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue) else {
+            return nil
+        }
 
-        // Try different time formats
-        let timeFormats = [
-            "h:mm a",      // 12:30 PM
-            "h:mm a",      // 1:30 PM
-            "h a",         // 1 PM
-            "h:mm",        // 12:30
-            "h",           // 1
-            "HH:mm",       // 13:30
-            "HH"           // 13
-        ]
+        let range = NSRange(location: 0, length: input.utf16.count)
 
-        for format in timeFormats {
-            formatter.dateFormat = format
+        for match in detector.matches(in: input, options: [], range: range) {
+            guard let date = match.date else { continue }
 
-            // Try to find time in the input string
-            let inputWords = input.components(separatedBy: .whitespacesAndNewlines)
-            for word in inputWords {
-                if let date = formatter.date(from: word) {
-                    let calendar = Calendar.current
-                    let components = calendar.dateComponents([.hour, .minute], from: date)
+            let substring = (input as NSString).substring(with: match.range).lowercased()
 
-                    if let hour = components.hour, let minute = components.minute {
-                        // Validate time
-                        guard hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 else {
-                            continue
-                        }
+            // Skip pure date matches (e.g., "tomorrow") that lack explicit time indicators
+            let hasDigits = substring.rangeOfCharacter(from: .decimalDigits) != nil
+            let hasTimeIndicator = substring.range(of: "(?i)(am|pm|a.m.|p.m.|o'clock|noon|midnight|:\\d)", options: .regularExpression) != nil
+            let isDurationPhrase = substring.hasPrefix("in ") || substring.contains("countdown") || (substring.contains("every") && !substring.contains(" at "))
 
-                        return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
-                    }
-                }
+            if !hasDigits || (!hasTimeIndicator && !substring.contains(":") && !substring.contains(" at ")) {
+                continue
+            }
+
+            if isDurationPhrase {
+                continue
+            }
+
+            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+            guard let hour = components.hour, let minute = components.minute else { continue }
+
+            // Ensure the detected time actually appears in input (and not midnight defaults from date-only phrases)
+            if substring.range(of: "midnight") != nil && hour == 0 {
+                return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
+            }
+
+            if substring.range(of: "noon") != nil && hour == 12 {
+                return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
+            }
+
+            if hasDigits {
+                return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
             }
         }
 
-        // Try parsing with relative time expressions
-        return parseRelativeTimeExpressions(from: input)
+        return nil
     }
 
     private func parseRelativeTimeExpressions(from input: String) -> TickerConfiguration.TimeOfDay? {
@@ -320,26 +400,108 @@ public class TickerConfigurationParser {
         return nil
     }
 
-    private func extractTimeFromEntities(_ entities: [String: [String]]) -> TickerConfiguration.TimeOfDay? {
-        // Look for time-related entities in the extracted data
-        // This is a fallback method when regex patterns don't match
+    private func extractTimeFromEntitiesEnhanced(input: String, entities: ParsedEntities) -> TickerConfiguration.TimeOfDay? {
+        // Enhanced: Use context-aware number disambiguation
+        // Look for numbers near time-related keywords (at, am, pm, o'clock, etc.)
+        
+        let lowercaseInput = input.lowercased()
+        let timeIndicators = ["at", "am", "pm", "o'clock", "oclock", "noon", "midnight"]
+        
+        // Find numbers that appear near time keywords
+        for numberInfo in entities.numbers {
+            guard let num = Int(numberInfo.text) else { continue }
+            
+            // Check if this number is near a time keyword
+            let numberRange = numberInfo.range
 
-        // Check for numbers that might be times
-        if let numbers = entities["Number"] {
-            for number in numbers {
-                if let num = Int(number) {
-                    // If it's a reasonable hour (1-12), assume it's a time
-                    if num >= 1 && num <= 12 {
-                        return TickerConfiguration.TimeOfDay(hour: num, minute: 0)
+            // Safely calculate context bounds (20 characters before and after)
+            let contextStart: String.Index
+            let distanceFromStart = input.distance(from: input.startIndex, to: numberRange.lowerBound)
+            if distanceFromStart >= 20 {
+                contextStart = input.index(numberRange.lowerBound, offsetBy: -20)
+            } else {
+                contextStart = input.startIndex
+            }
+
+            let contextEnd: String.Index
+            let distanceToEnd = input.distance(from: numberRange.upperBound, to: input.endIndex)
+            if distanceToEnd >= 20 {
+                contextEnd = input.index(numberRange.upperBound, offsetBy: 20)
+            } else {
+                contextEnd = input.endIndex
+            }
+
+            let context = String(input[contextStart..<contextEnd]).lowercased()
+            
+            // Check if context contains time keywords
+            let hasTimeContext = timeIndicators.contains { context.contains($0) } || context.contains(":")
+            let isFrequencyContext = context.contains("every") || context.contains("each")
+            let isCountdownContext = context.contains("countdown") || context.contains("before") || context.contains("prior")
+            let immediateSuffix = numberRange.upperBound < input.endIndex ? String(input[numberRange.upperBound]) : nil
+            
+            if !hasTimeContext {
+                continue
+            }
+
+            if isFrequencyContext && !(context.contains("am") || context.contains("pm") || context.contains(":") || context.contains("o'clock")) {
+                continue
+            }
+
+            if isCountdownContext {
+                continue
+            }
+
+            if let suffix = immediateSuffix, suffix == "h" { // e.g., "2h"
+                continue
+            }
+
+            if hasTimeContext {
+                // This is likely a time
+                if num >= 1 && num <= 12 {
+                    // Check for AM/PM in context
+                    var hour = num
+                    if context.contains("pm") && num != 12 {
+                        hour = num + 12
+                    } else if context.contains("am") && num == 12 {
+                        hour = 0
                     }
+                    
+                    // Try to find minutes in nearby context
+                    var minute = 0
+                    if let minuteMatch = context.range(of: #":(\d{1,2})"#, options: .regularExpression) {
+                        let minuteStr = String(context[minuteMatch])
+                        if let min = Int(minuteStr.replacingOccurrences(of: ":", with: "")) {
+                            minute = min
+                        }
+                    }
+                    
+                    return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
+                } else if num >= 0 && num <= 23 {
+                    // 24-hour format
+                    return TickerConfiguration.TimeOfDay(hour: num, minute: 0)
                 }
             }
         }
 
         return nil
     }
+    
+    // Legacy method for backward compatibility
+    private func extractTimeFromEntities(_ entities: [String: [String]]) -> TickerConfiguration.TimeOfDay? {
+        // Convert legacy format to new format
+        var parsed = ParsedEntities()
+        if let numbers = entities["Number"] {
+            for (index, number) in numbers.enumerated() {
+                // Create a dummy range for legacy support
+                let dummyRange = "dummy".startIndex..<"dummy".endIndex
+                let info = EntityInfo(text: number, position: index, range: dummyRange)
+                parsed.numbers.append(info)
+            }
+        }
+        return extractTimeFromEntitiesEnhanced(input: "", entities: parsed)
+    }
 
-    private func parseDate(from input: String, entities: [String: [String]]) -> Date {
+    private func parseDate(from input: String, entities: ParsedEntities) -> Date {
         let lowercaseInput = input.lowercased()
         let calendar = Calendar.current
         let now = Date()
@@ -355,6 +517,17 @@ public class TickerConfigurationParser {
             return calendar.date(byAdding: .month, value: 1, to: now) ?? now
         } else if lowercaseInput.contains("next year") {
             return calendar.date(byAdding: .year, value: 1, to: now) ?? now
+        }
+
+        let explicitDate = parseDateWithDateFormatter(input)
+        let repeatingKeywords = ["every", "each", "daily", "weekly", "weekdays", "biweekly", "monthly", "annually", "yearly"]
+        let hasRepeatingKeyword = repeatingKeywords.contains { lowercaseInput.contains($0) }
+
+        if hasRepeatingKeyword {
+            if let explicitDate {
+                return explicitDate
+            }
+            return now
         }
 
         // Check for specific weekdays with "next" prefix
@@ -381,8 +554,8 @@ public class TickerConfigurationParser {
         }
 
         // Use NSDateFormatter for date parsing
-        if let parsedDate = parseDateWithDateFormatter(input) {
-            return parsedDate
+        if let explicitDate {
+            return explicitDate
         }
 
         // Default to today
@@ -436,7 +609,7 @@ public class TickerConfigurationParser {
         return nil
     }
 
-    private func parseRepeatPattern(from input: String, entities: [String: [String]], defaultDate: Date) -> AITickerGenerator.RepeatOption {
+    private func parseRepeatPattern(from input: String, entities: ParsedEntities, defaultDate: Date) -> AITickerGenerator.RepeatOption {
         let lowercaseInput = input.lowercased()
 
         // Check for daily patterns with more variations
@@ -479,8 +652,17 @@ public class TickerConfigurationParser {
         // Look for patterns like "every Monday and Wednesday", "Mondays and Wednesdays"
         for (dayName, weekday) in weekdayMap {
             let patterns = [
-                "every \(dayName)", "\(dayName)s", "on \(dayName)", "\(dayName) and",
-                "and \(dayName)", "\(dayName),", ", \(dayName)"
+                "every \(dayName) and",
+                "every \(dayName),",
+                "every \(dayName) ",
+                " \(dayName)s",
+                " on \(dayName)",
+                " \(dayName) and",
+                "and \(dayName) ",
+                "\(dayName),",
+                ", \(dayName)",
+                " \(dayName) ",
+                " \(dayName)."
             ]
 
             for pattern in patterns {
@@ -490,18 +672,18 @@ public class TickerConfigurationParser {
             }
         }
 
-        if !selectedWeekdays.isEmpty {
+        if !selectedWeekdays.isEmpty && !lowercaseInput.contains("monthly") && !lowercaseInput.contains("every month") {
             return .weekdays(selectedWeekdays)
         }
 
-        // Check for hourly patterns with interval parsing
-        let hourlyInterval = parseHourlyInterval(from: lowercaseInput, fullInput: input)
+        // Enhanced: Use entities to better identify interval numbers
+        let hourlyInterval = parseHourlyInterval(from: lowercaseInput, fullInput: input, entities: entities)
         if hourlyInterval > 0 {
             return .hourly(interval: hourlyInterval)
         }
 
         // Check for "every X minutes/hours/days/weeks" patterns (more flexible than hourly)
-        if let everySchedule = parseEveryPattern(from: lowercaseInput, input: input, defaultStart: defaultDate) {
+        if let everySchedule = parseEveryPattern(from: lowercaseInput, input: input, defaultStart: defaultDate, entities: entities) {
             return everySchedule
         }
 
@@ -531,7 +713,7 @@ public class TickerConfigurationParser {
         return .oneTime
     }
 
-    private func parseCountdown(from input: String) -> TickerConfiguration.CountdownConfiguration? {
+    private func parseCountdown(from input: String, entities: ParsedEntities) -> TickerConfiguration.CountdownConfiguration? {
         let lowercaseInput = input.lowercased()
 
         // Use NSMeasurement for duration parsing
@@ -540,10 +722,70 @@ public class TickerConfigurationParser {
         }
 
         // Fallback to simple number extraction for common patterns
-        return parseCountdownWithSimpleExtraction(from: lowercaseInput)
+        if let countdown = parseCountdownWithSimpleExtraction(from: lowercaseInput) {
+            return countdown
+        }
+
+        // Enhanced: Use entities to distinguish countdown numbers from time numbers
+        return parseCountdownWithEntities(input: input, entities: entities)
+    }
+    
+    private func parseCountdownWithEntities(input: String, entities: ParsedEntities) -> TickerConfiguration.CountdownConfiguration? {
+        let countdownKeywords = ["countdown", "before", "prior", "earlier", "ahead"]
+
+        // Find numbers near countdown keywords
+        for numberInfo in entities.numbers {
+            guard let num = Int(numberInfo.text) else { continue }
+
+            // Check if this number is near a countdown keyword
+            let numberRange = numberInfo.range
+
+            // Safely calculate context bounds (30 characters before and after)
+            let distanceFromStart = input.distance(from: input.startIndex, to: numberRange.lowerBound)
+            let contextStart: String.Index
+            if distanceFromStart >= 30 {
+                contextStart = input.index(numberRange.lowerBound, offsetBy: -30)
+            } else {
+                contextStart = input.startIndex
+            }
+
+            let distanceToEnd = input.distance(from: numberRange.upperBound, to: input.endIndex)
+            let contextEnd: String.Index
+            if distanceToEnd >= 30 {
+                contextEnd = input.index(numberRange.upperBound, offsetBy: 30)
+            } else {
+                contextEnd = input.endIndex
+            }
+
+            let context = String(input[contextStart..<contextEnd]).lowercased()
+            
+            // Check if context contains countdown keywords
+            let hasCountdownContext = countdownKeywords.contains { context.contains($0) } || hasExplicitCountdownCue(in: context)
+            let containsTimeIndicator = context.contains("am") || context.contains("pm") || context.contains(":")
+            
+            if hasCountdownContext {
+                if containsTimeIndicator {
+                    continue
+                }
+
+                // Check for time units in context
+                if context.contains("hour") || context.contains("hr") {
+                    return TickerConfiguration.CountdownConfiguration(hours: num, minutes: 0, seconds: 0)
+                } else if context.contains("minute") || context.contains("min") {
+                    return TickerConfiguration.CountdownConfiguration(hours: 0, minutes: num, seconds: 0)
+                } else if context.contains("second") || context.contains("sec") {
+                    return TickerConfiguration.CountdownConfiguration(hours: 0, minutes: 0, seconds: num)
+                }
+            }
+        }
+        
+        return nil
     }
 
     private func parseCountdownWithMeasurement(_ input: String) -> TickerConfiguration.CountdownConfiguration? {
+        guard hasExplicitCountdownCue(in: input) else {
+            return nil
+        }
         // Try "X hours and Y minutes" pattern
         if let regex = try? NSRegularExpression(pattern: #"(\d+)\s*hours?\s*(?:and\s*)?(\d+)?\s*minutes?"#, options: .caseInsensitive) {
             let range = NSRange(location: 0, length: input.utf16.count)
@@ -620,6 +862,9 @@ public class TickerConfigurationParser {
     }
 
     private func parseCountdownWithSimpleExtraction(from input: String) -> TickerConfiguration.CountdownConfiguration? {
+        guard hasExplicitCountdownCue(in: input) else {
+            return nil
+        }
         // Try "in X hours" pattern
         if let regex = try? NSRegularExpression(pattern: #"in (\d+) hours?"#, options: .caseInsensitive) {
             let range = NSRange(location: 0, length: input.utf16.count)
@@ -663,17 +908,87 @@ public class TickerConfigurationParser {
         return nil
     }
 
-    private func parseActivity(from input: String, entities: [String: [String]]) -> (label: String, icon: String, colorHex: String) {
-        let activityInfo = activityMapper.mapActivity(from: input)
+    private func hasExplicitCountdownCue(in input: String) -> Bool {
+        let lowercaseInput = input.lowercased()
+        let cues = ["countdown", "before", "prior", "earlier", "ahead of", "ahead"]
+        return cues.contains { lowercaseInput.contains($0) }
+    }
+
+    private func parseActivity(from input: String, entities: ParsedEntities) -> (label: String, icon: String, colorHex: String) {
+        // Enhanced: Use named entities to improve activity labels
+        var activityInfo = activityMapper.mapActivity(from: input)
+        
+        // If we found person names or organizations, enhance the label
+        var labelParts: [String] = []
+        
+        // Add person names to the label
+        if !entities.personNames.isEmpty {
+            let personNames = entities.personNames.map { $0.text }.joined(separator: ", ")
+            labelParts.append(personNames)
+        }
+        
+        // Add organizations to the label
+        if !entities.organizations.isEmpty {
+            let orgs = entities.organizations.map { $0.text }.joined(separator: ", ")
+            labelParts.append(orgs)
+        }
+        
+        // Enhance label if we found named entities but only when the mapper result is generic
+        if !labelParts.isEmpty {
+            let baseLabel = activityInfo.label
+            let genericLabels: Set<String> = ["ticker", "reminder", "alarm"]
+            let shouldReplaceLabel = activityInfo.category == .general || genericLabels.contains(baseLabel.lowercased())
+            if shouldReplaceLabel {
+                let enrichedLabel = labelParts.joined(separator: " - ")
+                activityInfo = ActivityMapping(
+                    label: enrichedLabel.isEmpty ? baseLabel : enrichedLabel,
+                    icon: activityInfo.icon,
+                    colorHex: activityInfo.colorHex,
+                    category: activityInfo.category
+                )
+            }
+        }
+        
         return (activityInfo.label, activityInfo.icon, activityInfo.colorHex)
     }
 
     // MARK: - Advanced Repeat Pattern Parsing Helpers
 
-    private func parseHourlyInterval(from lowercaseInput: String, fullInput: String) -> Int {
+    private func parseHourlyInterval(from lowercaseInput: String, fullInput: String, entities: ParsedEntities) -> Int {
         // Check for simple "hourly" or "every hour"
         if lowercaseInput.contains("every hour") || lowercaseInput.contains("hourly") {
             return 1
+        }
+
+        // Enhanced: Use entities to find interval numbers near "hour" keywords
+        for numberInfo in entities.numbers {
+            guard let num = Int(numberInfo.text), num > 0 && num <= 12 else { continue }
+
+            let numberRange = numberInfo.range
+
+            // Safely calculate context bounds (15 characters before and after)
+            let distanceFromStart = fullInput.distance(from: fullInput.startIndex, to: numberRange.lowerBound)
+            let contextStart: String.Index
+            if distanceFromStart >= 15 {
+                contextStart = fullInput.index(numberRange.lowerBound, offsetBy: -15)
+            } else {
+                contextStart = fullInput.startIndex
+            }
+
+            let distanceToEnd = fullInput.distance(from: numberRange.upperBound, to: fullInput.endIndex)
+            let contextEnd: String.Index
+            if distanceToEnd >= 15 {
+                contextEnd = fullInput.index(numberRange.upperBound, offsetBy: 15)
+            } else {
+                contextEnd = fullInput.endIndex
+            }
+
+            let context = String(fullInput[contextStart..<contextEnd]).lowercased()
+            
+            // Check if this number is near "hour" and "every" keywords
+            if context.contains("hour") && (context.contains("every") || context.contains("each")) {
+                return num
+            }
         }
 
         // Parse specific hourly intervals like "every 2 hours", "every 3 hours"
@@ -808,7 +1123,7 @@ public class TickerConfigurationParser {
         return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
     }
 
-    private func parseEveryPattern(from lowercaseInput: String, input: String, defaultStart: Date) -> AITickerGenerator.RepeatOption? {
+    private func parseEveryPattern(from lowercaseInput: String, input: String, defaultStart: Date, entities: ParsedEntities) -> AITickerGenerator.RepeatOption? {
         // Patterns for "every X minutes/hours/days/weeks"
         let everyPatterns: [(pattern: String, unit: TickerSchedule.TimeUnit)] = [
             (#"every\s+(\d+)\s*minutes?"#, .minutes),
@@ -843,6 +1158,73 @@ public class TickerConfigurationParser {
             }
         }
 
+        // Fallback to entity-assisted parsing when regex fails
+        return parseEveryPatternWithEntities(input: input, entities: entities)
+    }
+    
+    private func parseEveryPatternWithEntities(input: String, entities: ParsedEntities) -> AITickerGenerator.RepeatOption? {
+        let lowercaseInput = input.lowercased()
+        let unitKeywords: [(keywords: [String], unit: TickerSchedule.TimeUnit)] = [
+            (["minute", "min"], .minutes),
+            (["hour", "hr"], .hours),
+            (["day"], .days),
+            (["week"], .weeks)
+        ]
+
+        // Find numbers near "every" and unit keywords
+        for numberInfo in entities.numbers {
+            guard let num = Int(numberInfo.text), num > 0 else { continue }
+
+            let numberRange = numberInfo.range
+
+            // Safely calculate context bounds (20 characters before and after)
+            let distanceFromStart = input.distance(from: input.startIndex, to: numberRange.lowerBound)
+            let contextStart: String.Index
+            if distanceFromStart >= 20 {
+                contextStart = input.index(numberRange.lowerBound, offsetBy: -20)
+            } else {
+                contextStart = input.startIndex
+            }
+
+            let distanceToEnd = input.distance(from: numberRange.upperBound, to: input.endIndex)
+            let contextEnd: String.Index
+            if distanceToEnd >= 20 {
+                contextEnd = input.index(numberRange.upperBound, offsetBy: 20)
+            } else {
+                contextEnd = input.endIndex
+            }
+
+            let context = String(input[contextStart..<contextEnd]).lowercased()
+            let prefix = String(input[contextStart..<numberRange.lowerBound]).lowercased()
+            let suffixStart = numberRange.upperBound
+            let suffixEnd = input.index(suffixStart, offsetBy: 12, limitedBy: contextEnd) ?? contextEnd
+            let immediateSuffix = String(input[suffixStart..<suffixEnd]).lowercased()
+            
+            // Check if context contains "every" or "each"
+            guard prefix.contains("every") || prefix.contains("each") else { continue }
+
+            if context.contains("am") || context.contains("pm") {
+                continue
+            }
+            
+            // Check for unit keywords
+            for (keywords, unit) in unitKeywords {
+                if keywords.contains(where: { immediateSuffix.contains($0) }) {
+                    // Validate interval based on unit
+                    let isValid = switch unit {
+                    case .minutes: num <= 60
+                    case .hours: num <= 24
+                    case .days: num <= 30
+                    case .weeks: num <= 52
+                    }
+                    
+                    if isValid {
+                        return .every(interval: num, unit: unit)
+                    }
+                }
+            }
+        }
+        
         return nil
     }
 

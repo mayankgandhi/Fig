@@ -363,8 +363,12 @@ struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
             components.day = day
             components.hour = time.hour
             components.minute = time.minute
+            components.second = 0  // Explicitly set seconds to 0 for consistent date comparison
 
             if let alarmDate = calendar.date(from: components) {
+                // Check if the alarm date falls within the window
+                // Note: alarmDate >= window.start ensures we only include dates on or after the window start
+                // alarmDate <= window.end ensures we only include dates on or before the window end
                 if alarmDate >= window.start && alarmDate <= window.end {
                     dates.append(alarmDate)
                 }

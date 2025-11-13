@@ -79,11 +79,20 @@ struct AITickerConfigurationResponse: Equatable {
     @Guide(description: "Day of month (1-31). If not specified in the user's request, use today's day.")
     let day: Int?
 
-    @Guide(.anyOf(["oneTime", "daily", "weekdays", "specificDays"]))
+    @Guide(.anyOf(["oneTime", "daily", "weekdays", "specificDays", "hourly", "every", "biweekly", "monthly", "yearly"]))
     let repeatPattern: String
 
-    @Guide(description: "For specificDays pattern only: comma-separated weekday names (e.g., 'Monday,Wednesday,Friday'). Leave empty or omit for other patterns.")
+    @Guide(description: "For specificDays or biweekly pattern only: comma-separated weekday names (e.g., 'Monday,Wednesday,Friday'). Leave empty or omit for other patterns.")
     let repeatDays: String?
+
+    @Guide(description: "For hourly or every pattern: interval number (e.g., 2 for 'every 2 hours', 15 for 'every 15 minutes'). Omit for other patterns.")
+    let repeatInterval: Int?
+
+    @Guide(description: "For every pattern only: time unit - one of 'Minutes', 'Hours', 'Days', 'Weeks'. Omit for other patterns.")
+    let repeatUnit: String?
+
+    @Guide(description: "For monthly pattern only: day specification - either a number (1-31) for fixed day, 'firstOfMonth', 'lastOfMonth', or 'firstMonday', 'lastFriday' etc. for weekday patterns. Omit for other patterns.")
+    let monthlyDay: String?
 
     @Guide(description: "Number of hours for countdown before alarm (0-23). Omit or use 0 if no countdown mentioned.")
     let countdownHours: Int?

@@ -15,7 +15,6 @@ import SwiftUI
 import SwiftData
 import WidgetKit
 import AlarmKit
-import TickerCore
 
 // MARK: - AlarmSynchronizationService Protocol
 
@@ -175,6 +174,13 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
                 }
             }
 
+            // Preserve disabled tickers - they should remain in SwiftData even without active alarms
+            // (their alarms are cancelled separately, but the ticker entity persists)
+            if !ticker.isEnabled {
+                print("✅ Ticker '\(ticker.displayName)' is disabled - preserving (alarm cancellation handled separately)")
+                continue
+            }
+
             // If no alarms found in AlarmManager, check if this ticker has upcoming alarms
             // or should be regenerated rather than deleted
             if !hasActiveAlarm {
@@ -184,9 +190,10 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
                     let expander = TickerScheduleExpander()
                     // Check for alarms in the next year (to catch annual alarms)
                     let oneYear: TimeInterval = 365 * 24 * 3600
+                    let now = Date()
                     let upcomingDates = expander.expandSchedule(
                         schedule,
-                        withinCustomWindow: Date(),
+                        withinCustomWindow: now,
                         duration: oneYear,
                         maxAlarms: 1
                     )
@@ -198,6 +205,31 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
                         formatter.dateStyle = .medium
                         formatter.timeStyle = .short
                         print("📅 Ticker '\(ticker.displayName)' has next alarm at \(formatter.string(from: nextAlarm)) - keeping")
+                    } else {
+                        // Debug logging for schedules that have no upcoming alarms
+                        let formatter = DateFormatter()
+                        formatter.dateStyle = .medium
+                        formatter.timeStyle = .short
+                        let windowEnd = now.addingTimeInterval(oneYear)
+                        
+                        if case .oneTime(let date) = schedule {
+                            print("⚠️ One-time ticker '\(ticker.displayName)' date \(formatter.string(from: date)) not in window (now: \(formatter.string(from: now)) to \(formatter.string(from: windowEnd)))")
+                        } else if case .yearly(let month, let day, let time) = schedule {
+                            print("⚠️ Yearly ticker '\(ticker.displayName)' (month: \(month), day: \(day), time: \(time.hour):\(String(format: "%02d", time.minute))) has no upcoming alarms in window")
+                            print("   → Window: \(formatter.string(from: now)) to \(formatter.string(from: windowEnd))")
+                            print("   → ExpandSchedule returned \(upcomingDates.count) dates")
+                            // Log what expandSchedule actually found
+                            let allDates = expander.expandSchedule(
+                                schedule,
+                                withinCustomWindow: now,
+                                duration: oneYear,
+                                maxAlarms: nil
+                            )
+                            print("   → ExpandSchedule (no max limit) found \(allDates.count) dates:")
+                            for date in allDates {
+                                print("      - \(formatter.string(from: date))")
+                            }
+                        }
                     }
                 }
 
@@ -224,38 +256,16 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
             print("🗑️ Deleting \(tickersToDelete.count) orphaned Ticker(s)...")
 
             for ticker in tickersToDelete {
-                // Remove from state manager
-                stateManager.removeState(id: ticker.id)
-                print("   → Removed '\(ticker.displayName)' from state manager")
-
                 // Remove from SwiftData
                 context.delete(ticker)
                 print("   → Deleted '\(ticker.displayName)' from SwiftData")
+
                 tickersDeleted += 1
             }
         }
 
         // FINALIZE
         print("💾 Finalizing synchronization...")
-
-        // Collect unique tickers from valid alarms (deduplicate by ticker ID)
-        var uniqueTickers: [UUID: Ticker] = [:]
-        for alarm in alarmsToKeep {
-            let ticker = alarmKitIDsToTicker[alarm.id] ?? allTickers.first { $0.id == alarm.id }
-            if let ticker = ticker {
-                uniqueTickers[ticker.id] = ticker
-            }
-        }
-
-        // Update state manager with unique Tickers only (once per ticker)
-        for (_, ticker) in uniqueTickers {
-            await stateManager.updateState(ticker: ticker)
-            print("✅ Updated state for Ticker: \(ticker.displayName) (with \(ticker.generatedAlarmKitIDs.count) generated alarms)")
-            print("   → Has schedule: \(ticker.schedule != nil)")
-            if let schedule = ticker.schedule {
-                print("   → Schedule type: \(schedule)")
-            }
-        }
 
         // Save SwiftData changes
         do {
@@ -273,11 +283,14 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         print("🔄 Widgets refreshed")
 
         // Log summary
+        let tickersToKeep = allTickers.filter { ticker in
+            !tickersToDelete.contains { $0.id == ticker.id }
+        }
         print("✨ Synchronization complete:")
         print("   → Kept \(alarmsToKeep.count) valid alarms")
         print("   → Cancelled \(alarmsCancelled) invalid alarms")
         print("   → Deleted \(tickersDeleted) orphaned Tickers")
-        print("   → Updated state manager with \(uniqueTickers.count) unique Tickers")
+        print("   → Remaining Tickers in SwiftData: \(tickersToKeep.count)")
     }
     
     // MARK: - Helper Methods

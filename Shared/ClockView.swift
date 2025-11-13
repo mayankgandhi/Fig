@@ -143,7 +143,7 @@ struct ClockFaceView: View {
                 ForEach(Array(upcomingAlarms.enumerated()), id: \.element.id) { index, event in
                     VStack(spacing: .zero) {
                         
-                        HStack(spacing: 2) {
+                        HStack(spacing: 3) {
                             Image(systemName: event.icon)
                                 .font(
                                     .system(
@@ -153,6 +153,7 @@ struct ClockFaceView: View {
                                     )
                                 )
                                 .foregroundStyle(.white)
+                                .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
                             
                             if showAlarmLabels {
                                 VStack(spacing: 1) {
@@ -167,6 +168,7 @@ struct ClockFaceView: View {
                                         .truncationMode(.tail)
                                         .lineLimit(1)
                                         .foregroundStyle(.white)
+                                        .shadow(color: Color.black.opacity(0.3), radius: 2, x: 0, y: 1)
                                 }
                                 .padding(.horizontal, 4)
                             }
@@ -180,8 +182,8 @@ struct ClockFaceView: View {
                                 .fill(
                                     LinearGradient(
                                         colors: [
-                                            event.color.opacity(0.9),
-                                            event.color.opacity(0.7)
+                                            event.color.opacity(0.95),
+                                            event.color.opacity(0.85)
                                         ],
                                         startPoint: .topLeading,
                                         endPoint: .bottomTrailing
@@ -191,7 +193,7 @@ struct ClockFaceView: View {
                                     width: showAlarmLabels ? handLength * 0.125 : handLength * 0.10,
                                     height: handLength
                                 )
-                                .shadow(color: event.color.opacity(0.3), radius: 4, x: 0, y: 2)
+                                .shadow(color: event.color.opacity(0.4), radius: 6, x: 0, y: 3)
                         }
                         
                     }

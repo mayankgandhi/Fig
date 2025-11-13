@@ -3,6 +3,7 @@
 //  fig
 //
 //  AI-powered ticker generation using Apple Intelligence Foundation Models
+//  Pure service - all state management handled by calling code
 //
 
 import Foundation
@@ -12,61 +13,16 @@ import SwiftUI
 
 // MARK: - AI Ticker Generator
 
-#if DEBUG
-// MARK: - Debug Event Model (Debug builds only)
-
-public struct AIDebugEvent: Identifiable, Equatable {
-    public let id = UUID()
-    public let timestamp: Date
-    public let type: EventType
-    public let message: String
-    public let metadata: [String: String]
-    
-    public enum EventType: String {
-        case info = "ℹ️"
-        case success = "✅"
-        case warning = "⚠️"
-        case error = "❌"
-        case timing = "⏱️"
-        case parsing = "🔍"
-        case streaming = "🔄"
-    }
-    
-    public var formattedTime: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm:ss.SSS"
-        return formatter.string(from: timestamp)
-    }
-}
-#endif
-
 @MainActor
-public class AITickerGenerator: ObservableObject {
-    @Published public  var isGenerating = false
-    @Published public  var errorMessage: String?
-    @Published public  var parsedConfiguration: TickerConfiguration?
-    @Published public var isFoundationModelsAvailable = false
-    @Published public  var isParsing = false
-    
-#if DEBUG
-    // Debug events for testing (only in Debug/Development builds)
-    @Published public var debugEvents: [AIDebugEvent] = []
-    public var isDebugMode = false
-#endif
-    
+public final class AITickerGenerator {
+
     private let configurationParser = TickerConfigurationParser()
-    private var parsingTask: Task<Void, Never>?
-    private var languageModelSession: LanguageModelSession?
-    private var lastStreamUpdate: Date = .distantPast
-    private let streamThrottleInterval: TimeInterval = 0.1 // Throttle UI updates to 100ms
-    
-    // Performance tracking
-    private var generationStartTime: Date?
-    private var sessionPrewarmed = false
-    
+    private let foundationModelsParser = FoundationModelsParser()
+    private let sessionManager = AISessionManager.shared
+
     // Token limit for context window (on-device model has 4096 token limit)
     private let maxInputTokens = 1000 // Conservative estimate leaving room for schema and response
-    
+
     public enum RepeatOption: Equatable {
         case oneTime
         case daily
@@ -77,240 +33,117 @@ public class AITickerGenerator: ObservableObject {
         case monthly(day: TickerSchedule.MonthlyDay)
         case yearly(month: Int, day: Int)
     }
-    
-    public init() {
-        // Don't initialize session in init - do it when view appears for better lifecycle management
-    }
-    
-    // MARK: - Debug Logging
-    
-#if DEBUG
-    private func logDebug(_ type: AIDebugEvent.EventType, _ message: String, metadata: [String: String] = [:]) {
-        guard isDebugMode else { return }
-        let event = AIDebugEvent(timestamp: Date(), type: type, message: message, metadata: metadata)
-        debugEvents.append(event)
-        // Keep only last 100 events to avoid memory issues
-        if debugEvents.count > 100 {
-            debugEvents.removeFirst(debugEvents.count - 100)
+
+    public init() {}
+
+    // MARK: - Pure Async Functions
+
+    /// Parses user input into a TickerConfiguration
+    /// Returns nil if input is too short or cannot be parsed
+    public func parseConfiguration(from input: String) async throws -> TickerConfiguration? {
+        // Don't parse empty or very short inputs
+        let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedInput.count > 3 else {
+            return nil
         }
-    }
-    
-    public func clearDebugEvents() {
-        debugEvents.removeAll()
-    }
-#endif
-    
-    // MARK: - Session Lifecycle
-    
-    /// Call this when the view appears to initialize and prewarm the session
-    public func prepareSession() async {
-        guard languageModelSession == nil else { return }
-#if DEBUG
-        logDebug(.info, "Preparing session...")
-#endif
-        await checkAvailabilityAndInitialize()
-    }
-    
-    // MARK: - Siri Integration
-    
-    /// Process Siri voice input for ticker creation
-    /// This method is specifically designed for Siri intents and handles voice-specific input patterns
-    func processSiriInput(_ input: String) async throws -> TickerConfiguration {
-#if DEBUG
-        logDebug(.info, "Processing Siri input: \(input)")
-#endif
-        
-        // Preprocess Siri input to handle common voice patterns
-        let processedInput = preprocessSiriInput(input)
-        
-        // Use the existing generation method with processed input
-        return try await generateTickerConfiguration(from: processedInput)
-    }
-    
-    /// Preprocess Siri input to handle voice-specific patterns and improve parsing
-    private func preprocessSiriInput(_ input: String) -> String {
-        var processed = input
-        
-        // Handle common Siri voice patterns
-        let voicePatterns = [
-            // Time patterns
-            ("eight a m", "8am"),
-            ("eight thirty a m", "8:30am"),
-            ("seven o'clock", "7:00"),
-            ("seven thirty", "7:30"),
-            ("nine a m", "9am"),
-            ("ten a m", "10am"),
-            
-            // Day patterns
-            ("tomorrow morning", "tomorrow at 8am"),
-            ("this morning", "today at 8am"),
-            ("next week", "next week"),
-            ("every day", "daily"),
-            ("weekdays", "weekdays"),
-            ("weekends", "weekends"),
-            
-            // Common phrases
-            ("wake up", "wake up alarm"),
-            ("bedtime", "bedtime alarm"),
-            ("morning alarm", "morning wake up alarm"),
-            ("exercise", "exercise reminder"),
-            ("medication", "medication reminder"),
-            
-            // Sound patterns
-            ("gentle", "gentle sound"),
-            ("nature sounds", "nature sound"),
-            ("chimes", "chimes sound"),
-            ("bells", "bells sound"),
-            ("ocean", "ocean sound"),
-            ("rain", "rain sound"),
-            ("birds", "birds sound"),
-            
-            // Remove filler words that Siri often adds
-            ("please", ""),
-            ("can you", ""),
-            ("would you", ""),
-            ("hey siri", ""),
-            ("siri", "")
-        ]
-        
-        for (pattern, replacement) in voicePatterns {
-            processed = processed.replacingOccurrences(of: pattern, with: replacement, options: .caseInsensitive)
-        }
-        
-        // Clean up extra spaces
-        processed = processed.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression)
-        processed = processed.trimmingCharacters(in: .whitespacesAndNewlines)
-        
-#if DEBUG
-        logDebug(.parsing, "Preprocessed Siri input: \(processed)")
-#endif
-        
-        return processed
-    }
-    
-    /// Call this when view disappears or is done
-    public func cleanupSession() {
-        parsingTask?.cancel()
-        // Note: LanguageModelSession doesn't require explicit cleanup
-        // but we can nil it out to free memory
-        languageModelSession = nil
-        sessionPrewarmed = false
-#if DEBUG
-        logDebug(.info, "Session cleaned up")
-#endif
-    }
-    
-    private func checkAvailabilityAndInitialize() async {
-        let model = SystemLanguageModel.default
-        
-        switch model.availability {
-            case .available:
-                isFoundationModelsAvailable = true
-#if DEBUG
-                logDebug(.success, "Foundation Models available")
-#endif
-                
-                // Create session with custom instructions for ticker parsing
-                // Including a full example helps reduce token usage by allowing includeSchemaInPrompt: false
-                languageModelSession = LanguageModelSession(
-                    model: model,
-                    instructions: {
-                    """
-                    You are an intelligent assistant that helps users create alarm reminders (called "Tickers") from natural language descriptions.
-                    
-                    Your task is to extract structured information from user input including:
-                    - Activity label (what they want to be reminded about) - REQUIRED
-                    - Time (when the reminder should trigger in 24-hour format) - REQUIRED
-                    - Date (which day - optional, omit if not specified by user)
-                    - Repeat pattern: "oneTime", "daily", "weekdays", or "specificDays" - REQUIRED
-                    - For specificDays: provide weekday names like "Monday,Wednesday,Friday" - OPTIONAL, only for specificDays pattern
-                    - Countdown duration if they mention it (in hours and minutes) - OPTIONAL
-                    - Appropriate SF Symbol icon that matches the activity - REQUIRED
-                    - Hex color code that fits the activity theme (without # prefix) - REQUIRED
-                    
-                    Be intelligent about inferring context:
-                    - "Wake up at 7am every weekday" → weekdays pattern, no date needed
-                    - "Gym on Monday Wednesday Friday" → specificDays with "Monday,Wednesday,Friday"
-                    - "Take medicine at 9am and 9pm daily" → daily pattern
-                    - "Meeting next Tuesday at 2:30pm" → oneTime, include specific date
-                    
-                    Choose icons wisely:
-                    - Wake up → "sunrise.fill"
-                    - Medication → "pills.fill"
-                    - Exercise/Gym → "dumbbell.fill"
-                    - Meetings → "person.2.fill"
-                    - Food/Meals → "fork.knife"
-                    - Sleep → "moon.stars.fill"
-                    - Study → "book.fill"
-                    - Water → "drop.fill"
-                    
-                    Choose colors that match the activity mood and time of day:
-                    - Morning activities → warm colors (FDB813, FF9F1C)
-                    - Evening → cool colors (4A5899, 2D3561)
-                    - Health → greens/blues (4ECDC4, 52B788)
-                    - Important → reds/oranges (FF6B6B, E63946)
-                    
-                    Example input: "Wake up at 7am every weekday"
-                    Example output: {
-                        "label": "Wake Up",
-                        "hour": 7,
-                        "minute": 0,
-                        "repeatPattern": "weekdays",
-                        "icon": "sunrise.fill",
-                        "colorHex": "FF9F1C"
-                    }
-                    
-                    Example input: "Take medication at 9am and 9pm daily with 1 hour countdown"
-                    Example output: {
-                        "label": "Take Medication",
-                        "hour": 9,
-                        "minute": 0,
-                        "repeatPattern": "daily",
-                        "countdownHours": 1,
-                        "countdownMinutes": 0,
-                        "icon": "pills.fill",
-                        "colorHex": "4ECDC4"
-                    }
-                    """
-                    }
-                )
-                
-                // Prewarm the session with the instruction prefix for better first-response performance
-                // This loads the model ahead of time instead of when first request is made
-                if !sessionPrewarmed {
-#if DEBUG
-                    logDebug(.info, "Prewarming session...")
-#endif
-                    let prewarmPrefix = "Parse this ticker request and extract all relevant information:"
-                    try? await languageModelSession?.prewarm(promptPrefix: Prompt(prewarmPrefix))
-                    sessionPrewarmed = true
-#if DEBUG
-                    logDebug(.success, "Session prewarmed successfully")
-#endif
-                    print("✅ AITickerGenerator: Session prewarmed successfully")
+
+        // Validate and truncate input if needed to stay within context window
+        let validatedInput = truncateIfNeeded(trimmedInput)
+        let tokenCount = estimateTokenCount(for: validatedInput)
+
+        print("🔍 AITickerGenerator: Starting parse for input (est. \(tokenCount) tokens)")
+
+        // Try Foundation Models first, fallback to regex parsing
+        if sessionManager.isFoundationModelsAvailable, let session = sessionManager.getSession() {
+            print("🔍 AITickerGenerator: Using Foundation Models")
+            do {
+                let response = try await foundationModelsParser.parse(input: validatedInput, session: session)
+                let configuration = convertToTickerConfiguration(response)
+                print("🔍 AITickerGenerator: Foundation Models parsing complete - config: \(configuration.label)")
+                return configuration
+            } catch {
+                print("❌ AITickerGenerator: Foundation Models error - \(error)")
+                // Fallback to regex parsing on error
+                if let configuration = try? await configurationParser.parseConfiguration(from: validatedInput) {
+                    print("✅ AITickerGenerator: Fallback regex parsing succeeded")
+                    return configuration
+                } else {
+                    print("❌ AITickerGenerator: Regex parsing also failed")
+                    return nil
                 }
-                
-            case .unavailable(let reason):
-                isFoundationModelsAvailable = false
-#if DEBUG
-                logDebug(.warning, "Foundation Models unavailable", metadata: ["reason": "reason"])
-#endif
-                print("⚠️ AITickerGenerator: Foundation Models unavailable - \(reason)")
+            }
+        } else {
+            // Fallback to regex-based parsing with validated input
+            print("🔍 AITickerGenerator: Using regex parsing fallback")
+            do {
+                let configuration = try await configurationParser.parseConfiguration(from: validatedInput)
+                print("🔍 AITickerGenerator: Regex parsing complete - config: \(configuration.label)")
+                return configuration
+            } catch {
+                print("🔍 AITickerGenerator: Regex parsing failed: \(error)")
+                return nil
+            }
         }
     }
-    
+
+    /// Generates a complete TickerConfiguration from user input
+    /// Throws AITickerGenerationError if parsing fails
+    public func generateConfiguration(from input: String) async throws -> TickerConfiguration {
+        let startTime = Date()
+        defer {
+            let duration = Date().timeIntervalSince(startTime)
+            print("⏱️ AITickerGenerator: Total generation time: \(String(format: "%.2f", duration))s")
+        }
+
+        // Validate and truncate input to stay within context window
+        let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedInput.isEmpty else {
+            throw AITickerGenerationError.invalidInput
+        }
+
+        let validatedInput = truncateIfNeeded(trimmedInput)
+
+        // Try Foundation Models first, fallback to regex parsing
+        let configuration: TickerConfiguration
+
+        if sessionManager.isFoundationModelsAvailable, let session = sessionManager.getSession() {
+            print("🤖 AITickerGenerator: Generating with Foundation Models")
+            configuration = try await parseWithFoundationModels(input: validatedInput, session: session)
+        } else {
+            print("🔧 AITickerGenerator: Generating with regex fallback")
+            // Fallback to regex-based parsing
+            configuration = try await configurationParser.parseConfiguration(from: validatedInput)
+        }
+
+        // Additional validation
+        if configuration.label.isEmpty {
+            throw AITickerGenerationError.parsingFailed
+        }
+
+        // Log final configuration with all values
+        print("✅ AITickerGenerator: Configuration generated - \(configuration.label)")
+        return configuration
+    }
+
+    // MARK: - Private Helper Functions
+
+    private func parseWithFoundationModels(input: String, session: LanguageModelSession) async throws -> TickerConfiguration {
+        let response = try await foundationModelsParser.parse(input: input, session: session)
+        return convertToTickerConfiguration(response)
+    }
+
     // Convert AI response to TickerConfiguration
     private func convertToTickerConfiguration(_ response: AITickerConfigurationResponse) -> TickerConfiguration {
         let calendar = Calendar.current
         let now = Date()
-        
+
         // Use provided date components or default to today
         var dateComponents = DateComponents()
         dateComponents.year = response.year ?? calendar.component(.year, from: now)
         dateComponents.month = response.month ?? calendar.component(.month, from: now)
         dateComponents.day = response.day ?? calendar.component(.day, from: now)
         let date = calendar.date(from: dateComponents) ?? now
-        
+
         // Parse repeat pattern
         let repeatOption: AITickerGenerator.RepeatOption
         switch response.repeatPattern {
@@ -321,27 +154,45 @@ public class AITickerGenerator: ObservableObject {
             case "specificDays":
                 // Only parse repeatDays if provided
                 if let repeatDaysString = response.repeatDays, !repeatDaysString.isEmpty {
-                    let weekdayNames = repeatDaysString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-                    let weekdays = weekdayNames.compactMap { name -> TickerSchedule.Weekday? in
-                        switch name.lowercased() {
-                            case "monday": return .monday
-                            case "tuesday": return .tuesday
-                            case "wednesday": return .wednesday
-                            case "thursday": return .thursday
-                            case "friday": return .friday
-                            case "saturday": return .saturday
-                            case "sunday": return .sunday
-                            default: return nil
-                        }
-                    }
+                    let weekdays = parseWeekdays(from: repeatDaysString)
                     repeatOption = weekdays.isEmpty ? .oneTime : .weekdays(weekdays)
                 } else {
                     repeatOption = .oneTime
                 }
+            case "hourly":
+                let interval = response.repeatInterval ?? 1
+                repeatOption = .hourly(interval: interval)
+            case "every":
+                let interval = response.repeatInterval ?? 1
+                let unitString = response.repeatUnit ?? "Hours"
+                let unit: TickerSchedule.TimeUnit
+                switch unitString.lowercased() {
+                    case "minutes", "minute": unit = .minutes
+                    case "hours", "hour": unit = .hours
+                    case "days", "day": unit = .days
+                    case "weeks", "week": unit = .weeks
+                    default: unit = .hours
+                }
+                repeatOption = .every(interval: interval, unit: unit)
+            case "biweekly":
+                if let repeatDaysString = response.repeatDays, !repeatDaysString.isEmpty {
+                    let weekdays = parseWeekdays(from: repeatDaysString)
+                    repeatOption = weekdays.isEmpty ? .oneTime : .biweekly(weekdays)
+                } else {
+                    // Default to weekdays if no days specified
+                    repeatOption = .biweekly([.monday, .tuesday, .wednesday, .thursday, .friday])
+                }
+            case "monthly":
+                let monthlyDay = parseMonthlyDay(from: response.monthlyDay)
+                repeatOption = .monthly(day: monthlyDay)
+            case "yearly":
+                let month = response.month ?? calendar.component(.month, from: now)
+                let day = response.day ?? calendar.component(.day, from: now)
+                repeatOption = .yearly(month: month, day: day)
             default:
                 repeatOption = .oneTime
         }
-        
+
         // Parse countdown - use provided values or default to 0
         let countdownHours = response.countdownHours ?? 0
         let countdownMinutes = response.countdownMinutes ?? 0
@@ -355,7 +206,7 @@ public class AITickerGenerator: ObservableObject {
         } else {
             countdown = nil
         }
-        
+
         return TickerConfiguration(
             label: response.label,
             time: TickerConfiguration.TimeOfDay(hour: response.hour, minute: response.minute),
@@ -366,390 +217,95 @@ public class AITickerGenerator: ObservableObject {
             colorHex: response.colorHex
         )
     }
-    
+
+    private func parseWeekdays(from repeatDaysString: String) -> [TickerSchedule.Weekday] {
+        let weekdayNames = repeatDaysString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        return weekdayNames.compactMap { name -> TickerSchedule.Weekday? in
+            switch name.lowercased() {
+                case "monday", "mon": return .monday
+                case "tuesday", "tue", "tues": return .tuesday
+                case "wednesday", "wed": return .wednesday
+                case "thursday", "thu", "thur", "thurs": return .thursday
+                case "friday", "fri": return .friday
+                case "saturday", "sat": return .saturday
+                case "sunday", "sun": return .sunday
+                default: return nil
+            }
+        }
+    }
+
+    private func parseMonthlyDay(from monthlyDayString: String?) -> TickerSchedule.MonthlyDay {
+        guard let monthlyDayString = monthlyDayString, !monthlyDayString.isEmpty else {
+            // Default to first of month if not specified
+            return .firstOfMonth
+        }
+
+        let lowercased = monthlyDayString.lowercased()
+
+        // Check for special cases
+        if lowercased == "firstofmonth" || lowercased == "first of month" || lowercased == "firstday" {
+            return .firstOfMonth
+        }
+
+        if lowercased == "lastofmonth" || lowercased == "last of month" || lowercased == "lastday" {
+            return .lastOfMonth
+        }
+
+        // Check for first weekday patterns (e.g., "firstMonday", "first Monday")
+        let weekdayMap: [String: TickerSchedule.Weekday] = [
+            "monday": .monday, "mon": .monday,
+            "tuesday": .tuesday, "tue": .tuesday, "tues": .tuesday,
+            "wednesday": .wednesday, "wed": .wednesday,
+            "thursday": .thursday, "thu": .thursday, "thur": .thursday, "thurs": .thursday,
+            "friday": .friday, "fri": .friday,
+            "saturday": .saturday, "sat": .saturday,
+            "sunday": .sunday, "sun": .sunday
+        ]
+
+        for (dayName, weekday) in weekdayMap {
+            if lowercased.contains("first\(dayName)") || lowercased.contains("first \(dayName)") {
+                return .firstWeekday(weekday)
+            }
+            if lowercased.contains("last\(dayName)") || lowercased.contains("last \(dayName)") {
+                return .lastWeekday(weekday)
+            }
+        }
+
+        // Try to parse as fixed day number (1-31)
+        if let dayNumber = Int(monthlyDayString.trimmingCharacters(in: .whitespaces)) {
+            if dayNumber >= 1 && dayNumber <= 31 {
+                return .fixed(dayNumber)
+            }
+        }
+
+        // Default to first of month if parsing fails
+        return .firstOfMonth
+    }
+
     /// Estimates token count for input (rough approximation: ~4 characters per token)
     private func estimateTokenCount(for text: String) -> Int {
         return text.count / 4
     }
-    
+
     /// Truncates input if it exceeds token limits while preserving meaning
     private func truncateIfNeeded(_ input: String) -> String {
         let estimatedTokens = estimateTokenCount(for: input)
         guard estimatedTokens > maxInputTokens else { return input }
-        
+
         // Truncate to approximate character limit
         let maxChars = maxInputTokens * 4
         let truncated = String(input.prefix(maxChars))
         print("⚠️ AITickerGenerator: Input truncated from \(input.count) to \(truncated.count) chars (est. \(estimatedTokens) → \(estimateTokenCount(for: truncated)) tokens)")
         return truncated
     }
-    
-    public func parseInBackground(from input: String) {
-        // Cancel any existing parsing task
-        parsingTask?.cancel()
-        
-        // Clear previous results
-        parsedConfiguration = nil
-        
-        // Don't parse empty or very short inputs
-        let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmedInput.count > 3 else {
-            isParsing = false
-            return
-        }
-        
-        // Validate and truncate input if needed to stay within context window
-        let validatedInput = truncateIfNeeded(trimmedInput)
-        
-        // Set parsing state
-        isParsing = true
-        let tokenCount = estimateTokenCount(for: validatedInput)
-#if DEBUG
-        logDebug(.parsing, "Starting parse", metadata: [
-            "input": "\"\(validatedInput)\"",
-            "length": "\(validatedInput.count) chars",
-            "tokens": "~\(tokenCount)"
-        ])
-#endif
-        print("🔍 AITickerGenerator: Starting parse for input (est. \(tokenCount) tokens)")
-        
-        parsingTask = Task.detached(priority: .userInitiated) {
-            do {
-                // Add a small delay to debounce rapid typing
-                try await Task.sleep(for: .milliseconds(500))
-                
-                // Check if task was cancelled
-                guard !Task.isCancelled else {
-                    await MainActor.run {
-                        self.isParsing = false
-                    }
-                    return
-                }
-                
-                // Try Foundation Models first, fallback to regex parsing
-                await MainActor.run {
-                    print("🔍 AITickerGenerator: isFoundationModelsAvailable = \(self.isFoundationModelsAvailable)")
-                    if self.isFoundationModelsAvailable, let session = self.languageModelSession {
-                        // Use streaming for real-time feedback with validated input
-                        print("🔍 AITickerGenerator: Using Foundation Models streaming")
-                        Task {
-                            await self.parseWithFoundationModelsStreaming(input: validatedInput, session: session)
-                            await MainActor.run {
-                                self.isParsing = false
-                                print("🔍 AITickerGenerator: Foundation Models parsing complete")
-                            }
-                        }
-                    } else {
-                        // Fallback to regex-based parsing with validated input
-                        print("🔍 AITickerGenerator: Using regex parsing fallback")
-                        Task.detached(priority: .userInitiated) {
-                            do {
-                                let configuration = try await self.configurationParser.parseConfiguration(from: validatedInput)
-                                await MainActor.run {
-                                    self.parsedConfiguration = configuration
-                                    self.isParsing = false
-                                    print("🔍 AITickerGenerator: Regex parsing complete - config: \(configuration.label)")
-                                }
-                            } catch {
-                                await MainActor.run {
-                                    self.parsedConfiguration = nil
-                                    self.isParsing = false
-                                    print("🔍 AITickerGenerator: Regex parsing failed: \(error)")
-                                }
-                            }
-                        }
-                    }
-                }
-            } catch {
-                // Silently fail for background parsing - don't show errors to user
-                await MainActor.run {
-                    self.parsedConfiguration = nil
-                    self.isParsing = false
-                }
-            }
-        }
-    }
-    
-    /// Parses user input using Foundation Models with streaming for real-time UI updates
-    /// - Parameters:
-    ///   - input: The natural language input to parse
-    ///   - session: The active LanguageModelSession
-    /// - Note: Updates UI progressively as fields become available during streaming
-    ///         Uses throttling (100ms) to prevent excessive updates and maintain performance
-    private func parseWithFoundationModelsStreaming(input: String, session: LanguageModelSession) async {
-        guard !session.isResponding else { return }
-        
-        // Start performance tracking
-        let streamStartTime = Date()
-        
-        do {
-            let options = GenerationOptions(
-                sampling: .greedy, // Deterministic output
-                temperature: 0.3,  // Low temperature for consistent parsing
-                maximumResponseTokens: 500
-            )
-            
-            // Note: includeSchemaInPrompt is false because we provided examples in instructions
-            // This saves tokens and reduces latency on each request
-            let stream = try await session.streamResponse(
-                to: Prompt("""
-                    Parse this ticker request and extract all relevant information:
-                    "\(input)"
-                    
-                    Provide a complete ticker configuration with label, time, repeat pattern, icon, and color.
-                    ONLY include date (year/month/day) if explicitly mentioned.
-                    ONLY include countdown if explicitly mentioned.
-                    ONLY include repeatDays if using specificDays pattern.
-                    """),
-                generating: AITickerConfigurationResponse.self,
-                includeSchemaInPrompt: false, // Schema already in examples, saves ~200 tokens per request
-                options: options
-            )
-            
-            var updateCount = 0
-            for try await snapshot in stream {
-                // Access the partial content from the snapshot
-                let partial = snapshot.content
-                
-                // Throttle UI updates to avoid overwhelming the main thread
-                // Only update if enough time has passed since last update
-                let now = Date()
-                let timeSinceLastUpdate = now.timeIntervalSince(lastStreamUpdate)
-                
-                // PROGRESSIVE UPDATES: Update UI as fields become available
-                // Check if we have at least some meaningful partial data
-                let hasPartialData = partial.label != nil ||
-                partial.hour != nil ||
-                partial.icon != nil ||
-                partial.repeatPattern != nil
-                
-                // Update UI when we have partial data AND throttle interval has passed
-                if hasPartialData && timeSinceLastUpdate >= streamThrottleInterval {
-                    // Track which fields are available for progressive updates
-                    let availableFields = [
-                        partial.label != nil ? "label" : nil,
-                        partial.hour != nil ? "hour" : nil,
-                        partial.minute != nil ? "minute" : nil,
-                        partial.repeatPattern != nil ? "repeat" : nil,
-                        partial.icon != nil ? "icon" : nil,
-                        partial.colorHex != nil ? "color" : nil
-                    ].compactMap { $0 }
-                    
-                    // Build detailed metadata with actual values
-                    var metadata: [String: String] = [
-                        "fields": availableFields.joined(separator: ", ")
-                    ]
-                    
-                    // Add actual parsed values for debugging
-                    if let label = partial.label {
-                        metadata["label"] = "\"\(label)\""
-                    }
-                    if let hour = partial.hour {
-                        metadata["hour"] = "\(hour)"
-                    }
-                    if let minute = partial.minute {
-                        metadata["minute"] = "\(minute)"
-                    }
-                    if let repeatPattern = partial.repeatPattern {
-                        metadata["repeat"] = repeatPattern
-                    }
-                    if let repeatDays = partial.repeatDays, !repeatDays.isEmpty {
-                        metadata["repeatDays"] = repeatDays
-                    }
-                    if let icon = partial.icon {
-                        metadata["icon"] = icon
-                    }
-                    if let colorHex = partial.colorHex {
-                        metadata["color"] = "#\(colorHex)"
-                    }
-                    if let countdownHours = partial.countdownHours {
-                        metadata["countdownH"] = "\(countdownHours)h"
-                    }
-                    if let countdownMinutes = partial.countdownMinutes {
-                        metadata["countdownM"] = "\(countdownMinutes)m"
-                    }
-                    if let year = partial.year {
-                        metadata["year"] = "\(year)"
-                    }
-                    if let month = partial.month {
-                        metadata["month"] = "\(month)"
-                    }
-                    if let day = partial.day {
-                        metadata["day"] = "\(day)"
-                    }
-                    
-                    let fieldsStr = availableFields.joined(separator: ", ")
-#if DEBUG
-                    await MainActor.run {
-                        self.logDebug(.streaming, "Progressive update #\(updateCount + 1)", metadata: metadata)
-                    }
-#endif
-                    print("🔄 AITickerGenerator: Progressive update #\(updateCount + 1) with fields: \(fieldsStr)")
-                    
-                    // Create response with available fields + defaults for missing ones
-                    let response = AITickerConfigurationResponse(
-                        label: partial.label ?? "Alarm",  // Default label
-                        hour: partial.hour ?? 12,  // Default to noon
-                        minute: partial.minute ?? 0,  // Default to :00
-                        year: partial.year,
-                        month: partial.month,
-                        day: partial.day,
-                        repeatPattern: partial.repeatPattern ?? "oneTime",  // Default to one-time
-                        repeatDays: partial.repeatDays,
-                        countdownHours: partial.countdownHours,
-                        countdownMinutes: partial.countdownMinutes,
-                        icon: partial.icon ?? "bell.fill",  // Default icon
-                        colorHex: partial.colorHex ?? "4ECDC4"  // Default teal color
-                    )
-                    
-                    parsedConfiguration = convertToTickerConfiguration(response)
-                    lastStreamUpdate = now
-                    updateCount += 1
-                }
-            }
-            
-            // Performance logging
-            let streamDuration = Date().timeIntervalSince(streamStartTime)
-#if DEBUG
-            logDebug(.timing, "Streaming completed", metadata: [
-                "duration": String(format: "%.2f", streamDuration),
-                "updates": "\(updateCount)"
-            ])
-#endif
-            print("✅ AITickerGenerator: Streaming completed in \(String(format: "%.2f", streamDuration))s with \(updateCount) UI updates")
-            
-        } catch {
-#if DEBUG
-            logDebug(.error, "Streaming error", metadata: ["error": error.localizedDescription])
-#endif
-            print("❌ AITickerGenerator: Streaming error - \(error)")
-            // Fallback to regex parsing on background thread
-            Task.detached(priority: .userInitiated) {
-                if let configuration = try? await self.configurationParser.parseConfiguration(from: input) {
-                    await MainActor.run {
-                        self.parsedConfiguration = configuration
-                        print("✅ AITickerGenerator: Fallback regex parsing succeeded")
-                    }
-                }
-            }
-        }
-    }
-    
-    public func generateTickerConfiguration(from input: String) async throws -> TickerConfiguration {
-        isGenerating = true
-        errorMessage = nil
-        generationStartTime = Date()
-        defer {
-            isGenerating = false
-            if let startTime = generationStartTime {
-                let duration = Date().timeIntervalSince(startTime)
-                print("⏱️ AITickerGenerator: Total generation time: \(String(format: "%.2f", duration))s")
-            }
-        }
-        
-        // Validate and truncate input to stay within context window
-        let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmedInput.isEmpty else {
-            throw AITickerGenerationError.invalidInput
-        }
-        
-        let validatedInput = truncateIfNeeded(trimmedInput)
-        
-        // Try Foundation Models first, fallback to regex parsing
-        let configuration: TickerConfiguration
-        
-        if isFoundationModelsAvailable, let session = languageModelSession {
-            print("🤖 AITickerGenerator: Generating with Foundation Models")
-            configuration = try await parseWithFoundationModels(input: validatedInput, session: session)
-        } else {
-            print("🔧 AITickerGenerator: Generating with regex fallback")
-            // Fallback to regex-based parsing
-            configuration = try await configurationParser.parseConfiguration(from: validatedInput)
-        }
-        
-        // Additional validation
-        if configuration.label.isEmpty {
-            throw AITickerGenerationError.parsingFailed
-        }
-        
-        // Log final configuration with all values
-        var finalMetadata: [String: String] = [
-            "label": "\"\(configuration.label)\"",
-            "time": String(format: "%02d:%02d", configuration.time.hour, configuration.time.minute),
-            "icon": configuration.icon,
-            "color": "#\(configuration.colorHex)"
-        ]
-        
-        // Add repeat option
-        switch configuration.repeatOption {
-            case .oneTime:
-                finalMetadata["repeat"] = "oneTime"
-            case .daily:
-                finalMetadata["repeat"] = "daily"
-            case .weekdays(let days):
-                finalMetadata["repeat"] = "weekdays(\(days.count))"
-            case .hourly(let interval):
-                finalMetadata["repeat"] = "hourly(\(interval))"
-            case .every(let interval, let unit):
-                finalMetadata["repeat"] = "every(\(interval) \(unit))"
-            case .biweekly(let days):
-                finalMetadata["repeat"] = "biweekly(\(days.count))"
-            case .monthly(let day):
-                finalMetadata["repeat"] = "monthly"
-            case .yearly(let month, let day):
-                finalMetadata["repeat"] = "yearly(\(month)/\(day))"
-        }
-        
-        // Add countdown if present
-        if let countdown = configuration.countdown {
-            finalMetadata["countdown"] = "\(countdown.hours)h \(countdown.minutes)m"
-        }
-        
-#if DEBUG
-        logDebug(.success, "Configuration generated", metadata: finalMetadata)
-#endif
-        print("✅ AITickerGenerator: Configuration generated - \(configuration.label)")
-        return configuration
-    }
-    
-    private func parseWithFoundationModels(input: String, session: LanguageModelSession) async throws -> TickerConfiguration {
-        guard !session.isResponding else {
-            throw AITickerGenerationError.parsingFailed
-        }
-        
-        let methodStartTime = Date()
-        
-        let options = GenerationOptions(
-            sampling: .greedy, // Deterministic output for final generation
-            temperature: 0.3,
-            maximumResponseTokens: 500
-        )
-        
-        // Note: includeSchemaInPrompt is false because we provided examples in instructions
-        // This reduces tokens sent with each request, improving latency
-        let result = try await session.respond(
-            to: Prompt("""
-                Parse this ticker/alarm request and extract all information:
-                "\(input)"
-                """),
-            generating: AITickerConfigurationResponse.self,
-            includeSchemaInPrompt: false, // Schema already in examples, saves ~200 tokens
-            options: options
-        )
-        
-        let methodDuration = Date().timeIntervalSince(methodStartTime)
-        print("⏱️ AITickerGenerator: Model inference completed in \(String(format: "%.2f", methodDuration))s")
-        
-        return convertToTickerConfiguration(result.content)
-    }
 }
 
-enum AITickerGenerationError: LocalizedError {
+public enum AITickerGenerationError: LocalizedError {
     case invalidInput
     case parsingFailed
     case unsupportedFormat
-    
-    var errorDescription: String? {
+
+    public var errorDescription: String? {
         switch self {
             case .invalidInput:
                 return "Please provide a clearer description of your ticker"

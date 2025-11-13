@@ -129,11 +129,9 @@ public class ActivityIconMapper {
             return semanticMapping
         }
         
-        // Fallback to keyword matching
-        for (keyword, mapping) in activityMappings {
-            if lowercaseInput.contains(keyword) {
-                return mapping
-            }
+        // Fallback to keyword matching with boundary awareness
+        if let keywordMapping = findKeywordMapping(in: lowercaseInput) {
+            return keywordMapping
         }
         
         // Try to extract a custom label from the input
@@ -175,16 +173,82 @@ public class ActivityIconMapper {
         
         return union.isEmpty ? 0.0 : Double(intersection.count) / Double(union.count)
     }
+
+    private func findKeywordMapping(in lowercaseInput: String) -> ActivityMapping? {
+        var bestMatch: (mapping: ActivityMapping, priority: Int, score: Int)?
+
+        for (keyword, mapping) in activityMappings {
+            if keywordMatches(input: lowercaseInput, keyword: keyword) {
+                let priority = categoryPriority(for: mapping.category)
+                let score = keyword.count
+
+                if let currentBest = bestMatch {
+                    if priority > currentBest.priority || (priority == currentBest.priority && score > currentBest.score) {
+                        bestMatch = (mapping, priority, score)
+                    }
+                } else {
+                    bestMatch = (mapping, priority, score)
+                }
+            }
+        }
+
+        return bestMatch?.mapping
+    }
+
+    private func categoryPriority(for category: ActivityCategory) -> Int {
+        switch category {
+        case .general:
+            return 0
+        default:
+            return 1
+        }
+    }
+
+    private func keywordMatches(input: String, keyword: String) -> Bool {
+        let keywordLowercased = keyword.lowercased()
+        var searchRange = input.startIndex..<input.endIndex
+
+        while let foundRange = input.range(of: keywordLowercased, options: [], range: searchRange) {
+            if isWordBounded(input: input, range: foundRange) {
+                return true
+            }
+
+            searchRange = foundRange.upperBound..<input.endIndex
+        }
+
+        return false
+    }
+
+    private func isWordBounded(input: String, range: Range<String.Index>) -> Bool {
+        if range.lowerBound > input.startIndex {
+            let before = input[input.index(before: range.lowerBound)]
+            if before.isLetterOrNumber {
+                return false
+            }
+        }
+
+        if range.upperBound < input.endIndex {
+            let after = input[range.upperBound]
+            if after.isLetterOrNumber {
+                return false
+            }
+        }
+
+        return true
+    }
     
     private func extractCustomLabelWithNL(from input: String, tagger: NLTagger) -> String {
         var meaningfulWords: [String] = []
         
         // Extract nouns and verbs using NaturalLanguage
         tagger.enumerateTags(in: input.startIndex..<input.endIndex, unit: .word, scheme: .lexicalClass) { tag, range in
-            if let tag = tag, (tag == .noun || tag == .verb) {
+            if let tag = tag {
                 let word = String(input[range]).lowercased()
-                if !isTimeRelatedWord(word) {
+
+                if (tag == .noun || tag == .verb), !isTimeRelatedWord(word) {
                     meaningfulWords.append(word.capitalized)
+                } else if (tag == .particle || tag == .adverb), word == "up", let last = meaningfulWords.last, last == "Follow" {
+                    meaningfulWords[meaningfulWords.count - 1] = "Follow Up"
                 }
             }
             return true
@@ -199,7 +263,19 @@ public class ActivityIconMapper {
     }
     
     private func isTimeRelatedWord(_ word: String) -> Bool {
-        let timeWords = ["at", "am", "pm", "every", "daily", "tomorrow", "today", "next", "week", "day", "hour", "minute", "with", "remind", "me", "to", "take", "have", "do", "go", "be", "alarm", "ticker", "time", "schedule"]
+        let timeWords: Set<String> = [
+            "a", "an", "at", "am", "pm", "and", "every", "each", "daily", "tomorrow",
+            "today", "next", "week", "weeks", "weekday", "weekdays", "weekend", "day",
+            "days", "hour", "hours", "minute", "minutes", "second", "seconds", "with",
+            "remind", "reminder", "me", "my", "to", "take", "have", "do", "go", "be",
+            "alarm", "ticker", "time", "schedule", "monthly", "month", "months", "year",
+            "yearly", "annually", "annual", "countdown", "before", "prior", "earlier",
+            "ahead", "first", "second", "third", "fourth", "fifth", "starting", "monday", "tuesday",
+            "wednesday", "thursday", "friday", "saturday", "sunday", "mon", "tue", "tues",
+            "wed", "thu", "thur", "thurs", "fri", "sat", "sun", "january", "february",
+            "march", "april", "may", "june", "july", "august", "september", "october",
+            "november", "december"
+        ]
         return timeWords.contains(word)
     }
     
@@ -210,13 +286,39 @@ public class ActivityIconMapper {
             .map { $0.lowercased() }
         
         // Remove common time-related words
-        let timeWords = ["at", "am", "pm", "every", "daily", "tomorrow", "today", "next", "week", "day", "hour", "minute", "with", "remind", "me", "to", "take", "have", "do", "go", "be"]
+        let timeWords: Set<String> = [
+            "a", "an", "at", "am", "pm", "and", "every", "each", "daily", "tomorrow",
+            "today", "next", "week", "weeks", "weekday", "weekdays", "weekend", "day",
+            "days", "hour", "hours", "minute", "minutes", "second", "seconds", "with",
+            "remind", "reminder", "me", "my", "to", "take", "have", "do", "go", "be",
+            "starting", "from", "in", "about", "around", "set", "schedule", "reminded",
+            "monthly", "month", "months", "year", "yearly", "annually", "annual",
+            "countdown", "before", "prior", "earlier", "ahead", "first", "second", "third",
+            "fourth", "fifth", "monday", "tuesday", "wednesday", "thursday", "friday",
+            "saturday", "sunday", "mon", "tue", "tues", "wed", "thu", "thur", "thurs",
+            "fri", "sat", "sun", "january", "february", "march", "april", "may", "june",
+            "july", "august", "september", "october", "november", "december"
+        ]
         let filteredWords = words.filter { !timeWords.contains($0) }
         
         if !filteredWords.isEmpty {
             // Capitalize first letter of each word
-            let capitalizedWords = filteredWords.map { $0.capitalized }
-            return capitalizedWords.joined(separator: " ")
+            var resultWords: [String] = []
+            var index = 0
+
+            while index < filteredWords.count {
+                let word = filteredWords[index]
+                if word == "follow", index + 1 < filteredWords.count, filteredWords[index + 1] == "up" {
+                    resultWords.append("Follow Up")
+                    index += 2
+                    continue
+                }
+
+                resultWords.append(word.capitalized)
+                index += 1
+            }
+
+            return resultWords.joined(separator: " ")
         }
         
         return "Ticker"
@@ -250,5 +352,11 @@ public class ActivityIconMapper {
         ]
         
         return categoryColors[category] ?? ["#8B5CF6"]
+    }
+}
+
+private extension Character {
+    var isLetterOrNumber: Bool {
+        unicodeScalars.allSatisfy { CharacterSet.alphanumerics.contains($0) }
     }
 }

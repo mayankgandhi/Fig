@@ -146,14 +146,6 @@ public final class Ticker {
         return false
     }
 
-    /// Get current alarm health status
-    var alarmHealthStatus: AlarmHealth {
-        AlarmHealth(
-            lastRegenerationDate: lastRegenerationDate,
-            lastRegenerationSuccess: lastRegenerationSuccess,
-            activeAlarmCount: generatedAlarmKitIDs.count
-        )
-    }
 }
 
 // MARK: - TickerSchedule

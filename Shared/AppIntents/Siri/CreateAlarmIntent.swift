@@ -194,7 +194,7 @@ struct CreateAlarmIntent: AppIntent {
         
         // Use AI processor with Siri-specific processing
         let aiGenerator = await AITickerGenerator()
-        let configuration = try await aiGenerator.processSiriInput(aiInput)
+        let configuration = try await aiGenerator.generateConfiguration(from: aiInput)
         
         // Create ticker from AI configuration
         let parser = TickerConfigurationParser()

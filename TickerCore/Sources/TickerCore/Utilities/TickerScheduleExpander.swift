@@ -109,7 +109,16 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     // MARK: - Private Expansion Methods
 
     private func expandOneTime(date: Date, within window: DateInterval) -> [Date] {
-        return window.contains(date) ? [date] : []
+        // Use explicit comparison to ensure future dates are correctly detected
+        // DateInterval.contains() should work, but explicit comparison is more reliable
+        // for dates at or near boundaries
+        // Check if date is within the window (inclusive boundaries)
+        let isInWindow = date >= window.start && date <= window.end
+        
+        if isInWindow {
+            return [date]
+        }
+        return []
     }
 
     private func expandDaily(time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
@@ -136,6 +145,11 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     }
 
     private func expandHourly(interval: Int, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+        // Guard against zero or negative intervals to prevent infinite loops
+        guard interval > 0 else {
+            return []
+        }
+        
         var dates: [Date] = []
 
         // For hourly alarms, `time.minute` represents the minute offset within each hour
@@ -172,7 +186,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
 
         // Generate all occurrences from firstOccurrence with the specified interval
         var currentOccurrence = firstOccurrence
-        while currentOccurrence <= window.end {
+        while currentOccurrence < window.end {
             dates.append(currentOccurrence)
 
             guard let nextOccurrence = calendar.date(byAdding: .hour, value: interval, to: currentOccurrence) else {
@@ -185,6 +199,11 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     }
 
     private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+        // Guard against zero or negative intervals to prevent infinite loops
+        guard interval > 0 else {
+            return []
+        }
+        
         var intervalDates: [Date] = []
         
         // Map TimeUnit to Calendar.Component
@@ -206,7 +225,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
             // For minute intervals, start generating from window.start
             var currentInterval = window.start
             
-            while currentInterval <= window.end {
+            while currentInterval < window.end {
                 intervalDates.append(currentInterval)
                 
                 guard let nextInterval = calendar.date(byAdding: component, value: interval, to: currentInterval) else {
@@ -226,7 +245,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
                         // Generate intervals from this starting point
                         var currentInterval = alarmDate
                         
-                        while currentInterval <= window.end {
+                        while currentInterval < window.end {
                             intervalDates.append(currentInterval)
                             
                             guard let nextInterval = calendar.date(byAdding: component, value: interval, to: currentInterval) else {
@@ -374,10 +393,19 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
             components.day = day
             components.hour = time.hour
             components.minute = time.minute
+            components.second = 0  // Explicitly set seconds to 0 for consistent date comparison
 
             if let alarmDate = calendar.date(from: components) {
-                if alarmDate >= window.start && alarmDate <= window.end {
-                    dates.append(alarmDate)
+                // Validate that the created date actually matches the requested month and day
+                // (Calendar might normalize invalid dates like Feb 30 to March 2, or Feb 29 in non-leap years to March 1)
+                let dateComponents = calendar.dateComponents([.year, .month, .day], from: alarmDate)
+                if dateComponents.month == month && dateComponents.day == day {
+                    // Check if the alarm date falls within the window
+                    // Note: alarmDate >= window.start ensures we only include dates on or after the window start
+                    // alarmDate <= window.end ensures we only include dates on or before the window end
+                    if alarmDate >= window.start && alarmDate <= window.end {
+                        dates.append(alarmDate)
+                    }
                 }
             }
         }
