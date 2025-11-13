@@ -16,8 +16,13 @@ import PackageDescription
 let package = Package(
     name: "Fig",
     dependencies: [
-        .package(url: "https://github.com/mayankgandhi/Gate", branch: "main"),
-        .package(url: "https://github.com/mayankgandhi/Telemetry", branch: "main"),
-        .package(url: "https://github.com/mayankgandhi/DesignKit", branch: "main")
+        .package(url: "https://github.com/mayankgandhi/Gate", exact: "1.0.0"),
+
+        .package(url: "https://github.com/mayankgandhi/Telemetry", exact: "1.0.0"),
+
+        .package(url: "https://github.com/mayankgandhi/DesignKit", exact: "1.0.0"),
+
+        .package(url: "https://github.com/AvdLee/Roadmap", exact: "1.1.0"),
+
     ]
 )

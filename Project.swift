@@ -30,12 +30,12 @@ let project = Project(
                 ])
             ]),
             sources: [
-                "Sources/**/**",
-                "Sources/*"
+                "Ticker/Sources/**/**",
+                "Ticker/Sources/*"
             ],
             resources: [
-                "Resources/**/**",
-                "Resources/*"
+                "Ticker/Resources/**/**",
+                "Ticker/Resources/*"
             ],
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")]),
@@ -63,7 +63,7 @@ let project = Project(
             bundleId: "\(mainBundleId).tests",
             infoPlist: .default,
             sources: [
-                "Tests/TickerTests/**"
+                "Ticker/Tests/TickerTests/**"
             ],
             dependencies: [
                 .target(name: appName)
@@ -83,7 +83,7 @@ let project = Project(
             bundleId: "\(mainBundleId).uitests",
             infoPlist: .default,
             sources: [
-                "Tests/TickerUITests/**"
+                "Ticker/Tests/TickerUITests/**"
             ],
             dependencies: [
                 .target(name: appName)

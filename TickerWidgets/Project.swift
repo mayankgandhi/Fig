@@ -36,7 +36,7 @@ let project = Project(
             ]),
             dependencies: [
                 .project(target: "TickerCore", path: "../TickerCore"),
-                .project(target: "Gate", path: "../../Gate")
+                .external(name: "Gate")
             ],
             settings: .settings(
                 base: [
