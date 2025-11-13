@@ -3,18 +3,15 @@ import ProjectDescription
 // Centralized app configuration
 let appName = "Ticker"
 let productName = "Ticker"
-let version = "1.0.0"
+let version = "1.1"
 let buildNumber = "1"
 let mainBundleId = "m.fig"
-let alarmBundleId = "\(mainBundleId).alarm"
+let widgetsBundleId = "\(mainBundleId).widgets"
 let developmentTeam = "Q7HVAVTGUP"
 let deploymentTarget = "26.0"
 
 let project = Project(
     name: appName,
-    packages: [
-        .package(url: "https://github.com/AvdLee/Roadmap.git", from: "1.1.0")
-    ],
     targets: [
         // Main app target
         .target(
@@ -33,22 +30,23 @@ let project = Project(
                 ])
             ]),
             sources: [
-                "fig/**"
+                "Sources/**/**",
+                "Sources/*"
             ],
             resources: [
-                .glob(pattern: "fig/Resources/Assets.xcassets"),
-                .glob(pattern: "fig/Resources/AppIcon.icon/**"),
-                .glob(pattern: "fig/Resources/*.caf"),
-                .glob(pattern: "fig/Resources/*.wav")
+                "Resources/**/**",
+                "Resources/*"
             ],
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")]),
                 "com.apple.developer.siri": .boolean(true),
             ]),
             dependencies: [
-                .target(name: "alarm"),
+                .project(target: "TickerWidgets", path: "TickerWidgets"),
                 .project(target: "TickerCore", path: "TickerCore"),
-                .package(product: "Roadmap")
+                .external(name: "Gate"),
+                .external(name: "Telemetry"),
+                .external(name: "DesignKit")
             ],
             settings: .settings(
                 base: [
@@ -57,68 +55,61 @@ let project = Project(
                 configurations: []
             )
         ),
-
-        // Widget extension target
+        // Unit test target
         .target(
-            name: "alarm",
+            name: "TickerTests",
             destinations: [.iPhone, .iPad],
-            product: .appExtension,
-            bundleId: alarmBundleId,
-            infoPlist: .extendingDefault(with: [
-                "CFBundleDisplayName": .string("Ticker"),
-                "CFBundleShortVersionString": .string(version),
-                "CFBundleVersion": .string(buildNumber),
-                "NSExtension": [
-                    "NSExtensionPointIdentifier": "com.apple.widgetkit-extension"
-                ]
-            ]),
+            product: .unitTests,
+            bundleId: "\(mainBundleId).tests",
+            infoPlist: .default,
             sources: [
-                "alarm/**",
-                "fig/DesignSystem/**",  // Design system previews
-                "fig/Models/IconColorPair.swift"  // Icon color pair for ticker data
+                "Tests/TickerTests/**"
             ],
-            resources: [
-                "alarm/Assets.xcassets",
-                .glob(pattern: "fig/Resources/*.caf"),
-                .glob(pattern: "fig/Resources/*.wav")
-            ],
-            entitlements: .dictionary([
-                "com.apple.security.application-groups": .array([.string("group.m.fig")])
-            ]),
             dependencies: [
-                .project(target: "TickerCore", path: "TickerCore")
+                .target(name: appName)
             ],
             settings: .settings(
                 base: [
-                    "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget),
-                    "CODE_SIGN_ALLOW_ENTITLEMENTS_MODIFICATION": "YES"
-                ].automaticCodeSigning(devTeam: developmentTeam),
+                    "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget)
+                ],
                 configurations: []
             )
         ),
-
-        // Unit tests
+        // UI test target
         .target(
-            name: "\(appName)Tests",
-            destinations: [.iPhone, .iPad, .mac],
-            product: .unitTests,
-            bundleId: "com.mayankgandhi.figTests",
-            sources: ["figTests/**"],
-            dependencies: [
-                .target(name: appName)
-            ]
-        ),
-
-        // UI tests
-        .target(
-            name: "\(appName)UITests",
-            destinations: [.iPhone, .iPad, .mac],
+            name: "TickerUITests",
+            destinations: [.iPhone, .iPad],
             product: .uiTests,
-            bundleId: "com.mayankgandhi.figUITests",
-            sources: ["figUITests/**"],
+            bundleId: "\(mainBundleId).uitests",
+            infoPlist: .default,
+            sources: [
+                "Tests/TickerUITests/**"
+            ],
             dependencies: [
                 .target(name: appName)
-            ]
-        )
-    ]
+            ],
+            settings: .settings(
+                base: [
+                    "IPHONEOS_DEPLOYMENT_TARGET": .string(deploymentTarget)
+                ],
+                configurations: []
+            )
+        ),
+    ],
+//    schemes: [
+//        .scheme(
+//            name: appName,
+//            shared: true,
+//            buildAction: .buildAction(targets: [.init(stringLiteral: appName)]),
+//            testAction: .targets(
+//                ["\(appName)Tests"],
+//                configuration: .debug,
+//                options: .options(coverage: true)
+//            ),
+//            runAction: .runAction(configuration: .debug),
+//            archiveAction: .archiveAction(configuration: .release),
+//            profileAction: .profileAction(configuration: .release),
+//            analyzeAction: .analyzeAction(configuration: .debug)
+//        )
+//    ]
 )

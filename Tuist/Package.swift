@@ -6,10 +6,9 @@ import PackageDescription
 
     let packageSettings = PackageSettings(
         productTypes: [
-            "PostHog": .framework,
-            "Roadmap": .framework,
-            "RevenueCat": .framework,
-            "RevenueCatUI": .framework
+            "Gate": .framework,
+            "Telemetry": .framework,
+            "DesignKit": .framework
         ]
     )
 #endif
@@ -17,13 +16,8 @@ import PackageDescription
 let package = Package(
     name: "Fig",
     dependencies: [
-        // Analytics - Shared
-        .package(url: "https://github.com/PostHog/posthog-ios", exact: "3.31.0"),
-
-        // UI Components
-        .package(url: "https://github.com/AvdLee/Roadmap", exact: "1.1.0"),
-
-        // Subscriptions
-        .package(url: "https://github.com/RevenueCat/purchases-ios", exact: "5.15.0")
+        .package(url: "https://github.com/mayankgandhi/Gate", branch: "main"),
+        .package(url: "https://github.com/mayankgandhi/Telemetry", branch: "main"),
+        .package(url: "https://github.com/mayankgandhi/DesignKit", branch: "main")
     ]
 )
