@@ -65,6 +65,9 @@ struct figApp: App {
             userIDProvider: { UserService.shared.getCurrentUserID() }
         )
 
+        // Keep widget extensions in sync with the latest subscription state.
+        SubscriptionStatusObserver.shared.start()
+
         // Register background task handler
         registerBackgroundTasks()
 
