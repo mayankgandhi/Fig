@@ -44,13 +44,7 @@ struct ClockWidgetView: View {
     
     // Check subscription status
     private var hasAccess: Bool {
-        // Always show content in widget gallery previews (snapshots/placeholders)
-        if entry.isPreview {
-            return true
-        }
-        
-        
-        return SubscriptionService.shared.isSubscribed
+        WidgetPremiumAccessResolver.hasAccess(for: entry)
     }
 
     var body: some View {

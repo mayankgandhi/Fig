@@ -11,6 +11,7 @@
 import WidgetKit
 import SwiftUI
 import Gate
+import TickerCore
 
 @main
 struct AlarmExtension: WidgetBundle {
@@ -21,6 +22,8 @@ struct AlarmExtension: WidgetBundle {
         // Initialize SubscriptionService asynchronously
         Task {
             try? await SubscriptionService.shared.initialize()
+            SubscriptionAccessStore.setIsSubscribed(SubscriptionService.shared.isSubscribed)
+            WidgetCenter.shared.reloadAllTimelines()
         }
     }
     
