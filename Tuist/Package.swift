@@ -20,7 +20,7 @@ let package = Package(
 
         .package(url: "https://github.com/mayankgandhi/Telemetry", exact: "1.0.0"),
 
-        .package(url: "https://github.com/mayankgandhi/DesignKit", exact: "1.0.0"),
+        .package(url: "https://github.com/mayankgandhi/DesignKit", exact: "1.0.3"),
 
         .package(url: "https://github.com/AvdLee/Roadmap", exact: "1.1.0"),
 
