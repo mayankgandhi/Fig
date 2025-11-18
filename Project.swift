@@ -46,7 +46,8 @@ let project = Project(
                 .project(target: "TickerCore", path: "TickerCore"),
                 .external(name: "Gate"),
                 .external(name: "Telemetry"),
-                .external(name: "DesignKit")
+                .external(name: "DesignKit"),
+                .external(name: "Roadmap")
             ],
             settings: .settings(
                 base: [
