@@ -8,7 +8,8 @@ import PackageDescription
         productTypes: [
             "Gate": .framework,
             "Telemetry": .framework,
-            "DesignKit": .framework
+            "DesignKit": .framework,
+            "Roadmap": .framework
         ]
     )
 #endif
