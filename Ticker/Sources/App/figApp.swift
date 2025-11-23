@@ -16,10 +16,10 @@ import DesignKit
 @main
 struct figApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-
+    
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
     @State private var hasInitialized = false
-
+    
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Ticker.self
@@ -32,21 +32,21 @@ struct figApp: App {
         } else {
             modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
         }
-
+        
         do {
             return try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-
+    
     private let tickerService = TickerService()
     private let regenerationService = AlarmRegenerationService()
     private let modelContextObserver = ModelContextObserver()
-
+    
     // Background task identifier
     private let backgroundTaskIdentifier = "com.fig.alarm.regeneration"
-
+    
     init() {
         // Configure DesignKit with Ticker theme (must be done before any views)
         DesignKit.configure(.ticker)
@@ -58,23 +58,23 @@ struct figApp: App {
             userDefaults: sharedDefaults,
             migrationKey: "revenueCatUserID"  // Migrate from existing key if needed
         )
-
+        
         // Configure Gate SubscriptionService with Ticker-specific settings
         SubscriptionService.shared.configure(
             configuration: .ticker,
             userIDProvider: { UserService.shared.getCurrentUserID() }
         )
-
+        
         // Keep widget extensions in sync with the latest subscription state.
         SubscriptionStatusObserver.shared.start()
-
+        
         // Register background task handler
         registerBackgroundTasks()
-
+        
         // Register for time zone change notifications
         registerTimeZoneChangeObserver()
     }
-
+    
     var body: some Scene {
         WindowGroup {
             Group {
@@ -87,9 +87,15 @@ struct figApp: App {
                             // Prevent double execution
                             guard !hasInitialized else { return }
                             hasInitialized = true
-
+                            
+                            // Initialize UserService and Gate SubscriptionService in background (non-blocking)
+                            Task.detached(priority: .background) {
+                                try? await UserService.shared.initialize()
+                                try? await SubscriptionService.shared.initialize()
+                            }
+                            
                             let context = ModelContext(sharedModelContainer)
-
+                            
                             // Track app launch with alarm counts
                             let descriptor = FetchDescriptor<Ticker>()
                             if let tickers = try? context.fetch(descriptor) {
@@ -99,19 +105,13 @@ struct figApp: App {
                                     enabledAlarmCount: enabledCount
                                 ).track()
                             }
-
-                            // Initialize UserService and Gate SubscriptionService in background (non-blocking)
-                            Task.detached(priority: .background) {
-                                try? await UserService.shared.initialize()
-                                try? await SubscriptionService.shared.initialize()
-                            }
-
+                            
                             // Synchronize alarms on app launch (main priority)
                             AnalyticsEvents.alarmSyncStarted.track()
                             let syncStartTime = Date()
                             await tickerService.synchronizeAlarmsOnLaunch(context: context)
                             let syncDuration = Int(Date().timeIntervalSince(syncStartTime) * 1000)
-
+                            
                             // Track sync completed
                             let syncedDescriptor = FetchDescriptor<Ticker>()
                             if let syncedTickers = try? context.fetch(syncedDescriptor) {
@@ -135,7 +135,7 @@ struct figApp: App {
         }
         .modelContainer(sharedModelContainer)
     }
-
+    
     // MARK: - App Lifecycle Management
     /// Regenerate alarms for all enabled tickers
     private func regenerateAllEnabledTickers() async {
@@ -143,11 +143,11 @@ struct figApp: App {
         let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
             ticker.isEnabled == true
         })
-
+        
         do {
             let tickers = try context.fetch(descriptor)
             print("🔄 Found \(tickers.count) enabled tickers to check")
-
+            
             for ticker in tickers {
                 // Check if regeneration is needed (non-blocking, respects rate limiting)
                 do {
@@ -165,9 +165,9 @@ struct figApp: App {
             print("❌ Failed to fetch enabled tickers: \(error)")
         }
     }
-
+    
     // MARK: - Background Tasks
-
+    
     /// Register background task handlers
     private func registerBackgroundTasks() {
         BGTaskScheduler.shared.register(
@@ -178,19 +178,19 @@ struct figApp: App {
         }
         print("✅ Registered background task: \(backgroundTaskIdentifier)")
     }
-
+    
     /// Handle background task execution
     private func handleBackgroundTask(task: BGAppRefreshTask) {
         print("⏰ Background task started")
-
+        
         // Schedule next background task
         scheduleBackgroundTask()
-
+        
         // Set task expiration handler
         task.expirationHandler = {
             print("⚠️ Background task expired")
         }
-
+        
         // Perform alarm regeneration
         Task {
             await regenerateAllEnabledTickers()
@@ -198,18 +198,18 @@ struct figApp: App {
             print("✅ Background task completed")
         }
     }
-
+    
     /// Schedule the next background task
     private func scheduleBackgroundTask() {
         let request = BGAppRefreshTaskRequest(identifier: backgroundTaskIdentifier)
-
+        
         // Schedule for midnight (next day)
         let calendar = Calendar.current
         let tomorrow = calendar.date(byAdding: .day, value: 1, to: Date()) ?? Date()
         let midnight = calendar.startOfDay(for: tomorrow)
-
+        
         request.earliestBeginDate = midnight
-
+        
         do {
             try BGTaskScheduler.shared.submit(request)
             print("✅ Scheduled background task for \(midnight)")
@@ -217,9 +217,9 @@ struct figApp: App {
             print("❌ Failed to schedule background task: \(error)")
         }
     }
-
+    
     // MARK: - Time Zone Change Observer
-
+    
     /// Register observer for time zone changes
     private func registerTimeZoneChangeObserver() {
         NotificationCenter.default.addObserver(

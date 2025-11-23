@@ -10,96 +10,177 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Bundle ID**: m.fig
 **Deployment Target**: iOS 26.0+
 **Build System**: Tuist (for project generation)
+**Swift Version**: 6.0
 
 ## Architecture
 
-### Core Structure
-- **App Entry Point**: `fig/App/figApp.swift` - Defines the main app structure, sets up SwiftData `ModelContainer` with `Ticker` model, and initializes `AlarmService`
-- **Main View**: `fig/App/AppView.swift` - Root view coordinating navigation and primary UI
-- **Data Models**:
-  - `fig/Models/AlarmItem.swift` - Core `Ticker` SwiftData model with schedule, countdown, and presentation configuration
-  - `Shared/AlarmMetadata.swift` - Shared data structures for alarm state synchronization
-- **Services**:
-  - `fig/Services/AlarmService.swift` - Main service coordinating alarm operations
-  - `fig/Services/AlarmStateManager.swift` - Manages alarm state and lifecycle
-  - `fig/Services/AlarmSyncCoordinator.swift` - Synchronizes alarms with AlarmKit
-  - `fig/Services/AlarmConfigurationBuilder.swift` - Builds AlarmKit configurations from Ticker models
+This is a **multi-target Tuist project** with modular architecture organized into three main targets:
 
-### Key Views
-- `fig/App/ContentView.swift` - Main alarm list interface
-- `fig/App/AddTickerView/` - Add/edit alarm flow with modular components
-- `fig/App/TodayClockView/` - Today view showing clock and upcoming alarms
-- `fig/App/AlarmDetailView.swift` - Detailed alarm view
-- `fig/AlarmCell.swift` - Alarm list cell component
-- `fig/Settings/SettingsView.swift` - Settings interface
+### 1. Ticker (Main App Target)
+Located in `Ticker/Sources/`
 
-### App Extensions
-- `alarm/` - Widget and Live Activity extension bundle
-  - `alarm/alarm.swift` - Widget implementations
-  - `alarm/alarmControl.swift` - Control Center widget
-  - `alarm/AlarmLiveActivity.swift` - Live Activity for running alarms
-- `fig/AppIntents/` - App Intents for Shortcuts and widget interactivity
+**Entry Point**: `Ticker/Sources/App/figApp.swift` - Defines the main app structure, sets up SwiftData `ModelContainer` with `Ticker` model
 
-### Design System
-- `fig/DesignSystem/TickerDesignSystem.swift` - Centralized design tokens and Liquid Glass components
-- `fig/DesignSystem/TickerDesignSystemPreviews.swift` - SwiftUI previews for design system
-- `fig/Extensions/` - Font, color, and UI extensions
+**Key Directories**:
+- `App/` - Main app views and app lifecycle
+  - `figApp.swift` - App entry point
+  - `AppView.swift` - Root view coordinating navigation
+  - `ContentView.swift` - Main alarm list interface
+  - `AddTickerView/` - Add/edit alarm flow with modular components
+  - `TodayClockView/` - Today view showing clock and upcoming alarms
+  - `AlarmDetailView.swift` - Detailed alarm view
+  - `Components/` - Reusable UI components
+  - `Services/` - App-level service coordination
+  - `AITickerGeneration/` - Natural language alarm creation
+- `Settings/` - Settings interface and menu items
+- `Models/` - SwiftData models specific to the main app
+- `DesignSystem/` - Design tokens and Liquid Glass components
+  - `TickerDesignSystemPreviews.swift` - SwiftUI previews for design system
+- `Utilities/` - Helper utilities
+- `AlarmCell.swift` - Alarm list cell component
+
+### 2. TickerCore (Framework Target)
+Located in `TickerCore/Sources/TickerCore/`
+
+**Purpose**: Shared business logic and models used across all targets (app, widgets, extensions)
+
+**Key Components**:
+- `Ticker.swift` - Core `Ticker` SwiftData model with schedule, countdown, and presentation configuration
+- `AlarmMetadata.swift` - Shared data structures for alarm state synchronization
+- `TickerScheduleExpander.swift` - Logic for expanding alarm schedules
+- `AlarmOccurrenceService.swift` - Calculates alarm occurrences
+- `AlarmHealth.swift` - Health monitoring for alarms
+- `TickerDesignSystem.swift` - Centralized design tokens and Liquid Glass components
+- `ClockView.swift` - Shared clock UI component
+- `UpcomingAlarmPresentation.swift` - Shared UI for upcoming alarms
+- `ActivityIconMapper.swift` - Maps activities to icons
+- `AlarmGenerationStrategy.swift` - Strategies for generating alarms
+- `RegenerationRateLimiter.swift` - Rate limiting for alarm regeneration
+
+### 3. TickerWidgets (App Extension Target)
+Located in `TickerWidgets/Sources/`
+
+**Purpose**: Widget and Live Activity implementations
+
+**Key Components**:
+- `AlarmExtension.swift` - Widget extension entry point
+- `LiveActivity/` - Live Activity implementations for running alarms
+- `Widgets/` - Home Screen widget implementations
+- `Assets.xcassets` - Widget-specific assets
+
+### Shared Directory
+Located in `Shared/`
+
+**Purpose**: Code shared across all targets (not framework)
+
+**Key Components**:
+- `AppIntents/` - App Intents for Shortcuts, widgets, and Live Activities
+  - `LiveActivity/` - Intents for Live Activity controls (Pause, Resume, Stop, Repeat)
+  - `Widget/` - Configuration intents for widgets
+  - `ControlWidget/` - Intents for Control Center widgets
+  - See `Shared/AppIntents/README.md` for detailed documentation
+
+### External Dependencies
+
+The project uses SPM packages defined in `Tuist/Package.swift`:
+- **Gate** (v1.0.0) - Feature flag framework (mayankgandhi/Gate)
+- **Telemetry** (v1.0.0) - Analytics framework (mayankgandhi/Telemetry)
+- **DesignKit** (v1.0.3) - Design system components (mayankgandhi/DesignKit)
+- **Roadmap** (v1.1.0) - Feature roadmap UI (AvdLee/Roadmap)
+
+### App Groups & Entitlements
+
+All targets use the shared app group `group.m.fig` for:
+- SwiftData storage shared between app and widgets
+- AlarmKit synchronization
+- Live Activity data sharing
 
 ### Tests
-- `figTests/` - Unit tests including `AlarmServiceTests.swift`
-- `figUITests/` - UI automation tests
+- `Ticker/Tests/TickerTests/` - Unit tests for main app
+- `Ticker/Tests/TickerUITests/` - UI automation tests
+- `TickerCore/Tests/` - Unit tests for TickerCore framework
 
 ## Project Management
 
-This project uses **Tuist** for Xcode project generation:
+This project uses **Tuist** for Xcode project generation. The project has three separate Tuist projects:
+- `Project.swift` - Root workspace configuration
+- `Ticker/Project.swift` - Main app target configuration
+- `TickerCore/Project.swift` - Core framework configuration
+- `TickerWidgets/Project.swift` - Widget extension configuration
 
-### Tuist Commands
+### Essential Commands
+
+**Generate Xcode Project**
 ```bash
-# Generate Xcode project from Project.swift
+# From project root - generates workspace with all targets
 tuist generate
 
-# Clean generated files
+# Always run after modifying any Project.swift file
+```
+
+**Build & Test**
+```bash
+# Build main app (after tuist generate)
+xcodebuild -workspace Ticker.xcworkspace -scheme Ticker build
+
+# Run unit tests
+xcodebuild test -workspace Ticker.xcworkspace -scheme Ticker
+
+# Run specific test target
+xcodebuild test -workspace Ticker.xcworkspace -scheme TickerTests
+
+# Run UI tests
+xcodebuild test -workspace Ticker.xcworkspace -scheme TickerUITests
+```
+
+**Development Workflow**
+```bash
+# Open in Xcode
+open Ticker.xcworkspace  # Use workspace, not xcodeproj
+
+# Clean Tuist cache
 tuist clean
 
-# Edit project configuration
+# Edit Tuist configuration
 tuist edit
+
+# Install/update dependencies (after changing Tuist/Package.swift)
+tuist install
 ```
 
-### Build Commands
-```bash
-# Build with xcodebuild (after tuist generate)
-xcodebuild -project Ticker.xcodeproj -scheme Ticker build
-
-# Run tests
-xcodebuild test -project Ticker.xcodeproj -scheme Ticker
-
-# Open in Xcode
-open Ticker.xcodeproj
-```
-
-**Important**: Always run `tuist generate` after modifying `Project.swift` to regenerate the Xcode project.
+**Important Notes**:
+- Always use `Ticker.xcworkspace` (not `Ticker.xcodeproj`) when opening in Xcode
+- Run `tuist generate` after modifying any `Project.swift` or `Tuist/Package.swift`
+- Dependencies are managed via `Tuist/Package.swift`
+- The workspace includes Ticker, TickerCore, and TickerWidgets targets
 
 ## SwiftData Usage
 
 The app uses SwiftData for persistent alarm storage:
-- Primary model: `Ticker` (defined in `fig/Models/AlarmItem.swift`)
-- Models use the `@Model` macro
-- The `ModelContainer` is configured in `figApp.swift` with persistent storage (not in-memory)
+- Primary model: `Ticker` (defined in `TickerCore/Sources/TickerCore/Ticker.swift`)
+- Models use the `@Model` macro (Swift 6.0)
+- The `ModelContainer` is configured in `Ticker/Sources/App/figApp.swift` with persistent storage
 - Schema: `Schema([Ticker.self])`
+- Shared app group storage at `group.m.fig` container for cross-target access
 - Views access data using `@Query` for fetching and `@Environment(\.modelContext)` for mutations
 - AlarmKit integration via `generatedAlarmKitIDs` property for bidirectional sync
+
+**Storage Location**: SwiftData container is shared via app group `group.m.fig` allowing both the main app and widget extension to access the same data.
 
 ## AlarmKit Integration
 
 The app integrates with iOS AlarmKit framework for system-level alarm functionality:
-- `Ticker` models convert to `Alarm` configurations via extensions
-- `AlarmService` manages the bridge between SwiftData and AlarmKit
+- `Ticker` models (in TickerCore) convert to `Alarm` configurations via extensions
+- AlarmKit provides system-level alarm scheduling and notifications
 - Supports:
   - One-time and recurring (daily) alarms
   - Pre-alert countdowns
   - Post-alert behaviors (snooze, repeat, custom actions)
   - Live Activities during alarm execution
   - Custom presentation with tint colors and secondary buttons
+  - Background task scheduling (`com.fig.alarm.regeneration`)
+
+**Permission**: App requires `NSAlarmKitUsageDescription` in Info.plist
 
 ## Liquid Glass Design System
 
