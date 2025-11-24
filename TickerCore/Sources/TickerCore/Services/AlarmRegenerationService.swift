@@ -120,7 +120,7 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
         print("   → Current alarms: \(currentAlarms.count)")
 
         print("   → Calculating target alarm state...")
-        let targetDates = calculateTargetDates(schedule: schedule, strategy: ticker.regenerationStrategy)
+        let targetDates = calculateTargetDates(schedule: schedule, strategy: ticker.regenerationStrategy, ticker: ticker)
         print("   → Target alarms: \(targetDates.count)")
 
         print("   → Computing diff...")
@@ -180,9 +180,13 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     }
 
     /// Calculate target alarm dates based on schedule and strategy
-    private func calculateTargetDates(schedule: TickerSchedule, strategy: AlarmGenerationStrategy) -> [Date] {
-        let now = Date()
-        return scheduleExpander.expandSchedule(schedule, from: now, strategy: strategy)
+    /// Uses lastRegenerationDate to prevent duplicate alarm creation
+    private func calculateTargetDates(schedule: TickerSchedule, strategy: AlarmGenerationStrategy, ticker: Ticker) -> [Date] {
+        // Use lastRegenerationDate as the starting point if available
+        // This ensures we only create NEW alarms after the last regeneration
+        // to prevent duplicates when regeneration runs multiple times
+        let startDate = ticker.lastRegenerationDate ?? Date()
+        return scheduleExpander.expandSchedule(schedule, from: startDate, strategy: strategy)
     }
 
     /// Compute diff between current and target alarm states
