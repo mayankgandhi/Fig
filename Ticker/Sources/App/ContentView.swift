@@ -28,6 +28,7 @@ struct ContentView: View {
     @State private var alarmToShowDetail: Ticker?
     @State private var showDeleteAlert = false
     @State private var searchText = ""
+    
     @Namespace private var addButtonNamespace
     @Namespace private var editButtonNamespace
     @Namespace private var aiButtonNamespace
