@@ -486,7 +486,83 @@ public final class TickerService {
         }
         print("   ✅ cancelAlarm() completed")
     }
-    
+
+    /// Skip a single instance of a recurring alarm
+    /// - Parameters:
+    ///   - tickerId: The ID of the ticker
+    ///   - targetDate: The specific alarm occurrence date/time to skip
+    ///   - context: SwiftData model context
+    public func skipAlarmInstance(tickerId: UUID, targetDate: Date, context: ModelContext) async throws {
+        print("⏭️ TickerService.skipAlarmInstance() started")
+        print("   → tickerId: \(tickerId)")
+        print("   → targetDate: \(targetDate)")
+
+        // Fetch the ticker
+        let allItemsDescriptor = FetchDescriptor<Ticker>()
+        guard let allItems = try? context.fetch(allItemsDescriptor),
+              let ticker = allItems.first(where: { $0.id == tickerId }) else {
+            print("   ❌ Ticker not found")
+            throw TickerServiceError.alarmNotFound(tickerId)
+        }
+
+        print("   → Found ticker: '\(ticker.label)'")
+        print("   → Generated IDs count: \(ticker.generatedAlarmKitIDs.count)")
+
+        // Query AlarmKit to find the alarm matching the target date
+        let allAlarms = try _stateManager.queryAlarmKit(alarmManager: alarmManager)
+        var targetAlarmID: UUID?
+
+        for alarm in allAlarms {
+            if ticker.generatedAlarmKitIDs.contains(alarm.id) {
+                // Check if this alarm's schedule matches the target date
+                if case .fixed(let alarmDate) = alarm.schedule {
+                    // Compare dates with some tolerance (within 1 minute)
+                    let timeDifference = abs(alarmDate.timeIntervalSince(targetDate))
+                    if timeDifference < 60 { // Within 1 minute
+                        targetAlarmID = alarm.id
+                        print("   → Found matching alarm ID: \(alarm.id) for date: \(alarmDate)")
+                        break
+                    }
+                }
+            }
+        }
+
+        guard let alarmIDToCancel = targetAlarmID else {
+            print("   ⚠️ No matching alarm found for target date")
+            throw TickerServiceError.invalidConfiguration
+        }
+
+        // Cancel the specific AlarmKit alarm
+        print("   → Canceling AlarmKit alarm: \(alarmIDToCancel)")
+        do {
+            try alarmManager.cancel(id: alarmIDToCancel)
+            print("   ✅ Cancelled AlarmKit alarm")
+        } catch {
+            print("   ❌ Failed to cancel AlarmKit alarm: \(error)")
+            throw TickerServiceError.schedulingFailed(underlying: error)
+        }
+
+        // Remove the ID from generatedAlarmKitIDs
+        ticker.generatedAlarmKitIDs.removeAll { $0 == alarmIDToCancel }
+        print("   → Removed ID from generatedAlarmKitIDs, remaining: \(ticker.generatedAlarmKitIDs.count)")
+
+        // Save SwiftData context
+        do {
+            try context.save()
+            print("   → SwiftData saved")
+        } catch {
+            print("   ❌ Failed to save SwiftData: \(error)")
+            throw TickerServiceError.swiftDataSaveFailed(underlying: error)
+        }
+
+        // Refresh widget timelines
+        print("   → Refreshing widget timelines...")
+        await MainActor.run {
+            refreshWidgetTimelines()
+        }
+        print("   ✅ skipAlarmInstance() completed")
+    }
+
     // MARK: - Alarm Control
     
     

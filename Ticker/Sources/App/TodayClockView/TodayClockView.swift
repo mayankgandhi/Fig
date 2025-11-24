@@ -22,6 +22,8 @@ struct TodayClockView: View {
     @State private var showNaturalLanguageSheet: Bool = false
     @State private var viewModel: TodayViewModel
     @State private var alarmToEdit: Ticker?
+    @State private var alarmToSkip: UpcomingAlarmPresentation?
+    @State private var showSkipConfirmation: Bool = false
     @State private var shouldAnimateAlarms: Bool = false
     @State private var generatedTicker: Ticker?
     @Namespace private var editButtonNamespace
@@ -88,18 +90,15 @@ struct TodayClockView: View {
                         } else {
                             LazyVStack(spacing: TickerSpacing.xs) {
                                 ForEach(viewModel.upcomingAlarms) { presentation in
-                                    UpcomingAlarmRow(presentation: presentation)
-                                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                            Button {
-                                                TickerHaptics.selection()
-                                                if let ticker = getTicker(for: presentation.baseAlarmId) {
-                                                    alarmToEdit = ticker
-                                                }
-                                            } label: {
-                                                Label("Edit", systemImage: "pencil")
-                                            }
-                                            .tint(TickerColor.primary)
+                                    UpcomingAlarmRow(
+                                        presentation: presentation,
+                                        onEdit: { presentation in
+                                            handleEditAlarm(presentation)
+                                        },
+                                        onSkip: { presentation in
+                                            handleSkipAlarm(presentation)
                                         }
+                                    )
                                 }
                             }
                             .padding(.horizontal, 20)
@@ -211,15 +210,100 @@ struct TodayClockView: View {
                     await viewModel.refreshAlarms()
                 }
             }
+            .confirmationDialog(
+                Text("Skip this alarm?"),
+                isPresented: $showSkipConfirmation,
+                presenting: alarmToSkip,
+                actions: { presentation in
+                    Button("Skip Alarm", role: .destructive) {
+                        Task {
+                            await performSkipAlarm(presentation)
+                        }
+                    }
+                    Button("Cancel", role: .cancel) {
+                        alarmToSkip = nil
+                    }
+                },
+                message: { presentation in
+                    if presentation.scheduleType == .oneTime {
+                        Text("This will delete the one-time alarm '\(presentation.displayName)'.")
+                    } else {
+                        Text("This will skip the alarm '\(presentation.displayName)' scheduled for \(presentation.nextAlarmTime, style: .time). The alarm will repeat as scheduled.")
+                    }
+                }
+            )
         }
     }
-    
+
     // MARK: - Helper Methods
-    
+
     private func getTicker(for id: UUID) -> Ticker? {
         let allItemsDescriptor = FetchDescriptor<Ticker>()
         let allItems = try? modelContext.fetch(allItemsDescriptor)
         return allItems?.first(where: { $0.id == id })
+    }
+
+    private func handleEditAlarm(_ presentation: UpcomingAlarmPresentation) {
+        if let ticker = getTicker(for: presentation.baseAlarmId) {
+            alarmToEdit = ticker
+        }
+    }
+
+    private func handleSkipAlarm(_ presentation: UpcomingAlarmPresentation) {
+        alarmToSkip = presentation
+        showSkipConfirmation = true
+    }
+
+    private func performSkipAlarm(_ presentation: UpcomingAlarmPresentation) async {
+        print("🔄 TodayClockView: Starting skip alarm for '\(presentation.displayName)'")
+
+        guard let ticker = getTicker(for: presentation.baseAlarmId) else {
+            print("⚠️ Could not find ticker for skip action")
+            await MainActor.run {
+                alarmToSkip = nil
+            }
+            return
+        }
+
+        // Play haptic feedback
+        await MainActor.run {
+            TickerHaptics.warning()
+        }
+
+        // Check if this is a one-time alarm
+        if presentation.scheduleType == .oneTime {
+            // Delete the entire ticker for one-time alarms
+            print("   → Deleting one-time alarm...")
+            do {
+                try await tickerService.cancelAlarm(id: ticker.id, context: modelContext)
+                print("   ✅ Deleted one-time alarm: \(ticker.label)")
+            } catch {
+                print("   ❌ Failed to delete alarm: \(error)")
+            }
+        } else {
+            // For recurring alarms, skip just this instance
+            print("   → Skipping recurring alarm instance...")
+            do {
+                try await tickerService.skipAlarmInstance(
+                    tickerId: ticker.id,
+                    targetDate: presentation.nextAlarmTime,
+                    context: modelContext
+                )
+                print("   ✅ Skipped alarm instance for: \(ticker.label) at \(presentation.nextAlarmTime)")
+            } catch {
+                print("   ❌ Failed to skip alarm instance: \(error)")
+            }
+        }
+
+        // Refresh the alarm list and clock
+        print("   → Refreshing alarm list and clock...")
+        await viewModel.refreshAlarms()
+
+        // Clear the skip state
+        await MainActor.run {
+            alarmToSkip = nil
+            print("   ✅ Skip operation completed and UI refreshed")
+        }
     }
 }
 

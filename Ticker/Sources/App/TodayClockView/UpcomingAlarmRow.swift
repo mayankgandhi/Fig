@@ -13,6 +13,9 @@ import TickerCore
 
 struct UpcomingAlarmRow: View {
     let presentation: UpcomingAlarmPresentation
+    let onEdit: (UpcomingAlarmPresentation) -> Void
+    let onSkip: (UpcomingAlarmPresentation) -> Void
+
     @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
@@ -69,6 +72,21 @@ struct UpcomingAlarmRow: View {
                 x: TickerShadow.subtle.x,
                 y: TickerShadow.subtle.y
             )
+            .contextMenu {
+                Button {
+                    TickerHaptics.selection()
+                    onEdit(presentation)
+                } label: {
+                    Label("Edit", systemImage: "pencil")
+                }
+
+                Button {
+                    TickerHaptics.selection()
+                    onSkip(presentation)
+                } label: {
+                    Label("Skip Alarm", systemImage: "bell.slash")
+                }
+            }
         }
     }
 }
@@ -78,7 +96,8 @@ struct UpcomingAlarmRow: View {
 #Preview("Upcoming Alarm Variations") {
     VStack(spacing: TickerSpacing.lg) {
         // Daily alarm - waking up
-        UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+        UpcomingAlarmRow(
+            presentation: UpcomingAlarmPresentation(
             baseAlarmId: UUID(),
             displayName: "Wake Up",
             icon: "sunrise.fill",
@@ -89,10 +108,11 @@ struct UpcomingAlarmRow: View {
             minute: 30,
             hasCountdown: true,
             tickerDataTitle: "Morning Routine"
-        ))
+        ), onEdit: { _ in }, onSkip: { _ in })
 
         // One-time alarm - meeting
-        UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+        UpcomingAlarmRow(
+            presentation: UpcomingAlarmPresentation(
             baseAlarmId: UUID(),
             displayName: "Team Meeting",
             icon: "person.3.fill",
@@ -103,10 +123,11 @@ struct UpcomingAlarmRow: View {
             minute: 0,
             hasCountdown: false,
             tickerDataTitle: nil
-        ))
+        ), onEdit: { _ in }, onSkip: { _ in })
 
         // Weekdays alarm - work
-        UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+        UpcomingAlarmRow(
+            presentation: UpcomingAlarmPresentation(
             baseAlarmId: UUID(),
             displayName: "Work Start",
             icon: "briefcase.fill",
@@ -117,10 +138,11 @@ struct UpcomingAlarmRow: View {
             minute: 0,
             hasCountdown: true,
             tickerDataTitle: "Get Ready"
-        ))
+        ), onEdit: { _ in }, onSkip: { _ in })
 
         // Hourly interval alarm - medication
-        UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+        UpcomingAlarmRow(
+            presentation: UpcomingAlarmPresentation(
             baseAlarmId: UUID(),
             displayName: "Medication",
             icon: "pills.fill",
@@ -131,13 +153,14 @@ struct UpcomingAlarmRow: View {
             minute: 0,
             hasCountdown: false,
             tickerDataTitle: nil
-        ))
+        ), onEdit: { _ in }, onSkip: { _ in })
     }
     .padding()
 }
 
 #Preview("Single Alarm - Light Mode") {
-    UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+    UpcomingAlarmRow(
+        presentation: UpcomingAlarmPresentation(
         baseAlarmId: UUID(),
         displayName: "Morning Coffee",
         icon: "cup.and.saucer.fill",
@@ -148,13 +171,14 @@ struct UpcomingAlarmRow: View {
         minute: 15,
         hasCountdown: true,
         tickerDataTitle: "Brew Time"
-    ))
+    ), onEdit: { _ in }, onSkip: { _ in })
     .padding()
     .preferredColorScheme(.light)
 }
 
 #Preview("Single Alarm - Dark Mode") {
-    UpcomingAlarmRow(presentation: UpcomingAlarmPresentation(
+    UpcomingAlarmRow(
+        presentation: UpcomingAlarmPresentation(
         baseAlarmId: UUID(),
         displayName: "Evening Walk",
         icon: "figure.walk",
@@ -165,7 +189,7 @@ struct UpcomingAlarmRow: View {
         minute: 30,
         hasCountdown: false,
         tickerDataTitle: nil
-    ))
+    ), onEdit: { _ in }, onSkip: { _ in })
     .padding()
     .preferredColorScheme(.dark)
 }
