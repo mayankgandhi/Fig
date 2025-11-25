@@ -95,7 +95,7 @@ struct AlarmDetailView: View {
             isEnabled: true,
             schedule:
                     .daily(
-                        time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)
+                        time: TimeOfDay(hour: 6, minute: 30)
                     ),
             countdown: TickerCountdown(
                 preAlert: TickerCountdown.CountdownDuration(hours: 0, minutes: 5, seconds: 0),

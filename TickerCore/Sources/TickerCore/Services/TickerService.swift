@@ -12,6 +12,7 @@ import SwiftData
 import AlarmKit
 import AppIntents
 import WidgetKit
+import Factory
 
 // MARK: - TickerService Error Types
 
@@ -75,38 +76,28 @@ public final class TickerService {
 
     // Private AlarmKit manager
     @ObservationIgnored
-    private let alarmManager: AlarmManager
+    @Injected(\.alarmManager) private var alarmManager
 
     // Configuration builder
     @ObservationIgnored
-    private let configurationBuilder: AlarmConfigurationBuilderProtocol
+    @Injected(\.alarmConfigurationBuilder) private var configurationBuilder
 
     // State manager (private backing, public via computed property)
     @ObservationIgnored
-    private let _stateManager: AlarmStateManagerProtocol
-    
+    @Injected(\.alarmStateManager) private var _stateManager
+
     // Synchronization service
     @ObservationIgnored
-    private let synchronizationService: AlarmSynchronizationServiceProtocol
+    @Injected(\.alarmSynchronizationService) private var synchronizationService
 
     // Regeneration service
     @ObservationIgnored
-    private let regenerationService: AlarmRegenerationServiceProtocol
+    @Injected(\.alarmRegenerationService) private var regenerationService
 
     // MARK: - Initialization
 
-    public init(
-        alarmManager: AlarmManager = AlarmManager.shared,
-        configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
-        stateManager: AlarmStateManagerProtocol = AlarmStateManager(),
-        synchronizationService: AlarmSynchronizationServiceProtocol = AlarmSynchronizationService(),
-        regenerationService: AlarmRegenerationServiceProtocol = AlarmRegenerationService()
-    ) {
-        self.alarmManager = alarmManager
-        self.configurationBuilder = configurationBuilder
-        self._stateManager = stateManager
-        self.synchronizationService = synchronizationService
-        self.regenerationService = regenerationService
+    public init() {
+        // Dependencies auto-injected via @Injected
     }
     
     // MARK: - Authorization

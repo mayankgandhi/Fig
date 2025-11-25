@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 import AlarmKit
+import SwiftUI
 
 // MARK: - Ticker Model
 
@@ -46,6 +47,9 @@ public final class Ticker {
 
     // AlarmKit Integration
     public var generatedAlarmKitIDs: [UUID] = [] // Multiple alarm IDs for composite schedules
+
+    // CompositeTicker Relationship (optional - only set if this is a child ticker)
+    public var parentCompositeTicker: CompositeTicker?
 
     // Alarm Regeneration
     public var lastRegenerationDate: Date? // When alarms were last regenerated
@@ -159,35 +163,6 @@ public enum TickerSchedule: Codable, Hashable {
     case biweekly(time: TimeOfDay, weekdays: Array<Weekday>)
     case monthly(day: MonthlyDay, time: TimeOfDay)
     case yearly(month: Int, day: Int, time: TimeOfDay)
-
-    public struct TimeOfDay: Codable, Hashable {
-        public var hour: Int // 0-23
-        public var minute: Int // 0-59
-
-        public init(hour: Int, minute: Int) {
-            self.hour = hour
-            self.minute = minute
-        }
-
-        public init(from date: Date) {
-            let components = Calendar.current.dateComponents([.hour, .minute], from: date)
-            self.hour = components.hour ?? 0
-            self.minute = components.minute ?? 0
-        }
-        
-        public func addingTimeInterval(_ interval: TimeInterval) -> TimeOfDay {
-            let totalMinutes = hour * 60 + minute
-            let intervalMinutes = Int(interval / 60)
-            let newTotalMinutes = totalMinutes + intervalMinutes
-            
-            // Handle day rollover - ensure we stay within 24-hour range
-            let adjustedMinutes = ((newTotalMinutes % (24 * 60)) + (24 * 60)) % (24 * 60)
-            let newHour = adjustedMinutes / 60
-            let newMinute = adjustedMinutes % 60
-            
-            return TimeOfDay(hour: newHour, minute: newMinute)
-        }
-    }
 
     public enum Weekday: Int, Codable, Hashable, CaseIterable {
         case sunday = 0
@@ -478,8 +453,15 @@ extension TickerCountdown {
 // MARK: - AlarmPresentation
 
 public struct TickerPresentation: Codable, Hashable {
-    public var tintColorHex: String?
+    var tintColorHex: String?
     public var secondaryButtonType: SecondaryButtonType
+    
+    public var tintColor: Color {
+        guard let tintColorHex else {
+            return TickerColor.primary
+        }
+        return Color(hex: tintColorHex) ?? TickerColor.primary
+    }
 
     public enum SecondaryButtonType: String, Codable, Hashable {
         case none

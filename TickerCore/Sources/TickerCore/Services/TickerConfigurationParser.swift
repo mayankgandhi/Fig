@@ -93,7 +93,7 @@ public class TickerConfigurationParser {
     // MARK: - Private Methods
     
     private func buildSchedule(from configuration: TickerConfiguration, calendar: Calendar) -> TickerSchedule {
-        let time = TickerSchedule.TimeOfDay(
+        let time = TimeOfDay(
             hour: configuration.time.hour,
             minute: configuration.time.minute
         )
@@ -257,7 +257,7 @@ public class TickerConfigurationParser {
         return parsed.getAllEntities()
     }
 
-    private func parseTime(from input: String, entities: ParsedEntities) -> TickerConfiguration.TimeOfDay {
+    private func parseTime(from input: String, entities: ParsedEntities) -> TimeOfDay {
         let lowercaseInput = input.lowercased()
 
         // First, try to parse natural language time expressions
@@ -286,13 +286,13 @@ public class TickerConfigurationParser {
         let nextHour = calendar.date(byAdding: .hour, value: 1, to: now) ?? now
         let components = calendar.dateComponents([.hour, .minute], from: nextHour)
 
-        return TickerConfiguration.TimeOfDay(
+        return TimeOfDay(
             hour: components.hour ?? 12,
             minute: components.minute ?? 0
         )
     }
 
-    private func parseNaturalTimeExpressions(from input: String) -> TickerConfiguration.TimeOfDay? {
+    private func parseNaturalTimeExpressions(from input: String) -> TimeOfDay? {
         let naturalTimeMap: [String: (hour: Int, minute: Int)] = [
             "midnight": (0, 0),
             "noon": (12, 0),
@@ -313,14 +313,14 @@ public class TickerConfigurationParser {
 
         for (expression, time) in naturalTimeMap {
             if input.contains(expression) {
-                return TickerConfiguration.TimeOfDay(hour: time.hour, minute: time.minute)
+                return TimeOfDay(hour: time.hour, minute: time.minute)
             }
         }
 
         return nil
     }
 
-    private func parseTimeWithDataDetector(_ input: String) -> TickerConfiguration.TimeOfDay? {
+    private func parseTimeWithDataDetector(_ input: String) -> TimeOfDay? {
         guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.date.rawValue) else {
             return nil
         }
@@ -350,22 +350,22 @@ public class TickerConfigurationParser {
 
             // Ensure the detected time actually appears in input (and not midnight defaults from date-only phrases)
             if substring.range(of: "midnight") != nil && hour == 0 {
-                return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
+                return TimeOfDay(hour: hour, minute: minute)
             }
 
             if substring.range(of: "noon") != nil && hour == 12 {
-                return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
+                return TimeOfDay(hour: hour, minute: minute)
             }
 
             if hasDigits {
-                return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
+                return TimeOfDay(hour: hour, minute: minute)
             }
         }
 
         return nil
     }
 
-    private func parseRelativeTimeExpressions(from input: String) -> TickerConfiguration.TimeOfDay? {
+    private func parseRelativeTimeExpressions(from input: String) -> TimeOfDay? {
         let lowercaseInput = input.lowercased()
         let calendar = Calendar.current
         let now = Date()
@@ -375,12 +375,12 @@ public class TickerConfigurationParser {
             ("in (\\d+) hours?", { hours in
                 let futureDate = calendar.date(byAdding: .hour, value: hours, to: now) ?? now
                 let components = calendar.dateComponents([.hour, .minute], from: futureDate)
-                return TickerConfiguration.TimeOfDay(hour: components.hour ?? 0, minute: components.minute ?? 0)
+                return TimeOfDay(hour: components.hour ?? 0, minute: components.minute ?? 0)
             }),
             ("in (\\d+) minutes?", { minutes in
                 let futureDate = calendar.date(byAdding: .minute, value: minutes, to: now) ?? now
                 let components = calendar.dateComponents([.hour, .minute], from: futureDate)
-                return TickerConfiguration.TimeOfDay(hour: components.hour ?? 0, minute: components.minute ?? 0)
+                return TimeOfDay(hour: components.hour ?? 0, minute: components.minute ?? 0)
             })
         ]
 
@@ -400,7 +400,7 @@ public class TickerConfigurationParser {
         return nil
     }
 
-    private func extractTimeFromEntitiesEnhanced(input: String, entities: ParsedEntities) -> TickerConfiguration.TimeOfDay? {
+    private func extractTimeFromEntitiesEnhanced(input: String, entities: ParsedEntities) -> TimeOfDay? {
         // Enhanced: Use context-aware number disambiguation
         // Look for numbers near time-related keywords (at, am, pm, o'clock, etc.)
         
@@ -475,10 +475,10 @@ public class TickerConfigurationParser {
                         }
                     }
                     
-                    return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
+                    return TimeOfDay(hour: hour, minute: minute)
                 } else if num >= 0 && num <= 23 {
                     // 24-hour format
-                    return TickerConfiguration.TimeOfDay(hour: num, minute: 0)
+                    return TimeOfDay(hour: num, minute: 0)
                 }
             }
         }
@@ -487,7 +487,7 @@ public class TickerConfigurationParser {
     }
     
     // Legacy method for backward compatibility
-    private func extractTimeFromEntities(_ entities: [String: [String]]) -> TickerConfiguration.TimeOfDay? {
+    private func extractTimeFromEntities(_ entities: [String: [String]]) -> TimeOfDay? {
         // Convert legacy format to new format
         var parsed = ParsedEntities()
         if let numbers = entities["Number"] {
@@ -1059,7 +1059,7 @@ public class TickerConfigurationParser {
         return (startTime, endTime)
     }
 
-    private func parseTimeWithPatternForRange(_ input: String, pattern: String) -> TickerConfiguration.TimeOfDay? {
+    private func parseTimeWithPatternForRange(_ input: String, pattern: String) -> TimeOfDay? {
         guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
             return nil
         }
@@ -1120,7 +1120,7 @@ public class TickerConfigurationParser {
             return nil
         }
 
-        return TickerConfiguration.TimeOfDay(hour: hour, minute: minute)
+        return TimeOfDay(hour: hour, minute: minute)
     }
 
     private func parseEveryPattern(from lowercaseInput: String, input: String, defaultStart: Date, entities: ParsedEntities) -> AITickerGenerator.RepeatOption? {
@@ -1397,7 +1397,7 @@ public extension TickerConfigurationParser {
         let countdownDuration = TimeInterval(countdown.hours * 3600 + countdown.minutes * 60 + countdown.seconds)
         
         // Check if countdown would start before midnight for early morning alarms
-        let alarmTime = TickerSchedule.TimeOfDay(hour: configuration.time.hour, minute: configuration.time.minute)
+        let alarmTime = TimeOfDay(hour: configuration.time.hour, minute: configuration.time.minute)
         let countdownStartTime = alarmTime.addingTimeInterval(-countdownDuration)
         
         // Validate that countdown doesn't go beyond reasonable bounds

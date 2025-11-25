@@ -12,10 +12,14 @@ import WidgetKit
 import SwiftUI
 import Gate
 import TickerCore
+import Factory
 
 @main
 struct AlarmExtension: WidgetBundle {
     init() {
+        // Initialize Factory container for widget extension
+        Container.setupDependencies()
+
         // Configure subscription service for widget extension
         WidgetSubscriptionConfig.configure()
 

@@ -17,16 +17,6 @@ public struct TickerConfiguration: Equatable {
     public let icon: String
     public let colorHex: String
 
-    public struct TimeOfDay: Equatable {
-        public let hour: Int
-        public let minute: Int
-        
-        public init(hour: Int, minute: Int) {
-            self.hour = hour
-            self.minute = minute
-        }
-    }
-
     public struct CountdownConfiguration: Equatable {
         public let hours: Int
         public let minutes: Int

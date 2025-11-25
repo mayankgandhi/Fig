@@ -11,11 +11,10 @@ import TickerCore
 
 struct NaturalLanguageTickerView: View {
     @State private var viewModel: NaturalLanguageViewModel?
-    
+
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    @Environment(TickerService.self) private var tickerService
     
     
     var body: some View {
@@ -321,10 +320,7 @@ struct NaturalLanguageTickerView: View {
     }
         
     private func initializeViewModel() {
-        viewModel = NaturalLanguageViewModel(
-            modelContext: modelContext,
-            tickerService: tickerService
-        )
+        viewModel = NaturalLanguageViewModel(modelContext: modelContext)
     }
     
     // MARK: - Background

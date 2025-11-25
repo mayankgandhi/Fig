@@ -54,7 +54,7 @@ struct TickerListView: View {
             Ticker(
                 label: "Morning Workout",
                 isEnabled: true,
-                schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)),
+                schedule: .daily(time: TimeOfDay(hour: 6, minute: 30)),
                 tickerData: TickerData(
                     name: "Fitness & Health",
                     icon: "figure.run",
@@ -64,7 +64,7 @@ struct TickerListView: View {
             Ticker(
                 label: "Lunch Break",
                 isEnabled: true,
-                schedule: .daily(time: TickerSchedule.TimeOfDay(hour: 12, minute: 0)),
+                schedule: .daily(time: TimeOfDay(hour: 12, minute: 0)),
                 tickerData: TickerData(
                     name: "Lunch Break",
                     icon: "fork.knife",

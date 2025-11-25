@@ -19,10 +19,9 @@ struct AddTickerView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Environment(TickerService.self) private var tickerService
     @Environment(\.colorScheme) private var colorScheme
 
-    @State private var viewModel: AddTickerViewModel
+    @State private var viewModel: AddTickerViewModel?
     @State private var prefillTemplate: Ticker?
 
     // MARK: - Initialization
@@ -31,36 +30,37 @@ struct AddTickerView: View {
         self.namespace = namespace
         self.prefillTickerId = prefillTickerId
         self.isEditMode = isEditMode
-
-        // Initialize viewModel immediately (will be properly configured in onAppear with environment values)
-        // Note: prefillTemplate will be fetched from context in onAppear
-        self._viewModel = State(initialValue: AddTickerViewModel(
-            prefillTemplate: nil,
-            isEditMode: isEditMode
-        ))
     }
 
     // MARK: - Body
 
     var body: some View {
         NavigationStack {
-            contentView
+            if let viewModel = viewModel {
+                contentView(viewModel: viewModel)
+            }
         }
         .navigationTransition(.zoom(sourceID: "addButton", in: namespace))
         .onAppear {
-            // Fetch ticker from local context if editing
-            if let tickerId = prefillTickerId {
-                prefillTemplate = modelContext.model(for: tickerId) as? Ticker
-                viewModel.updatePrefillTemplate(prefillTemplate)
+            // Initialize ViewModel with modelContext
+            if viewModel == nil {
+                // Fetch ticker from local context if editing
+                if let tickerId = prefillTickerId {
+                    prefillTemplate = modelContext.model(for: tickerId) as? Ticker
+                }
+                viewModel = AddTickerViewModel(
+                    modelContext: modelContext,
+                    prefillTemplate: prefillTemplate,
+                    isEditMode: isEditMode
+                )
             }
-            viewModel.configure(modelContext: modelContext, tickerService: tickerService)
         }
     }
 
     // MARK: - Content View
 
     @ViewBuilder
-    private var contentView: some View {
+    private func contentView(viewModel: AddTickerViewModel) -> some View {
         ScrollView {
                 VStack(spacing: TickerSpacing.xl) {
                     // Time Picker Card

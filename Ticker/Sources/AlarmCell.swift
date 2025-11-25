@@ -135,7 +135,7 @@ struct AlarmCell: View {
         }
     }
 
-    private func formatTime(_ time: TickerSchedule.TimeOfDay) -> String {
+    private func formatTime(_ time: TimeOfDay) -> String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         var components = DateComponents()
@@ -166,7 +166,7 @@ alarmItem: Ticker(
             isEnabled: true,
             schedule:
                     .daily(
-                        time: TickerSchedule.TimeOfDay(hour: 12, minute: 30)
+                        time: TimeOfDay(hour: 12, minute: 30)
                     ),
             countdown: nil,
             presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
@@ -204,7 +204,7 @@ alarmItem: Ticker(
             isEnabled: false,
             schedule:
                     .daily(
-                        time: TickerSchedule.TimeOfDay(hour: 22, minute: 0)
+                        time: TimeOfDay(hour: 22, minute: 0)
                     ),
             countdown: nil,
             presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),

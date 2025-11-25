@@ -47,7 +47,8 @@ let project = Project(
                 .project(target: "Gate", path: "../../Gate"),
                 .project(target: "Telemetry", path: "../../Telemetry"),
                 .project(target: "DesignKit", path: "../../DesignKit"),
-                .external(name: "Roadmap")
+                .external(name: "Roadmap"),
+                .external(name: "Factory")
             ],
             settings: .settings(
                 base: [

@@ -18,14 +18,17 @@ struct ContentView: View {
     @Environment(TickerService.self) private var tickerService
     @EnvironmentObject private var modelContextObserver: ModelContextObserver
 
-    // Direct SwiftData query - auto-updates when data changes
+    // Direct SwiftData queries - auto-updates when data changes
     @Query(sort: \Ticker.createdAt, order: .reverse) private var allTickers: [Ticker]
+    @Query(sort: \CompositeTicker.createdAt, order: .reverse) private var allCompositeTickers: [CompositeTicker]
 
     @State private var showAddSheet = false
     @State private var showNaturalLanguageSheet = false
+    @State private var showAddSleepScheduleSheet = false
     @State private var alarmToEdit: Ticker?
     @State private var alarmToDelete: Ticker?
     @State private var alarmToShowDetail: Ticker?
+    @State private var compositeToShowDetail: CompositeTicker?
     @State private var showDeleteAlert = false
     @State private var searchText = ""
     
@@ -33,11 +36,53 @@ struct ContentView: View {
     @Namespace private var editButtonNamespace
     @Namespace private var aiButtonNamespace
 
-    // Filter tickers based on search text
-    private var filteredTickers: [Ticker] {
-        guard !searchText.isEmpty else { return allTickers }
-        return allTickers.filter { ticker in
-            ticker.label.localizedCaseInsensitiveContains(searchText)
+    // Type alias for cleaner code
+    private typealias AlarmListItem = UnifiedAlarmListView.AlarmListItem
+
+    // Filter standalone tickers (exclude children of composite tickers)
+    private var standaloneTickers: [Ticker] {
+        allTickers.filter { $0.parentCompositeTicker == nil }
+    }
+
+    // Combined and sorted alarm items
+    private var allAlarmItems: [AlarmListItem] {
+        var items: [AlarmListItem] = []
+
+        // Add standalone tickers
+        items.append(contentsOf: standaloneTickers.map { .ticker($0) })
+
+        // Add composite tickers
+        items.append(contentsOf: allCompositeTickers.map { .composite($0) })
+
+        // Sort by creation date (most recent first)
+        return items.sorted { item1, item2 in
+            let date1: Date
+            let date2: Date
+
+            switch item1 {
+            case .ticker(let ticker): date1 = ticker.createdAt
+            case .composite(let composite): date1 = composite.createdAt
+            }
+
+            switch item2 {
+            case .ticker(let ticker): date2 = ticker.createdAt
+            case .composite(let composite): date2 = composite.createdAt
+            }
+
+            return date1 > date2
+        }
+    }
+
+    // Filter alarm items based on search text
+    private var filteredAlarmItems: [AlarmListItem] {
+        guard !searchText.isEmpty else { return allAlarmItems }
+        return allAlarmItems.filter { item in
+            let label: String
+            switch item {
+            case .ticker(let ticker): label = ticker.label
+            case .composite(let composite): label = composite.label
+            }
+            return label.localizedCaseInsensitiveContains(searchText)
         }
     }
 
@@ -53,6 +98,7 @@ struct ContentView: View {
                         ToolbarButtonsView(
                             showAddSheet: $showAddSheet,
                             showNaturalLanguageSheet: $showNaturalLanguageSheet,
+                            showAddSleepScheduleSheet: $showAddSleepScheduleSheet,
                             namespace: addButtonNamespace
                         )
                     }
@@ -99,6 +145,25 @@ struct ContentView: View {
                 }
             )
             .presentationCornerRadius(DesignKit.large)
+            .presentationBackground {
+                sheetBackground
+            }
+        }
+        .sheet(item: $compositeToShowDetail) { composite in
+            NavigationStack {
+                CompositeTickerDetailView(compositeTicker: composite)
+            }
+            .presentationCornerRadius(DesignKit.large)
+            .presentationBackground {
+                sheetBackground
+            }
+        }
+        .sheet(isPresented: $showAddSleepScheduleSheet) {
+            AddSleepScheduleView(
+                viewModel: SleepScheduleViewModel(compositeService: CompositeTickerService())
+            )
+            .presentationCornerRadius(DesignKit.large)
+            .presentationDragIndicator(.visible)
             .presentationBackground {
                 sheetBackground
             }
@@ -153,11 +218,14 @@ struct ContentView: View {
     @ViewBuilder
     private var content: some View {
         VStack {
-            if !filteredTickers.isEmpty {
-                TickerListView(
-                    tickers: filteredTickers,
-                    onTap: { ticker in
+            if !filteredAlarmItems.isEmpty {
+                UnifiedAlarmListView(
+                    alarmItems: filteredAlarmItems,
+                    onTickerTap: { ticker in
                         alarmToShowDetail = ticker
+                    },
+                    onCompositeTap: { composite in
+                        compositeToShowDetail = composite
                     },
                     onEdit: { ticker in
                         alarmToEdit = ticker

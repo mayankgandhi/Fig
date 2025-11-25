@@ -37,7 +37,7 @@ final class TickerConfigurationParserTests: XCTestCase {
         XCTAssertEqual(lhs.day, rhs.day, "Days should match", file: file, line: line)
     }
 
-    private func assertTime(_ time: TickerConfiguration.TimeOfDay, hour: Int, minute: Int, file: StaticString = #filePath, line: UInt = #line) {
+    private func assertTime(_ time: TimeOfDay, hour: Int, minute: Int, file: StaticString = #filePath, line: UInt = #line) {
         XCTAssertEqual(time.hour, hour, "Hour mismatch", file: file, line: line)
         XCTAssertEqual(time.minute, minute, "Minute mismatch", file: file, line: line)
     }

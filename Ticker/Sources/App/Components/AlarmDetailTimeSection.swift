@@ -111,7 +111,7 @@ struct AlarmDetailTimeSection: View {
             label: "Morning Workout",
             isEnabled: true,
             schedule: .daily(
-                time: TickerSchedule.TimeOfDay(hour: 6, minute: 30)
+                time: TimeOfDay(hour: 6, minute: 30)
             )
         )
     )

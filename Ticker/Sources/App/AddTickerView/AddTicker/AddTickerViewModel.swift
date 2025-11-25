@@ -8,13 +8,17 @@
 import Foundation
 import SwiftData
 import TickerCore
+import Factory
 
 @Observable
 final class AddTickerViewModel {
     // MARK: - Dependencies
-    private var modelContext: ModelContext!
-    private var tickerService: TickerService!
+    @ObservationIgnored
+    @Injected(\.tickerService) private var tickerService
     private let calendar: Calendar
+
+    // ModelContext passed via init (not injectable as it's view-specific)
+    private var modelContext: ModelContext
 
     // MARK: - Child ViewModels
     var timePickerViewModel: TimePickerViewModel
@@ -35,9 +39,11 @@ final class AddTickerViewModel {
     // MARK: - Initialization
 
     init(
+        modelContext: ModelContext,
         prefillTemplate: Ticker? = nil,
         isEditMode: Bool = false
     ) {
+        self.modelContext = modelContext
         self.calendar = .current
         self.prefillTemplate = prefillTemplate
         self.isEditMode = isEditMode
@@ -68,13 +74,6 @@ final class AddTickerViewModel {
 
         // Track alarm creation started
         AnalyticsEvents.alarmCreateStarted(source: isEditMode ? "edit" : "manual").track()
-    }
-
-    // MARK: - Configuration
-
-    func configure(modelContext: ModelContext, tickerService: TickerService) {
-        self.modelContext = modelContext
-        self.tickerService = tickerService
     }
 
     /// Updates the prefill template and reconfigures the view model with new data
@@ -173,7 +172,7 @@ final class AddTickerViewModel {
             return
         }
         
-        let time = TickerSchedule.TimeOfDay(
+        let time = TimeOfDay(
             hour: timePickerViewModel.selectedHour,
             minute: timePickerViewModel.selectedMinute
         )

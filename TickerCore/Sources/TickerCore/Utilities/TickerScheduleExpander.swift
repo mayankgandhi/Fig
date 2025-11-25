@@ -121,7 +121,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return []
     }
 
-    private func expandDaily(time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+    private func expandDaily(time: TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
 
         // Smart start: begin from window.start
@@ -144,7 +144,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandHourly(interval: Int, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+    private func expandHourly(interval: Int, time: TimeOfDay, within window: DateInterval) -> [Date] {
         // Guard against zero or negative intervals to prevent infinite loops
         guard interval > 0 else {
             return []
@@ -198,7 +198,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+    private func expandEvery(interval: Int, unit: TickerSchedule.TimeUnit, time: TimeOfDay, within window: DateInterval) -> [Date] {
         // Guard against zero or negative intervals to prevent infinite loops
         guard interval > 0 else {
             return []
@@ -268,7 +268,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return intervalDates.sorted()
     }
 
-    private func expandWeekdays(time: TickerSchedule.TimeOfDay, days: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
+    private func expandWeekdays(time: TimeOfDay, days: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
 
         // Smart start: begin from window.start
@@ -298,7 +298,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandBiweekly(time: TickerSchedule.TimeOfDay, weekdays: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
+    private func expandBiweekly(time: TimeOfDay, weekdays: Array<TickerSchedule.Weekday>, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
 
         // Use window.start as the implicit anchor (week 0)
@@ -343,7 +343,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandMonthly(day: TickerSchedule.MonthlyDay, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+    private func expandMonthly(day: TickerSchedule.MonthlyDay, time: TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
 
         // Smart start: begin from window.start
@@ -379,7 +379,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return dates.sorted()
     }
 
-    private func expandYearly(month: Int, day: Int, time: TickerSchedule.TimeOfDay, within window: DateInterval) -> [Date] {
+    private func expandYearly(month: Int, day: Int, time: TimeOfDay, within window: DateInterval) -> [Date] {
         var dates: [Date] = []
 
         // Smart start: begin from window.start
@@ -415,7 +415,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
 
     // MARK: - Helper Methods
 
-    private func createDate(from baseDate: Date, with time: TickerSchedule.TimeOfDay) -> Date? {
+    private func createDate(from baseDate: Date, with time: TimeOfDay) -> Date? {
         var components = calendar.dateComponents([.year, .month, .day], from: baseDate)
         components.hour = time.hour
         components.minute = time.minute
@@ -423,7 +423,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return calendar.date(from: components)
     }
 
-    private func createMonthlyDate(year: Int, month: Int, day: TickerSchedule.MonthlyDay, time: TickerSchedule.TimeOfDay) -> Date? {
+    private func createMonthlyDate(year: Int, month: Int, day: TickerSchedule.MonthlyDay, time: TimeOfDay) -> Date? {
         var components = DateComponents()
         components.year = year
         components.month = month
@@ -459,7 +459,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         }
     }
 
-    private func findFirstWeekday(_ weekday: TickerSchedule.Weekday, in year: Int, month: Int, time: TickerSchedule.TimeOfDay) -> Date? {
+    private func findFirstWeekday(_ weekday: TickerSchedule.Weekday, in year: Int, month: Int, time: TimeOfDay) -> Date? {
         var components = DateComponents()
         components.year = year
         components.month = month
@@ -483,7 +483,7 @@ public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
         return createDate(from: targetDate, with: time)
     }
 
-    private func findLastWeekday(_ weekday: TickerSchedule.Weekday, in year: Int, month: Int, time: TickerSchedule.TimeOfDay) -> Date? {
+    private func findLastWeekday(_ weekday: TickerSchedule.Weekday, in year: Int, month: Int, time: TimeOfDay) -> Date? {
         var components = DateComponents()
         components.year = year
         components.month = month

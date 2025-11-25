@@ -10,17 +10,21 @@ import Foundation
 import SwiftData
 import Observation
 import TickerCore
+import Factory
 
 @MainActor
 @Observable
 final class NaturalLanguageViewModel {
     // MARK: - Dependencies
     private let modelContext: ModelContext
-    private let tickerService: TickerService
+    @ObservationIgnored
+    @Injected(\.tickerService) private var tickerService
 
     // MARK: - AI Service (Pure)
-    private let aiService = AITickerGenerator()
-    private let sessionManager = AISessionManager.shared
+    @ObservationIgnored
+    @Injected(\.aiTickerGenerator) private var aiService
+    @ObservationIgnored
+    @Injected(\.aiSessionManager) private var sessionManager
 
     // MARK: - Child ViewModels
     var timePickerViewModel: TimePickerViewModel
@@ -51,12 +55,8 @@ final class NaturalLanguageViewModel {
 
     // MARK: - Initialization
 
-    init(
-        modelContext: ModelContext,
-        tickerService: TickerService
-    ) {
+    init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        self.tickerService = tickerService
 
         // Initialize child view models
         self.timePickerViewModel = TimePickerViewModel()
@@ -331,7 +331,7 @@ final class NaturalLanguageViewModel {
         // Build configuration from view models
         let configuration = TickerConfiguration(
             label: labelViewModel.labelText.isEmpty ? "Alarm" : labelViewModel.labelText,
-            time: TickerConfiguration.TimeOfDay(
+            time: TimeOfDay(
                 hour: timePickerViewModel.selectedHour,
                 minute: timePickerViewModel.selectedMinute
             ),

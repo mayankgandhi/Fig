@@ -9,6 +9,7 @@
 import Foundation
 import SwiftData
 import AlarmKit
+import Factory
 
 // MARK: - RegenerationTrigger
 
@@ -38,26 +39,21 @@ public protocol AlarmRegenerationServiceProtocol {
 @Observable
 public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     // Dependencies
-    private let alarmManager: AlarmManager
-    private let scheduleExpander: TickerScheduleExpanderProtocol
-    private let rateLimiter: RegenerationRateLimiter
-    private let configurationBuilder: AlarmConfigurationBuilderProtocol
-    private let stateManager: AlarmStateManagerProtocol
+    @ObservationIgnored
+    @Injected(\.alarmManager) private var alarmManager
+    @ObservationIgnored
+    @Injected(\.tickerScheduleExpander) private var scheduleExpander
+    @ObservationIgnored
+    @Injected(\.regenerationRateLimiter) private var rateLimiter
+    @ObservationIgnored
+    @Injected(\.alarmConfigurationBuilder) private var configurationBuilder
+    @ObservationIgnored
+    @Injected(\.alarmStateManager) private var stateManager
 
     // MARK: - Initialization
 
-    public init(
-        alarmManager: AlarmManager = .shared,
-        scheduleExpander: TickerScheduleExpanderProtocol = TickerScheduleExpander(),
-        rateLimiter: RegenerationRateLimiter = .shared,
-        configurationBuilder: AlarmConfigurationBuilderProtocol = AlarmConfigurationBuilder(),
-        stateManager: AlarmStateManagerProtocol = AlarmStateManager()
-    ) {
-        self.alarmManager = alarmManager
-        self.scheduleExpander = scheduleExpander
-        self.rateLimiter = rateLimiter
-        self.configurationBuilder = configurationBuilder
-        self.stateManager = stateManager
+    public init() {
+        // Dependencies auto-injected via @Injected
     }
 
     // MARK: - Regeneration Logic

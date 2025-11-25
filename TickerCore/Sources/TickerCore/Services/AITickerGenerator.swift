@@ -209,7 +209,7 @@ public final class AITickerGenerator {
 
         return TickerConfiguration(
             label: response.label,
-            time: TickerConfiguration.TimeOfDay(hour: response.hour, minute: response.minute),
+            time: TimeOfDay(hour: response.hour, minute: response.minute),
             date: date,
             repeatOption: repeatOption,
             countdown: countdown,

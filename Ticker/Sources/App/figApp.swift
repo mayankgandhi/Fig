@@ -12,6 +12,7 @@ import TickerCore
 import Gate
 import UIKit
 import DesignKit
+import Factory
 
 @main
 struct figApp: App {
@@ -22,7 +23,8 @@ struct figApp: App {
     
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Ticker.self
+            Ticker.self,
+            CompositeTicker.self
         ])
         
         // Use App Groups for shared data access with widget extension
@@ -40,9 +42,10 @@ struct figApp: App {
         }
     }()
     
-    private let tickerService = TickerService()
-    private let regenerationService = AlarmRegenerationService()
-    private let modelContextObserver = ModelContextObserver()
+    // Services now resolved via Factory
+    @Injected(\.tickerService) private var tickerService
+    @Injected(\.alarmRegenerationService) private var regenerationService
+    @Injected(\.modelContextObserver) private var modelContextObserver
     
     // Background task identifier
     private let backgroundTaskIdentifier = "com.fig.alarm.regeneration"
@@ -50,6 +53,9 @@ struct figApp: App {
     init() {
         // Configure DesignKit with Ticker theme (must be done before any views)
         DesignKit.configure(.ticker)
+
+        // Initialize Factory container
+        Container.setupDependencies()
         
         // Configure UserService with Ticker-specific settings and migration
         let sharedDefaults = UserDefaults(suiteName: "group.m.fig") ?? .standard

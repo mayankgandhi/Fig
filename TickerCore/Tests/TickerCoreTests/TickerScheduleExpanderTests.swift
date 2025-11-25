@@ -148,7 +148,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
     
     func testExpandDaily_MultipleDaysInWindow() {
         // Given
-        let time = TickerSchedule.TimeOfDay(hour: 9, minute: 0)
+        let time = TimeOfDay(hour: 9, minute: 0)
         let window = createWindow(start: testDate, durationHours: 72) // 3 days
         
         // When
@@ -164,7 +164,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
     
     func testExpandDaily_TimeAtMidnight() {
         // Given
-        let time = TickerSchedule.TimeOfDay(hour: 0, minute: 0)
+        let time = TimeOfDay(hour: 0, minute: 0)
         let window = createWindow(start: testDate, durationHours: 48)
         
         // When
@@ -180,7 +180,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
     
     func testExpandDaily_TimeAtEndOfDay() {
         // Given
-        let time = TickerSchedule.TimeOfDay(hour: 23, minute: 59)
+        let time = TimeOfDay(hour: 23, minute: 59)
         let window = createWindow(start: testDate, durationHours: 48)
         
         // When
@@ -197,7 +197,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
     func testExpandDaily_WindowStartingAfterAlarmTime() {
         // Given
         // Window starts at 12:00 PM, alarm is at 9:00 AM
-        let time = TickerSchedule.TimeOfDay(hour: 9, minute: 0)
+        let time = TimeOfDay(hour: 9, minute: 0)
         let window = createWindow(start: testDate, durationHours: 48)
         
         // When
@@ -213,7 +213,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
     func testExpandDaily_WindowStartingBeforeAlarmTime() {
         // Given
         // Window starts at 12:00 PM, alarm is at 3:00 PM
-        let time = TickerSchedule.TimeOfDay(hour: 15, minute: 0)
+        let time = TimeOfDay(hour: 15, minute: 0)
         let window = createWindow(start: testDate, durationHours: 48)
         
         // When
@@ -227,7 +227,7 @@ final class TickerScheduleExpanderTests: XCTestCase {
     
     func testExpandDaily_ResultsAreSorted() {
         // Given
-        let time = TickerSchedule.TimeOfDay(hour: 9, minute: 0)
+        let time = TimeOfDay(hour: 9, minute: 0)
         let window = createWindow(start: testDate, durationHours: 120) // 5 days
         
         // When

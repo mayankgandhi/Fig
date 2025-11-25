@@ -9,7 +9,7 @@ import Foundation
 import FoundationModels
 
 /// Handles all interactions with Apple Foundation Models for parsing ticker configurations
-class FoundationModelsParser {
+public class FoundationModelsParser {
     
     // MARK: - Session Creation
     

@@ -12,7 +12,9 @@ let project = Project(
             deploymentTargets: .iOS("26.0"),
             infoPlist: .default,
             sources: ["Sources/**"],
-            dependencies: [ ]
+            dependencies: [
+                .external(name: "Factory")
+            ]
         ),
 
         // Test target

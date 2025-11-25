@@ -9,24 +9,36 @@ import SwiftUI
 import TickerCore
 
 struct ToolbarButtonsView: View {
-    
+
     @Binding var showAddSheet: Bool
     @Binding var showNaturalLanguageSheet: Bool
+    @Binding var showAddSleepScheduleSheet: Bool
     var namespace: Namespace.ID
-    
+
     var body: some View {
         Group {
             plusButton
             aiButton
         }
     }
-    
+
     // MARK: - Private Views
-    
+
     private var plusButton: some View {
-        Button {
-            TickerHaptics.selection()
-            showAddSheet.toggle()
+        Menu {
+            Button {
+                TickerHaptics.selection()
+                showAddSheet = true
+            } label: {
+                Label("Standard Alarm", systemImage: "alarm")
+            }
+
+            Button {
+                TickerHaptics.selection()
+                showAddSleepScheduleSheet = true
+            } label: {
+                Label("Sleep Schedule", systemImage: "bed.double.fill")
+            }
         } label: {
             Image(systemName: "plus")
         }
@@ -51,6 +63,7 @@ struct ToolbarButtonsView: View {
                 ToolbarButtonsView(
                     showAddSheet: .constant(false),
                     showNaturalLanguageSheet: .constant(false),
+                    showAddSleepScheduleSheet: .constant(false),
                     namespace: Namespace().wrappedValue
                 )
             }

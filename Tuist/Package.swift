@@ -9,7 +9,8 @@ import PackageDescription
             "Gate": .framework,
             "Telemetry": .framework,
             "DesignKit": .framework,
-            "Roadmap": .framework
+            "Roadmap": .framework,
+            "Factory": .framework
         ]
     )
 #endif
@@ -24,6 +25,8 @@ let package = Package(
         .package(url: "https://github.com/mayankgandhi/DesignKit", exact: "1.0.2"),
 
         .package(url: "https://github.com/AvdLee/Roadmap", exact: "1.1.0"),
+
+        .package(url: "https://github.com/hmlongco/Factory", from: "2.3.0"),
 
     ]
 )
