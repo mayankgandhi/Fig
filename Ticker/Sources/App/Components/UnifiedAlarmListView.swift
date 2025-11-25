@@ -31,6 +31,8 @@ struct UnifiedAlarmListView: View {
     let onEdit: (Ticker) -> Void
     let onDelete: (Ticker) -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+    
     var body: some View {
         List {
             ForEach(alarmItems) { item in
@@ -41,6 +43,12 @@ struct UnifiedAlarmListView: View {
                     }
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(
+                        top: DesignKit.xs,
+                        leading: DesignKit.md,
+                        bottom: DesignKit.xs,
+                        trailing: DesignKit.md
+                    ))
                     .contextMenu {
                         Button {
                             DesignKitHaptics.selection()
@@ -60,11 +68,31 @@ struct UnifiedAlarmListView: View {
                     }
 
                 case .composite(let composite):
-                    CompositeAlarmCell(compositeItem: composite) {
-                        onCompositeTap(composite)
+                    if composite.compositeType == .sleepSchedule {
+                        SleepScheduleCell(compositeItem: composite) {
+                            onCompositeTap(composite)
+                        }
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(
+                            top: DesignKit.sm,
+                            leading: DesignKit.md,
+                            bottom: DesignKit.sm,
+                            trailing: DesignKit.md
+                        ))
+                    } else {
+                        CompositeAlarmCell(compositeItem: composite) {
+                            onCompositeTap(composite)
+                        }
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(
+                            top: DesignKit.xs,
+                            leading: DesignKit.md,
+                            bottom: DesignKit.xs,
+                            trailing: DesignKit.md
+                        ))
                     }
-                    .listRowSeparator(.hidden)
-                    .listRowBackground(Color.clear)
                 }
             }
         }
@@ -78,67 +106,125 @@ struct UnifiedAlarmListView: View {
 struct CompositeAlarmCell: View {
     let compositeItem: CompositeTicker
     let onTap: () -> Void
+    @Environment(\.colorScheme) private var colorScheme
+    
+    private var tintColor: Color {
+        compositeItem.presentation.tintColor
+    }
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 16) {
-                // Icon
-                Image(systemName: compositeItem.compositeType.iconName)
-                    .font(.title2)
-                    .foregroundStyle(compositeItem.presentation.tintColor)
-                    .frame(width: 40, height: 40)
-                    .glassEffect()
-
+        Button(action: {
+            DesignKitHaptics.selection()
+            onTap()
+        }) {
+            HStack(spacing: DesignKit.md) {
+                // Icon with background circle
+                categoryIconView
+                
                 // Content
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(compositeItem.label)
-                        .font(.headline)
-                        .foregroundColor(.primary)
-
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: DesignKit.xxs) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(compositeItem.label)
+                            .tickerTitle()
+                            .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
+                            .lineLimit(1)
+                        
+                        Spacer()
+                    }
+                    
+                    HStack(spacing: DesignKit.xs) {
                         // Child count badge
                         if compositeItem.childCount > 0 {
-                            HStack(spacing: 4) {
+                            HStack(spacing: DesignKit.xxs) {
                                 Image(systemName: "clock.fill")
-                                    .font(.caption2)
+                                    .font(.system(size: 12, weight: .medium))
                                 Text("\(compositeItem.childCount) alarms")
-                                    .font(.caption)
+                                    .detailText()
                             }
-                            .foregroundColor(.secondary)
+                            .foregroundStyle(DesignKit.textSecondary(for: colorScheme))
                         }
 
                         // Sleep duration (for sleep schedules)
                         if let config = compositeItem.sleepScheduleConfig {
-                            Text("•")
-                                .foregroundColor(.secondary)
+                            if compositeItem.childCount > 0 {
+                                Text("•")
+                                    .foregroundStyle(DesignKit.textTertiary(for: colorScheme))
+                            }
                             Text(config.formattedDuration)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                                .detailText()
+                                .foregroundStyle(DesignKit.textSecondary(for: colorScheme))
+                        }
+                        
+                        Spacer()
+                        
+                        // Enabled/disabled indicator
+                        if !compositeItem.isEnabled {
+                            Image(systemName: "pause.circle.fill")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(DesignKit.textTertiary(for: colorScheme))
                         }
                     }
                 }
-
-                Spacer()
-
-                // Enabled/disabled indicator
-                ZStack {
-                    Circle()
-                        .fill(compositeItem.isEnabled ?
-                              compositeItem.presentation.tintColor.opacity(0.2) :
-                              Color.gray.opacity(0.1))
-                        .frame(width: 24, height: 24)
-
-                    if compositeItem.isEnabled {
-                        Image(systemName: "checkmark")
-                            .font(.caption.weight(.bold))
-                            .foregroundStyle(compositeItem.presentation.tintColor)
-                    }
-                }
             }
-            .padding(.vertical, 12)
-            .padding(.horizontal, 16)
-            
+            .padding(DesignKit.md)
+            .background(cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: DesignKit.large))
+            .shadow(
+                color: Color.black.opacity(colorScheme == .dark ? 0.2 : 0.05),
+                radius: 8,
+                x: 0,
+                y: 2
+            )
         }
         .buttonStyle(.plain)
+    }
+    
+    // MARK: - Subviews
+    
+    @ViewBuilder
+    private var categoryIconView: some View {
+        ZStack {
+            // Background circle
+            Circle()
+                .fill(tintColor.opacity(0.15))
+                .frame(width: 48, height: 48)
+            
+            // Icon
+            Image(systemName: compositeItem.compositeType.iconName)
+                .font(.system(.title3, design: .rounded, weight: .semibold))
+                .foregroundStyle(tintColor)
+                .frame(width: 24, height: 24)
+        }
+    }
+    
+    // MARK: - Card Background
+    
+    @ViewBuilder
+    private var cardBackground: some View {
+        ZStack {
+            // Base material background
+            RoundedRectangle(cornerRadius: DesignKit.large)
+                .fill(.ultraThinMaterial)
+            
+            // Subtle color tint based on tint color
+            RoundedRectangle(cornerRadius: DesignKit.large)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            tintColor.opacity(colorScheme == .dark ? 0.08 : 0.04),
+                            Color.clear
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+            
+            // Subtle border
+            RoundedRectangle(cornerRadius: DesignKit.large)
+                .strokeBorder(
+                    tintColor.opacity(colorScheme == .dark ? 0.15 : 0.1),
+                    lineWidth: 1
+                )
+        }
     }
 }

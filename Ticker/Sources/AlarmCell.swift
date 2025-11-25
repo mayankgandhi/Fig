@@ -23,47 +23,96 @@ struct AlarmCell: View {
     }
 
     var body: some View {
-        HStack(spacing: DesignKit.md) {
-            // Icon with background circle
-            categoryIconView
-            
-            // Main content
-            VStack(alignment: .leading, spacing: DesignKit.xxs) {
-                HStack {
-                    Text(alarmItem.label)
-                        .tickerTitle()
-                        .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
-                        .lineLimit(1)
-                    
-                    Spacer()
-                    
-                    // Time display
-                    if let schedule = alarmItem.schedule {
-                        scheduleText(for: schedule)
-                            .timeDisplay()
-                            .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
-                    } else if let countdown = alarmItem.countdown?.preAlert {
-                        Text(formatDuration(countdown.interval))
-                            .timeDisplay()
-                            .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
-                    }
-                }
-                
-                HStack {
-                    // Schedule info
-                    scheduleInfoView
-                        .detailText()
-                        .foregroundStyle(DesignKit.textSecondary(for: colorScheme))
-                    
-                    Spacer()
-                   
-                }
-            }
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
+        Button(action: {
             DesignKitHaptics.selection()
             onTap?()
+        }) {
+            HStack(spacing: DesignKit.md) {
+                // Icon with background circle
+                categoryIconView
+                
+                // Main content
+                VStack(alignment: .leading, spacing: DesignKit.xxs) {
+                    HStack(alignment: .firstTextBaseline) {
+                        Text(alarmItem.label)
+                            .tickerTitle()
+                            .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
+                            .lineLimit(1)
+                        
+                        Spacer()
+                        
+                        // Time display
+                        if let schedule = alarmItem.schedule {
+                            scheduleText(for: schedule)
+                                .timeDisplay()
+                                .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
+                        } else if let countdown = alarmItem.countdown?.preAlert {
+                            Text(formatDuration(countdown.interval))
+                                .timeDisplay()
+                                .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
+                        }
+                    }
+                    
+                    HStack {
+                        // Schedule info
+                        scheduleInfoView
+                            .detailText()
+                            .foregroundStyle(DesignKit.textSecondary(for: colorScheme))
+                        
+                        Spacer()
+                        
+                        // Enabled/disabled indicator
+                        if !alarmItem.isEnabled {
+                            Image(systemName: "pause.circle.fill")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundStyle(DesignKit.textTertiary(for: colorScheme))
+                        }
+                    }
+                }
+            }
+            .padding(DesignKit.md)
+            .background(cardBackground)
+            .clipShape(RoundedRectangle(cornerRadius: DesignKit.large))
+            .shadow(
+                color: Color.black.opacity(colorScheme == .dark ? 0.2 : 0.05),
+                radius: 8,
+                x: 0,
+                y: 2
+            )
+        }
+        .buttonStyle(.plain)
+    }
+    
+    // MARK: - Card Background
+    
+    @ViewBuilder
+    private var cardBackground: some View {
+        let iconColor = iconColor
+        
+        ZStack {
+            // Base material background
+            RoundedRectangle(cornerRadius: DesignKit.large)
+                .fill(.ultraThinMaterial)
+            
+            // Subtle color tint based on icon color
+            RoundedRectangle(cornerRadius: DesignKit.large)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            iconColor.opacity(colorScheme == .dark ? 0.08 : 0.04),
+                            Color.clear
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+            
+            // Subtle border
+            RoundedRectangle(cornerRadius: DesignKit.large)
+                .strokeBorder(
+                    iconColor.opacity(colorScheme == .dark ? 0.15 : 0.1),
+                    lineWidth: 1
+                )
         }
     }
 
@@ -105,13 +154,15 @@ struct AlarmCell: View {
     @ViewBuilder
     private var scheduleInfoView: some View {
         if let schedule = alarmItem.schedule {
-            HStack(spacing: 4) {
+            HStack(spacing: DesignKit.xxs) {
                 Image(systemName: schedule.icon)
+                    .font(.system(size: 12, weight: .medium))
                 Text(scheduleDescription(for: schedule))
             }
         } else if alarmItem.countdown?.preAlert != nil {
-            HStack(spacing: 4) {
+            HStack(spacing: DesignKit.xxs) {
                 Image(systemName: "timer")
+                    .font(.system(size: 12, weight: .medium))
                 Text("Countdown")
             }
         }
@@ -159,7 +210,7 @@ struct AlarmCell: View {
 // MARK: - Preview
 
 #Preview {
-    VStack(spacing: DesignKit.md) {
+    VStack(spacing: DesignKit.sm) {
         // Daily alarm example
         AlarmCell(
 alarmItem: Ticker(
