@@ -152,7 +152,7 @@ struct ContentView: View {
         }
         .sheet(item: $compositeToShowDetail) { composite in
             NavigationStack {
-                CompositeTickerDetailView(compositeTicker: composite)
+                CompositeTickerDetailContainerView(compositeTicker: composite)
             }
             .presentationCornerRadius(DesignKit.large)
             .presentationBackground {
@@ -160,7 +160,7 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showAddSleepScheduleSheet) {
-            AddSleepScheduleView(
+            SleepScheduleEditor(
                 viewModel: SleepScheduleViewModel()
             )
             .presentationCornerRadius(DesignKit.large)

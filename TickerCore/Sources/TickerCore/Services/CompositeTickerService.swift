@@ -49,7 +49,6 @@ public final class CompositeTickerService {
         label: String = "Sleep Schedule",
         bedtime: TimeOfDay,
         wakeTime: TimeOfDay,
-        sleepGoalHours: Double = 8.0,
         presentation: TickerPresentation = TickerPresentation(),
         modelContext: ModelContext
     ) async throws -> CompositeTicker {
@@ -60,8 +59,7 @@ public final class CompositeTickerService {
         // 1. Create the parent CompositeTicker
         let sleepConfig = SleepScheduleConfiguration(
             bedtime: bedtime,
-            wakeTime: wakeTime,
-            sleepGoalHours: sleepGoalHours
+            wakeTime: wakeTime
         )
 
         let compositeTicker = CompositeTicker(
@@ -163,7 +161,6 @@ public final class CompositeTickerService {
         _ composite: CompositeTicker,
         bedtime: TimeOfDay,
         wakeTime: TimeOfDay,
-        sleepGoalHours: Double = 8.0,
         modelContext: ModelContext
     ) async throws {
         print("🛏️ Updating Sleep Schedule: \(composite.id)")
@@ -175,8 +172,7 @@ public final class CompositeTickerService {
         // Update configuration
         composite.updateSleepSchedule(
             bedtime: bedtime,
-            wakeTime: wakeTime,
-            sleepGoalHours: sleepGoalHours
+            wakeTime: wakeTime
         )
 
         // Update child tickers

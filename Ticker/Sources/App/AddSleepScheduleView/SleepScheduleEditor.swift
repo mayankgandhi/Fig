@@ -1,9 +1,9 @@
 //
-//  AddSleepScheduleView.swift
+//  SleepScheduleEditor.swift
 //  Ticker
 //
 //  Created by Claude Code
-//  Main view for creating sleep schedule composite tickers
+//  Editor for creating and editing sleep schedule composite tickers
 //
 
 import SwiftUI
@@ -11,7 +11,7 @@ import SwiftData
 import TickerCore
 import Factory
 
-struct AddSleepScheduleView: View {
+struct SleepScheduleEditor: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -36,13 +36,11 @@ struct AddSleepScheduleView: View {
                     // Sleep duration display
                     durationSection
 
-                    // Edit Sleep Schedule in Health button
-                    healthLinkButton
                 }
                 .padding()
             }
             .background(Color(uiColor: .systemGroupedBackground))
-            .navigationTitle("Change Wake Up")
+            .navigationTitle(navigationTitle)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -68,6 +66,16 @@ struct AddSleepScheduleView: View {
                     Text(error.localizedDescription)
                 }
             }
+        }
+    }
+
+    // MARK: - Computed Properties
+
+    private var navigationTitle: String {
+        if viewModel.compositeTickerToUpdate != nil {
+            return "Edit Sleep Schedule"
+        } else {
+            return "New Sleep Schedule"
         }
     }
 
@@ -132,14 +140,13 @@ struct AddSleepScheduleView: View {
 
     private var durationSection: some View {
         VStack(spacing: 8) {
+            Text("Sleep Duration")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+
             Text(viewModel.formattedDuration)
                 .font(.title2)
                 .fontWeight(.bold)
-
-            Text(viewModel.goalMessage)
-                .font(.subheadline)
-                .foregroundColor(viewModel.meetsGoal ? .green : .orange)
-                .multilineTextAlignment(.center)
         }
         .padding()
         .frame(maxWidth: .infinity)
@@ -149,25 +156,7 @@ struct AddSleepScheduleView: View {
         )
     }
 
-    private var healthLinkButton: some View {
-        Button {
-            // Open Health app sleep schedule
-            if let url = URL(string: "x-apple-health://") {
-                UIApplication.shared.open(url)
-            }
-        } label: {
-            Text("Edit Sleep Schedule in Health")
-                .font(.body)
-                .fontWeight(.medium)
-                .foregroundColor(.orange)
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.orange.opacity(0.1))
-                )
-        }
-    }
+    
 
     // MARK: - Actions
 
@@ -185,6 +174,7 @@ struct AddSleepScheduleView: View {
 // MARK: - Preview
 
 // #Preview {
-//     AddSleepScheduleView()
+//     SleepScheduleEditor()
 //         .modelContainer(for: [Ticker.self, CompositeTicker.self], inMemory: true)
 // }
+

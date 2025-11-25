@@ -71,57 +71,7 @@ struct CompositeTickerDetailView: View {
                     Text("Schedule")
                 }
 
-                // Sleep duration info
-                Section {
-                    HStack {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("Sleep Duration")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-
-                            Text(config.formattedDuration)
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                        }
-
-                        Spacer()
-
-                        if config.meetsGoal {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                        }
-                    }
-
-                    if config.meetsGoal {
-                        Text("This schedule meets your sleep goal.")
-                            .font(.caption)
-                            .foregroundColor(.green)
-                    } else {
-                        Text("This schedule is \(String(format: "%.1f", config.sleepGoalHours - config.sleepDuration)) hours short of your goal.")
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                    }
-                }
-
-                // Health app link
-                Section {
-                    Button {
-                        if let url = URL(string: "x-apple-health://") {
-                            UIApplication.shared.open(url)
-                        }
-                    } label: {
-                        HStack {
-                            Text("Edit Sleep Schedule in Health")
-                                .foregroundColor(.orange)
-
-                            Spacer()
-
-                            Image(systemName: "arrow.up.forward")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                        }
-                    }
-                }
+               
             }
 
             // Child tickers section (generic, for other composite types)
@@ -275,47 +225,5 @@ struct CompositeTickerDetailView: View {
         } catch {
             print("Failed to delete composite ticker: \(error)")
         }
-    }
-}
-
-// MARK: - Preview
-
-#Preview {
-    @Previewable @Injected(\.tickerService) var tickerService
-    let config = ModelConfiguration(isStoredInMemoryOnly: true)
-    let container = try! ModelContainer(for: Ticker.self, CompositeTicker.self, configurations: config)
-
-    let compositeTicker = CompositeTicker(
-        label: "Sleep Schedule",
-        compositeType: .sleepSchedule,
-        configuration: .sleepSchedule(SleepScheduleConfiguration(
-            bedtime: TimeOfDay(hour: 22, minute: 0),
-            wakeTime: TimeOfDay(hour: 6, minute: 30),
-            sleepGoalHours: 8.0
-        ))
-    )
-
-    let bedtime = Ticker(
-        label: "Bedtime",
-        schedule: .daily(time: TimeOfDay(hour: 22, minute: 0))
-    )
-
-    let wakeUp = Ticker(
-        label: "Wake Up",
-        schedule: .daily(time: TimeOfDay(hour: 6, minute: 30))
-    )
-
-    bedtime.parentCompositeTicker = compositeTicker
-    wakeUp.parentCompositeTicker = compositeTicker
-    compositeTicker.childTickers = [bedtime, wakeUp]
-
-    container.mainContext.insert(compositeTicker)
-    container.mainContext.insert(bedtime)
-    container.mainContext.insert(wakeUp)
-
-    return NavigationStack {
-        CompositeTickerDetailView(compositeTicker: compositeTicker)
-            .modelContainer(container)
-            .environment(tickerService)
     }
 }

@@ -18,12 +18,10 @@ public enum CompositeConfiguration: Codable, Sendable {
 public struct SleepScheduleConfiguration: Codable, Sendable {
     public var bedtime: TimeOfDay
     public var wakeTime: TimeOfDay
-    public var sleepGoalHours: Double
 
-    public init(bedtime: TimeOfDay, wakeTime: TimeOfDay, sleepGoalHours: Double = 8.0) {
+    public init(bedtime: TimeOfDay, wakeTime: TimeOfDay) {
         self.bedtime = bedtime
         self.wakeTime = wakeTime
-        self.sleepGoalHours = sleepGoalHours
     }
 
     /// Calculate sleep duration in hours
@@ -41,11 +39,6 @@ public struct SleepScheduleConfiguration: Codable, Sendable {
         }
 
         return Double(duration) / 60.0
-    }
-
-    /// Check if sleep duration meets the goal
-    public var meetsGoal: Bool {
-        return sleepDuration >= sleepGoalHours
     }
 
     /// Formatted sleep duration string (e.g., "7 hr 25 min")

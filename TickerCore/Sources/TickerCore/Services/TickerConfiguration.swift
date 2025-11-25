@@ -8,7 +8,7 @@
 import Foundation
 import FoundationModels
 
-public struct TickerConfiguration: Equatable {
+public struct TickerConfiguration: Codable, Equatable {
     public let label: String
     public let time: TimeOfDay
     public let date: Date
@@ -17,7 +17,7 @@ public struct TickerConfiguration: Equatable {
     public let icon: String
     public let colorHex: String
 
-    public struct CountdownConfiguration: Equatable {
+    public struct CountdownConfiguration: Codable, Equatable {
         public let hours: Int
         public let minutes: Int
         public let seconds: Int

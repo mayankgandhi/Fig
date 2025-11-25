@@ -103,11 +103,10 @@ extension CompositeTicker {
     }
 
     /// Update sleep schedule configuration
-    public func updateSleepSchedule(bedtime: TimeOfDay, wakeTime: TimeOfDay, sleepGoalHours: Double = 8.0) {
+    public func updateSleepSchedule(bedtime: TimeOfDay, wakeTime: TimeOfDay) {
         let config = SleepScheduleConfiguration(
             bedtime: bedtime,
-            wakeTime: wakeTime,
-            sleepGoalHours: sleepGoalHours
+            wakeTime: wakeTime
         )
         self.configuration = .sleepSchedule(config)
     }

@@ -23,7 +23,7 @@ public final class AITickerGenerator {
     // Token limit for context window (on-device model has 4096 token limit)
     private let maxInputTokens = 1000 // Conservative estimate leaving room for schema and response
 
-    public enum RepeatOption: Equatable {
+    public enum RepeatOption: Equatable, Codable {
         case oneTime
         case daily
         case weekdays([TickerSchedule.Weekday])

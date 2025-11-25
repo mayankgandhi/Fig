@@ -137,10 +137,7 @@ struct CompositeAlarmCell: View {
             }
             .padding(.vertical, 12)
             .padding(.horizontal, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(uiColor: .secondarySystemGroupedBackground))
-            )
+            
         }
         .buttonStyle(.plain)
     }

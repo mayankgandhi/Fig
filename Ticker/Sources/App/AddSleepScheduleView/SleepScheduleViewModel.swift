@@ -19,11 +19,13 @@ final class SleepScheduleViewModel {
 
     var bedtime: TimeOfDay
     var wakeTime: TimeOfDay
-    var sleepGoalHours: Double = 8.0
     var label: String = "Sleep Schedule"
 
     // Presentation
     var presentation: TickerPresentation
+
+    // Edit mode
+    var compositeTickerToUpdate: CompositeTicker?
 
     // UI State
     var isCreating: Bool = false
@@ -39,13 +41,16 @@ final class SleepScheduleViewModel {
     init(
         bedtime: TimeOfDay = TimeOfDay(hour: 22, minute: 0), // 10:00 PM default
         wakeTime: TimeOfDay = TimeOfDay(hour: 6, minute: 30), // 6:30 AM default
-        sleepGoalHours: Double = 8.0,
         presentation: TickerPresentation = TickerPresentation(),
+        compositeTickerToUpdate: CompositeTicker? = nil
     ) {
         self.bedtime = bedtime
         self.wakeTime = wakeTime
-        self.sleepGoalHours = sleepGoalHours
         self.presentation = presentation
+        self.compositeTickerToUpdate = compositeTickerToUpdate
+        if let composite = compositeTickerToUpdate {
+            self.label = composite.label
+        }
     }
 
     // MARK: - Computed Properties
@@ -54,8 +59,7 @@ final class SleepScheduleViewModel {
     var sleepDuration: Double {
         let config = SleepScheduleConfiguration(
             bedtime: bedtime,
-            wakeTime: wakeTime,
-            sleepGoalHours: sleepGoalHours
+            wakeTime: wakeTime
         )
         return config.sleepDuration
     }
@@ -64,30 +68,14 @@ final class SleepScheduleViewModel {
     var formattedDuration: String {
         let config = SleepScheduleConfiguration(
             bedtime: bedtime,
-            wakeTime: wakeTime,
-            sleepGoalHours: sleepGoalHours
+            wakeTime: wakeTime
         )
         return config.formattedDuration
     }
 
-    /// Whether sleep duration meets goal
-    var meetsGoal: Bool {
-        sleepDuration >= sleepGoalHours
-    }
-
-    /// Goal message for display
-    var goalMessage: String {
-        if meetsGoal {
-            return "This schedule meets your sleep goal."
-        } else {
-            let shortfall = sleepGoalHours - sleepDuration
-            return "This schedule is \(String(format: "%.1f", shortfall)) hours short of your goal."
-        }
-    }
-
     // MARK: - Actions
 
-    /// Create the sleep schedule composite ticker
+    /// Create or update the sleep schedule composite ticker
     func createSleepSchedule(modelContext: ModelContext) async throws {
         guard !isCreating else { return }
 
@@ -95,14 +83,24 @@ final class SleepScheduleViewModel {
         defer { isCreating = false }
 
         do {
-            _ = try await compositeService.createSleepSchedule(
-                label: label,
-                bedtime: bedtime,
-                wakeTime: wakeTime,
-                sleepGoalHours: sleepGoalHours,
-                presentation: presentation,
-                modelContext: modelContext
-            )
+            if let composite = compositeTickerToUpdate {
+                // Update existing sleep schedule
+                try await compositeService.updateSleepSchedule(
+                    composite,
+                    bedtime: bedtime,
+                    wakeTime: wakeTime,
+                    modelContext: modelContext
+                )
+            } else {
+                // Create new sleep schedule
+                _ = try await compositeService.createSleepSchedule(
+                    label: label,
+                    bedtime: bedtime,
+                    wakeTime: wakeTime,
+                    presentation: presentation,
+                    modelContext: modelContext
+                )
+            }
         } catch {
             self.error = error
             self.showingError = true
