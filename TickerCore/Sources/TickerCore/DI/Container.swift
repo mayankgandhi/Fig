@@ -23,7 +23,7 @@ public extension Container {
 
     var alarmConfigurationBuilder: Factory<AlarmConfigurationBuilderProtocol> {
         self { AlarmConfigurationBuilder() }
-            .singleton
+        // Pure transformation functions - no state, no need for singleton
     }
 
     var alarmStateManager: Factory<AlarmStateManagerProtocol> {
@@ -71,7 +71,7 @@ public extension Container {
 
     var foundationModelsParser: Factory<FoundationModelsParser> {
         self { FoundationModelsParser() }
-            .singleton
+        // Stateless session creator - no need for singleton
     }
 
     // MARK: - Data Services
@@ -92,7 +92,7 @@ public extension Container {
 
     var tickerScheduleExpander: Factory<TickerScheduleExpander> {
         self { TickerScheduleExpander() }
-            .singleton
+        // Pure schedule expansion logic - no state, no need for singleton
     }
 
     var regenerationRateLimiter: Factory<RegenerationRateLimiter> {
@@ -102,7 +102,7 @@ public extension Container {
 
     var tickerConfigurationParser: Factory<TickerConfigurationParser> {
         self { TickerConfigurationParser() }
-            .singleton
+        // Stateless parsing operations - no need for singleton
     }
 
     // MARK: - Setup

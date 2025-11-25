@@ -9,12 +9,13 @@
 import SwiftUI
 import SwiftData
 import TickerCore
+import Factory
 
 struct AddSleepScheduleView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
 
     @State private var viewModel: SleepScheduleViewModel
 

@@ -10,6 +10,7 @@ import AppIntents
 import SwiftData
 import ActivityKit
 import TickerCore
+import Factory
 
 /// An intent that stops an active alarm
 ///
@@ -43,8 +44,8 @@ struct StopIntent: LiveActivityIntent {
         
         // Use TickerService to ensure proper cleanup
         let context = getSharedModelContext()
-        let tickerService = TickerService()
-        
+        let tickerService = Container.shared.tickerService()
+
         do {
             try tickerService.stopAlarm(id: alarmUUID)
             print("   ✅ Successfully stopped alarm \(alarmUUID) with proper cleanup")

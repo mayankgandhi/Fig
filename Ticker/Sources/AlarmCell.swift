@@ -8,12 +8,13 @@ A view that displays an individual alarm cell in the list.
 import SwiftUI
 import TickerCore
 import DesignKit
+import Factory
 
 struct AlarmCell: View {
 
     let alarmItem: Ticker
     let onTap: (() -> Void)?
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
     @Environment(\.colorScheme) private var colorScheme
 
     init(alarmItem: Ticker, onTap: (() -> Void)? = nil) {
@@ -228,6 +229,6 @@ alarmItem: Ticker(
                 .ignoresSafeArea()
         }
     )
-    .environment(TickerService())
+    .environment(Container.shared.tickerService())
 }
 

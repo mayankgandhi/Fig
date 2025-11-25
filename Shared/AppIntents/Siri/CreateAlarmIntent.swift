@@ -9,6 +9,7 @@ import Foundation
 import AppIntents
 import SwiftData
 import SwiftUI
+import Factory
 
 /// Main intent for creating tickers through Siri voice commands
 struct CreateAlarmIntent: AppIntent {
@@ -104,7 +105,7 @@ struct CreateAlarmIntent: AppIntent {
 
         // Schedule the ticker
         let context = getSharedModelContext()
-        let tickerService = TickerService()
+        let tickerService = Container.shared.tickerService()
 
         do {
             try await tickerService.scheduleAlarm(from: ticker, context: context)
@@ -164,7 +165,7 @@ struct CreateAlarmIntent: AppIntent {
         
         // Schedule the ticker
         let context = getSharedModelContext()
-        let tickerService = TickerService()
+        let tickerService = Container.shared.tickerService()
         
         do {
             try await tickerService.scheduleAlarm(from: ticker, context: context)
@@ -202,7 +203,7 @@ struct CreateAlarmIntent: AppIntent {
         
         // Schedule the ticker
         let context = getSharedModelContext()
-        let tickerService = TickerService()
+        let tickerService = Container.shared.tickerService()
         
         do {
             try await tickerService.scheduleAlarm(from: ticker, context: context)

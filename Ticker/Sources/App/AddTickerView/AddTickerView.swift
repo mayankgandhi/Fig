@@ -9,6 +9,7 @@
 import SwiftUI
 import SwiftData
 import TickerCore
+import Factory
 
 struct AddTickerView: View {
     // MARK: - Properties
@@ -173,7 +174,8 @@ struct AddTickerView: View {
 
 #Preview {
     @Previewable @Namespace var namespace
+    @Previewable @Injected(\.tickerService) var tickerService
     AddTickerView(namespace: namespace)
         .modelContainer(for: [Ticker.self])
-        .environment(TickerService())
+        .environment(tickerService)
 }

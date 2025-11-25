@@ -12,9 +12,10 @@ import TickerCore
 import Factory
 
 struct CompositeTickerDetailView: View {
+
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
 
     let compositeTicker: CompositeTicker
     
@@ -280,6 +281,7 @@ struct CompositeTickerDetailView: View {
 // MARK: - Preview
 
 #Preview {
+    @Previewable @Injected(\.tickerService) var tickerService
     let config = ModelConfiguration(isStoredInMemoryOnly: true)
     let container = try! ModelContainer(for: Ticker.self, CompositeTicker.self, configurations: config)
 
@@ -314,6 +316,6 @@ struct CompositeTickerDetailView: View {
     return NavigationStack {
         CompositeTickerDetailView(compositeTicker: compositeTicker)
             .modelContainer(container)
-            .environment(TickerService())
+            .environment(tickerService)
     }
 }

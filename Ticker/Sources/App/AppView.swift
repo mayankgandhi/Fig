@@ -8,11 +8,12 @@
 import SwiftUI
 import TickerCore
 import DesignKit
+import Factory
 
 struct AppView: View {
     // MARK: - Environment
 
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
     @Environment(\.scenePhase) private var scenePhase
 
     // MARK: - State
@@ -76,10 +77,8 @@ struct AppView: View {
 
     private func checkPermissionStatus() {
         if permissionViewModel == nil {
-            permissionViewModel = AlarmKitPermissionViewModel(tickerService: tickerService)
+            permissionViewModel = AlarmKitPermissionViewModel()
         }
-
-        permissionViewModel?.checkAuthorizationStatus()
 
         if let viewModel = permissionViewModel, viewModel.shouldShowSheet() {
             showPermissionSheet = true
@@ -90,6 +89,7 @@ struct AppView: View {
 }
 
 #Preview {
+    @Previewable @Injected(\.tickerService) var tickerService
     AppView()
-        .environment(TickerService())
+        .environment(tickerService)
 }

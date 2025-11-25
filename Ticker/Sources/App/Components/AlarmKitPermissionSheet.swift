@@ -7,6 +7,7 @@
 
 import SwiftUI
 import TickerCore
+import Factory
 
 struct AlarmKitPermissionSheet: View {
     // MARK: - Properties
@@ -158,11 +159,9 @@ struct AlarmKitPermissionSheet: View {
 // MARK: - Preview
 
 #Preview {
-    @Previewable @State var viewModel = AlarmKitPermissionViewModel(
-        tickerService: TickerService()
-    )
+    @Previewable @State var viewModel = AlarmKitPermissionViewModel()
 
-    return AlarmKitPermissionSheet(
+    AlarmKitPermissionSheet(
         viewModel: viewModel,
         onDismiss: {}
     )

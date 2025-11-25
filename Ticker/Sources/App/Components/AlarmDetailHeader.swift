@@ -8,6 +8,7 @@
 import SwiftUI
 import TickerCore
 import DesignKit
+import Factory
 
 struct AlarmDetailHeader: View {
     let alarm: Ticker
@@ -83,8 +84,8 @@ struct AlarmDetailHeader: View {
 // MARK: - Preview
 
 #Preview {
-    @Previewable @State var tickerService = TickerService()
-    
+    @Previewable @Injected(\.tickerService) var tickerService
+
     AlarmDetailHeader(
         alarm: Ticker(
             label: "Morning Workout",

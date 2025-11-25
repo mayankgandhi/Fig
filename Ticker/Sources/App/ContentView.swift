@@ -10,12 +10,13 @@ import SwiftData
 import TickerCore
 import Gate
 import DesignKit
+import Factory
 
 struct ContentView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
     @EnvironmentObject private var modelContextObserver: ModelContextObserver
 
     // Direct SwiftData queries - auto-updates when data changes
@@ -160,7 +161,7 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showAddSleepScheduleSheet) {
             AddSleepScheduleView(
-                viewModel: SleepScheduleViewModel(compositeService: CompositeTickerService())
+                viewModel: SleepScheduleViewModel()
             )
             .presentationCornerRadius(DesignKit.large)
             .presentationDragIndicator(.visible)
@@ -250,6 +251,7 @@ struct ContentView: View {
 }
 
 #Preview {
+    @Previewable @Injected(\.tickerService) var tickerService
     ContentView()
-        .environment(TickerService())
+        .environment(tickerService)
 }

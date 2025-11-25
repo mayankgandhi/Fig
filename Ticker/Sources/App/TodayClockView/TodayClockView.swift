@@ -9,12 +9,13 @@ import SwiftUI
 import SwiftData
 import TickerCore
 import Gate
+import Factory
 
 struct TodayClockView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
     @EnvironmentObject private var modelContextObserver: ModelContextObserver
 
     @State private var showSettings: Bool = false
@@ -148,9 +149,9 @@ struct TodayClockView: View {
                 }
             }
             .sheet(isPresented: $showNaturalLanguageSheet) {
-                SubscriptionGate(feature: .aiAlarmCreation) {
+//                SubscriptionGate(feature: .aiAlarmCreation) {
                     NaturalLanguageTickerView()
-                }                
+//                }                
             }
             .sheet(isPresented: $showAddSheet, onDismiss: {
                 generatedTicker = nil
@@ -210,8 +211,8 @@ struct TodayClockView: View {
                     await viewModel.refreshAlarms()
                 }
             }
-            .confirmationDialog(
-                Text("Skip this alarm?"),
+            .alert(
+                "Skip this alarm?",
                 isPresented: $showSkipConfirmation,
                 presenting: alarmToSkip,
                 actions: { presentation in

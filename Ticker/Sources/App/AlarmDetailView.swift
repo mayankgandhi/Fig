@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import TickerCore
+import Factory
 
 struct AlarmDetailView: View {
     let alarm: Ticker
@@ -16,7 +17,7 @@ struct AlarmDetailView: View {
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
 
     var body: some View {
         NavigationStack {
@@ -87,7 +88,7 @@ struct AlarmDetailView: View {
 // MARK: - Preview
 
 #Preview {
-    @Previewable @State var tickerService = TickerService()
+    @Previewable @Injected(\.tickerService) var tickerService
 
     AlarmDetailView(
         alarm: Ticker(

@@ -8,30 +8,20 @@
 import Foundation
 import TickerCore
 import UIKit
+import Factory
 
 @Observable
 final class AlarmKitPermissionViewModel {
     // MARK: - Properties
 
-    private let tickerService: TickerService
+    @ObservationIgnored
+    @Injected(\.tickerService) var tickerService
 
-    var authorizationStatus: AlarmAuthorizationStatus
+    var authorizationStatus: AlarmAuthorizationStatus {
+        tickerService.authorizationStatus
+    }
     var isRequestingPermission: Bool = false
     var errorMessage: String?
-
-    // MARK: - Initialization
-
-    init(tickerService: TickerService) {
-        self.tickerService = tickerService
-        self.authorizationStatus = tickerService.authorizationStatus
-    }
-
-    // MARK: - Business Logic
-
-    /// Checks the current authorization status from TickerService
-    func checkAuthorizationStatus() {
-        authorizationStatus = tickerService.authorizationStatus
-    }
 
     /// Determines if the permission sheet should be shown
     /// Returns true if status is .notDetermined or .denied
@@ -52,8 +42,6 @@ final class AlarmKitPermissionViewModel {
         do {
             try await tickerService.requestAuthorization()
             // Update status after request
-            authorizationStatus = tickerService.authorizationStatus
-
             // Track permission result
             if authorizationStatus == .authorized {
                 AnalyticsEvents.onboardingPermissionGranted.track()

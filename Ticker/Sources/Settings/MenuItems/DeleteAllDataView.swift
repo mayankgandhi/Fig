@@ -8,9 +8,10 @@
 import SwiftUI
 import SwiftData
 import TickerCore
+import Factory
 
 struct DeleteAllDataView: View {
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
     @Environment(\.modelContext) private var modelContext
     @Query private var alarmItems: [Ticker]
     @State private var showDeleteConfirmation = false
@@ -45,7 +46,7 @@ struct DeleteAllDataView: View {
 }
 
 #Preview {
-    let tickerService = TickerService()
+    @Previewable @Injected(\.tickerService) var tickerService
     return DeleteAllDataView()
         .modelContainer(for: Ticker.self, inMemory: true)
         .environment(tickerService)

@@ -7,10 +7,11 @@
 
 import SwiftUI
 import TickerCore
+import Factory
 
 struct AlarmKitPermissionView: View {
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
 
     @State private var isRequesting = false
     @State private var permissionDenied = false
@@ -239,8 +240,9 @@ struct AlarmKitPermissionView: View {
 }
 
 #Preview {
+    @Previewable @Injected(\.tickerService) var tickerService
     AlarmKitPermissionView(onContinue: {
         print("Continue tapped")
     })
-    .environment(TickerService())
+    .environment(tickerService)
 }

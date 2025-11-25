@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import SwiftData
 import TickerCore
+import Factory
 
 @Observable
 @MainActor
@@ -30,7 +31,8 @@ final class SleepScheduleViewModel {
     var showingError: Bool = false
 
     // Services
-    private let compositeService: CompositeTickerService
+    @ObservationIgnored
+    @Injected(\.compositeTickerService) private var compositeService
 
     // MARK: - Initialization
 
@@ -39,13 +41,11 @@ final class SleepScheduleViewModel {
         wakeTime: TimeOfDay = TimeOfDay(hour: 6, minute: 30), // 6:30 AM default
         sleepGoalHours: Double = 8.0,
         presentation: TickerPresentation = TickerPresentation(),
-        compositeService: CompositeTickerService
     ) {
         self.bedtime = bedtime
         self.wakeTime = wakeTime
         self.sleepGoalHours = sleepGoalHours
         self.presentation = presentation
-        self.compositeService = compositeService
     }
 
     // MARK: - Computed Properties

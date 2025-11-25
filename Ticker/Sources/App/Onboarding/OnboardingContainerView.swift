@@ -7,11 +7,12 @@
 
 import SwiftUI
 import TickerCore
+import Factory
 
 struct OnboardingContainerView: View {
 
     @Environment(\.colorScheme) private var colorScheme
-    @Environment(TickerService.self) private var tickerService
+    @Injected(\.tickerService) private var tickerService
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding: Bool = false
 
     @State private var currentPage: Int = 0
@@ -138,6 +139,7 @@ struct PageIndicator: View {
 }
 
 #Preview("Onboarding Flow") {
+    @Previewable @Injected(\.tickerService) var tickerService
     OnboardingContainerView()
-        .environment(TickerService())
+        .environment(tickerService)
 }

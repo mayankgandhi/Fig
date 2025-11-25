@@ -8,6 +8,7 @@
 import SwiftUI
 import Combine
 import TickerCore
+import Factory
 
 struct NaturalLanguageTickerView: View {
     @State private var viewModel: NaturalLanguageViewModel?
@@ -343,7 +344,8 @@ struct NaturalLanguageTickerView: View {
 // MARK: - Preview
 
 #Preview {
+    @Previewable @Injected(\.tickerService) var tickerService
     NaturalLanguageTickerView()
-        .environment(TickerService())
+        .environment(tickerService)
         .modelContainer(for: Ticker.self, inMemory: true)
 }
