@@ -24,7 +24,7 @@ final class CompositeTickerEditorViewModel {
     var optionsPillsViewModel: OptionsPillsViewModel
     
     // MARK: - State
-    var childTickers: [Ticker] = []
+    var childTickerData: [CompositeChildTickerData] = []
     var isSaving: Bool = false
     var errorMessage: String?
     var showingError: Bool = false
@@ -65,7 +65,7 @@ final class CompositeTickerEditorViewModel {
     // MARK: - Computed Properties
     
     var canSave: Bool {
-        labelViewModel.isValid && !childTickers.isEmpty
+        labelViewModel.isValid && !childTickerData.isEmpty
     }
     
     var validationMessages: [String] {
@@ -74,7 +74,7 @@ final class CompositeTickerEditorViewModel {
         if !labelViewModel.isValid {
             messages.append("Label must be 50 characters or fewer")
         }
-        if childTickers.isEmpty {
+        if childTickerData.isEmpty {
             messages.append("Add at least one child ticker")
         }
         
@@ -83,36 +83,34 @@ final class CompositeTickerEditorViewModel {
     
     var formattedTime: String {
         // For composite editor, show child count instead of time
-        if childTickers.isEmpty {
+        if childTickerData.isEmpty {
             return "No tickers"
-        } else if childTickers.count == 1 {
+        } else if childTickerData.count == 1 {
             return "1 ticker"
         } else {
-            return "\(childTickers.count) tickers"
+            return "\(childTickerData.count) tickers"
         }
     }
     
-    // MARK: - Child Ticker Management
-    
-    func addChildTicker(_ ticker: Ticker) {
-        // Create a copy to avoid issues with SwiftData context
-        // The ticker will be properly inserted when the composite is saved
-        childTickers.append(ticker)
+    // MARK: - Child Ticker Data Management
+
+    func addChildTickerData(_ data: CompositeChildTickerData) {
+        childTickerData.append(data)
     }
-    
-    func updateChildTicker(_ ticker: Ticker) {
-        if let index = childTickers.firstIndex(where: { $0.id == ticker.id }) {
-            childTickers[index] = ticker
+
+    func updateChildTickerData(_ data: CompositeChildTickerData) {
+        if let index = childTickerData.firstIndex(where: { $0.id == data.id }) {
+            childTickerData[index] = data
         }
     }
-    
-    func removeChildTicker(_ ticker: Ticker) {
-        childTickers.removeAll { $0.id == ticker.id }
+
+    func removeChildTickerData(_ data: CompositeChildTickerData) {
+        childTickerData.removeAll { $0.id == data.id }
     }
-    
-    func removeChildTicker(at index: Int) {
-        guard index < childTickers.count else { return }
-        childTickers.remove(at: index)
+
+    func removeChildTickerData(at index: Int) {
+        guard index < childTickerData.count else { return }
+        childTickerData.remove(at: index)
     }
     
     // MARK: - Save
@@ -134,7 +132,18 @@ final class CompositeTickerEditorViewModel {
             let label = labelViewModel.labelText.isEmpty ? "Composite Ticker" : labelViewModel.labelText
             let icon = iconPickerViewModel.selectedIcon
             let colorHex = iconPickerViewModel.selectedColorHex
-            
+
+            // Build presentation for child tickers
+            let presentation = TickerPresentation(
+                tintColorHex: colorHex,
+                secondaryButtonType: .none
+            )
+
+            // Convert CompositeChildTickerData to Ticker objects
+            let tickers = childTickerData.map { data in
+                data.toTicker(presentation: presentation, icon: icon, colorHex: colorHex)
+            }
+
             if isEditMode, let existingComposite = compositeTickerToEdit {
                 // Update existing composite
                 try await compositeTickerService.updateCustomCompositeTicker(
@@ -142,7 +151,7 @@ final class CompositeTickerEditorViewModel {
                     label: label,
                     icon: icon,
                     colorHex: colorHex,
-                    childTickers: childTickers,
+                    childTickers: tickers,
                     modelContext: modelContext
                 )
             } else {
@@ -151,11 +160,11 @@ final class CompositeTickerEditorViewModel {
                     label: label,
                     icon: icon,
                     colorHex: colorHex,
-                    childTickers: childTickers,
+                    childTickers: tickers,
                     modelContext: modelContext
                 )
             }
-            
+
             TickerHaptics.success()
         } catch {
             TickerHaptics.error()
@@ -179,9 +188,16 @@ final class CompositeTickerEditorViewModel {
             iconPickerViewModel.selectIcon("alarm", colorHex: "#8B5CF6")
         }
         
-        // Prefill child tickers
+        // Convert existing Tickers to CompositeChildTickerData for editing
         if let children = composite.childTickers {
-            childTickers = children
+            childTickerData = children.compactMap { ticker in
+                guard let schedule = ticker.schedule else { return nil }
+                return CompositeChildTickerData(
+                    id: ticker.id,
+                    label: ticker.label,
+                    schedule: schedule
+                )
+            }
         }
     }
 }

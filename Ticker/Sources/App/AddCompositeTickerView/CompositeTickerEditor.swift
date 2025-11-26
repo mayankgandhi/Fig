@@ -58,10 +58,10 @@ private struct CompositeTickerEditorContent: View {
     
     @State private var viewModel: CompositeTickerEditorViewModel
     
-    // Child ticker editing state
-    @State private var childTickerToEdit: Ticker?
+    // Child ticker data editing state
+    @State private var childDataToEdit: CompositeChildTickerData?
     @State private var showAddChildSheet = false
-    @State private var childTickerToDelete: Ticker?
+    @State private var childDataToDelete: CompositeChildTickerData?
     @State private var showDeleteChildAlert = false
     
     init(
@@ -112,14 +112,16 @@ private struct CompositeTickerEditorContent: View {
                         .padding(.horizontal, TickerSpacing.md)
                 }
 
-                // Child Tickers List
-                ChildTickerListView(
-                    childTickers: viewModel.childTickers,
-                    onEdit: { ticker in
-                        childTickerToEdit = ticker
+                // Child Ticker Data List
+                ChildTickerDataListView(
+                    childData: viewModel.childTickerData,
+                    icon: viewModel.iconPickerViewModel.selectedIcon,
+                    colorHex: viewModel.iconPickerViewModel.selectedColorHex,
+                    onEdit: { data in
+                        childDataToEdit = data
                     },
-                    onDelete: { ticker in
-                        childTickerToDelete = ticker
+                    onDelete: { data in
+                        childDataToDelete = data
                         showDeleteChildAlert = true
                     }
                 )
@@ -194,47 +196,41 @@ private struct CompositeTickerEditorContent: View {
         }
         .alert("Delete Child Ticker", isPresented: $showDeleteChildAlert) {
             Button("Cancel", role: .cancel) {
-                childTickerToDelete = nil
+                childDataToDelete = nil
             }
             Button("Delete", role: .destructive) {
-                if let ticker = childTickerToDelete {
-                    viewModel.removeChildTicker(ticker)
-                    childTickerToDelete = nil
+                if let data = childDataToDelete {
+                    viewModel.removeChildTickerData(data)
+                    childDataToDelete = nil
                 }
             }
         } message: {
-            if let ticker = childTickerToDelete {
-                Text("Are you sure you want to remove \"\(ticker.label)\" from this composite ticker?")
+            if let data = childDataToDelete {
+                Text("Are you sure you want to remove \"\(data.label)\" from this composite ticker?")
             }
         }
         .sheet(isPresented: $showAddChildSheet) {
-            AddTickerView(
-                namespace: namespace,
-                onTickerCreated: { ticker in
-                    // Add the newly created ticker to the composite's child list
-                    viewModel.addChildTicker(ticker)
+            AddCompositeChildTickerView(
+                childToEdit: nil,
+                onSave: { childData in
+                    // Add the newly created child data to the composite's list
+                    viewModel.addChildTickerData(childData)
                 }
             )
             .presentationCornerRadius(DesignKit.large)
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled()
             .presentationBackground {
                 sheetBackground
             }
         }
-        .sheet(item: $childTickerToEdit) { ticker in
-            AddTickerView(
-                namespace: namespace,
-                prefillTickerId: ticker.persistentModelID,
-                isEditMode: true,
-                onTickerCreated: { updatedTicker in
-                    // Update the child ticker in the composite's list
-                    viewModel.updateChildTicker(updatedTicker)
+        .sheet(item: $childDataToEdit) { data in
+            AddCompositeChildTickerView(
+                childToEdit: data,
+                onSave: { updatedData in
+                    // Update the child data in the composite's list
+                    viewModel.updateChildTickerData(updatedData)
                 }
             )
             .presentationCornerRadius(DesignKit.large)
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled()
             .presentationBackground {
                 sheetBackground
             }

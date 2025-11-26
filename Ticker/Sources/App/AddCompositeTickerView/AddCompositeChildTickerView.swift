@@ -1,0 +1,296 @@
+//
+//  AddCompositeChildTickerView.swift
+//  fig
+//
+//  Simplified bottom sheet for adding/editing composite child tickers
+//  Only captures label and schedule - time is embedded in schedule configuration
+//
+
+import SwiftUI
+import TickerCore
+
+struct AddCompositeChildTickerView: View {
+    let childToEdit: CompositeChildTickerData?
+    let onSave: (CompositeChildTickerData) -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+
+    @State private var viewModel: AddCompositeChildTickerViewModel
+
+    init(childToEdit: CompositeChildTickerData? = nil, onSave: @escaping (CompositeChildTickerData) -> Void) {
+        self.childToEdit = childToEdit
+        self.onSave = onSave
+        _viewModel = State(initialValue: AddCompositeChildTickerViewModel(childToEdit: childToEdit))
+    }
+
+    var body: some View {
+        NavigationStack {
+            contentView
+        }
+    }
+
+    // MARK: - Content View
+
+    @ViewBuilder
+    private var contentView: some View {
+        ScrollView {
+            VStack(spacing: TickerSpacing.xl) {
+                // Simplified Pills Section
+                pillsSection
+                    .padding(.top, TickerSpacing.sm)
+
+                // Validation Banner
+                if let message = viewModel.validationMessage {
+                    ValidationBanner(message: message)
+                        .padding(.horizontal, TickerSpacing.md)
+                }
+
+                Spacer(minLength: 300)
+            }
+            .padding(.top, TickerSpacing.md)
+        }
+        // Overlay for expanded fields
+        .overlay(alignment: .top) {
+            if let field = viewModel.expandedField {
+                expandedFieldContent(for: field)
+                    .zIndex(100)
+            }
+        }
+        .background(backgroundView)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                VStack(spacing: TickerSpacing.xxs) {
+                    Text(childToEdit == nil ? "Add Child Ticker" : "Edit Child Ticker")
+                        .Headline()
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                }
+            }
+
+            ToolbarItem(placement: .cancellationAction) {
+                Button {
+                    TickerHaptics.selection()
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+
+            ToolbarItem(placement: .confirmationAction) {
+                Button {
+                    TickerHaptics.selection()
+                    let childData = viewModel.createChildTickerData()
+                    onSave(childData)
+                    dismiss()
+                } label: {
+                    Text(childToEdit == nil ? "Add" : "Save")
+                        .font(.callout.weight(.semibold))
+                        .foregroundStyle(viewModel.canSave ? TickerColor.primary : TickerColor.textTertiary(for: colorScheme))
+                }
+                .disabled(!viewModel.canSave)
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .toolbarBackground(.hidden, for: .navigationBar)
+    }
+
+    // MARK: - Pills Section
+
+    @ViewBuilder
+    private var pillsSection: some View {
+        VStack(spacing: TickerSpacing.md) {
+            // Label Pill
+            Button {
+                TickerHaptics.selection()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    viewModel.toggleField(.label)
+                }
+            } label: {
+                TickerPill(
+                    icon: "textformat",
+                    title: viewModel.displayLabel,
+                    isActive: viewModel.expandedField == .label,
+                    hasValue: !viewModel.labelViewModel.isEmpty,
+                    size: .large
+                )
+            }
+
+            // Schedule Pill
+            Button {
+                TickerHaptics.selection()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    viewModel.toggleField(.schedule)
+                }
+            } label: {
+                TickerPill(
+                    icon: "repeat",
+                    title: viewModel.displaySchedule,
+                    isActive: viewModel.expandedField == .schedule,
+                    hasValue: viewModel.scheduleViewModel.hasScheduleValue,
+                    size: .large
+                )
+            }
+        }
+        .padding(.horizontal, TickerSpacing.md)
+    }
+
+    // MARK: - Expanded Field Content
+
+    @ViewBuilder
+    private func expandedFieldContent(for field: SimplifiedExpandableField) -> some View {
+        AddCompositeOverlayCallout(
+            field: field,
+            viewModel: viewModel,
+            colorScheme: colorScheme,
+            onDismiss: {
+                TickerHaptics.selection()
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    viewModel.collapseField()
+                }
+            }
+        ) {
+            fieldContent(for: field)
+        }
+    }
+
+    @ViewBuilder
+    private func fieldContent(for field: SimplifiedExpandableField) -> some View {
+        switch field {
+        case .label:
+            LabelEditorView(
+                viewModel: viewModel.labelViewModel,
+                onDismiss: {
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        viewModel.collapseField()
+                    }
+                }
+            )
+
+        case .schedule:
+            ScheduleView(viewModel: viewModel.scheduleViewModel)
+        }
+    }
+
+    // MARK: - Background View
+
+    private var backgroundView: some View {
+        ZStack {
+            TickerColor.liquidGlassGradient(for: colorScheme)
+                .ignoresSafeArea()
+
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.1)
+                .ignoresSafeArea()
+        }
+    }
+}
+
+// MARK: - Overlay Callout
+
+private struct AddCompositeOverlayCallout<Content: View>: View {
+    let field: SimplifiedExpandableField
+    let viewModel: AddCompositeChildTickerViewModel
+    let colorScheme: ColorScheme
+    let onDismiss: () -> Void
+    @ViewBuilder let content: Content
+
+    var body: some View {
+        ZStack {
+            // Background tap area to dismiss
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onDismiss()
+                }
+
+            // Overlay content
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text(headerTitle)
+                        .Headline()
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+
+                    Spacer()
+
+                    Button {
+                        onDismiss()
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(.title2, design: .rounded, weight: .regular))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                }
+                .padding(TickerSpacing.md)
+
+                Divider()
+
+                // Content area
+                ScrollView {
+                    content
+                        .padding(TickerSpacing.md)
+                }
+                .frame(maxHeight: maxContentHeight)
+            }
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: TickerRadius.large)
+                    .fill(TickerColor.surface(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: TickerRadius.large)
+                    .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.15), lineWidth: 1)
+            )
+            .shadow(
+                color: TickerShadow.elevated.color,
+                radius: TickerShadow.elevated.radius,
+                x: TickerShadow.elevated.x,
+                y: TickerShadow.elevated.y
+            )
+            .padding(TickerSpacing.md)
+            .transition(.asymmetric(
+                insertion: .scale(scale: 0.9).combined(with: .opacity),
+                removal: .scale(scale: 0.95).combined(with: .opacity)
+            ))
+        }
+    }
+
+    private var maxContentHeight: CGFloat {
+        switch field {
+        case .label:
+            return 200
+        case .schedule:
+            return 600
+        }
+    }
+
+    private var headerTitle: String {
+        switch field {
+        case .label:
+            return "Label"
+        case .schedule:
+            return "Schedule"
+        }
+    }
+}
+
+// MARK: - Preview
+
+#Preview {
+    @Previewable @State var showSheet = true
+
+    Color.clear
+        .sheet(isPresented: $showSheet) {
+            AddCompositeChildTickerView(
+                childToEdit: nil,
+                onSave: { _ in }
+            )
+        }
+}
