@@ -17,6 +17,7 @@ struct AddTickerView: View {
     let namespace: Namespace.ID
     let prefillTickerId: PersistentIdentifier?
     let isEditMode: Bool
+    let onTickerCreated: ((Ticker) -> Void)?
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -27,10 +28,16 @@ struct AddTickerView: View {
 
     // MARK: - Initialization
 
-    init(namespace: Namespace.ID, prefillTickerId: PersistentIdentifier? = nil, isEditMode: Bool = false) {
+    init(
+        namespace: Namespace.ID,
+        prefillTickerId: PersistentIdentifier? = nil,
+        isEditMode: Bool = false,
+        onTickerCreated: ((Ticker) -> Void)? = nil
+    ) {
         self.namespace = namespace
         self.prefillTickerId = prefillTickerId
         self.isEditMode = isEditMode
+        self.onTickerCreated = onTickerCreated
     }
 
     // MARK: - Body
@@ -52,7 +59,8 @@ struct AddTickerView: View {
                 viewModel = AddTickerViewModel(
                     modelContext: modelContext,
                     prefillTemplate: prefillTemplate,
-                    isEditMode: isEditMode
+                    isEditMode: isEditMode,
+                    onTickerCreated: onTickerCreated
                 )
             }
         }

@@ -59,8 +59,7 @@ struct AddTickerToolbar: ToolbarContent {
 }
 
 // MARK: - Save Button Component
-
-private struct SaveButton: View {
+struct SaveButton: View {
 
     let isSaving: Bool
     let canSave: Bool

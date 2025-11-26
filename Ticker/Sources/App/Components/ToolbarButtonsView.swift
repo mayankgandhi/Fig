@@ -13,6 +13,7 @@ struct ToolbarButtonsView: View {
     @Binding var showAddSheet: Bool
     @Binding var showNaturalLanguageSheet: Bool
     @Binding var showAddSleepScheduleSheet: Bool
+    @Binding var showAddCompositeSheet: Bool
     var namespace: Namespace.ID
 
     var body: some View {
@@ -39,6 +40,13 @@ struct ToolbarButtonsView: View {
             } label: {
                 Label("Sleep Schedule", systemImage: "bed.double.fill")
             }
+
+            Button {
+                TickerHaptics.selection()
+                showAddCompositeSheet = true
+            } label: {
+                Label("Composite Ticker", systemImage: "square.stack.3d.up.fill")
+            }
         } label: {
             Image(systemName: "plus")
         }
@@ -64,6 +72,7 @@ struct ToolbarButtonsView: View {
                     showAddSheet: .constant(false),
                     showNaturalLanguageSheet: .constant(false),
                     showAddSleepScheduleSheet: .constant(false),
+                    showAddCompositeSheet: .constant(false),
                     namespace: Namespace().wrappedValue
                 )
             }

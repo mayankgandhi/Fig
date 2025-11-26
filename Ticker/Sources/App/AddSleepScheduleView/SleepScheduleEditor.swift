@@ -16,8 +16,10 @@ struct SleepScheduleEditor: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Injected(\.tickerService) private var tickerService
+    @Injected(\.compositeTickerService) private var compositeService
 
     @State private var viewModel: SleepScheduleViewModel
+    @State private var showDeleteConfirmation: Bool = false
 
     init(viewModel: SleepScheduleViewModel) {
         self._viewModel = State(initialValue: viewModel)
@@ -49,7 +51,15 @@ struct SleepScheduleEditor: View {
                     }
                 }
 
-                ToolbarItem(placement: .navigationBarTrailing) {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    if viewModel.compositeTickerToUpdate != nil {
+                        Button(role: .destructive) {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Image(systemName: "trash")
+                        }
+                    }
+                    
                     Button("Save") {
                         Task {
                             await saveSleepSchedule()
@@ -64,6 +74,22 @@ struct SleepScheduleEditor: View {
             } message: {
                 if let error = viewModel.error {
                     Text(error.localizedDescription)
+                }
+            }
+            .alert("Delete Sleep Schedule", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) {
+                    showDeleteConfirmation = false
+                }
+                Button("Delete", role: .destructive) {
+                    Task {
+                        await deleteSleepSchedule()
+                    }
+                }
+            } message: {
+                if let composite = viewModel.compositeTickerToUpdate {
+                    Text("Are you sure you want to delete \"\(composite.label)\"? This action cannot be undone.")
+                } else {
+                    Text("Are you sure you want to delete this sleep schedule? This action cannot be undone.")
                 }
             }
         }
@@ -167,6 +193,21 @@ struct SleepScheduleEditor: View {
         } catch {
             // Error is handled by viewModel
             print("Failed to create sleep schedule: \(error)")
+        }
+    }
+
+    private func deleteSleepSchedule() async {
+        guard let composite = viewModel.compositeTickerToUpdate else { return }
+        
+        do {
+            try await compositeService.deleteCompositeTicker(
+                composite,
+                modelContext: modelContext
+            )
+            dismiss()
+        } catch {
+            print("Failed to delete sleep schedule: \(error)")
+            // Could show error alert here if needed
         }
     }
 }

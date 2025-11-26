@@ -30,6 +30,8 @@ struct UnifiedAlarmListView: View {
     let onCompositeTap: (CompositeTicker) -> Void
     let onEdit: (Ticker) -> Void
     let onDelete: (Ticker) -> Void
+    let onEditComposite: (CompositeTicker) -> Void
+    let onDeleteComposite: (CompositeTicker) -> Void
 
     @Environment(\.colorScheme) private var colorScheme
     
@@ -80,6 +82,23 @@ struct UnifiedAlarmListView: View {
                             bottom: DesignKit.sm,
                             trailing: DesignKit.md
                         ))
+                        .contextMenu {
+                            Button {
+                                DesignKitHaptics.selection()
+                                onEditComposite(composite)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.blue)
+
+                            Button(role: .destructive) {
+                                DesignKitHaptics.selection()
+                                onDeleteComposite(composite)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            .tint(.red)
+                        }
                     } else {
                         CompositeAlarmCell(compositeItem: composite) {
                             onCompositeTap(composite)
@@ -92,6 +111,23 @@ struct UnifiedAlarmListView: View {
                             bottom: DesignKit.xs,
                             trailing: DesignKit.md
                         ))
+                        .contextMenu {
+                            Button {
+                                DesignKitHaptics.selection()
+                                onEditComposite(composite)
+                            } label: {
+                                Label("Edit", systemImage: "pencil")
+                            }
+                            .tint(.blue)
+
+                            Button(role: .destructive) {
+                                DesignKitHaptics.selection()
+                                onDeleteComposite(composite)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            .tint(.red)
+                        }
                     }
                 }
             }

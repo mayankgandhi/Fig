@@ -35,18 +35,21 @@ final class AddTickerViewModel {
     var showingError: Bool = false
     let isEditMode: Bool
     private var prefillTemplate: Ticker?
+    private var onTickerCreated: ((Ticker) -> Void)?
 
     // MARK: - Initialization
 
     init(
         modelContext: ModelContext,
         prefillTemplate: Ticker? = nil,
-        isEditMode: Bool = false
+        isEditMode: Bool = false,
+        onTickerCreated: ((Ticker) -> Void)? = nil
     ) {
         self.modelContext = modelContext
         self.calendar = .current
         self.prefillTemplate = prefillTemplate
         self.isEditMode = isEditMode
+        self.onTickerCreated = onTickerCreated
 
         // Initialize child ViewModels
         self.timePickerViewModel = TimePickerViewModel()
@@ -328,6 +331,9 @@ final class AddTickerViewModel {
                     isRecurring: isRecurring,
                     creationMethod: "manual"
                 ).track()
+                
+                // Call callback if provided
+                onTickerCreated?(ticker)
             }
 
 

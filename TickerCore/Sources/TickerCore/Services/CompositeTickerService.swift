@@ -256,6 +256,169 @@ public final class CompositeTickerService {
         print("   ✅ Child toggle complete")
     }
 
+    // MARK: - Custom Composite Operations
+
+    /// Create a new custom composite ticker with provided child tickers
+    @MainActor
+    public func createCustomCompositeTicker(
+        label: String,
+        icon: String,
+        colorHex: String,
+        childTickers: [Ticker],
+        modelContext: ModelContext
+    ) async throws -> CompositeTicker {
+        print("📦 Creating Custom Composite Ticker")
+        print("   → Label: \(label)")
+        print("   → Icon: \(icon)")
+        print("   → Color: \(colorHex)")
+        print("   → Child count: \(childTickers.count)")
+
+        // 1. Create the parent CompositeTicker
+        let presentation = TickerPresentation(
+            tintColorHex: colorHex,
+            secondaryButtonType: .none
+        )
+
+        let compositeTicker = CompositeTicker(
+            label: label,
+            compositeType: .custom,
+            configuration: nil, // Custom composites don't have specific configuration
+            presentation: presentation,
+            tickerData: TickerData(
+                name: label,
+                icon: icon,
+                colorHex: colorHex
+            ),
+            isEnabled: true
+        )
+
+        print("   → Created parent CompositeTicker: \(compositeTicker.id)")
+
+        // 2. Set up child tickers
+        do {
+            // Set parent relationship on each child
+            for child in childTickers {
+                child.parentCompositeTicker = compositeTicker
+                print("   → Prepared child ticker: \(child.id) - \(child.label)")
+            }
+
+            // 3. Add children to parent
+            compositeTicker.childTickers = childTickers
+
+            // 4. Insert into context (atomically)
+            modelContext.insert(compositeTicker)
+            for child in childTickers {
+                // Only insert if not already in context (e.g., if created via AddTickerView)
+                if child.modelContext == nil {
+                    modelContext.insert(child)
+                }
+            }
+
+            print("   → Inserted all items into context")
+
+            // 5. Save to SwiftData
+            do {
+                try modelContext.save()
+                print("   ✅ SwiftData save successful")
+            } catch {
+                print("   ❌ SwiftData save failed: \(error)")
+                throw CompositeTickerServiceError.swiftDataSaveFailed(underlying: error)
+            }
+
+            // 6. Schedule alarms for all children
+            print("   → Scheduling child alarms...")
+            for child in childTickers {
+                try await tickerService.scheduleAlarm(from: child, context: modelContext)
+                print("   → Child alarm scheduled: \(child.label)")
+            }
+
+            // 7. Refresh widgets
+            refreshWidgetTimelines()
+            print("   ✅ Custom Composite Ticker created successfully")
+
+            return compositeTicker
+
+        } catch {
+            print("   ❌ Child creation failed, rolling back...")
+            // Rollback: delete from context
+            modelContext.delete(compositeTicker)
+            for child in childTickers {
+                modelContext.delete(child)
+            }
+            try? modelContext.save()
+            throw CompositeTickerServiceError.childCreationFailed(underlying: error)
+        }
+    }
+
+    /// Update an existing custom composite ticker
+    @MainActor
+    public func updateCustomCompositeTicker(
+        _ composite: CompositeTicker,
+        label: String,
+        icon: String,
+        colorHex: String,
+        childTickers: [Ticker],
+        modelContext: ModelContext
+    ) async throws {
+        print("📦 Updating Custom Composite Ticker: \(composite.id)")
+
+        guard composite.compositeType == .custom else {
+            throw CompositeTickerServiceError.invalidConfiguration
+        }
+
+        // 1. Cancel existing child alarms
+        if let existingChildren = composite.childTickers {
+            for child in existingChildren {
+                try await tickerService.cancelAlarm(id: child.id, context: modelContext)
+            }
+            // Remove old children from context (they'll be replaced)
+            for child in existingChildren {
+                modelContext.delete(child)
+            }
+        }
+
+        // 2. Update composite properties
+        composite.label = label
+        composite.presentation = TickerPresentation(
+            tintColorHex: colorHex,
+            secondaryButtonType: .none
+        )
+        composite.tickerData = TickerData(
+            name: label,
+            icon: icon,
+            colorHex: colorHex
+        )
+
+        // 3. Set up new child tickers
+        for child in childTickers {
+            child.parentCompositeTicker = composite
+            // Insert new children if they're not already in context
+            // Note: If child is already in context (e.g., from AddTickerView), 
+            // we just update the relationship, no need to insert again
+            if child.modelContext == nil {
+                modelContext.insert(child)
+            }
+        }
+
+        // 4. Update children relationship
+        composite.childTickers = childTickers
+
+        // 5. Save to SwiftData
+        try modelContext.save()
+        print("   ✅ SwiftData save successful")
+
+        // 6. Schedule alarms for all new children
+        print("   → Scheduling child alarms...")
+        for child in childTickers {
+            try await tickerService.scheduleAlarm(from: child, context: modelContext)
+            print("   → Child alarm scheduled: \(child.label)")
+        }
+
+        // 7. Refresh widgets
+        refreshWidgetTimelines()
+        print("   ✅ Custom Composite Ticker updated successfully")
+    }
+
     // MARK: - Delete Operations
 
     /// Delete composite ticker (cascade deletes children via relationship)

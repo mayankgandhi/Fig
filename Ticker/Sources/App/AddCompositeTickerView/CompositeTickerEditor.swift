@@ -1,0 +1,466 @@
+//
+//  CompositeTickerEditor.swift
+//  fig
+//
+//  Main view for creating and editing composite tickers
+//  Similar in UI and implementation to AddTickerView
+//
+
+import SwiftUI
+import SwiftData
+import TickerCore
+import Factory
+import DesignKit
+
+struct CompositeTickerEditor: View {
+    // MARK: - Properties
+
+    let namespace: Namespace.ID
+    let compositeTicker: CompositeTicker?
+    let isEditMode: Bool
+
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
+
+    // MARK: - Initialization
+
+    init(namespace: Namespace.ID, compositeTicker: CompositeTicker? = nil, isEditMode: Bool = false) {
+        self.namespace = namespace
+        self.compositeTicker = compositeTicker
+        self.isEditMode = isEditMode
+    }
+
+    // MARK: - Body
+
+    var body: some View {
+        CompositeTickerEditorContent(
+            namespace: namespace,
+            compositeTicker: compositeTicker,
+            isEditMode: isEditMode,
+            modelContext: modelContext,
+            dismiss: dismiss,
+            colorScheme: colorScheme
+        )
+        .navigationTransition(.zoom(sourceID: "addButton", in: namespace))
+    }
+}
+
+// MARK: - Content View with ViewModel
+
+private struct CompositeTickerEditorContent: View {
+    let namespace: Namespace.ID
+    let compositeTicker: CompositeTicker?
+    let isEditMode: Bool
+    let modelContext: ModelContext
+    let dismiss: DismissAction
+    let colorScheme: ColorScheme
+    
+    @State private var viewModel: CompositeTickerEditorViewModel
+    
+    // Child ticker editing state
+    @State private var childTickerToEdit: Ticker?
+    @State private var showAddChildSheet = false
+    @State private var childTickerToDelete: Ticker?
+    @State private var showDeleteChildAlert = false
+    
+    init(
+        namespace: Namespace.ID,
+        compositeTicker: CompositeTicker?,
+        isEditMode: Bool,
+        modelContext: ModelContext,
+        dismiss: DismissAction,
+        colorScheme: ColorScheme
+    ) {
+        self.namespace = namespace
+        self.compositeTicker = compositeTicker
+        self.isEditMode = isEditMode
+        self.modelContext = modelContext
+        self.dismiss = dismiss
+        self.colorScheme = colorScheme
+        // Initialize viewModel immediately since we have modelContext
+        _viewModel = State(initialValue: CompositeTickerEditorViewModel(
+            modelContext: modelContext,
+            compositeTickerToEdit: compositeTicker,
+            isEditMode: isEditMode
+        ))
+    }
+    
+    var body: some View {
+        NavigationStack {
+            contentView(viewModel: viewModel)
+        }
+    }
+
+    // MARK: - Content View
+
+    @ViewBuilder
+    private func contentView(viewModel: CompositeTickerEditorViewModel) -> some View {
+        ScrollView {
+            VStack(spacing: TickerSpacing.xl) {
+                // Options Pills for Label and Icon
+                OptionsPillsView(
+                    viewModel: viewModel.optionsPillsViewModel,
+                    selectedIcon: viewModel.iconPickerViewModel.selectedIcon,
+                    selectedColorHex: viewModel.iconPickerViewModel.selectedColorHex
+                )
+                .padding(.top, TickerSpacing.sm)
+
+                // Inline validation banner
+                if let message = viewModel.validationMessages.first {
+                    ValidationBanner(message: message)
+                        .padding(.horizontal, TickerSpacing.md)
+                }
+
+                // Child Tickers List
+                ChildTickerListView(
+                    childTickers: viewModel.childTickers,
+                    onEdit: { ticker in
+                        childTickerToEdit = ticker
+                    },
+                    onDelete: { ticker in
+                        childTickerToDelete = ticker
+                        showDeleteChildAlert = true
+                    }
+                )
+                .padding(.top, TickerSpacing.sm)
+
+                // Add Child Ticker Button
+                Button {
+                    TickerHaptics.selection()
+                    showAddChildSheet = true
+                } label: {
+                    HStack(spacing: TickerSpacing.sm) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.callout.weight(.semibold))
+                        Text("Add Child Ticker")
+                            .Body()
+                    }
+                    .foregroundStyle(TickerColor.primary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, TickerSpacing.md)
+                    .background(
+                        RoundedRectangle(cornerRadius: TickerRadius.medium)
+                            .fill(TickerColor.primary.opacity(0.1))
+                    )
+                }
+                .padding(.horizontal, TickerSpacing.md)
+                .padding(.top, TickerSpacing.md)
+
+                Spacer(minLength: 300)
+            }
+            .padding(.top, TickerSpacing.md)
+        }
+        // Overlay presentation for all expandable fields
+        .overlay(alignment: .top) {
+            if let field = viewModel.optionsPillsViewModel.expandedField {
+                ExpandedFieldContentForComposite(field: field, viewModel: viewModel)
+                    .zIndex(100)
+            }
+        }
+        .background(backgroundView)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            CompositeTickerEditorToolbar(
+                isEditMode: isEditMode,
+                formattedTime: viewModel.formattedTime,
+                isSaving: viewModel.isSaving,
+                canSave: viewModel.canSave,
+                isExpanded: viewModel.optionsPillsViewModel.expandedField != nil,
+                onDismiss: { dismiss() },
+                onSave: {
+                    Task {
+                        await viewModel.saveCompositeTicker()
+                        if !viewModel.showingError {
+                            dismiss()
+                        }
+                    }
+                },
+                onCollapse: {
+                    viewModel.optionsPillsViewModel.collapseField()
+                }
+            )
+        }
+        .toolbarBackground(.hidden, for: .navigationBar)
+        .alert("Error", isPresented: Binding(
+            get: { viewModel.showingError },
+            set: { viewModel.showingError = $0 }
+        )) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+            }
+        }
+        .alert("Delete Child Ticker", isPresented: $showDeleteChildAlert) {
+            Button("Cancel", role: .cancel) {
+                childTickerToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let ticker = childTickerToDelete {
+                    viewModel.removeChildTicker(ticker)
+                    childTickerToDelete = nil
+                }
+            }
+        } message: {
+            if let ticker = childTickerToDelete {
+                Text("Are you sure you want to remove \"\(ticker.label)\" from this composite ticker?")
+            }
+        }
+        .sheet(isPresented: $showAddChildSheet) {
+            AddTickerView(
+                namespace: namespace,
+                onTickerCreated: { ticker in
+                    // Add the newly created ticker to the composite's child list
+                    viewModel.addChildTicker(ticker)
+                }
+            )
+            .presentationCornerRadius(DesignKit.large)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled()
+            .presentationBackground {
+                sheetBackground
+            }
+        }
+        .sheet(item: $childTickerToEdit) { ticker in
+            AddTickerView(
+                namespace: namespace,
+                prefillTickerId: ticker.persistentModelID,
+                isEditMode: true,
+                onTickerCreated: { updatedTicker in
+                    // Update the child ticker in the composite's list
+                    viewModel.updateChildTicker(updatedTicker)
+                }
+            )
+            .presentationCornerRadius(DesignKit.large)
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled()
+            .presentationBackground {
+                sheetBackground
+            }
+        }
+    }
+
+    // MARK: - Background View
+
+    private var backgroundView: some View {
+        ZStack {
+            TickerColor.liquidGlassGradient(for: colorScheme)
+                .ignoresSafeArea()
+
+            // Subtle overlay for glass effect
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.1)
+                .ignoresSafeArea()
+        }
+    }
+    
+    private var sheetBackground: some View {
+        ZStack {
+            TickerColor.liquidGlassGradient(for: colorScheme)
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .opacity(0.5)
+        }
+    }
+}
+
+// MARK: - Expanded Field Content for Composite
+
+struct ExpandedFieldContentForComposite: View {
+    let field: ExpandableField
+    let viewModel: CompositeTickerEditorViewModel
+
+    var body: some View {
+        OverlayCalloutForComposite(field: field, viewModel: viewModel) {
+            fieldContent
+        }
+    }
+
+    // MARK: - Field Content
+
+    @ViewBuilder
+    private var fieldContent: some View {
+        switch field {
+        case .label:
+            LabelEditorView(
+                viewModel: viewModel.labelViewModel,
+                onDismiss: {
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        viewModel.optionsPillsViewModel.collapseField()
+                    }
+                }
+            )
+
+        case .icon:
+            IconPickerViewMVVM(viewModel: viewModel.iconPickerViewModel)
+
+        default:
+            EmptyView()
+        }
+    }
+}
+
+// MARK: - Overlay Callout for Composite
+
+struct OverlayCalloutForComposite<Content: View>: View {
+    let field: ExpandableField
+    let viewModel: CompositeTickerEditorViewModel
+    @ViewBuilder let content: Content
+    
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some View {
+        ZStack {
+            // Background tap area to dismiss overlay
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        viewModel.optionsPillsViewModel.collapseField()
+                    }
+                }
+            
+            // Overlay content
+            VStack(spacing: 0) {
+                // Header with dismiss button
+                HStack {
+                    Text(headerTitle)
+                        .Headline()
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+
+                    Spacer()
+
+                    Button {
+                        TickerHaptics.selection()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.optionsPillsViewModel.collapseField()
+                        }
+                    } label: {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(.system(.title2, design: .rounded, weight: .regular))
+                            .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                            .symbolRenderingMode(.hierarchical)
+                    }
+                }
+                .padding(TickerSpacing.md)
+
+                Divider()
+
+                // Content area
+                ScrollView {
+                    content
+                        .padding(TickerSpacing.md)
+                }
+                .frame(maxHeight: maxContentHeight)
+            }
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: TickerRadius.large)
+                    .fill(TickerColor.surface(for: colorScheme))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: TickerRadius.large)
+                    .strokeBorder(TickerColor.textTertiary(for: colorScheme).opacity(0.15), lineWidth: 1)
+            )
+            .shadow(
+                color: TickerShadow.elevated.color,
+                radius: TickerShadow.elevated.radius,
+                x: TickerShadow.elevated.x,
+                y: TickerShadow.elevated.y
+            )
+            .padding(TickerSpacing.md)
+            .transition(.asymmetric(
+                insertion: .scale(scale: 0.9).combined(with: .opacity),
+                removal: .scale(scale: 0.95).combined(with: .opacity)
+            ))
+        }
+    }
+    
+    private var maxContentHeight: CGFloat {
+        switch field {
+        case .label:
+            return 200
+        case .icon:
+            return 600
+        default:
+            return 400
+        }
+    }
+    
+    private var headerTitle: String {
+        switch field {
+        case .label:
+            return "Composite Label"
+        case .icon:
+            return "Composite Icon"
+        default:
+            return "Options"
+        }
+    }
+}
+
+
+// MARK: - Composite Ticker Editor Toolbar
+
+struct CompositeTickerEditorToolbar: ToolbarContent {
+    let isEditMode: Bool
+    let formattedTime: String
+    let isSaving: Bool
+    let canSave: Bool
+    let isExpanded: Bool
+    let onDismiss: () -> Void
+    let onSave: () -> Void
+    let onCollapse: () -> Void
+
+    @Environment(\.colorScheme) private var colorScheme
+
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
+                Text(isEditMode ? "Edit Composite" : "New Composite")
+                    .Headline()
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+
+                Text(formattedTime)
+                    .Caption()
+                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    .opacity(0.8)
+            }
+        }
+
+        ToolbarItem(placement: .cancellationAction) {
+            Button {
+                TickerHaptics.selection()
+                onDismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.callout.weight(.semibold))
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+            }
+            .buttonStyle(PlainButtonStyle())
+        }
+
+        ToolbarItem(placement: .confirmationAction) {
+            SaveButton(
+                isSaving: isSaving,
+                canSave: canSave,
+                isExpanded: isExpanded,
+                onCollapse: onCollapse,
+                onSave: onSave
+            )
+        }
+    }
+}
+
+// MARK: - Preview
+
+#Preview {
+    @Previewable @Namespace var namespace
+    CompositeTickerEditor(namespace: namespace)
+        .modelContainer(for: [Ticker.self, CompositeTicker.self])
+}
+

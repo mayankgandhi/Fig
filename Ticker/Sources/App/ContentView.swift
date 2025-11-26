@@ -17,6 +17,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Injected(\.tickerService) private var tickerService
+    @Injected(\.compositeTickerService) private var compositeTickerService
     @EnvironmentObject private var modelContextObserver: ModelContextObserver
 
     // Direct SwiftData queries - auto-updates when data changes
@@ -26,16 +27,21 @@ struct ContentView: View {
     @State private var showAddSheet = false
     @State private var showNaturalLanguageSheet = false
     @State private var showAddSleepScheduleSheet = false
+    @State private var showAddCompositeSheet = false
     @State private var alarmToEdit: Ticker?
     @State private var alarmToDelete: Ticker?
     @State private var alarmToShowDetail: Ticker?
     @State private var compositeToShowDetail: CompositeTicker?
+    @State private var compositeToEdit: CompositeTicker?
+    @State private var compositeToDelete: CompositeTicker?
     @State private var showDeleteAlert = false
+    @State private var showDeleteCompositeAlert = false
     @State private var searchText = ""
     
     @Namespace private var addButtonNamespace
     @Namespace private var editButtonNamespace
     @Namespace private var aiButtonNamespace
+    @Namespace private var compositeButtonNamespace
 
     // Type alias for cleaner code
     private typealias AlarmListItem = UnifiedAlarmListView.AlarmListItem
@@ -100,6 +106,7 @@ struct ContentView: View {
                             showAddSheet: $showAddSheet,
                             showNaturalLanguageSheet: $showNaturalLanguageSheet,
                             showAddSleepScheduleSheet: $showAddSleepScheduleSheet,
+                            showAddCompositeSheet: $showAddCompositeSheet,
                             namespace: addButtonNamespace
                         )
                     }
@@ -169,6 +176,45 @@ struct ContentView: View {
                 sheetBackground
             }
         }
+        .sheet(item: $compositeToEdit) { composite in
+            if composite.compositeType == .sleepSchedule,
+               let config = composite.sleepScheduleConfig {
+                SleepScheduleEditor(
+                    viewModel: SleepScheduleViewModel(
+                        bedtime: config.bedtime,
+                        wakeTime: config.wakeTime,
+                        presentation: composite.presentation,
+                        compositeTickerToUpdate: composite
+                    )
+                )
+                .presentationCornerRadius(DesignKit.large)
+                .presentationDragIndicator(.visible)
+                .presentationBackground {
+                    sheetBackground
+                }
+            } else if composite.compositeType == .custom {
+                CompositeTickerEditor(
+                    namespace: compositeButtonNamespace,
+                    compositeTicker: composite,
+                    isEditMode: true
+                )
+                .presentationCornerRadius(DesignKit.large)
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+                .presentationBackground {
+                    sheetBackground
+                }
+            }
+        }
+        .sheet(isPresented: $showAddCompositeSheet) {
+            CompositeTickerEditor(namespace: compositeButtonNamespace)
+                .presentationCornerRadius(DesignKit.large)
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+                .presentationBackground {
+                    sheetBackground
+                }
+        }
         .alert("Delete Ticker", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {
                 alarmToDelete = nil
@@ -185,6 +231,27 @@ struct ContentView: View {
         } message: {
             if let ticker = alarmToDelete {
                 Text("Are you sure you want to delete \"\(ticker.label)\"? This action cannot be undone.")
+            }
+        }
+        .alert("Delete Sleep Schedule", isPresented: $showDeleteCompositeAlert) {
+            Button("Cancel", role: .cancel) {
+                compositeToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let composite = compositeToDelete {
+                    DesignKitHaptics.warning()
+                    Task {
+                        try? await compositeTickerService.deleteCompositeTicker(
+                            composite,
+                            modelContext: modelContext
+                        )
+                    }
+                }
+                compositeToDelete = nil
+            }
+        } message: {
+            if let composite = compositeToDelete {
+                Text("Are you sure you want to delete \"\(composite.label)\"? This action cannot be undone.")
             }
         }
         .tint(DesignKit.primary)
@@ -234,6 +301,18 @@ struct ContentView: View {
                     onDelete: { ticker in
                         alarmToDelete = ticker
                         showDeleteAlert = true
+                    },
+                    onEditComposite: { composite in
+                        if composite.compositeType == .sleepSchedule || composite.compositeType == .custom {
+                            compositeToEdit = composite
+                        } else {
+                            // For other composite types, open detail view
+                            compositeToShowDetail = composite
+                        }
+                    },
+                    onDeleteComposite: { composite in
+                        compositeToDelete = composite
+                        showDeleteCompositeAlert = true
                     }
                 )
             } else {
