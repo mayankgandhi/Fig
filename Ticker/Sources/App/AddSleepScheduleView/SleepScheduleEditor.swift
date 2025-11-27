@@ -3,7 +3,7 @@
 //  Ticker
 //
 //  Created by Claude Code
-//  Editor for creating and editing sleep schedule composite tickers
+//  Editor for creating and editing sleep schedule ticker collections
 //
 
 import SwiftUI
@@ -16,7 +16,7 @@ struct SleepScheduleEditor: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Injected(\.tickerService) private var tickerService
-    @Injected(\.compositeTickerService) private var compositeService
+    @Injected(\.tickerCollectionService) private var collectionService
 
     @State private var viewModel: SleepScheduleViewModel
     @State private var showDeleteConfirmation: Bool = false
@@ -52,7 +52,7 @@ struct SleepScheduleEditor: View {
                 }
 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    if viewModel.compositeTickerToUpdate != nil {
+                    if viewModel.tickerCollectionToUpdate != nil {
                         Button(role: .destructive) {
                             showDeleteConfirmation = true
                         } label: {
@@ -86,8 +86,8 @@ struct SleepScheduleEditor: View {
                     }
                 }
             } message: {
-                if let composite = viewModel.compositeTickerToUpdate {
-                    Text("Are you sure you want to delete \"\(composite.label)\"? This action cannot be undone.")
+                if let collection = viewModel.tickerCollectionToUpdate {
+                    Text("Are you sure you want to delete \"\(collection.label)\"? This action cannot be undone.")
                 } else {
                     Text("Are you sure you want to delete this sleep schedule? This action cannot be undone.")
                 }
@@ -98,7 +98,7 @@ struct SleepScheduleEditor: View {
     // MARK: - Computed Properties
 
     private var navigationTitle: String {
-        if viewModel.compositeTickerToUpdate != nil {
+        if viewModel.tickerCollectionToUpdate != nil {
             return "Edit Sleep Schedule"
         } else {
             return "New Sleep Schedule"
@@ -197,11 +197,11 @@ struct SleepScheduleEditor: View {
     }
 
     private func deleteSleepSchedule() async {
-        guard let composite = viewModel.compositeTickerToUpdate else { return }
+        guard let collection = viewModel.tickerCollectionToUpdate else { return }
         
         do {
-            try await compositeService.deleteCompositeTicker(
-                composite,
+            try await collectionService.deleteTickerCollection(
+                collection,
                 modelContext: modelContext
             )
             dismiss()
@@ -216,6 +216,6 @@ struct SleepScheduleEditor: View {
 
 // #Preview {
 //     SleepScheduleEditor()
-//         .modelContainer(for: [Ticker.self, CompositeTicker.self], inMemory: true)
+//         .modelContainer(for: [Ticker.self, TickerCollection.self], inMemory: true)
 // }
 

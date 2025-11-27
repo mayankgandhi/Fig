@@ -138,23 +138,23 @@ public final class TickerService {
             throw TickerServiceError.notAuthorized
         }
         
-        // 2. Determine if this is a simple or composite schedule
+        // 2. Determine if this is a simple or collection schedule
         guard let schedule = alarmItem.schedule else {
             print("   ❌ No schedule found")
             throw TickerServiceError.invalidConfiguration
         }
-        
+
         let isSimpleSchedule = isSimple(schedule)
         print("   → isSimpleSchedule: \(isSimpleSchedule)")
-        
+
         if isSimpleSchedule {
             print("   → Using simple alarm scheduling")
             // Simple schedule: 1:1 AlarmKit mapping (backward compatible)
             try await scheduleSimpleAlarm(alarmItem, context: context)
         } else {
-            print("   → Using composite alarm scheduling")
-            // Composite schedule: Generate multiple AlarmKit alarms
-            try await scheduleCompositeAlarm(alarmItem, context: context)
+            print("   → Using collection alarm scheduling")
+            // Collection schedule: Generate multiple AlarmKit alarms
+            try await scheduleCollectionAlarm(alarmItem, context: context)
         }
         print("   ✅ scheduleAlarm() completed successfully")
     }
@@ -236,8 +236,8 @@ public final class TickerService {
         print("   ✅ scheduleSimpleAlarm() completed successfully")
     }
     
-    private func scheduleCompositeAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
-        print("   🔧 scheduleCompositeAlarm() using regeneration service")
+    private func scheduleCollectionAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
+        print("   🔧 scheduleCollectionAlarm() using regeneration service")
         
         // Use the regeneration service to handle alarm generation with the new 48-hour window approach
         do {
@@ -276,7 +276,7 @@ public final class TickerService {
             print("   → Widget timelines refreshed")
 
         } catch {
-            print("   ❌ Composite alarm scheduling failed: \(error)")
+            print("   ❌ Collection alarm scheduling failed: \(error)")
             // Regeneration service handles its own alarm rollback
             // Just clean up SwiftData record
             let alarmID = alarmItem.id
@@ -376,14 +376,14 @@ public final class TickerService {
                     alarmItem.generatedAlarmKitIDs = [uniqueAlarmID]
                     print("   → Simple schedule rescheduled successfully with unique ID: \(uniqueAlarmID)")
                 } else {
-                    print("   → Using composite schedule rescheduling via regeneration service")
-                    // Use regeneration service for composite schedules
+                    print("   → Using collection schedule rescheduling via regeneration service")
+                    // Use regeneration service for collection schedules
                     try await regenerationService.regenerateAlarmsIfNeeded(
                         ticker: alarmItem,
                         context: context,
                         force: true
                     )
-                    print("   → Composite schedule regenerated successfully")
+                    print("   → Collection schedule regenerated successfully")
                 }
 
                 print("   → Final SwiftData save...")

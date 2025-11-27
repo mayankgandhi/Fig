@@ -1,5 +1,5 @@
 //
-//  CompositeTickerType.swift
+//  TickerCollectionType.swift
 //  TickerCore
 //
 //  Created by Claude Code
@@ -7,8 +7,8 @@
 
 import Foundation
 
-/// Represents the type of composite ticker
-public enum CompositeTickerType: String, Codable, Sendable {
+/// Represents the type of ticker collection
+public enum TickerCollectionType: String, Codable, Sendable {
     case sleepSchedule
     case custom
     // Future: medicationSchedule, mealPlan, workoutRoutine, etc.

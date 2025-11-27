@@ -1,9 +1,9 @@
 //
-//  CompositeTickerService.swift
+//  TickerCollectionService.swift
 //  TickerCore
 //
 //  Created by Claude Code
-//  Service for managing composite tickers (e.g., Sleep Schedule)
+//  Service for managing ticker collections (e.g., Sleep Schedule)
 //
 
 import Foundation
@@ -13,29 +13,29 @@ import Factory
 
 // MARK: - Error Types
 
-enum CompositeTickerServiceError: LocalizedError {
+enum TickerCollectionServiceError: LocalizedError {
     case invalidConfiguration
     case childCreationFailed(underlying: Error)
     case swiftDataSaveFailed(underlying: Error)
-    case compositeNotFound(UUID)
+    case collectionNotFound(UUID)
 
     var errorDescription: String? {
         switch self {
         case .invalidConfiguration:
-            return "Invalid composite ticker configuration"
+            return "Invalid ticker collection configuration"
         case .childCreationFailed(let error):
             return "Failed to create child tickers: \(error.localizedDescription)"
         case .swiftDataSaveFailed(let error):
-            return "Failed to save composite ticker: \(error.localizedDescription)"
-        case .compositeNotFound(let id):
+            return "Failed to save ticker collection: \(error.localizedDescription)"
+        case .collectionNotFound(let id):
             return "Composite ticker with ID \(id) not found"
         }
     }
 }
 
-// MARK: - CompositeTickerService
+// MARK: - TickerCollectionService
 
-public final class CompositeTickerService {
+public final class TickerCollectionService {
 
     @Injected(\.tickerService) private var tickerService
 
@@ -43,7 +43,7 @@ public final class CompositeTickerService {
 
     // MARK: - Sleep Schedule Operations
 
-    /// Create a new Sleep Schedule composite ticker with bedtime and wake-up alarms
+    /// Create a new Sleep Schedule ticker collection with bedtime and wake-up alarms
     @MainActor
     public func createSleepSchedule(
         label: String = "Sleep Schedule",
@@ -51,20 +51,20 @@ public final class CompositeTickerService {
         wakeTime: TimeOfDay,
         presentation: TickerPresentation = TickerPresentation(),
         modelContext: ModelContext
-    ) async throws -> CompositeTicker {
-        print("🛏️ Creating Sleep Schedule composite ticker")
+    ) async throws -> TickerCollection {
+        print("🛏️ Creating Sleep Schedule ticker collection")
         print("   → Bedtime: \(bedtime)")
         print("   → Wake time: \(wakeTime)")
 
-        // 1. Create the parent CompositeTicker
+        // 1. Create the parent TickerCollection
         let sleepConfig = SleepScheduleConfiguration(
             bedtime: bedtime,
             wakeTime: wakeTime
         )
 
-        let compositeTicker = CompositeTicker(
+        let tickerCollection = TickerCollection(
             label: label,
-            compositeType: .sleepSchedule,
+            collectionType: .sleepSchedule,
             configuration: .sleepSchedule(sleepConfig),
             presentation: presentation,
             tickerData: TickerData(
@@ -75,7 +75,7 @@ public final class CompositeTickerService {
             isEnabled: true
         )
 
-        print("   → Created parent CompositeTicker: \(compositeTicker.id)")
+        print("   → Created parent TickerCollection: \(tickerCollection.id)")
 
         // 2. Create child tickers (bedtime and wake-up)
         do {
@@ -93,7 +93,7 @@ public final class CompositeTickerService {
                     colorHex: presentation.tintColorHex
                 )
             )
-            bedtimeTicker.parentCompositeTicker = compositeTicker
+            bedtimeTicker.parentTickerCollection = tickerCollection
             print("   → Created bedtime ticker: \(bedtimeTicker.id)")
 
             // Wake-up alarm
@@ -110,14 +110,14 @@ public final class CompositeTickerService {
                     colorHex: presentation.tintColorHex
                 )
             )
-            wakeUpTicker.parentCompositeTicker = compositeTicker
+            wakeUpTicker.parentTickerCollection = tickerCollection
             print("   → Created wake-up ticker: \(wakeUpTicker.id)")
 
             // 3. Add children to parent
-            compositeTicker.childTickers = [bedtimeTicker, wakeUpTicker]
+            tickerCollection.childTickers = [bedtimeTicker, wakeUpTicker]
 
             // 4. Insert into context (atomically)
-            modelContext.insert(compositeTicker)
+            modelContext.insert(tickerCollection)
             modelContext.insert(bedtimeTicker)
             modelContext.insert(wakeUpTicker)
 
@@ -129,7 +129,7 @@ public final class CompositeTickerService {
                 print("   ✅ SwiftData save successful")
             } catch {
                 print("   ❌ SwiftData save failed: \(error)")
-                throw CompositeTickerServiceError.swiftDataSaveFailed(underlying: error)
+                throw TickerCollectionServiceError.swiftDataSaveFailed(underlying: error)
             }
 
             // 6. Schedule alarms for both children
@@ -144,39 +144,39 @@ public final class CompositeTickerService {
             refreshWidgetTimelines()
             print("   ✅ Sleep Schedule created successfully")
 
-            return compositeTicker
+            return tickerCollection
 
         } catch {
             print("   ❌ Child creation failed, rolling back...")
             // Rollback: delete from context
-            modelContext.delete(compositeTicker)
+            modelContext.delete(tickerCollection)
             try? modelContext.save()
-            throw CompositeTickerServiceError.childCreationFailed(underlying: error)
+            throw TickerCollectionServiceError.childCreationFailed(underlying: error)
         }
     }
 
-    /// Update an existing Sleep Schedule composite ticker
+    /// Update an existing Sleep Schedule ticker collection
     @MainActor
     public func updateSleepSchedule(
-        _ composite: CompositeTicker,
+        _ collection: TickerCollection,
         bedtime: TimeOfDay,
         wakeTime: TimeOfDay,
         modelContext: ModelContext
     ) async throws {
-        print("🛏️ Updating Sleep Schedule: \(composite.id)")
+        print("🛏️ Updating Sleep Schedule: \(collection.id)")
 
-        guard composite.compositeType == .sleepSchedule else {
-            throw CompositeTickerServiceError.invalidConfiguration
+        guard collection.collectionType == .sleepSchedule else {
+            throw TickerCollectionServiceError.invalidConfiguration
         }
 
         // Update configuration
-        composite.updateSleepSchedule(
+        collection.updateSleepSchedule(
             bedtime: bedtime,
             wakeTime: wakeTime
         )
 
         // Update child tickers
-        if let children = composite.childTickers, children.count == 2 {
+        if let children = collection.childTickers, children.count == 2 {
             // Update bedtime (first child)
             children[0].schedule = .daily(time: bedtime)
             try await tickerService.updateAlarm(children[0], context: modelContext)
@@ -194,19 +194,19 @@ public final class CompositeTickerService {
 
     // MARK: - Enable/Disable Operations
 
-    /// Toggle the composite ticker (affects all children)
+    /// Toggle the ticker collection (affects all children)
     @MainActor
-    public func toggleCompositeTicker(
-        _ composite: CompositeTicker,
+    public func toggleTickerCollection(
+        _ collection: TickerCollection,
         enabled: Bool,
         modelContext: ModelContext
     ) async throws {
-        print("🔄 Toggling CompositeTicker: \(composite.id) to \(enabled)")
+        print("🔄 Toggling TickerCollection: \(collection.id) to \(enabled)")
 
-        composite.isEnabled = enabled
+        collection.isEnabled = enabled
 
         // Toggle all children
-        if let children = composite.childTickers {
+        if let children = collection.childTickers {
             for child in children {
                 child.isEnabled = enabled
                 if enabled {
@@ -225,14 +225,14 @@ public final class CompositeTickerService {
     /// Toggle individual child ticker (hybrid control)
     @MainActor
     public func toggleChildTicker(
-        _ composite: CompositeTicker,
+        _ collection: TickerCollection,
         childID: UUID,
         enabled: Bool,
         modelContext: ModelContext
     ) async throws {
         print("🔄 Toggling child ticker: \(childID) to \(enabled)")
 
-        guard let child = composite.childTickers?.first(where: { $0.id == childID }) else {
+        guard let child = collection.childTickers?.first(where: { $0.id == childID }) else {
             print("   ❌ Child not found")
             return
         }
@@ -247,8 +247,8 @@ public final class CompositeTickerService {
 
         // Update parent's enabled state based on children
         // Parent is enabled if ANY child is enabled
-        if let children = composite.childTickers {
-            composite.isEnabled = children.contains { $0.isEnabled }
+        if let children = collection.childTickers {
+            collection.isEnabled = children.contains { $0.isEnabled }
         }
 
         try modelContext.save()
@@ -258,31 +258,31 @@ public final class CompositeTickerService {
 
     // MARK: - Custom Composite Operations
 
-    /// Create a new custom composite ticker with provided child tickers
+    /// Create a new custom ticker collection with provided child tickers
     @MainActor
-    public func createCustomCompositeTicker(
+    public func createCustomTickerCollection(
         label: String,
         icon: String,
         colorHex: String,
         childTickers: [Ticker],
         modelContext: ModelContext
-    ) async throws -> CompositeTicker {
+    ) async throws -> TickerCollection {
         print("📦 Creating Custom Composite Ticker")
         print("   → Label: \(label)")
         print("   → Icon: \(icon)")
         print("   → Color: \(colorHex)")
         print("   → Child count: \(childTickers.count)")
 
-        // 1. Create the parent CompositeTicker
+        // 1. Create the parent TickerCollection
         let presentation = TickerPresentation(
             tintColorHex: colorHex,
             secondaryButtonType: .none
         )
 
-        let compositeTicker = CompositeTicker(
+        let tickerCollection = TickerCollection(
             label: label,
-            compositeType: .custom,
-            configuration: nil, // Custom composites don't have specific configuration
+            collectionType: .custom,
+            configuration: nil, // Custom collections don't have specific configuration
             presentation: presentation,
             tickerData: TickerData(
                 name: label,
@@ -292,21 +292,21 @@ public final class CompositeTickerService {
             isEnabled: true
         )
 
-        print("   → Created parent CompositeTicker: \(compositeTicker.id)")
+        print("   → Created parent TickerCollection: \(tickerCollection.id)")
 
         // 2. Set up child tickers
         do {
             // Set parent relationship on each child
             for child in childTickers {
-                child.parentCompositeTicker = compositeTicker
+                child.parentTickerCollection = tickerCollection
                 print("   → Prepared child ticker: \(child.id) - \(child.label)")
             }
 
             // 3. Add children to parent
-            compositeTicker.childTickers = childTickers
+            tickerCollection.childTickers = childTickers
 
             // 4. Insert into context (atomically)
-            modelContext.insert(compositeTicker)
+            modelContext.insert(tickerCollection)
             for child in childTickers {
                 // Only insert if not already in context (e.g., if created via AddTickerView)
                 if child.modelContext == nil {
@@ -322,7 +322,7 @@ public final class CompositeTickerService {
                 print("   ✅ SwiftData save successful")
             } catch {
                 print("   ❌ SwiftData save failed: \(error)")
-                throw CompositeTickerServiceError.swiftDataSaveFailed(underlying: error)
+                throw TickerCollectionServiceError.swiftDataSaveFailed(underlying: error)
             }
 
             // 6. Schedule alarms for all children
@@ -336,38 +336,38 @@ public final class CompositeTickerService {
             refreshWidgetTimelines()
             print("   ✅ Custom Composite Ticker created successfully")
 
-            return compositeTicker
+            return tickerCollection
 
         } catch {
             print("   ❌ Child creation failed, rolling back...")
             // Rollback: delete from context
-            modelContext.delete(compositeTicker)
+            modelContext.delete(tickerCollection)
             for child in childTickers {
                 modelContext.delete(child)
             }
             try? modelContext.save()
-            throw CompositeTickerServiceError.childCreationFailed(underlying: error)
+            throw TickerCollectionServiceError.childCreationFailed(underlying: error)
         }
     }
 
-    /// Update an existing custom composite ticker
+    /// Update an existing custom ticker collection
     @MainActor
-    public func updateCustomCompositeTicker(
-        _ composite: CompositeTicker,
+    public func updateCustomTickerCollection(
+        _ collection: TickerCollection,
         label: String,
         icon: String,
         colorHex: String,
         childTickers: [Ticker],
         modelContext: ModelContext
     ) async throws {
-        print("📦 Updating Custom Composite Ticker: \(composite.id)")
+        print("📦 Updating Custom Composite Ticker: \(collection.id)")
 
-        guard composite.compositeType == .custom else {
-            throw CompositeTickerServiceError.invalidConfiguration
+        guard collection.collectionType == .custom else {
+            throw TickerCollectionServiceError.invalidConfiguration
         }
 
         // 1. Cancel existing child alarms
-        if let existingChildren = composite.childTickers {
+        if let existingChildren = collection.childTickers {
             for child in existingChildren {
                 try await tickerService.cancelAlarm(id: child.id, context: modelContext)
             }
@@ -377,13 +377,13 @@ public final class CompositeTickerService {
             }
         }
 
-        // 2. Update composite properties
-        composite.label = label
-        composite.presentation = TickerPresentation(
+        // 2. Update collection properties
+        collection.label = label
+        collection.presentation = TickerPresentation(
             tintColorHex: colorHex,
             secondaryButtonType: .none
         )
-        composite.tickerData = TickerData(
+        collection.tickerData = TickerData(
             name: label,
             icon: icon,
             colorHex: colorHex
@@ -391,7 +391,7 @@ public final class CompositeTickerService {
 
         // 3. Set up new child tickers
         for child in childTickers {
-            child.parentCompositeTicker = composite
+            child.parentTickerCollection = collection
             // Insert new children if they're not already in context
             // Note: If child is already in context (e.g., from AddTickerView), 
             // we just update the relationship, no need to insert again
@@ -401,7 +401,7 @@ public final class CompositeTickerService {
         }
 
         // 4. Update children relationship
-        composite.childTickers = childTickers
+        collection.childTickers = childTickers
 
         // 5. Save to SwiftData
         try modelContext.save()
@@ -421,23 +421,23 @@ public final class CompositeTickerService {
 
     // MARK: - Delete Operations
 
-    /// Delete composite ticker (cascade deletes children via relationship)
+    /// Delete ticker collection (cascade deletes children via relationship)
     @MainActor
-    public func deleteCompositeTicker(
-        _ composite: CompositeTicker,
+    public func deleteTickerCollection(
+        _ collection: TickerCollection,
         modelContext: ModelContext
     ) async throws {
-        print("🗑️ Deleting CompositeTicker: \(composite.id)")
+        print("🗑️ Deleting TickerCollection: \(collection.id)")
 
         // Cancel all child alarms first
-        if let children = composite.childTickers {
+        if let children = collection.childTickers {
             for child in children {
-                try await tickerService.cancelAlarm(id: composite.id, context: modelContext)
+                try await tickerService.cancelAlarm(id: collection.id, context: modelContext)
             }
         }
 
         // Delete from context (children will cascade delete)
-        modelContext.delete(composite)
+        modelContext.delete(collection)
         try modelContext.save()
 
         refreshWidgetTimelines()

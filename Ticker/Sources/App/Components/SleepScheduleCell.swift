@@ -12,16 +12,16 @@ import TickerCore
 // MARK: - Sleep Schedule Cell
 
 struct SleepScheduleCell: View {
-    let compositeItem: CompositeTicker
+    let collectionItem: TickerCollection
     let onTap: () -> Void
     @Environment(\.colorScheme) private var colorScheme
     
     private var config: SleepScheduleConfiguration? {
-        compositeItem.sleepScheduleConfig
+        collectionItem.sleepScheduleConfig
     }
     
     private var tintColor: Color {
-        compositeItem.presentation.tintColor
+        collectionItem.presentation.tintColor
     }
     
     var body: some View {
@@ -37,7 +37,7 @@ struct SleepScheduleCell: View {
                 VStack(alignment: .leading, spacing: DesignKit.xs) {
                     // Title
                     HStack(alignment: .firstTextBaseline) {
-                        Text(compositeItem.label)
+                        Text(collectionItem.label)
                             .tickerTitle()
                             .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
                             .lineLimit(1)
@@ -45,7 +45,7 @@ struct SleepScheduleCell: View {
                         Spacer()
                         
                         // Enabled/disabled indicator
-                        if !compositeItem.isEnabled {
+                        if !collectionItem.isEnabled {
                             Image(systemName: "pause.circle.fill")
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundStyle(DesignKit.textTertiary(for: colorScheme))
@@ -94,7 +94,7 @@ struct SleepScheduleCell: View {
                 x: 0,
                 y: 2
             )
-            .opacity(compositeItem.isEnabled ? 1.0 : 0.6)
+            .opacity(collectionItem.isEnabled ? 1.0 : 0.6)
         }
         .buttonStyle(.plain)
     }
@@ -195,9 +195,9 @@ struct SleepScheduleCell: View {
         wakeTime: TimeOfDay(hour: 6, minute: 30)  // 6:30 AM
     )
     
-    let compositeTicker = CompositeTicker(
+    let tickerCollection = TickerCollection(
         label: "Sleep Schedule",
-        compositeType: .sleepSchedule,
+        collectionType: .sleepSchedule,
         configuration: .sleepSchedule(sleepConfig),
         presentation: TickerPresentation(tintColorHex: "#6366F1"),
         tickerData: TickerData(
@@ -208,7 +208,7 @@ struct SleepScheduleCell: View {
         isEnabled: true
     )
     
-    return SleepScheduleCell(compositeItem: compositeTicker) {
+    return SleepScheduleCell(collectionItem: tickerCollection) {
         print("Tapped sleep schedule")
     }
     .padding()
@@ -231,9 +231,9 @@ struct SleepScheduleCell: View {
         wakeTime: TimeOfDay(hour: 7, minute: 0)     // 7:00 AM
     )
     
-    let compositeTicker = CompositeTicker(
+    let tickerCollection = TickerCollection(
         label: "Weekend Sleep",
-        compositeType: .sleepSchedule,
+        collectionType: .sleepSchedule,
         configuration: .sleepSchedule(sleepConfig),
         presentation: TickerPresentation(tintColorHex: "#8B5CF6"),
         tickerData: TickerData(
@@ -244,7 +244,7 @@ struct SleepScheduleCell: View {
         isEnabled: false
     )
     
-    return SleepScheduleCell(compositeItem: compositeTicker) {
+    return SleepScheduleCell(collectionItem: tickerCollection) {
         print("Tapped disabled sleep schedule")
     }
     .padding()
@@ -267,9 +267,9 @@ struct SleepScheduleCell: View {
         wakeTime: TimeOfDay(hour: 6, minute: 0)     // 6:00 AM
     )
     
-    let compositeTicker = CompositeTicker(
+    let tickerCollection = TickerCollection(
         label: "Early Sleep Schedule",
-        compositeType: .sleepSchedule,
+        collectionType: .sleepSchedule,
         configuration: .sleepSchedule(sleepConfig),
         presentation: TickerPresentation(tintColorHex: "#6366F1"),
         tickerData: TickerData(
@@ -280,7 +280,7 @@ struct SleepScheduleCell: View {
         isEnabled: true
     )
     
-    return SleepScheduleCell(compositeItem: compositeTicker) {
+    return SleepScheduleCell(collectionItem: tickerCollection) {
         print("Tapped sleep schedule")
     }
     .padding()

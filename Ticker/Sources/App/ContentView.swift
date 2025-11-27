@@ -17,23 +17,23 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Injected(\.tickerService) private var tickerService
-    @Injected(\.compositeTickerService) private var compositeTickerService
+    @Injected(\.tickerCollectionService) private var tickerCollectionService
     @EnvironmentObject private var modelContextObserver: ModelContextObserver
 
     // Direct SwiftData queries - auto-updates when data changes
     @Query(sort: \Ticker.createdAt, order: .reverse) private var allTickers: [Ticker]
-    @Query(sort: \CompositeTicker.createdAt, order: .reverse) private var allCompositeTickers: [CompositeTicker]
+    @Query(sort: \TickerCollection.createdAt, order: .reverse) private var allTickerCollections: [TickerCollection]
 
     @State private var showAddSheet = false
     @State private var showNaturalLanguageSheet = false
     @State private var showAddSleepScheduleSheet = false
-    @State private var showAddCompositeSheet = false
+    @State private var showAddCollectionSheet = false
     @State private var alarmToEdit: Ticker?
     @State private var alarmToDelete: Ticker?
     @State private var alarmToShowDetail: Ticker?
-    @State private var compositeToShowDetail: CompositeTicker?
-    @State private var compositeToEdit: CompositeTicker?
-    @State private var compositeToDelete: CompositeTicker?
+    @State private var collectionToShowDetail: TickerCollection?
+    @State private var collectionToEdit: TickerCollection?
+    @State private var collectionToDelete: TickerCollection?
     @State private var showDeleteAlert = false
     @State private var showDeleteCompositeAlert = false
     @State private var searchText = ""
@@ -41,14 +41,14 @@ struct ContentView: View {
     @Namespace private var addButtonNamespace
     @Namespace private var editButtonNamespace
     @Namespace private var aiButtonNamespace
-    @Namespace private var compositeButtonNamespace
+    @Namespace private var collectionButtonNamespace
 
     // Type alias for cleaner code
     private typealias AlarmListItem = UnifiedAlarmListView.AlarmListItem
 
-    // Filter standalone tickers (exclude children of composite tickers)
+    // Filter standalone tickers (exclude children of ticker collections)
     private var standaloneTickers: [Ticker] {
-        allTickers.filter { $0.parentCompositeTicker == nil }
+        allTickers.filter { $0.parentTickerCollection == nil }
     }
 
     // Combined and sorted alarm items
@@ -58,8 +58,8 @@ struct ContentView: View {
         // Add standalone tickers
         items.append(contentsOf: standaloneTickers.map { .ticker($0) })
 
-        // Add composite tickers
-        items.append(contentsOf: allCompositeTickers.map { .composite($0) })
+        // Add ticker collections
+        items.append(contentsOf: allTickerCollections.map { .collection($0) })
 
         // Sort by creation date (most recent first)
         return items.sorted { item1, item2 in
@@ -68,12 +68,12 @@ struct ContentView: View {
 
             switch item1 {
             case .ticker(let ticker): date1 = ticker.createdAt
-            case .composite(let composite): date1 = composite.createdAt
+            case .collection(let collection): date1 = collection.createdAt
             }
 
             switch item2 {
             case .ticker(let ticker): date2 = ticker.createdAt
-            case .composite(let composite): date2 = composite.createdAt
+            case .collection(let collection): date2 = collection.createdAt
             }
 
             return date1 > date2
@@ -87,7 +87,7 @@ struct ContentView: View {
             let label: String
             switch item {
             case .ticker(let ticker): label = ticker.label
-            case .composite(let composite): label = composite.label
+            case .collection(let collection): label = collection.label
             }
             return label.localizedCaseInsensitiveContains(searchText)
         }
@@ -106,7 +106,7 @@ struct ContentView: View {
                             showAddSheet: $showAddSheet,
                             showNaturalLanguageSheet: $showNaturalLanguageSheet,
                             showAddSleepScheduleSheet: $showAddSleepScheduleSheet,
-                            showAddCompositeSheet: $showAddCompositeSheet,
+                            showAddCollectionSheet: $showAddCollectionSheet,
                             namespace: addButtonNamespace
                         )
                     }
@@ -157,9 +157,9 @@ struct ContentView: View {
                 sheetBackground
             }
         }
-        .sheet(item: $compositeToShowDetail) { composite in
+        .sheet(item: $collectionToShowDetail) { collection in
             NavigationStack {
-                CompositeTickerDetailContainerView(compositeTicker: composite)
+                TickerCollectionDetailContainerView(tickerCollection: collection)
             }
             .presentationCornerRadius(DesignKit.large)
             .presentationBackground {
@@ -176,15 +176,15 @@ struct ContentView: View {
                 sheetBackground
             }
         }
-        .sheet(item: $compositeToEdit) { composite in
-            if composite.compositeType == .sleepSchedule,
-               let config = composite.sleepScheduleConfig {
+        .sheet(item: $collectionToEdit) { collection in
+            if collection.collectionType == .sleepSchedule,
+               let config = collection.sleepScheduleConfig {
                 SleepScheduleEditor(
                     viewModel: SleepScheduleViewModel(
                         bedtime: config.bedtime,
                         wakeTime: config.wakeTime,
-                        presentation: composite.presentation,
-                        compositeTickerToUpdate: composite
+                        presentation: collection.presentation,
+                        tickerCollectionToUpdate: collection
                     )
                 )
                 .presentationCornerRadius(DesignKit.large)
@@ -192,10 +192,10 @@ struct ContentView: View {
                 .presentationBackground {
                     sheetBackground
                 }
-            } else if composite.compositeType == .custom {
-                CompositeTickerEditor(
-                    namespace: compositeButtonNamespace,
-                    compositeTicker: composite,
+            } else if collection.collectionType == .custom {
+                TickerCollectionEditor(
+                    namespace: collectionButtonNamespace,
+                    tickerCollection: collection,
                     isEditMode: true
                 )
                 .presentationCornerRadius(DesignKit.large)
@@ -206,8 +206,8 @@ struct ContentView: View {
                 }
             }
         }
-        .sheet(isPresented: $showAddCompositeSheet) {
-            CompositeTickerEditor(namespace: compositeButtonNamespace)
+        .sheet(isPresented: $showAddCollectionSheet) {
+            TickerCollectionEditor(namespace: collectionButtonNamespace)
                 .presentationCornerRadius(DesignKit.large)
                 .presentationDragIndicator(.visible)
                 .interactiveDismissDisabled()
@@ -235,23 +235,23 @@ struct ContentView: View {
         }
         .alert("Delete Sleep Schedule", isPresented: $showDeleteCompositeAlert) {
             Button("Cancel", role: .cancel) {
-                compositeToDelete = nil
+                collectionToDelete = nil
             }
             Button("Delete", role: .destructive) {
-                if let composite = compositeToDelete {
+                if let collection = collectionToDelete {
                     DesignKitHaptics.warning()
                     Task {
-                        try? await compositeTickerService.deleteCompositeTicker(
-                            composite,
+                        try? await tickerCollectionService.deleteTickerCollection(
+                            collection,
                             modelContext: modelContext
                         )
                     }
                 }
-                compositeToDelete = nil
+                collectionToDelete = nil
             }
         } message: {
-            if let composite = compositeToDelete {
-                Text("Are you sure you want to delete \"\(composite.label)\"? This action cannot be undone.")
+            if let collection = collectionToDelete {
+                Text("Are you sure you want to delete \"\(collection.label)\"? This action cannot be undone.")
             }
         }
         .tint(DesignKit.primary)
@@ -292,8 +292,8 @@ struct ContentView: View {
                     onTickerTap: { ticker in
                         alarmToShowDetail = ticker
                     },
-                    onCompositeTap: { composite in
-                        compositeToShowDetail = composite
+                    onCompositeTap: { collection in
+                        collectionToShowDetail = collection
                     },
                     onEdit: { ticker in
                         alarmToEdit = ticker
@@ -302,16 +302,16 @@ struct ContentView: View {
                         alarmToDelete = ticker
                         showDeleteAlert = true
                     },
-                    onEditComposite: { composite in
-                        if composite.compositeType == .sleepSchedule || composite.compositeType == .custom {
-                            compositeToEdit = composite
+                    onEditComposite: { collection in
+                        if collection.collectionType == .sleepSchedule || collection.collectionType == .custom {
+                            collectionToEdit = collection
                         } else {
-                            // For other composite types, open detail view
-                            compositeToShowDetail = composite
+                            // For other collection types, open detail view
+                            collectionToShowDetail = collection
                         }
                     },
-                    onDeleteComposite: { composite in
-                        compositeToDelete = composite
+                    onDeleteComposite: { collection in
+                        collectionToDelete = collection
                         showDeleteCompositeAlert = true
                     }
                 )

@@ -69,7 +69,7 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         let activeAlarmIDs = Set(alarmKitAlarms.map { $0.id })
         let disabledTickerIDs = Set(allTickers.filter { !$0.isEnabled }.map { $0.id })
         
-        // Build map of AlarmKit IDs to Tickers (for composite schedules)
+        // Build map of AlarmKit IDs to Tickers (for collection schedules)
         var alarmKitIDsToTicker: [UUID: Ticker] = [:]
         for ticker in allTickers {
             print("🔍 Ticker '\(ticker.label)' (ID: \(ticker.id)) has generatedAlarmKitIDs: \(ticker.generatedAlarmKitIDs)")
@@ -165,7 +165,7 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
                 print("✅ Ticker '\(ticker.displayName)' has main alarm \(ticker.id)")
             }
 
-            // Check generated alarm IDs (for composite schedules)
+            // Check generated alarm IDs (for collection schedules)
             for generatedID in ticker.generatedAlarmKitIDs {
                 if activeAlarmIDs.contains(generatedID) {
                     hasActiveAlarm = true
@@ -295,7 +295,7 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
     
     // MARK: - Helper Methods
     
-    /// Determine if a schedule is simple (1:1 AlarmKit mapping) or composite (requires regeneration)
+    /// Determine if a schedule is simple (1:1 AlarmKit mapping) or collection (requires regeneration)
     private func isSimpleSchedule(_ schedule: TickerSchedule) -> Bool {
         switch schedule {
         case .oneTime, .daily:

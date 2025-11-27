@@ -25,7 +25,7 @@ final class SleepScheduleViewModel {
     var presentation: TickerPresentation
 
     // Edit mode
-    var compositeTickerToUpdate: CompositeTicker?
+    var tickerCollectionToUpdate: TickerCollection?
 
     // UI State
     var isCreating: Bool = false
@@ -34,7 +34,7 @@ final class SleepScheduleViewModel {
 
     // Services
     @ObservationIgnored
-    @Injected(\.compositeTickerService) private var compositeService
+    @Injected(\.tickerCollectionService) private var collectionService
 
     // MARK: - Initialization
 
@@ -42,14 +42,14 @@ final class SleepScheduleViewModel {
         bedtime: TimeOfDay = TimeOfDay(hour: 22, minute: 0), // 10:00 PM default
         wakeTime: TimeOfDay = TimeOfDay(hour: 6, minute: 30), // 6:30 AM default
         presentation: TickerPresentation = TickerPresentation(),
-        compositeTickerToUpdate: CompositeTicker? = nil
+        tickerCollectionToUpdate: TickerCollection? = nil
     ) {
         self.bedtime = bedtime
         self.wakeTime = wakeTime
         self.presentation = presentation
-        self.compositeTickerToUpdate = compositeTickerToUpdate
-        if let composite = compositeTickerToUpdate {
-            self.label = composite.label
+        self.tickerCollectionToUpdate = tickerCollectionToUpdate
+        if let collection = tickerCollectionToUpdate {
+            self.label = collection.label
         }
     }
 
@@ -75,7 +75,7 @@ final class SleepScheduleViewModel {
 
     // MARK: - Actions
 
-    /// Create or update the sleep schedule composite ticker
+    /// Create or update the sleep schedule ticker collection
     func createSleepSchedule(modelContext: ModelContext) async throws {
         guard !isCreating else { return }
 
@@ -83,17 +83,17 @@ final class SleepScheduleViewModel {
         defer { isCreating = false }
 
         do {
-            if let composite = compositeTickerToUpdate {
+            if let collection = tickerCollectionToUpdate {
                 // Update existing sleep schedule
-                try await compositeService.updateSleepSchedule(
-                    composite,
+                try await collectionService.updateSleepSchedule(
+                    collection,
                     bedtime: bedtime,
                     wakeTime: wakeTime,
                     modelContext: modelContext
                 )
             } else {
                 // Create new sleep schedule
-                _ = try await compositeService.createSleepSchedule(
+                _ = try await collectionService.createSleepSchedule(
                     label: label,
                     bedtime: bedtime,
                     wakeTime: wakeTime,

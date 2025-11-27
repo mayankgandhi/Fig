@@ -48,8 +48,8 @@ public extension Container {
             .singleton
     }
 
-    var compositeTickerService: Factory<CompositeTickerService> {
-        self { CompositeTickerService() }
+    var tickerCollectionService: Factory<TickerCollectionService> {
+        self { TickerCollectionService() }
             .singleton
     }
 

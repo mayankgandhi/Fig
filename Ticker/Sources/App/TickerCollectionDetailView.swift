@@ -1,9 +1,9 @@
 //
-//  CompositeTickerDetailView.swift
+//  TickerCollectionDetailView.swift
 //  Ticker
 //
 //  Created by Claude Code
-//  Detail view for composite tickers showing child alarms
+//  Detail view for ticker collections showing child alarms
 //
 
 import SwiftUI
@@ -11,15 +11,15 @@ import SwiftData
 import TickerCore
 import Factory
 
-struct CompositeTickerDetailView: View {
+struct TickerCollectionDetailView: View {
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Injected(\.tickerService) private var tickerService
 
-    let compositeTicker: CompositeTicker
+    let tickerCollection: TickerCollection
     
-    @Injected(\.compositeTickerService) private var compositeService
+    @Injected(\.tickerCollectionService) private var collectionService
 
     @State private var isToggling = false
     @State private var showingEditView = false
@@ -29,22 +29,22 @@ struct CompositeTickerDetailView: View {
             // Master toggle section
             Section {
                 Toggle(isOn: Binding(
-                    get: { compositeTicker.isEnabled },
+                    get: { tickerCollection.isEnabled },
                     set: { newValue in
                         Task {
-                            await toggleCompositeTicker(enabled: newValue)
+                            await toggleTickerCollection(enabled: newValue)
                         }
                     }
                 )) {
                     HStack {
-                        Image(systemName: compositeTicker.compositeType.iconName)
-                            .foregroundStyle(compositeTicker.presentation.tintColor)
+                        Image(systemName: tickerCollection.collectionType.iconName)
+                            .foregroundStyle(tickerCollection.presentation.tintColor)
 
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(compositeTicker.label)
+                            Text(tickerCollection.label)
                                 .font(.headline)
 
-                            if let config = compositeTicker.sleepScheduleConfig {
+                            if let config = tickerCollection.sleepScheduleConfig {
                                 Text(config.formattedDuration)
                                     .font(.caption)
                                     .foregroundColor(.secondary)
@@ -55,16 +55,16 @@ struct CompositeTickerDetailView: View {
                 .disabled(isToggling)
             }
 
-            // Sleep schedule section (for sleep schedule composites)
-            if let config = compositeTicker.sleepScheduleConfig {
+            // Sleep schedule section (for sleep schedule collections)
+            if let config = tickerCollection.sleepScheduleConfig {
                 Section {
                     // Bedtime display
-                    if let bedtimeTicker = compositeTicker.childTickers?.first(where: { $0.label == "Bedtime" }) {
+                    if let bedtimeTicker = tickerCollection.childTickers?.first(where: { $0.label == "Bedtime" }) {
                         childTickerRow(ticker: bedtimeTicker, config: config, isBedtime: true)
                     }
 
                     // Wake up display
-                    if let wakeUpTicker = compositeTicker.childTickers?.first(where: { $0.label == "Wake Up" }) {
+                    if let wakeUpTicker = tickerCollection.childTickers?.first(where: { $0.label == "Wake Up" }) {
                         childTickerRow(ticker: wakeUpTicker, config: config, isBedtime: false)
                     }
                 } header: {
@@ -74,9 +74,9 @@ struct CompositeTickerDetailView: View {
                
             }
 
-            // Child tickers section (generic, for other composite types)
-            if compositeTicker.compositeType != .sleepSchedule,
-               let children = compositeTicker.childTickers,
+            // Child tickers section (generic, for other collection types)
+            if tickerCollection.collectionType != .sleepSchedule,
+               let children = tickerCollection.childTickers,
                !children.isEmpty {
                 Section("Alarms") {
                     ForEach(children) { child in
@@ -89,7 +89,7 @@ struct CompositeTickerDetailView: View {
             Section {
                 Button(role: .destructive) {
                     Task {
-                        await deleteCompositeTicker()
+                        await deleteTickerCollection()
                     }
                 } label: {
                     HStack {
@@ -100,7 +100,7 @@ struct CompositeTickerDetailView: View {
                 }
             }
         }
-        .navigationTitle(compositeTicker.label)
+        .navigationTitle(tickerCollection.label)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
@@ -161,7 +161,7 @@ struct CompositeTickerDetailView: View {
             HStack(spacing: 12) {
                 if let icon = ticker.tickerData?.icon {
                     Image(systemName: icon)
-                        .foregroundStyle(compositeTicker.presentation.tintColor)
+                        .foregroundStyle(tickerCollection.presentation.tintColor)
                         .frame(width: 30)
                 }
 
@@ -182,19 +182,19 @@ struct CompositeTickerDetailView: View {
 
     // MARK: - Actions
 
-    private func toggleCompositeTicker(enabled: Bool) async {
+    private func toggleTickerCollection(enabled: Bool) async {
         guard !isToggling else { return }
         isToggling = true
         defer { isToggling = false }
 
         do {
-            try await compositeService.toggleCompositeTicker(
-                compositeTicker,
+            try await collectionService.toggleTickerCollection(
+                tickerCollection,
                 enabled: enabled,
                 modelContext: modelContext
             )
         } catch {
-            print("Failed to toggle composite ticker: \(error)")
+            print("Failed to toggle ticker collection: \(error)")
         }
     }
 
@@ -204,8 +204,8 @@ struct CompositeTickerDetailView: View {
         defer { isToggling = false }
 
         do {
-            try await compositeService.toggleChildTicker(
-                compositeTicker,
+            try await collectionService.toggleChildTicker(
+                tickerCollection,
                 childID: ticker.id,
                 enabled: enabled,
                 modelContext: modelContext
@@ -215,15 +215,15 @@ struct CompositeTickerDetailView: View {
         }
     }
 
-    private func deleteCompositeTicker() async {
+    private func deleteTickerCollection() async {
         do {
-            try await compositeService.deleteCompositeTicker(
-                compositeTicker,
+            try await collectionService.deleteTickerCollection(
+                tickerCollection,
                 modelContext: modelContext
             )
             dismiss()
         } catch {
-            print("Failed to delete composite ticker: \(error)")
+            print("Failed to delete ticker collection: \(error)")
         }
     }
 }

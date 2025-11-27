@@ -2,8 +2,8 @@
 //  ChildTickerDataListView.swift
 //  fig
 //
-//  List view for displaying and managing child ticker data in composite editor
-//  Works with CompositeChildTickerData instead of full Ticker objects
+//  List view for displaying and managing child ticker data in collection editor
+//  Works with CollectionChildTickerData instead of full Ticker objects
 //
 
 import SwiftUI
@@ -11,11 +11,11 @@ import TickerCore
 import DesignKit
 
 struct ChildTickerDataListView: View {
-    let childData: [CompositeChildTickerData]
+    let childData: [CollectionChildTickerData]
     let icon: String
     let colorHex: String
-    let onEdit: (CompositeChildTickerData) -> Void
-    let onDelete: (CompositeChildTickerData) -> Void
+    let onEdit: (CollectionChildTickerData) -> Void
+    let onDelete: (CollectionChildTickerData) -> Void
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -59,7 +59,7 @@ struct ChildTickerDataListView: View {
                 .Body()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
 
-            Text("Add tickers to create a composite alarm")
+            Text("Add tickers to create a collection alarm")
                 .Caption()
                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                 .multilineTextAlignment(.center)
@@ -87,7 +87,7 @@ struct ChildTickerDataListView: View {
 
     // MARK: - Child Data Row
 
-    private func childDataRow(data: CompositeChildTickerData, index: Int) -> some View {
+    private func childDataRow(data: CollectionChildTickerData, index: Int) -> some View {
         HStack(spacing: TickerSpacing.md) {
             // Icon (inherited from parent)
             iconView
@@ -180,11 +180,11 @@ struct ChildTickerDataListView: View {
 #Preview {
     ChildTickerDataListView(
         childData: [
-            CompositeChildTickerData(
+            CollectionChildTickerData(
                 label: "Wake up",
                 schedule: .daily(time: TimeOfDay(hour: 7, minute: 0))
             ),
-            CompositeChildTickerData(
+            CollectionChildTickerData(
                 label: "Bedtime",
                 schedule: .daily(time: TimeOfDay(hour: 22, minute: 30))
             )

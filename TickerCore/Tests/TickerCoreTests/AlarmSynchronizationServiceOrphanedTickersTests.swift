@@ -155,7 +155,7 @@ final class AlarmSynchronizationServiceOrphanedTickersTests: XCTestCase {
     // MARK: - Regeneration Tests
     
     func testSynchronize_KeepsTicker_NeedsRegeneration() async throws {
-        // Given: Ticker that needs regeneration (composite schedule)
+        // Given: Ticker that needs regeneration (collection schedule)
         let ticker = AlarmSynchronizationServiceTestHelpers.createTickerNeedingRegeneration()
         let tickerID = ticker.id
         

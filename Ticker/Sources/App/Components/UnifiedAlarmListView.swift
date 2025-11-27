@@ -3,7 +3,7 @@
 //  Ticker
 //
 //  Created by Claude Code
-//  Unified list view for displaying both standard Tickers and CompositeTickers
+//  Unified list view for displaying both standard Tickers and TickerCollections
 //
 
 import SwiftUI
@@ -15,23 +15,23 @@ struct UnifiedAlarmListView: View {
     // Alarm list item enum for unified display
     enum AlarmListItem: Identifiable {
         case ticker(Ticker)
-        case composite(CompositeTicker)
+        case collection(TickerCollection)
 
         var id: UUID {
             switch self {
             case .ticker(let ticker): return ticker.id
-            case .composite(let composite): return composite.id
+            case .collection(let collection): return collection.id
             }
         }
     }
 
     let alarmItems: [AlarmListItem]
     let onTickerTap: (Ticker) -> Void
-    let onCompositeTap: (CompositeTicker) -> Void
+    let onCompositeTap: (TickerCollection) -> Void
     let onEdit: (Ticker) -> Void
     let onDelete: (Ticker) -> Void
-    let onEditComposite: (CompositeTicker) -> Void
-    let onDeleteComposite: (CompositeTicker) -> Void
+    let onEditComposite: (TickerCollection) -> Void
+    let onDeleteComposite: (TickerCollection) -> Void
 
     @Environment(\.colorScheme) private var colorScheme
     
@@ -69,10 +69,10 @@ struct UnifiedAlarmListView: View {
                         .tint(.red)
                     }
 
-                case .composite(let composite):
-                    if composite.compositeType == .sleepSchedule {
-                        SleepScheduleCell(compositeItem: composite) {
-                            onCompositeTap(composite)
+                case .collection(let collection):
+                    if collection.collectionType == .sleepSchedule {
+                        SleepScheduleCell(collectionItem: collection) {
+                            onCompositeTap(collection)
                         }
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
@@ -85,7 +85,7 @@ struct UnifiedAlarmListView: View {
                         .contextMenu {
                             Button {
                                 DesignKitHaptics.selection()
-                                onEditComposite(composite)
+                                onEditComposite(collection)
                             } label: {
                                 Label("Edit", systemImage: "pencil")
                             }
@@ -93,15 +93,15 @@ struct UnifiedAlarmListView: View {
 
                             Button(role: .destructive) {
                                 DesignKitHaptics.selection()
-                                onDeleteComposite(composite)
+                                onDeleteComposite(collection)
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
                             .tint(.red)
                         }
                     } else {
-                        CompositeAlarmCell(compositeItem: composite) {
-                            onCompositeTap(composite)
+                        CompositeAlarmCell(collectionItem: collection) {
+                            onCompositeTap(collection)
                         }
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
@@ -114,7 +114,7 @@ struct UnifiedAlarmListView: View {
                         .contextMenu {
                             Button {
                                 DesignKitHaptics.selection()
-                                onEditComposite(composite)
+                                onEditComposite(collection)
                             } label: {
                                 Label("Edit", systemImage: "pencil")
                             }
@@ -122,7 +122,7 @@ struct UnifiedAlarmListView: View {
 
                             Button(role: .destructive) {
                                 DesignKitHaptics.selection()
-                                onDeleteComposite(composite)
+                                onDeleteComposite(collection)
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
@@ -137,15 +137,15 @@ struct UnifiedAlarmListView: View {
     }
 }
 
-// MARK: - Composite Alarm Cell
+// MARK: - Ticker Collection Cell
 
 struct CompositeAlarmCell: View {
-    let compositeItem: CompositeTicker
+    let collectionItem: TickerCollection
     let onTap: () -> Void
     @Environment(\.colorScheme) private var colorScheme
     
     private var tintColor: Color {
-        compositeItem.presentation.tintColor
+        collectionItem.presentation.tintColor
     }
 
     var body: some View {
@@ -160,7 +160,7 @@ struct CompositeAlarmCell: View {
                 // Content
                 VStack(alignment: .leading, spacing: DesignKit.xxs) {
                     HStack(alignment: .firstTextBaseline) {
-                        Text(compositeItem.label)
+                        Text(collectionItem.label)
                             .tickerTitle()
                             .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
                             .lineLimit(1)
@@ -170,19 +170,19 @@ struct CompositeAlarmCell: View {
                     
                     HStack(spacing: DesignKit.xs) {
                         // Child count badge
-                        if compositeItem.childCount > 0 {
+                        if collectionItem.childCount > 0 {
                             HStack(spacing: DesignKit.xxs) {
                                 Image(systemName: "clock.fill")
                                     .font(.system(size: 12, weight: .medium))
-                                Text("\(compositeItem.childCount) alarms")
+                                Text("\(collectionItem.childCount) alarms")
                                     .detailText()
                             }
                             .foregroundStyle(DesignKit.textSecondary(for: colorScheme))
                         }
 
                         // Sleep duration (for sleep schedules)
-                        if let config = compositeItem.sleepScheduleConfig {
-                            if compositeItem.childCount > 0 {
+                        if let config = collectionItem.sleepScheduleConfig {
+                            if collectionItem.childCount > 0 {
                                 Text("•")
                                     .foregroundStyle(DesignKit.textTertiary(for: colorScheme))
                             }
@@ -194,7 +194,7 @@ struct CompositeAlarmCell: View {
                         Spacer()
                         
                         // Enabled/disabled indicator
-                        if !compositeItem.isEnabled {
+                        if !collectionItem.isEnabled {
                             Image(systemName: "pause.circle.fill")
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundStyle(DesignKit.textTertiary(for: colorScheme))
@@ -226,7 +226,7 @@ struct CompositeAlarmCell: View {
                 .frame(width: 48, height: 48)
             
             // Icon
-            Image(systemName: compositeItem.compositeType.iconName)
+            Image(systemName: collectionItem.collectionType.iconName)
                 .font(.system(.title3, design: .rounded, weight: .semibold))
                 .foregroundStyle(tintColor)
                 .frame(width: 24, height: 24)

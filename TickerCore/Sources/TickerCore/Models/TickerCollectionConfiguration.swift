@@ -1,5 +1,5 @@
 //
-//  CompositeConfiguration.swift
+//  TickerCollectionConfiguration.swift
 //  TickerCore
 //
 //  Created by Claude Code
@@ -7,14 +7,14 @@
 
 import Foundation
 
-/// Configuration data for different composite ticker types
-public enum CompositeConfiguration: Codable, Sendable {
+/// Configuration data for different ticker collection types
+public enum TickerCollectionConfiguration: Codable, Sendable {
     case sleepSchedule(SleepScheduleConfiguration)
     // Future: case medicationSchedule(MedicationConfiguration)
     // Future: case mealPlan(MealPlanConfiguration)
 }
 
-/// Configuration for sleep schedule composite tickers
+/// Configuration for sleep schedule ticker collections
 public struct SleepScheduleConfiguration: Codable, Sendable {
     public var bedtime: TimeOfDay
     public var wakeTime: TimeOfDay

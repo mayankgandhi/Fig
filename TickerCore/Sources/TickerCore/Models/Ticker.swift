@@ -46,10 +46,10 @@ public final class Ticker {
     public var tickerData: TickerData?
 
     // AlarmKit Integration
-    public var generatedAlarmKitIDs: [UUID] = [] // Multiple alarm IDs for composite schedules
+    public var generatedAlarmKitIDs: [UUID] = [] // Multiple alarm IDs for ticker collection schedules
 
-    // CompositeTicker Relationship (optional - only set if this is a child ticker)
-    public var parentCompositeTicker: CompositeTicker?
+    // TickerCollection Relationship (optional - only set if this is a child ticker)
+    public var parentTickerCollection: TickerCollection?
 
     // Alarm Regeneration
     public var lastRegenerationDate: Date? // When alarms were last regenerated
@@ -525,7 +525,7 @@ extension Ticker {
             }
 
         default:
-            // Composite schedules are expanded into multiple one-time alarms
+            // Collection schedules are expanded into multiple one-time alarms
             // by the TickerService, so they don't need direct AlarmKit mapping
             return nil
         }

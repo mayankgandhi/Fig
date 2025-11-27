@@ -13,7 +13,7 @@ struct ToolbarButtonsView: View {
     @Binding var showAddSheet: Bool
     @Binding var showNaturalLanguageSheet: Bool
     @Binding var showAddSleepScheduleSheet: Bool
-    @Binding var showAddCompositeSheet: Bool
+    @Binding var showAddCollectionSheet: Bool
     var namespace: Namespace.ID
 
     var body: some View {
@@ -43,9 +43,9 @@ struct ToolbarButtonsView: View {
 
             Button {
                 TickerHaptics.selection()
-                showAddCompositeSheet = true
+                showAddCollectionSheet = true
             } label: {
-                Label("Composite Ticker", systemImage: "square.stack.3d.up.fill")
+                Label("Ticker Collection", systemImage: "square.stack.3d.up.fill")
             }
         } label: {
             Image(systemName: "plus")
@@ -72,7 +72,7 @@ struct ToolbarButtonsView: View {
                     showAddSheet: .constant(false),
                     showNaturalLanguageSheet: .constant(false),
                     showAddSleepScheduleSheet: .constant(false),
-                    showAddCompositeSheet: .constant(false),
+                    showAddCollectionSheet: .constant(false),
                     namespace: Namespace().wrappedValue
                 )
             }

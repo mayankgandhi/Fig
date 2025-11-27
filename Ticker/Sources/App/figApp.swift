@@ -24,7 +24,7 @@ struct figApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Ticker.self,
-            CompositeTicker.self
+            TickerCollection.self
         ])
         
         // Use App Groups for shared data access with widget extension

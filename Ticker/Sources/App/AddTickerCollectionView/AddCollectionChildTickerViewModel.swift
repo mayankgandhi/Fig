@@ -1,16 +1,16 @@
 //
-//  AddCompositeChildTickerViewModel.swift
+//  AddCollectionChildTickerViewModel.swift
 //  fig
 //
-//  ViewModel for AddCompositeChildTickerView
-//  Manages label and schedule configuration for composite child tickers
+//  ViewModel for AddCollectionChildTickerView
+//  Manages label and schedule configuration for collection child tickers
 //
 
 import Foundation
 import TickerCore
 
 @Observable
-final class AddCompositeChildTickerViewModel {
+final class AddCollectionChildTickerViewModel {
     // MARK: - Child ViewModels
     var labelViewModel: LabelEditorViewModel
     var scheduleViewModel: ScheduleViewModel
@@ -18,11 +18,11 @@ final class AddCompositeChildTickerViewModel {
     // MARK: - State
     var expandedField: SimplifiedExpandableField? = nil
     var shouldShowValidationMessage = false
-    private let childToEdit: CompositeChildTickerData?
+    private let childToEdit: CollectionChildTickerData?
 
     // MARK: - Initialization
 
-    init(childToEdit: CompositeChildTickerData? = nil) {
+    init(childToEdit: CollectionChildTickerData? = nil) {
         self.childToEdit = childToEdit
         self.labelViewModel = LabelEditorViewModel()
         self.scheduleViewModel = ScheduleViewModel()
@@ -78,12 +78,12 @@ final class AddCompositeChildTickerViewModel {
 
     // MARK: - Create Child Ticker Data
 
-    func createChildTickerData() -> CompositeChildTickerData? {
+    func createChildTickerData() -> CollectionChildTickerData? {
         guard canSave else { return nil }
         let label = labelViewModel.labelText.isEmpty ? "Alarm" : labelViewModel.labelText
         let schedule = buildSchedule()
 
-        return CompositeChildTickerData(
+        return CollectionChildTickerData(
             id: childToEdit?.id ?? UUID(),
             label: label,
             schedule: schedule
@@ -142,7 +142,7 @@ final class AddCompositeChildTickerViewModel {
         }
     }
 
-    private func prefillFromChild(_ child: CompositeChildTickerData) {
+    private func prefillFromChild(_ child: CollectionChildTickerData) {
         // Prefill label
         labelViewModel.setText(child.label)
 

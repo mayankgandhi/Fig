@@ -1,48 +1,48 @@
 //
-//  CompositeTicker.swift
+//  TickerCollection.swift
 //  TickerCore
 //
 //  Created by Claude Code
-//  SwiftData model for composite tickers (e.g., Sleep Schedule with bedtime and wake-up alarms)
+//  SwiftData model for ticker collections (e.g., Sleep Schedule with bedtime and wake-up alarms)
 //
 
 import Foundation
 import SwiftData
 
-// MARK: - CompositeTicker Model
+// MARK: - TickerCollection Model
 
 @Model
-public final class CompositeTicker {
+public final class TickerCollection {
     public var id: UUID
     public var label: String
     public var createdAt: Date
     public var isEnabled: Bool
 
-    // Type of composite ticker
-    public var compositeType: CompositeTickerType
+    // Type of ticker collection
+    public var collectionType: TickerCollectionType
 
     // Configuration - stored as JSON Data to support enum with associated values
     @Attribute(.externalStorage)
     private var configurationData: Data?
 
-    public var configuration: CompositeConfiguration? {
+    public var configuration: TickerCollectionConfiguration? {
         get {
             guard let data = configurationData else { return nil }
-            return try? JSONDecoder().decode(CompositeConfiguration.self, from: data)
+            return try? JSONDecoder().decode(TickerCollectionConfiguration.self, from: data)
         }
         set {
             configurationData = try? JSONEncoder().encode(newValue)
         }
     }
 
-    // Presentation (shared styling for composite and children)
+    // Presentation (shared styling for collection and children)
     public var presentation: TickerPresentation
 
     // Template metadata
     public var tickerData: TickerData?
 
     // Child tickers (cascade delete when parent is deleted)
-    @Relationship(deleteRule: .cascade, inverse: \Ticker.parentCompositeTicker)
+    @Relationship(deleteRule: .cascade, inverse: \Ticker.parentTickerCollection)
     public var childTickers: [Ticker]?
 
     // MARK: - Initializers
@@ -50,8 +50,8 @@ public final class CompositeTicker {
     public init(
         id: UUID = UUID(),
         label: String,
-        compositeType: CompositeTickerType,
-        configuration: CompositeConfiguration? = nil,
+        collectionType: TickerCollectionType,
+        configuration: TickerCollectionConfiguration? = nil,
         presentation: TickerPresentation = TickerPresentation(),
         tickerData: TickerData? = nil,
         isEnabled: Bool = true,
@@ -59,7 +59,7 @@ public final class CompositeTicker {
     ) {
         self.id = id
         self.label = label
-        self.compositeType = compositeType
+        self.collectionType = collectionType
         self.configurationData = try? JSONEncoder().encode(configuration)
         self.presentation = presentation
         self.tickerData = tickerData
@@ -95,8 +95,8 @@ public final class CompositeTicker {
 
 // MARK: - Convenience Extensions
 
-extension CompositeTicker {
-    /// Get sleep schedule configuration if this is a sleep schedule composite
+extension TickerCollection {
+    /// Get sleep schedule configuration if this is a sleep schedule collection
     public var sleepScheduleConfig: SleepScheduleConfiguration? {
         guard case .sleepSchedule(let config) = configuration else { return nil }
         return config

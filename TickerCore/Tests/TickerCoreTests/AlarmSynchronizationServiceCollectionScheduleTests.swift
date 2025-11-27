@@ -1,8 +1,8 @@
 //
-//  AlarmSynchronizationServiceCompositeScheduleTests.swift
+//  AlarmSynchronizationServiceCollectionScheduleTests.swift
 //  TickerCoreTests
 //
-//  Tests for composite schedule scenarios with multiple generatedAlarmKitIDs
+//  Tests for collection schedule scenarios with multiple generatedAlarmKitIDs
 //
 
 import XCTest
@@ -11,7 +11,7 @@ import SwiftData
 import AlarmKit
 
 @available(iOS 26.0, *)
-final class AlarmSynchronizationServiceCompositeScheduleTests: XCTestCase {
+final class AlarmSynchronizationServiceCollectionScheduleTests: XCTestCase {
     
     var service: AlarmSynchronizationService!
     var mockStateManager: MockAlarmStateManager!

@@ -1,8 +1,8 @@
 //
-//  CompositeTickerEditor.swift
+//  TickerCollectionEditor.swift
 //  fig
 //
-//  Main view for creating and editing composite tickers
+//  Main view for creating and editing ticker collections
 //  Similar in UI and implementation to AddTickerView
 //
 
@@ -12,11 +12,11 @@ import TickerCore
 import Factory
 import DesignKit
 
-struct CompositeTickerEditor: View {
+struct TickerCollectionEditor: View {
     // MARK: - Properties
 
     let namespace: Namespace.ID
-    let compositeTicker: CompositeTicker?
+    let tickerCollection: TickerCollection?
     let isEditMode: Bool
 
     @Environment(\.modelContext) private var modelContext
@@ -25,18 +25,18 @@ struct CompositeTickerEditor: View {
 
     // MARK: - Initialization
 
-    init(namespace: Namespace.ID, compositeTicker: CompositeTicker? = nil, isEditMode: Bool = false) {
+    init(namespace: Namespace.ID, tickerCollection: TickerCollection? = nil, isEditMode: Bool = false) {
         self.namespace = namespace
-        self.compositeTicker = compositeTicker
+        self.tickerCollection = tickerCollection
         self.isEditMode = isEditMode
     }
 
     // MARK: - Body
 
     var body: some View {
-        CompositeTickerEditorContent(
+        TickerCollectionEditorContent(
             namespace: namespace,
-            compositeTicker: compositeTicker,
+            tickerCollection: tickerCollection,
             isEditMode: isEditMode,
             modelContext: modelContext,
             dismiss: dismiss,
@@ -48,40 +48,40 @@ struct CompositeTickerEditor: View {
 
 // MARK: - Content View with ViewModel
 
-private struct CompositeTickerEditorContent: View {
+private struct TickerCollectionEditorContent: View {
     let namespace: Namespace.ID
-    let compositeTicker: CompositeTicker?
+    let tickerCollection: TickerCollection?
     let isEditMode: Bool
     let modelContext: ModelContext
     let dismiss: DismissAction
     let colorScheme: ColorScheme
     
-    @State private var viewModel: CompositeTickerEditorViewModel
+    @State private var viewModel: TickerCollectionEditorViewModel
     
     // Child ticker data editing state
-    @State private var childDataToEdit: CompositeChildTickerData?
+    @State private var childDataToEdit: CollectionChildTickerData?
     @State private var showAddChildSheet = false
-    @State private var childDataToDelete: CompositeChildTickerData?
+    @State private var childDataToDelete: CollectionChildTickerData?
     @State private var showDeleteChildAlert = false
     
     init(
         namespace: Namespace.ID,
-        compositeTicker: CompositeTicker?,
+        tickerCollection: TickerCollection?,
         isEditMode: Bool,
         modelContext: ModelContext,
         dismiss: DismissAction,
         colorScheme: ColorScheme
     ) {
         self.namespace = namespace
-        self.compositeTicker = compositeTicker
+        self.tickerCollection = tickerCollection
         self.isEditMode = isEditMode
         self.modelContext = modelContext
         self.dismiss = dismiss
         self.colorScheme = colorScheme
         // Initialize viewModel immediately since we have modelContext
-        _viewModel = State(initialValue: CompositeTickerEditorViewModel(
+        _viewModel = State(initialValue: TickerCollectionEditorViewModel(
             modelContext: modelContext,
-            compositeTickerToEdit: compositeTicker,
+            tickerCollectionToEdit: tickerCollection,
             isEditMode: isEditMode
         ))
     }
@@ -95,7 +95,7 @@ private struct CompositeTickerEditorContent: View {
     // MARK: - Content View
 
     @ViewBuilder
-    private func contentView(viewModel: CompositeTickerEditorViewModel) -> some View {
+    private func contentView(viewModel: TickerCollectionEditorViewModel) -> some View {
         ScrollView {
             VStack(spacing: TickerSpacing.xl) {
                 // Options Pills for Label and Icon
@@ -156,14 +156,14 @@ private struct CompositeTickerEditorContent: View {
         // Overlay presentation for all expandable fields
         .overlay(alignment: .top) {
             if let field = viewModel.optionsPillsViewModel.expandedField {
-                ExpandedFieldContentForComposite(field: field, viewModel: viewModel)
+                ExpandedFieldContentForCollection(field: field, viewModel: viewModel)
                     .zIndex(100)
             }
         }
         .background(backgroundView)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            CompositeTickerEditorToolbar(
+            TickerCollectionEditorToolbar(
                 isEditMode: isEditMode,
                 formattedTime: viewModel.formattedTime,
                 isSaving: viewModel.isSaving,
@@ -172,7 +172,7 @@ private struct CompositeTickerEditorContent: View {
                 onDismiss: { dismiss() },
                 onSave: {
                     Task {
-                        await viewModel.saveCompositeTicker()
+                        await viewModel.saveTickerCollection()
                         if !viewModel.showingError {
                             dismiss()
                         }
@@ -206,11 +206,11 @@ private struct CompositeTickerEditorContent: View {
             }
         } message: {
             if let data = childDataToDelete {
-                Text("Are you sure you want to remove \"\(data.label)\" from this composite ticker?")
+                Text("Are you sure you want to remove \"\(data.label)\" from this ticker collection?")
             }
         }
         .sheet(isPresented: $showAddChildSheet) {
-            AddCompositeChildTickerView(
+            AddCollectionChildTickerView(
                 childToEdit: nil,
                 onSave: { childData in
                     // Add the newly created child data to the composite's list
@@ -223,7 +223,7 @@ private struct CompositeTickerEditorContent: View {
             }
         }
         .sheet(item: $childDataToEdit) { data in
-            AddCompositeChildTickerView(
+            AddCollectionChildTickerView(
                 childToEdit: data,
                 onSave: { updatedData in
                     // Update the child data in the composite's list
@@ -262,14 +262,14 @@ private struct CompositeTickerEditorContent: View {
     }
 }
 
-// MARK: - Expanded Field Content for Composite
+// MARK: - Expanded Field Content for Collection
 
-struct ExpandedFieldContentForComposite: View {
+struct ExpandedFieldContentForCollection: View {
     let field: ExpandableField
-    let viewModel: CompositeTickerEditorViewModel
+    let viewModel: TickerCollectionEditorViewModel
 
     var body: some View {
-        OverlayCalloutForComposite(field: field, viewModel: viewModel) {
+        OverlayCalloutForCollection(field: field, viewModel: viewModel) {
             fieldContent
         }
     }
@@ -299,11 +299,11 @@ struct ExpandedFieldContentForComposite: View {
     }
 }
 
-// MARK: - Overlay Callout for Composite
+// MARK: - Overlay Callout for Collection
 
-struct OverlayCalloutForComposite<Content: View>: View {
+struct OverlayCalloutForCollection<Content: View>: View {
     let field: ExpandableField
-    let viewModel: CompositeTickerEditorViewModel
+    let viewModel: TickerCollectionEditorViewModel
     @ViewBuilder let content: Content
     
     @Environment(\.colorScheme) private var colorScheme
@@ -390,9 +390,9 @@ struct OverlayCalloutForComposite<Content: View>: View {
     private var headerTitle: String {
         switch field {
         case .label:
-            return "Composite Label"
+            return "Collection Label"
         case .icon:
-            return "Composite Icon"
+            return "Collection Icon"
         default:
             return "Options"
         }
@@ -400,9 +400,9 @@ struct OverlayCalloutForComposite<Content: View>: View {
 }
 
 
-// MARK: - Composite Ticker Editor Toolbar
+// MARK: - Collection Ticker Editor Toolbar
 
-struct CompositeTickerEditorToolbar: ToolbarContent {
+struct TickerCollectionEditorToolbar: ToolbarContent {
     let isEditMode: Bool
     let formattedTime: String
     let isSaving: Bool
@@ -417,7 +417,7 @@ struct CompositeTickerEditorToolbar: ToolbarContent {
     var body: some ToolbarContent {
         ToolbarItem(placement: .principal) {
             VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
-                Text(isEditMode ? "Edit Composite" : "New Composite")
+                Text(isEditMode ? "Edit Collection" : "New Collection")
                     .Headline()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
@@ -456,7 +456,7 @@ struct CompositeTickerEditorToolbar: ToolbarContent {
 
 #Preview {
     @Previewable @Namespace var namespace
-    CompositeTickerEditor(namespace: namespace)
-        .modelContainer(for: [Ticker.self, CompositeTicker.self])
+    TickerCollectionEditor(namespace: namespace)
+        .modelContainer(for: [Ticker.self, TickerCollection.self])
 }
 

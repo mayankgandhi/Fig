@@ -1,28 +1,28 @@
 //
-//  AddCompositeChildTickerView.swift
+//  AddCollectionChildTickerView.swift
 //  fig
 //
-//  Simplified bottom sheet for adding/editing composite child tickers
+//  Simplified bottom sheet for adding/editing collection child tickers
 //  Only captures label and schedule - time is embedded in schedule configuration
 //
 
 import SwiftUI
 import TickerCore
 
-struct AddCompositeChildTickerView: View {
-    let childToEdit: CompositeChildTickerData?
-    let onSave: (CompositeChildTickerData) -> Void
-    
+struct AddCollectionChildTickerView: View {
+    let childToEdit: CollectionChildTickerData?
+    let onSave: (CollectionChildTickerData) -> Void
+
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-    
-    @State private var viewModel: AddCompositeChildTickerViewModel
+
+    @State private var viewModel: AddCollectionChildTickerViewModel
     @State private var hasAutoExpandedLabel = false
     
-    init(childToEdit: CompositeChildTickerData? = nil, onSave: @escaping (CompositeChildTickerData) -> Void) {
+    init(childToEdit: CollectionChildTickerData? = nil, onSave: @escaping (CollectionChildTickerData) -> Void) {
         self.childToEdit = childToEdit
         self.onSave = onSave
-        _viewModel = State(initialValue: AddCompositeChildTickerViewModel(childToEdit: childToEdit))
+        _viewModel = State(initialValue: AddCollectionChildTickerViewModel(childToEdit: childToEdit))
     }
     
     var body: some View {
@@ -229,7 +229,7 @@ struct AddCompositeChildTickerView: View {
 
 private struct AddCompositeOverlayCallout<Content: View>: View {
     let field: SimplifiedExpandableField
-    let viewModel: AddCompositeChildTickerViewModel
+    let viewModel: AddCollectionChildTickerViewModel
     let colorScheme: ColorScheme
     let onDismiss: () -> Void
     @ViewBuilder let content: Content
@@ -322,7 +322,7 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
     
     Color.clear
         .sheet(isPresented: $showSheet) {
-            AddCompositeChildTickerView(
+            AddCollectionChildTickerView(
                 childToEdit: nil,
                 onSave: { _ in }
             )
