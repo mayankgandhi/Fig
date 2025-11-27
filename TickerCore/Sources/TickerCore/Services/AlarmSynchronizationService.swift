@@ -276,11 +276,11 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
             return
         }
 
-        // Refresh widgets
-        await MainActor.run {
+        // Refresh widgets asynchronously to avoid blocking
+        Task.detached(priority: .utility) {
             WidgetCenter.shared.reloadAllTimelines()
         }
-        print("🔄 Widgets refreshed")
+        print("🔄 Widgets refresh initiated")
 
         // Log summary
         let tickersToKeep = allTickers.filter { ticker in

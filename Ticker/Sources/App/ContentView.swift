@@ -113,9 +113,9 @@ struct ContentView: View {
                 }
         }
         .sheet(isPresented: $showNaturalLanguageSheet) {
-            SubscriptionGate(feature: .aiAlarmCreation) {
+//            SubscriptionGate(feature: .aiAlarmCreation) {
                 NaturalLanguageTickerView()
-            }
+//            }
             .presentationCornerRadius(DesignKit.large)
             .presentationDragIndicator(.visible)
             .interactiveDismissDisabled()

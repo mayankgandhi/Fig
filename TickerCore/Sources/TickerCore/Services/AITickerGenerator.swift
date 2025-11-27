@@ -15,14 +15,12 @@ import SwiftUI
 
 @MainActor
 public final class AITickerGenerator {
-
+    
     private let configurationParser = TickerConfigurationParser()
-    private let foundationModelsParser = FoundationModelsParser()
-    private let sessionManager = AISessionManager.shared
-
+    
     // Token limit for context window (on-device model has 4096 token limit)
     private let maxInputTokens = 1000 // Conservative estimate leaving room for schema and response
-
+    
     public enum RepeatOption: Equatable, Codable {
         case oneTime
         case daily
@@ -33,11 +31,11 @@ public final class AITickerGenerator {
         case monthly(day: TickerSchedule.MonthlyDay)
         case yearly(month: Int, day: Int)
     }
-
+    
     public init() {}
-
+    
     // MARK: - Pure Async Functions
-
+    
     /// Parses user input into a TickerConfiguration
     /// Returns nil if input is too short or cannot be parsed
     public func parseConfiguration(from input: String) async throws -> TickerConfiguration? {
@@ -46,46 +44,26 @@ public final class AITickerGenerator {
         guard trimmedInput.count > 3 else {
             return nil
         }
-
+        
         // Validate and truncate input if needed to stay within context window
         let validatedInput = truncateIfNeeded(trimmedInput)
         let tokenCount = estimateTokenCount(for: validatedInput)
-
+        
         print("🔍 AITickerGenerator: Starting parse for input (est. \(tokenCount) tokens)")
-
-        // Try Foundation Models first, fallback to regex parsing
-        if sessionManager.isFoundationModelsAvailable, let session = sessionManager.getSession() {
-            print("🔍 AITickerGenerator: Using Foundation Models")
-            do {
-                let response = try await foundationModelsParser.parse(input: validatedInput, session: session)
-                let configuration = convertToTickerConfiguration(response)
-                print("🔍 AITickerGenerator: Foundation Models parsing complete - config: \(configuration.label)")
-                return configuration
-            } catch {
-                print("❌ AITickerGenerator: Foundation Models error - \(error)")
-                // Fallback to regex parsing on error
-                if let configuration = try? await configurationParser.parseConfiguration(from: validatedInput) {
-                    print("✅ AITickerGenerator: Fallback regex parsing succeeded")
-                    return configuration
-                } else {
-                    print("❌ AITickerGenerator: Regex parsing also failed")
-                    return nil
-                }
-            }
-        } else {
-            // Fallback to regex-based parsing with validated input
-            print("🔍 AITickerGenerator: Using regex parsing fallback")
-            do {
-                let configuration = try await configurationParser.parseConfiguration(from: validatedInput)
-                print("🔍 AITickerGenerator: Regex parsing complete - config: \(configuration.label)")
-                return configuration
-            } catch {
-                print("🔍 AITickerGenerator: Regex parsing failed: \(error)")
-                return nil
-            }
+        
+        // Fallback to regex-based parsing with validated input
+        print("🔍 AITickerGenerator: Using regex parsing fallback")
+        do {
+            let configuration = try await configurationParser.parseConfiguration(from: validatedInput)
+            print("🔍 AITickerGenerator: Regex parsing complete - config: \(configuration.label)")
+            return configuration
+        } catch {
+            print("🔍 AITickerGenerator: Regex parsing failed: \(error)")
+            return nil
         }
     }
-
+    
+    
     /// Generates a complete TickerConfiguration from user input
     /// Throws AITickerGenerationError if parsing fails
     public func generateConfiguration(from input: String) async throws -> TickerConfiguration {
@@ -94,56 +72,45 @@ public final class AITickerGenerator {
             let duration = Date().timeIntervalSince(startTime)
             print("⏱️ AITickerGenerator: Total generation time: \(String(format: "%.2f", duration))s")
         }
-
+        
         // Validate and truncate input to stay within context window
         let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedInput.isEmpty else {
             throw AITickerGenerationError.invalidInput
         }
-
+        
         let validatedInput = truncateIfNeeded(trimmedInput)
-
+        
         // Try Foundation Models first, fallback to regex parsing
         let configuration: TickerConfiguration
-
-        if sessionManager.isFoundationModelsAvailable, let session = sessionManager.getSession() {
-            print("🤖 AITickerGenerator: Generating with Foundation Models")
-            configuration = try await parseWithFoundationModels(input: validatedInput, session: session)
-        } else {
-            print("🔧 AITickerGenerator: Generating with regex fallback")
-            // Fallback to regex-based parsing
-            configuration = try await configurationParser.parseConfiguration(from: validatedInput)
-        }
-
+        
+        print("🔧 AITickerGenerator: Generating with regex fallback")
+        // Fallback to regex-based parsing
+        configuration = try await configurationParser.parseConfiguration(from: validatedInput)
+    
+        
         // Additional validation
         if configuration.label.isEmpty {
             throw AITickerGenerationError.parsingFailed
         }
-
+        
         // Log final configuration with all values
         print("✅ AITickerGenerator: Configuration generated - \(configuration.label)")
         return configuration
     }
-
-    // MARK: - Private Helper Functions
-
-    private func parseWithFoundationModels(input: String, session: LanguageModelSession) async throws -> TickerConfiguration {
-        let response = try await foundationModelsParser.parse(input: input, session: session)
-        return convertToTickerConfiguration(response)
-    }
-
+    
     // Convert AI response to TickerConfiguration
     private func convertToTickerConfiguration(_ response: AITickerConfigurationResponse) -> TickerConfiguration {
         let calendar = Calendar.current
         let now = Date()
-
+        
         // Use provided date components or default to today
         var dateComponents = DateComponents()
         dateComponents.year = response.year ?? calendar.component(.year, from: now)
         dateComponents.month = response.month ?? calendar.component(.month, from: now)
         dateComponents.day = response.day ?? calendar.component(.day, from: now)
         let date = calendar.date(from: dateComponents) ?? now
-
+        
         // Parse repeat pattern
         let repeatOption: AITickerGenerator.RepeatOption
         switch response.repeatPattern {
@@ -192,7 +159,7 @@ public final class AITickerGenerator {
             default:
                 repeatOption = .oneTime
         }
-
+        
         // Parse countdown - use provided values or default to 0
         let countdownHours = response.countdownHours ?? 0
         let countdownMinutes = response.countdownMinutes ?? 0
@@ -206,7 +173,7 @@ public final class AITickerGenerator {
         } else {
             countdown = nil
         }
-
+        
         return TickerConfiguration(
             label: response.label,
             time: TimeOfDay(hour: response.hour, minute: response.minute),
@@ -217,7 +184,7 @@ public final class AITickerGenerator {
             colorHex: response.colorHex
         )
     }
-
+    
     private func parseWeekdays(from repeatDaysString: String) -> [TickerSchedule.Weekday] {
         let weekdayNames = repeatDaysString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespaces) }
         return weekdayNames.compactMap { name -> TickerSchedule.Weekday? in
@@ -233,24 +200,24 @@ public final class AITickerGenerator {
             }
         }
     }
-
+    
     private func parseMonthlyDay(from monthlyDayString: String?) -> TickerSchedule.MonthlyDay {
         guard let monthlyDayString = monthlyDayString, !monthlyDayString.isEmpty else {
             // Default to first of month if not specified
             return .firstOfMonth
         }
-
+        
         let lowercased = monthlyDayString.lowercased()
-
+        
         // Check for special cases
         if lowercased == "firstofmonth" || lowercased == "first of month" || lowercased == "firstday" {
             return .firstOfMonth
         }
-
+        
         if lowercased == "lastofmonth" || lowercased == "last of month" || lowercased == "lastday" {
             return .lastOfMonth
         }
-
+        
         // Check for first weekday patterns (e.g., "firstMonday", "first Monday")
         let weekdayMap: [String: TickerSchedule.Weekday] = [
             "monday": .monday, "mon": .monday,
@@ -261,7 +228,7 @@ public final class AITickerGenerator {
             "saturday": .saturday, "sat": .saturday,
             "sunday": .sunday, "sun": .sunday
         ]
-
+        
         for (dayName, weekday) in weekdayMap {
             if lowercased.contains("first\(dayName)") || lowercased.contains("first \(dayName)") {
                 return .firstWeekday(weekday)
@@ -270,28 +237,28 @@ public final class AITickerGenerator {
                 return .lastWeekday(weekday)
             }
         }
-
+        
         // Try to parse as fixed day number (1-31)
         if let dayNumber = Int(monthlyDayString.trimmingCharacters(in: .whitespaces)) {
             if dayNumber >= 1 && dayNumber <= 31 {
                 return .fixed(dayNumber)
             }
         }
-
+        
         // Default to first of month if parsing fails
         return .firstOfMonth
     }
-
+    
     /// Estimates token count for input (rough approximation: ~4 characters per token)
     private func estimateTokenCount(for text: String) -> Int {
         return text.count / 4
     }
-
+    
     /// Truncates input if it exceeds token limits while preserving meaning
     private func truncateIfNeeded(_ input: String) -> String {
         let estimatedTokens = estimateTokenCount(for: input)
         guard estimatedTokens > maxInputTokens else { return input }
-
+        
         // Truncate to approximate character limit
         let maxChars = maxInputTokens * 4
         let truncated = String(input.prefix(maxChars))
@@ -304,7 +271,7 @@ public enum AITickerGenerationError: LocalizedError {
     case invalidInput
     case parsingFailed
     case unsupportedFormat
-
+    
     public var errorDescription: String? {
         switch self {
             case .invalidInput:

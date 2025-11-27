@@ -75,11 +75,11 @@ final class OptionsPillsViewModel {
     // MARK: - Methods
 
     func configure(
-        schedule: ScheduleViewModel,
-        label: LabelEditorViewModel,
-        countdown: CountdownConfigViewModel,
-        sound: SoundPickerViewModel,
-        icon: IconPickerViewModel
+        schedule: ScheduleViewModel?,
+        label: LabelEditorViewModel?,
+        countdown: CountdownConfigViewModel?,
+        sound: SoundPickerViewModel?,
+        icon: IconPickerViewModel?
     ) {
         self.scheduleViewModel = schedule
         self.labelViewModel = label

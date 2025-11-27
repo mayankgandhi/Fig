@@ -45,37 +45,49 @@ struct OptionsPillsView: View {
 
             // Enhanced pill layout with improved spacing and alignment
             FlowLayout(spacing: TickerSpacing.md) {
-                expandablePillButton(
-                    icon: "calendar.badge.clock",
-                    title: viewModel.displaySchedule,
-                    field: .schedule
-                )
-
-                expandablePillButton(
-                    icon: "tag",
-                    title: viewModel.displayLabel,
-                    field: .label
-                )
-
-                expandablePillButton(
-                    icon: "timer",
-                    title: viewModel.displayCountdown,
-                    field: .countdown
-                )
-
-                expandablePillButton(
-                    icon: "speaker.wave.2",
-                    title: viewModel.displaySound,
-                    field: .sound
-                )
-
-                // Icon pill uses the selected color as tint
-                expandablePillButton(
-                    icon: selectedIcon,
-                    title: "Icon",
-                    field: .icon,
-                    tintHex: selectedColorHex
-                )
+            
+                if viewModel.scheduleViewModel != nil {
+                    expandablePillButton(
+                        icon: "calendar.badge.clock",
+                        title: viewModel.displaySchedule,
+                        field: .schedule
+                    )
+                }
+                
+                if viewModel.iconViewModel != nil {
+                    // Icon pill uses the selected color as tint
+                    expandablePillButton(
+                        icon: selectedIcon,
+                        title: "Icon",
+                        field: .icon,
+                        tintHex: selectedColorHex
+                    )
+                }
+                
+                if viewModel.labelViewModel != nil {
+                    expandablePillButton(
+                        icon: "tag",
+                        title: viewModel.displayLabel,
+                        field: .label
+                    )
+                }
+                
+                if viewModel.countdownViewModel != nil {
+                    expandablePillButton(
+                        icon: "timer",
+                        title: viewModel.displayCountdown,
+                        field: .countdown
+                    )
+                }
+                
+                if viewModel.soundViewModel != nil {
+                    expandablePillButton(
+                        icon: "speaker.wave.2",
+                        title: viewModel.displaySound,
+                        field: .sound
+                    )
+                }
+                
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TickerSpacing.md)

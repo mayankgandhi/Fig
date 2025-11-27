@@ -62,18 +62,6 @@ public extension Container {
         .singleton
     }
 
-    var aiSessionManager: Factory<AISessionManager> {
-        self { @MainActor in
-            AISessionManager.shared
-        }
-        .singleton
-    }
-
-    var foundationModelsParser: Factory<FoundationModelsParser> {
-        self { FoundationModelsParser() }
-        // Stateless session creator - no need for singleton
-    }
-
     // MARK: - Data Services
 
     var modelContextObserver: Factory<ModelContextObserver> {

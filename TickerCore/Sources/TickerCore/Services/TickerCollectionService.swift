@@ -447,6 +447,9 @@ public final class TickerCollectionService {
     // MARK: - Helper Methods
 
     private func refreshWidgetTimelines() {
-        WidgetCenter.shared.reloadAllTimelines()
+        // Refresh widgets asynchronously to avoid blocking the main thread
+        Task.detached(priority: .utility) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 }

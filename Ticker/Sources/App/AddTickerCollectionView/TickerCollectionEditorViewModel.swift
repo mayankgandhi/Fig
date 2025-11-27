@@ -49,10 +49,10 @@ final class TickerCollectionEditorViewModel {
         
         // Configure OptionsPillsViewModel
         self.optionsPillsViewModel.configure(
-            schedule: ScheduleViewModel(), // Not used but required
+            schedule: nil,
             label: labelViewModel,
-            countdown: CountdownConfigViewModel(), // Not used but required
-            sound: SoundPickerViewModel(), // Not used but required
+            countdown: nil,
+            sound: nil,
             icon: iconPickerViewModel
         )
         

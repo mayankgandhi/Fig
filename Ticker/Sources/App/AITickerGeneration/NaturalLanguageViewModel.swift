@@ -11,6 +11,7 @@ import SwiftData
 import Observation
 import TickerCore
 import Factory
+import OpenAI
 
 @MainActor
 @Observable
@@ -20,11 +21,9 @@ final class NaturalLanguageViewModel {
     @ObservationIgnored
     @Injected(\.tickerService) private var tickerService
 
-    // MARK: - AI Service (Pure)
+    // MARK: - AI Service
     @ObservationIgnored
-    @Injected(\.aiTickerGenerator) private var aiService
-    @ObservationIgnored
-    @Injected(\.aiSessionManager) private var sessionManager
+    @Injected(\.openAITickerService) private var openAIService
 
     // MARK: - Child ViewModels
     var timePickerViewModel: TimePickerViewModel
@@ -39,8 +38,10 @@ final class NaturalLanguageViewModel {
     var isSaving: Bool = false
     var isGenerating: Bool = false
     var isParsing: Bool = false
+    var isGeneratingConfig: Bool = false
+    var isCreatingTicker: Bool = false
+    var isSchedulingAlarm: Bool = false
     var parsedConfiguration: TickerConfiguration?
-    var isFoundationModelsAvailable: Bool = false
     var errorMessage: String?
     var showingError: Bool = false
     var inputText: String = "" {
@@ -52,6 +53,7 @@ final class NaturalLanguageViewModel {
 
     // MARK: - Private State
     private var parsingTask: Task<Void, Never>?
+    private var currentParsingTaskID: UUID?
 
     // MARK: - Initialization
 
@@ -79,24 +81,59 @@ final class NaturalLanguageViewModel {
 
     // MARK: - Lifecycle
 
-    /// Call when view appears to initialize and prewarm the AI session
-    func prepareForAppearance() async {
-        AnalyticsEvents.aiAlarmCreateStarted.track()
-        await sessionManager.prepare()
-        isFoundationModelsAvailable = sessionManager.isFoundationModelsAvailable
-    }
+
 
     /// Call when view is dismissed or done to cleanup resources
     func cleanup() {
         parsingTask?.cancel()
-        sessionManager.cleanup()
     }
 
     // MARK: - Computed Properties
 
     var canGenerate: Bool {
         !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !isGenerating
+        !isGenerating &&
+        parsedConfiguration != nil
+    }
+    
+    // MARK: - Validation
+    
+    enum ValidationError: LocalizedError {
+        case emptyInput
+        case noParsedConfiguration
+        case stillParsing
+        
+        var errorDescription: String? {
+            switch self {
+            case .emptyInput:
+                return "Please enter a description for your ticker"
+            case .noParsedConfiguration:
+                return "We couldn't understand your request. Please try being more specific about the time, activity, and frequency."
+            case .stillParsing:
+                return "Please wait while we parse your request..."
+            }
+        }
+    }
+    
+    func validateBeforeGeneration() -> ValidationError? {
+        let trimmedInput = inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        // Check if input is empty
+        guard !trimmedInput.isEmpty else {
+            return .emptyInput
+        }
+        
+        // Check if still parsing
+        if isParsing {
+            return .stillParsing
+        }
+        
+        // Check if we have a parsed configuration
+        guard parsedConfiguration != nil else {
+            return .noParsedConfiguration
+        }
+        
+        return nil
     }
 
     // MARK: - Input Handling
@@ -107,14 +144,16 @@ final class NaturalLanguageViewModel {
             AnalyticsEvents.aiInputStarted.track()
         }
 
-        // Trigger debounced background parsing
+        // Trigger debounced parsing (shows loading state)
         debouncedParse(inputText)
     }
 
     /// Debounced parsing with proper async/await
+    /// Shows loading state during debounce period (not background parsing)
     private func debouncedParse(_ input: String) {
         // Cancel any existing parsing task
         parsingTask?.cancel()
+        currentParsingTaskID = nil
 
         // Don't parse empty or very short inputs
         let trimmedInput = input.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -124,23 +163,34 @@ final class NaturalLanguageViewModel {
             return
         }
 
+        // Create a unique task ID for this parsing operation
+        let taskID = UUID()
+        currentParsingTaskID = taskID
+
+        // Set loading state immediately - this is user-facing, not background parsing
         isParsing = true
 
         parsingTask = Task { @MainActor in
             do {
+            
                 // Debounce FIRST - wait before doing any work
-                try await Task.sleep(for: .milliseconds(500))
+                // Loading state is visible during this period
+                try await Task.sleep(for: .milliseconds(1000))
 
-                // Check if task was cancelled during debounce
-                guard !Task.isCancelled else {
-                    isParsing = false
+                // Check if task was cancelled during debounce or if a new task started
+                guard !Task.isCancelled && self.currentParsingTaskID == taskID else {
+                    // Only update state if we're still the current task
+                    if self.currentParsingTaskID == taskID {
+                        self.isParsing = false
+                    }
                     return
                 }
 
                 let startTime = Date()
 
-                // NOW parse after debounce
-                let config = try await aiService.parseConfiguration(from: input)
+                // NOW parse after debounce using OpenAI
+                let llkConfig = try await self.openAIService.generateTickerConfig(from: input)
+                let config = try llkConfig.toTickerConfiguration()
 
                 let parseTime = Int(Date().timeIntervalSince(startTime) * 1000)
 
@@ -150,14 +200,18 @@ final class NaturalLanguageViewModel {
                     parseTimeMs: parseTime
                 ).track()
 
+                // Only update state if we're still the current task
+                guard self.currentParsingTaskID == taskID else {
+                    return
+                }
+
                 // Update state on main actor
                 self.parsedConfiguration = config
                 self.isParsing = false
 
-                // Update view models if config is available
-                if config != nil {
-                    updateViewModelsFromParsedConfig()
-                }
+                // Update view models with parsed configuration
+                updateViewModelsFromParsedConfig()
+                
             } catch {
                 // Track parsing failed
                 AnalyticsEvents.aiParsingFailed(
@@ -165,8 +219,10 @@ final class NaturalLanguageViewModel {
                     inputLength: input.count
                 ).track()
 
-                // Handle errors silently for background parsing
-                self.isParsing = false
+                // Only update state if we're still the current task
+                if self.currentParsingTaskID == taskID {
+                    self.isParsing = false
+                }
                 print("⚠️ NaturalLanguageViewModel: Parsing error - \(error)")
             }
         }
@@ -257,15 +313,29 @@ final class NaturalLanguageViewModel {
     // MARK: - Generation & Saving
 
     func generateAndSave() async {
-        guard canGenerate else { return }
+        // Validate before starting
+        if let validationError = validateBeforeGeneration() {
+            TickerHaptics.error()
+            errorMessage = validationError.errorDescription
+            showingError = true
+            return
+        }
 
+        // Set loading states
         isSaving = true
         isGenerating = true
+        isGeneratingConfig = false
+        isCreatingTicker = false
+        isSchedulingAlarm = false
         errorMessage = nil
         showingError = false
+        
         defer {
             isSaving = false
             isGenerating = false
+            isGeneratingConfig = false
+            isCreatingTicker = false
+            isSchedulingAlarm = false
         }
 
         // Track generation started
@@ -273,17 +343,31 @@ final class NaturalLanguageViewModel {
         let startTime = Date()
 
         do {
-            // Generate final configuration from AI service
-            let configuration = try await aiService.generateConfiguration(from: inputText)
+            // Reuse parsed configuration if available, otherwise generate new one
+            let configuration: TickerConfiguration
+            if let existingConfig = parsedConfiguration {
+                // Use existing parsed configuration to avoid redundant API call
+                configuration = existingConfig
+            } else {
+                // Generate new configuration if we don't have one
+                isGeneratingConfig = true
+                let llkConfig = try await openAIService.generateTickerConfig(from: inputText)
+                configuration = try llkConfig.toTickerConfiguration()
+                isGeneratingConfig = false
+                
+                // Update parsed configuration for future use
+                parsedConfiguration = configuration
+            }
 
             let generationTime = Int(Date().timeIntervalSince(startTime) * 1000)
 
             // Update view models one final time with the complete configuration
-            parsedConfiguration = configuration
             updateViewModelsFromParsedConfig()
 
             // Create ticker from view models (allowing for user edits)
+            isCreatingTicker = true
             let ticker = try createTickerFromViewModels()
+            isCreatingTicker = false
 
             let scheduleTypeString = ticker.schedule?.displaySummary ?? "unknown"
             let hasCountdown = ticker.countdown != nil
@@ -293,7 +377,9 @@ final class NaturalLanguageViewModel {
             try modelContext.save()
 
             // Schedule the alarm
+            isSchedulingAlarm = true
             try await tickerService.scheduleAlarm(from: ticker, context: modelContext)
+            isSchedulingAlarm = false
 
             // Track AI generation completed
             AnalyticsEvents.aiGenerationCompleted(
@@ -318,7 +404,25 @@ final class NaturalLanguageViewModel {
             ).track()
 
             TickerHaptics.error()
-            errorMessage = error.localizedDescription
+            
+            // Provide user-friendly error messages
+            if let tickerError = error as? TickerServiceError {
+                switch tickerError {
+                case .notAuthorized:
+                    errorMessage = "Please enable alarm permissions in Settings to create tickers."
+                case .invalidConfiguration:
+                    errorMessage = "The ticker configuration is invalid. Please try again."
+                case .schedulingFailed:
+                    errorMessage = "Failed to schedule the alarm. Please try again."
+                default:
+                    errorMessage = "An error occurred while creating your ticker. Please try again."
+                }
+            } else {
+                errorMessage = error.localizedDescription.isEmpty 
+                    ? "An error occurred while creating your ticker. Please try again."
+                    : error.localizedDescription
+            }
+            
             showingError = true
         }
     }

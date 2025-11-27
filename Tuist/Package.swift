@@ -10,7 +10,8 @@ import PackageDescription
             "Telemetry": .framework,
             "DesignKit": .framework,
             "Roadmap": .framework,
-            "Factory": .framework
+            "Factory": .framework,
+            "OpenAI": .framework
         ]
     )
 #endif
@@ -27,6 +28,8 @@ let package = Package(
         .package(url: "https://github.com/AvdLee/Roadmap", exact: "1.1.0"),
 
         .package(url: "https://github.com/hmlongco/Factory", from: "2.3.0"),
+
+        .package(url: "https://github.com/MacPaw/OpenAI.git", from: "0.3.0"),
 
     ]
 )

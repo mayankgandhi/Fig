@@ -9,14 +9,15 @@ import SwiftUI
 import Combine
 import TickerCore
 import Factory
+import OpenAI
 
 struct NaturalLanguageTickerView: View {
+
     @State private var viewModel: NaturalLanguageViewModel?
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
-    
     
     var body: some View {
         NavigationStack {
@@ -39,6 +40,7 @@ struct NaturalLanguageTickerView: View {
                     .opacity(0.5)
             }
         }
+        
     }
     
     // MARK: - Content View
@@ -53,9 +55,20 @@ struct NaturalLanguageTickerView: View {
                 // Input Section
                 inputSection(viewModel: viewModel)
                 
+                // Loading Indicator for API calls
+                // Use explicit animation to ensure visibility
+                Group {
+                    if viewModel.isParsing || viewModel.isGeneratingConfig {
+                        loadingIndicatorView(viewModel: viewModel)
+                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    }
+                }
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.isParsing)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.isGeneratingConfig)
+                
                 // Conditional Content - OptionsPillsView (with time pill)
                 // Use contentTransition for smooth streaming animations
-                if viewModel.hasStartedTyping {
+                if viewModel.hasStartedTyping && !viewModel.isParsing && !viewModel.isGeneratingConfig {
                     NaturalLanguageOptionsPillsView(
                         viewModel: viewModel
                     )
@@ -91,17 +104,16 @@ struct NaturalLanguageTickerView: View {
             get: { viewModel.showingError },
             set: { viewModel.showingError = $0 }
         )) {
-            Button("OK", role: .cancel) { }
+            Button("OK", role: .cancel) {
+                // Clear error state when dismissed
+                viewModel.errorMessage = nil
+            }
         } message: {
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
             }
         }
-        .task {
-            // Prepare AI session when view appears for optimal performance
-            // This preloads the model before user starts typing
-            await viewModel.prepareForAppearance()
-        }
+        
     }
     
     // MARK: - Header Section
@@ -137,10 +149,10 @@ struct NaturalLanguageTickerView: View {
                 
                 // AI Status Indicator
                 HStack(spacing: TickerSpacing.xs) {
-                    Image(systemName: viewModel.isFoundationModelsAvailable ? "cpu.fill" : "brain.head.profile")
+                    Image(systemName: "brain.head.profile")
                         .font(.caption2)
                     
-                    Text(viewModel.isFoundationModelsAvailable ? "Apple Intelligence" : "Smart Parsing")
+                    Text("Smart Parsing")
                         .Caption2()
                 }
                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
@@ -218,19 +230,15 @@ struct NaturalLanguageTickerView: View {
         }
     }
     
-    // MARK: - Example Prompts Section
-    
-    
-    
     // MARK: - Generate Button Section
     
     @ViewBuilder
     private func generateButtonSection(viewModel: NaturalLanguageViewModel) -> some View {
         Button {
+            TickerHaptics.selection()
             Task {
                 await viewModel.generateAndSave()
                 if !viewModel.showingError {
-                    TickerHaptics.success()
                     // Cleanup session after successful save
                     viewModel.cleanup()
                     try? await Task.sleep(for: .milliseconds(500))
@@ -248,7 +256,7 @@ struct NaturalLanguageTickerView: View {
                         .font(.callout.weight(.bold))
                 }
                 
-                Text(viewModel.isSaving ? "Creating..." : "Create Ticker")
+                Text(buttonText(for: viewModel))
                     .Headline()
             }
             .foregroundStyle(TickerColor.absoluteWhite)
@@ -316,12 +324,64 @@ struct NaturalLanguageTickerView: View {
             .scaleEffect(viewModel.isSaving ? 0.95 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.isSaving)
         }
-        .disabled(!viewModel.canGenerate)
-        .opacity(viewModel.canGenerate ? 1.0 : 0.6)
+        .disabled(!viewModel.canGenerate || viewModel.isSaving)
+        .opacity((viewModel.canGenerate && !viewModel.isSaving) ? 1.0 : 0.6)
     }
-        
+    
+    private func buttonText(for viewModel: NaturalLanguageViewModel) -> String {
+        if viewModel.isGeneratingConfig {
+            return "Parsing..."
+        } else if viewModel.isCreatingTicker {
+            return "Creating..."
+        } else if viewModel.isSchedulingAlarm {
+            return "Scheduling..."
+        } else if viewModel.isSaving {
+            return "Creating..."
+        } else {
+            return "Create Ticker"
+        }
+    }
+    
+   
     private func initializeViewModel() {
         viewModel = NaturalLanguageViewModel(modelContext: modelContext)
+    }
+    
+    // MARK: - Loading Indicator
+    
+    @ViewBuilder
+    private func loadingIndicatorView(viewModel: NaturalLanguageViewModel) -> some View {
+        VStack(spacing: TickerSpacing.md) {
+            HStack(spacing: TickerSpacing.sm) {
+                ProgressView()
+                    .tint(TickerColor.primary)
+                    .scaleEffect(0.9)
+                
+                Text(viewModel.isParsing ? "Parsing your request..." : "Generating configuration...")
+                    .Subheadline()
+                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+            }
+            .padding(.vertical, TickerSpacing.md)
+            .padding(.horizontal, TickerSpacing.lg)
+            .background(
+                RoundedRectangle(cornerRadius: TickerRadius.large)
+                    .fill(TickerColor.surface(for: colorScheme).opacity(0.7))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: TickerRadius.large)
+                            .strokeBorder(
+                                LinearGradient(
+                                    colors: [
+                                        TickerColor.primary.opacity(0.3),
+                                        TickerColor.primary.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1
+                            )
+                    )
+            )
+        }
     }
     
     // MARK: - Background

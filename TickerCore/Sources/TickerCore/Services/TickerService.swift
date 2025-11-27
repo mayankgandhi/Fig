@@ -16,14 +16,14 @@ import Factory
 
 // MARK: - TickerService Error Types
 
-enum TickerServiceError: LocalizedError {
+public enum TickerServiceError: LocalizedError {
     case notAuthorized
     case schedulingFailed(underlying: Error)
     case alarmNotFound(UUID)
     case invalidConfiguration
     case swiftDataSaveFailed(underlying: Error)
     
-    var errorDescription: String? {
+    public var errorDescription: String? {
         switch self {
             case .notAuthorized:
                 return "Permission to schedule alarms has not been granted"
@@ -607,7 +607,10 @@ public final class TickerService {
     // MARK: - Widget Refresh
 
     private func refreshWidgetTimelines() {
-        WidgetCenter.shared.reloadAllTimelines()
+        // Refresh widgets asynchronously to avoid blocking the main thread
+        Task.detached(priority: .utility) {
+            WidgetCenter.shared.reloadAllTimelines()
+        }
     }
 
     // MARK: - Alarm State Query

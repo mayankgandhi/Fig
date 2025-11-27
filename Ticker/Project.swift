@@ -48,7 +48,8 @@ let project = Project(
                 .project(target: "Telemetry", path: "../../Telemetry"),
                 .project(target: "DesignKit", path: "../../DesignKit"),
                 .external(name: "Roadmap"),
-                .external(name: "Factory")
+                .external(name: "Factory"),
+                .external(name: "OpenAI")
             ],
             settings: .settings(
                 base: [
