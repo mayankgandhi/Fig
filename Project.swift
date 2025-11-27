@@ -97,20 +97,4 @@ let project = Project(
             )
         ),
     ],
-//    schemes: [
-//        .scheme(
-//            name: appName,
-//            shared: true,
-//            buildAction: .buildAction(targets: [.init(stringLiteral: appName)]),
-//            testAction: .targets(
-//                ["\(appName)Tests"],
-//                configuration: .debug,
-//                options: .options(coverage: true)
-//            ),
-//            runAction: .runAction(configuration: .debug),
-//            archiveAction: .archiveAction(configuration: .release),
-//            profileAction: .profileAction(configuration: .release),
-//            analyzeAction: .analyzeAction(configuration: .debug)
-//        )
-//    ]
 )

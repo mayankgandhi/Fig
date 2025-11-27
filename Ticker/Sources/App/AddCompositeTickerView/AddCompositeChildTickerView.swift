@@ -12,26 +12,27 @@ import TickerCore
 struct AddCompositeChildTickerView: View {
     let childToEdit: CompositeChildTickerData?
     let onSave: (CompositeChildTickerData) -> Void
-
+    
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
-
+    
     @State private var viewModel: AddCompositeChildTickerViewModel
-
+    @State private var hasAutoExpandedLabel = false
+    
     init(childToEdit: CompositeChildTickerData? = nil, onSave: @escaping (CompositeChildTickerData) -> Void) {
         self.childToEdit = childToEdit
         self.onSave = onSave
         _viewModel = State(initialValue: AddCompositeChildTickerViewModel(childToEdit: childToEdit))
     }
-
+    
     var body: some View {
         NavigationStack {
             contentView
         }
     }
-
+    
     // MARK: - Content View
-
+    
     @ViewBuilder
     private var contentView: some View {
         ScrollView {
@@ -39,17 +40,18 @@ struct AddCompositeChildTickerView: View {
                 // Simplified Pills Section
                 pillsSection
                     .padding(.top, TickerSpacing.sm)
-
+                
                 // Validation Banner
-                if let message = viewModel.validationMessage {
+                if let message = viewModel.validationBannerMessage {
                     ValidationBanner(message: message)
                         .padding(.horizontal, TickerSpacing.md)
                 }
-
+                
                 Spacer(minLength: 300)
             }
             .padding(.top, TickerSpacing.md)
         }
+        .frame(maxWidth: .infinity)
         // Overlay for expanded fields
         .overlay(alignment: .top) {
             if let field = viewModel.expandedField {
@@ -67,7 +69,7 @@ struct AddCompositeChildTickerView: View {
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 }
             }
-
+            
             ToolbarItem(placement: .cancellationAction) {
                 Button {
                     TickerHaptics.selection()
@@ -79,11 +81,15 @@ struct AddCompositeChildTickerView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
             }
-
+            
             ToolbarItem(placement: .confirmationAction) {
                 Button {
                     TickerHaptics.selection()
-                    let childData = viewModel.createChildTickerData()
+                    viewModel.revealValidationMessage()
+                    guard let childData = viewModel.createChildTickerData() else {
+                        focusFirstInvalidField()
+                        return
+                    }
                     onSave(childData)
                     dismiss()
                 } label: {
@@ -96,10 +102,13 @@ struct AddCompositeChildTickerView: View {
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
+        .onAppear {
+            openLabelEditorInitially()
+        }
     }
-
+    
     // MARK: - Pills Section
-
+    
     @ViewBuilder
     private var pillsSection: some View {
         VStack(spacing: TickerSpacing.md) {
@@ -118,7 +127,7 @@ struct AddCompositeChildTickerView: View {
                     size: .large
                 )
             }
-
+            
             // Schedule Pill
             Button {
                 TickerHaptics.selection()
@@ -137,9 +146,9 @@ struct AddCompositeChildTickerView: View {
         }
         .padding(.horizontal, TickerSpacing.md)
     }
-
+    
     // MARK: - Expanded Field Content
-
+    
     @ViewBuilder
     private func expandedFieldContent(for field: SimplifiedExpandableField) -> some View {
         AddCompositeOverlayCallout(
@@ -156,37 +165,62 @@ struct AddCompositeChildTickerView: View {
             fieldContent(for: field)
         }
     }
-
+    
     @ViewBuilder
     private func fieldContent(for field: SimplifiedExpandableField) -> some View {
         switch field {
-        case .label:
-            LabelEditorView(
-                viewModel: viewModel.labelViewModel,
-                onDismiss: {
-                    TickerHaptics.selection()
-                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                        viewModel.collapseField()
+            case .label:
+                LabelEditorView(
+                    viewModel: viewModel.labelViewModel,
+                    onDismiss: {
+                        TickerHaptics.selection()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.collapseField()
+                        }
                     }
-                }
-            )
-
-        case .schedule:
-            ScheduleView(viewModel: viewModel.scheduleViewModel)
+                )
+                
+            case .schedule:
+                ScheduleView(viewModel: viewModel.scheduleViewModel)
         }
     }
-
+    
     // MARK: - Background View
-
+    
     private var backgroundView: some View {
         ZStack {
             TickerColor.liquidGlassGradient(for: colorScheme)
                 .ignoresSafeArea()
-
+            
             Rectangle()
                 .fill(.ultraThinMaterial)
                 .opacity(0.1)
                 .ignoresSafeArea()
+        }
+    }
+    
+    private func openLabelEditorInitially() {
+        guard !hasAutoExpandedLabel else { return }
+        hasAutoExpandedLabel = true
+        DispatchQueue.main.async {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                viewModel.expandedField = .label
+            }
+        }
+    }
+    
+    private func focusFirstInvalidField() {
+        if !viewModel.labelViewModel.isValid {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                viewModel.expandedField = .label
+            }
+            return
+        }
+        
+        if !viewModel.scheduleViewModel.repeatConfigIsValid {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                viewModel.expandedField = .schedule
+            }
         }
     }
 }
@@ -199,7 +233,7 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
     let colorScheme: ColorScheme
     let onDismiss: () -> Void
     @ViewBuilder let content: Content
-
+    
     var body: some View {
         ZStack {
             // Background tap area to dismiss
@@ -208,7 +242,7 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
                 .onTapGesture {
                     onDismiss()
                 }
-
+            
             // Overlay content
             VStack(spacing: 0) {
                 // Header
@@ -216,9 +250,9 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
                     Text(headerTitle)
                         .Headline()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-
+                    
                     Spacer()
-
+                    
                     Button {
                         onDismiss()
                     } label: {
@@ -229,9 +263,9 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
                     }
                 }
                 .padding(TickerSpacing.md)
-
+                
                 Divider()
-
+                
                 // Content area
                 ScrollView {
                     content
@@ -261,22 +295,22 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
             ))
         }
     }
-
+    
     private var maxContentHeight: CGFloat {
         switch field {
-        case .label:
-            return 200
-        case .schedule:
-            return 600
+            case .label:
+                return 200
+            case .schedule:
+                return 600
         }
     }
-
+    
     private var headerTitle: String {
         switch field {
-        case .label:
-            return "Label"
-        case .schedule:
-            return "Schedule"
+            case .label:
+                return "Label"
+            case .schedule:
+                return "Schedule"
         }
     }
 }
@@ -285,7 +319,7 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
 
 #Preview {
     @Previewable @State var showSheet = true
-
+    
     Color.clear
         .sheet(isPresented: $showSheet) {
             AddCompositeChildTickerView(

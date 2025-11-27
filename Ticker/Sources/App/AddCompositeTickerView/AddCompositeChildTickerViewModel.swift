@@ -17,6 +17,7 @@ final class AddCompositeChildTickerViewModel {
 
     // MARK: - State
     var expandedField: SimplifiedExpandableField? = nil
+    var shouldShowValidationMessage = false
     private let childToEdit: CompositeChildTickerData?
 
     // MARK: - Initialization
@@ -48,6 +49,11 @@ final class AddCompositeChildTickerViewModel {
         return nil
     }
 
+    var validationBannerMessage: String? {
+        guard shouldShowValidationMessage else { return nil }
+        return validationMessage
+    }
+
     var displayLabel: String {
         labelViewModel.isEmpty ? "Label" : labelViewModel.labelText
     }
@@ -72,7 +78,8 @@ final class AddCompositeChildTickerViewModel {
 
     // MARK: - Create Child Ticker Data
 
-    func createChildTickerData() -> CompositeChildTickerData {
+    func createChildTickerData() -> CompositeChildTickerData? {
+        guard canSave else { return nil }
         let label = labelViewModel.labelText.isEmpty ? "Alarm" : labelViewModel.labelText
         let schedule = buildSchedule()
 
@@ -81,6 +88,10 @@ final class AddCompositeChildTickerViewModel {
             label: label,
             schedule: schedule
         )
+    }
+
+    func revealValidationMessage() {
+        shouldShowValidationMessage = true
     }
 
     // MARK: - Private Methods
