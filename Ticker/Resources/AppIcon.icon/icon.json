@@ -15,7 +15,15 @@
         {
           "blend-mode" : "normal",
           "fill" : "automatic",
-          "glass" : false,
+          "glass-specializations" : [
+            {
+              "value" : false
+            },
+            {
+              "appearance" : "dark",
+              "value" : false
+            }
+          ],
           "hidden-specializations" : [
             {
               "idiom" : "square",
@@ -23,7 +31,13 @@
             }
           ],
           "image-name" : "Cream.png",
-          "name" : "Cream"
+          "name" : "Cream",
+          "opacity-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : 0
+            }
+          ]
         }
       ],
       "shadow" : {

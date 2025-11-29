@@ -52,9 +52,9 @@ struct AddCollectionChildTickerView: View {
                 
                 Spacer(minLength: 300)
             }
+            .frame(maxWidth: .infinity, alignment: .center)
             .padding(.top, TickerSpacing.md)
         }
-        .frame(maxWidth: .infinity)
         // Overlay for expanded fields
         .overlay(alignment: .top) {
             if let field = viewModel.expandedField {
