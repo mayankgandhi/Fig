@@ -70,7 +70,7 @@ public final class OpenAITickerService {
         // Create the structured output request
         let query = ChatQuery(
             messages: [systemMessage, userMessage],
-            model: .gpt5_nano,
+            model: .gpt4_1_mini,
             responseFormat: .jsonSchema(
                 .init(
                     name: "ticker_configuration",

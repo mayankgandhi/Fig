@@ -25,6 +25,10 @@ final class NaturalLanguageViewModel {
     @ObservationIgnored
     @Injected(\.openAITickerService) private var openAIService
 
+    // MARK: - Network Service
+    @ObservationIgnored
+    @Injected(\.networkReachabilityService) private var networkReachability
+
     // MARK: - Child ViewModels
     var timePickerViewModel: TimePickerViewModel
     var scheduleViewModel: ScheduleViewModel
@@ -50,6 +54,8 @@ final class NaturalLanguageViewModel {
         }
     }
     var hasStartedTyping: Bool = false
+    var isOfflineMode: Bool = false
+    var isUsingLocalParser: Bool = false
 
     // MARK: - Private State
     private var parsingTask: Task<Void, Never>?
@@ -188,16 +194,29 @@ final class NaturalLanguageViewModel {
 
                 let startTime = Date()
 
-                // NOW parse after debounce using OpenAI
-                let llkConfig = try await self.openAIService.generateTickerConfig(from: input)
-                let config = try llkConfig.toTickerConfiguration()
+                // NOW parse after debounce - check network and choose parsing strategy
+                let config: TickerConfiguration
+                if self.networkReachability.isReachable {
+                    // Online: Use OpenAI
+                    self.isUsingLocalParser = false
+                    self.isOfflineMode = false
+                    let llkConfig = try await self.openAIService.generateTickerConfig(from: input)
+                    config = try llkConfig.toTickerConfiguration()
+                } else {
+                    // Offline: Use local parser
+                    self.isUsingLocalParser = true
+                    self.isOfflineMode = true
+                    let parser = TickerConfigurationParser()
+                    config = try await parser.parseConfiguration(from: input)
+                }
 
                 let parseTime = Int(Date().timeIntervalSince(startTime) * 1000)
 
                 // Track parsing completed
                 AnalyticsEvents.aiParsingCompleted(
                     inputLength: input.count,
-                    parseTimeMs: parseTime
+                    parseTimeMs: parseTime,
+                    isOffline: self.isUsingLocalParser
                 ).track()
 
                 // Only update state if we're still the current task
@@ -216,7 +235,8 @@ final class NaturalLanguageViewModel {
                 // Track parsing failed
                 AnalyticsEvents.aiParsingFailed(
                     error: error.localizedDescription,
-                    inputLength: input.count
+                    inputLength: input.count,
+                    isOffline: self.isUsingLocalParser
                 ).track()
 
                 // Only update state if we're still the current task

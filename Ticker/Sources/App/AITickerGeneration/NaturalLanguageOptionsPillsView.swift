@@ -26,15 +26,15 @@ struct NaturalLanguageOptionsPillsView: View {
 
                 // Enhanced indicator for active options or parsing indicator
                 if viewModel.isParsing {
-                    // Parsing indicator
+                    // Parsing indicator with offline mode context
                     HStack(spacing: TickerSpacing.xxs) {
                         ProgressView()
                             .scaleEffect(0.7)
-                            .tint(TickerColor.primary)
+                            .tint(viewModel.isOfflineMode ? TickerColor.textSecondary(for: colorScheme) : TickerColor.primary)
 
-                        Text("Parsing...")
+                        Text(viewModel.isOfflineMode ? "Parsing Offline..." : "Parsing...")
                             .Caption2()
-                            .foregroundStyle(TickerColor.primary)
+                            .foregroundStyle(viewModel.isOfflineMode ? TickerColor.textSecondary(for: colorScheme) : TickerColor.primary)
                     }
                 } else if hasAnyActiveOptions {
                     HStack(spacing: TickerSpacing.xxs) {

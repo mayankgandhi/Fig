@@ -33,8 +33,8 @@ enum AnalyticsEvents {
     // MARK: - AI-Powered Alarm Creation
     case aiAlarmCreateStarted
     case aiInputStarted
-    case aiParsingCompleted(inputLength: Int, parseTimeMs: Int)
-    case aiParsingFailed(error: String, inputLength: Int)
+    case aiParsingCompleted(inputLength: Int, parseTimeMs: Int, isOffline: Bool = false)
+    case aiParsingFailed(error: String, inputLength: Int, isOffline: Bool = false)
     case aiGenerationStarted(inputTextLength: Int)
     case aiGenerationCompleted(inputLength: Int, scheduleType: String, generationTimeMs: Int)
     case aiGenerationFailed(error: String, inputLength: Int)
@@ -199,10 +199,10 @@ enum AnalyticsEvents {
             return ["alarm_id": alarmId, "changes": changes]
 
         // AI-Powered Alarm Creation
-        case let .aiParsingCompleted(inputLength, parseTimeMs):
-            return ["input_length": inputLength, "parse_time_ms": parseTimeMs]
-        case let .aiParsingFailed(error, inputLength):
-            return ["error": error, "input_length": inputLength]
+        case let .aiParsingCompleted(inputLength, parseTimeMs, isOffline):
+            return ["input_length": inputLength, "parse_time_ms": parseTimeMs, "is_offline": isOffline]
+        case let .aiParsingFailed(error, inputLength, isOffline):
+            return ["error": error, "input_length": inputLength, "is_offline": isOffline]
         case let .aiGenerationStarted(inputTextLength):
             return ["input_text_length": inputTextLength]
         case let .aiGenerationCompleted(inputLength, scheduleType, generationTimeMs):

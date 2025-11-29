@@ -9,6 +9,7 @@ import Foundation
 import Factory
 import SwiftData
 import AlarmKit
+import Network
 
 // MARK: - Container Extension
 
@@ -91,6 +92,13 @@ public extension Container {
     var tickerConfigurationParser: Factory<TickerConfigurationParser> {
         self { TickerConfigurationParser() }
         // Stateless parsing operations - no need for singleton
+    }
+
+    // MARK: - Network Services
+
+    var networkReachabilityService: Factory<NetworkReachabilityService> {
+        self { NetworkReachabilityService.shared }
+            .singleton
     }
 
     // MARK: - Setup

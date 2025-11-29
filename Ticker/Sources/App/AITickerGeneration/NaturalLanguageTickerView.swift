@@ -55,17 +55,6 @@ struct NaturalLanguageTickerView: View {
                 // Input Section
                 inputSection(viewModel: viewModel)
                 
-                // Loading Indicator for API calls
-                // Use explicit animation to ensure visibility
-                Group {
-                    if viewModel.isParsing || viewModel.isGeneratingConfig {
-                        loadingIndicatorView(viewModel: viewModel)
-                            .transition(.opacity.combined(with: .scale(scale: 0.95)))
-                    }
-                }
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.isParsing)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.isGeneratingConfig)
-                
                 // Conditional Content - OptionsPillsView (with time pill)
                 // Use contentTransition for smooth streaming animations
                 if viewModel.hasStartedTyping && !viewModel.isParsing && !viewModel.isGeneratingConfig {
@@ -149,13 +138,17 @@ struct NaturalLanguageTickerView: View {
                 
                 // AI Status Indicator
                 HStack(spacing: TickerSpacing.xs) {
-                    Image(systemName: "brain.head.profile")
+                    Image(systemName: viewModel.isOfflineMode ? "wifi.slash" : "brain.head.profile")
                         .font(.caption2)
-                    
-                    Text("Smart Parsing")
+
+                    Text(viewModel.isOfflineMode ? "Offline Parsing" : "Smart Parsing")
                         .Caption2()
                 }
-                .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                .foregroundStyle(
+                    viewModel.isOfflineMode
+                        ? TickerColor.textSecondary(for: colorScheme)
+                        : TickerColor.textTertiary(for: colorScheme)
+                )
                 .padding(.horizontal, TickerSpacing.md)
                 .padding(.vertical, TickerSpacing.xs)
                 .background(
@@ -174,7 +167,7 @@ struct NaturalLanguageTickerView: View {
     }
     
     // MARK: - Input Section
-    
+
     @ViewBuilder
     private func inputSection(viewModel: NaturalLanguageViewModel) -> some View {
         VStack(spacing: TickerSpacing.md) {
@@ -182,13 +175,13 @@ struct NaturalLanguageTickerView: View {
                 Text("What do you want to be reminded about?")
                     .Headline()
                     .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                
+
                 Text("Be specific about the time, activity, and how often")
                     .Subheadline()
                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            
+
             // Text Input
             ZStack(alignment: .topLeading) {
                 RoundedRectangle(cornerRadius: TickerRadius.large)
@@ -208,14 +201,14 @@ struct NaturalLanguageTickerView: View {
                             )
                     )
                     .frame(minHeight: 120)
-                
+
                 if viewModel.inputText.isEmpty {
                     Text("e.g., Wake up at 7am every weekday")
                         .Caption()
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                         .padding(TickerSpacing.lg)
                 }
-                
+
                 TextEditor(text: Binding(
                     get: { viewModel.inputText },
                     set: { viewModel.inputText = $0 }
@@ -225,7 +218,24 @@ struct NaturalLanguageTickerView: View {
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
                 .padding(TickerSpacing.md)
+
+                // Progress indicator overlay
+                if viewModel.isParsing || viewModel.isGeneratingConfig {
+                    VStack {
+                        Spacer()
+                        HStack {
+                            Spacer()
+                            ProgressView()
+                                .tint(TickerColor.primary)
+                                .scaleEffect(0.9)
+                                .padding(TickerSpacing.md)
+                        }
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
             }
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.isParsing)
+            .animation(.spring(response: 0.3, dampingFraction: 0.8), value: viewModel.isGeneratingConfig)
             .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
         }
     }
@@ -342,48 +352,11 @@ struct NaturalLanguageTickerView: View {
         }
     }
     
-   
+
     private func initializeViewModel() {
         viewModel = NaturalLanguageViewModel(modelContext: modelContext)
     }
-    
-    // MARK: - Loading Indicator
-    
-    @ViewBuilder
-    private func loadingIndicatorView(viewModel: NaturalLanguageViewModel) -> some View {
-        VStack(spacing: TickerSpacing.md) {
-            HStack(spacing: TickerSpacing.sm) {
-                ProgressView()
-                    .tint(TickerColor.primary)
-                    .scaleEffect(0.9)
-                
-                Text(viewModel.isParsing ? "Parsing your request..." : "Generating configuration...")
-                    .Subheadline()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-            }
-            .padding(.vertical, TickerSpacing.md)
-            .padding(.horizontal, TickerSpacing.lg)
-            .background(
-                RoundedRectangle(cornerRadius: TickerRadius.large)
-                    .fill(TickerColor.surface(for: colorScheme).opacity(0.7))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: TickerRadius.large)
-                            .strokeBorder(
-                                LinearGradient(
-                                    colors: [
-                                        TickerColor.primary.opacity(0.3),
-                                        TickerColor.primary.opacity(0.1)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
-            )
-        }
-    }
-    
+
     // MARK: - Background
     
     private var backgroundView: some View {
