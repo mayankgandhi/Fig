@@ -33,7 +33,7 @@ enum AnalyticsEvents {
     // MARK: - AI-Powered Alarm Creation
     case aiAlarmCreateStarted
     case aiInputStarted
-    case aiParsingCompleted(inputLength: Int, parseTimeMs: Int, isOffline: Bool = false)
+    case aiParsingCompleted(inputLength: Int, parseTimeMs: Int, isOffline: Bool = false, isFallback: Bool = false)
     case aiParsingFailed(error: String, inputLength: Int, isOffline: Bool = false)
     case aiGenerationStarted(inputTextLength: Int)
     case aiGenerationCompleted(inputLength: Int, scheduleType: String, generationTimeMs: Int)
@@ -199,8 +199,8 @@ enum AnalyticsEvents {
             return ["alarm_id": alarmId, "changes": changes]
 
         // AI-Powered Alarm Creation
-        case let .aiParsingCompleted(inputLength, parseTimeMs, isOffline):
-            return ["input_length": inputLength, "parse_time_ms": parseTimeMs, "is_offline": isOffline]
+        case let .aiParsingCompleted(inputLength, parseTimeMs, isOffline, isFallback):
+            return ["input_length": inputLength, "parse_time_ms": parseTimeMs, "is_offline": isOffline, "is_fallback": isFallback]
         case let .aiParsingFailed(error, inputLength, isOffline):
             return ["error": error, "input_length": inputLength, "is_offline": isOffline]
         case let .aiGenerationStarted(inputTextLength):

@@ -56,6 +56,7 @@ final class NaturalLanguageViewModel {
     var hasStartedTyping: Bool = false
     var isOfflineMode: Bool = false
     var isUsingLocalParser: Bool = false
+    var isFallbackMode: Bool = false // True when using local parser due to OpenAI error/timeout
 
     // MARK: - Private State
     private var parsingTask: Task<Void, Never>?
@@ -196,16 +197,50 @@ final class NaturalLanguageViewModel {
 
                 // NOW parse after debounce - check network and choose parsing strategy
                 let config: TickerConfiguration
+                var usedFallback = false
+
                 if self.networkReachability.isReachable {
-                    // Online: Use OpenAI
+                    // Online: Try OpenAI with timeout, fallback to local parser on error/timeout
                     self.isUsingLocalParser = false
                     self.isOfflineMode = false
-                    let llkConfig = try await self.openAIService.generateTickerConfig(from: input)
-                    config = try llkConfig.toTickerConfiguration()
+                    self.isFallbackMode = false
+
+                    do {
+                        // Try OpenAI with 15 second timeout
+                        config = try await withThrowingTaskGroup(of: TickerConfiguration.self) { group in
+                            // OpenAI task
+                            group.addTask {
+                                let llkConfig = try await self.openAIService.generateTickerConfig(from: input)
+                                return try llkConfig.toTickerConfiguration()
+                            }
+
+                            // Timeout task
+                            group.addTask {
+                                try await Task.sleep(for: .seconds(15))
+                                throw NSError(domain: "com.fig.timeout", code: -1, userInfo: [
+                                    NSLocalizedDescriptionKey: "OpenAI request timed out after 15 seconds"
+                                ])
+                            }
+
+                            // Return first result (either success or timeout)
+                            let result = try await group.next()!
+                            group.cancelAll()
+                            return result
+                        }
+                    } catch {
+                        // OpenAI failed or timed out - fallback to local parser
+                        print("⚠️ NaturalLanguageViewModel: OpenAI parsing failed (\(error.localizedDescription)), falling back to local parser")
+                        self.isUsingLocalParser = true
+                        self.isFallbackMode = true
+                        usedFallback = true
+                        let parser = TickerConfigurationParser()
+                        config = try await parser.parseConfiguration(from: input)
+                    }
                 } else {
                     // Offline: Use local parser
                     self.isUsingLocalParser = true
                     self.isOfflineMode = true
+                    self.isFallbackMode = false
                     let parser = TickerConfigurationParser()
                     config = try await parser.parseConfiguration(from: input)
                 }
@@ -216,7 +251,8 @@ final class NaturalLanguageViewModel {
                 AnalyticsEvents.aiParsingCompleted(
                     inputLength: input.count,
                     parseTimeMs: parseTime,
-                    isOffline: self.isUsingLocalParser
+                    isOffline: self.isOfflineMode,
+                    isFallback: self.isFallbackMode
                 ).track()
 
                 // Only update state if we're still the current task

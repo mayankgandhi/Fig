@@ -138,14 +138,14 @@ struct NaturalLanguageTickerView: View {
                 
                 // AI Status Indicator
                 HStack(spacing: TickerSpacing.xs) {
-                    Image(systemName: viewModel.isOfflineMode ? "wifi.slash" : "brain.head.profile")
+                    Image(systemName: badgeIcon(for: viewModel))
                         .font(.caption2)
 
-                    Text(viewModel.isOfflineMode ? "Offline Parsing" : "Smart Parsing")
+                    Text(badgeText(for: viewModel))
                         .Caption2()
                 }
                 .foregroundStyle(
-                    viewModel.isOfflineMode
+                    (viewModel.isOfflineMode || viewModel.isFallbackMode)
                         ? TickerColor.textSecondary(for: colorScheme)
                         : TickerColor.textTertiary(for: colorScheme)
                 )
@@ -351,7 +351,27 @@ struct NaturalLanguageTickerView: View {
             return "Create Ticker"
         }
     }
-    
+
+    private func badgeIcon(for viewModel: NaturalLanguageViewModel) -> String {
+        if viewModel.isOfflineMode {
+            return "wifi.slash"
+        } else if viewModel.isFallbackMode {
+            return "arrow.triangle.2.circlepath"
+        } else {
+            return "brain.head.profile"
+        }
+    }
+
+    private func badgeText(for viewModel: NaturalLanguageViewModel) -> String {
+        if viewModel.isOfflineMode {
+            return "Offline Parsing"
+        } else if viewModel.isFallbackMode {
+            return "Fallback Parsing"
+        } else {
+            return "Smart Parsing"
+        }
+    }
+
 
     private func initializeViewModel() {
         viewModel = NaturalLanguageViewModel(modelContext: modelContext)

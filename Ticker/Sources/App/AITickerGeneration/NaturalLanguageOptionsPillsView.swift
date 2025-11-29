@@ -26,15 +26,15 @@ struct NaturalLanguageOptionsPillsView: View {
 
                 // Enhanced indicator for active options or parsing indicator
                 if viewModel.isParsing {
-                    // Parsing indicator with offline mode context
+                    // Parsing indicator with offline/fallback mode context
                     HStack(spacing: TickerSpacing.xxs) {
                         ProgressView()
                             .scaleEffect(0.7)
-                            .tint(viewModel.isOfflineMode ? TickerColor.textSecondary(for: colorScheme) : TickerColor.primary)
+                            .tint((viewModel.isOfflineMode || viewModel.isFallbackMode) ? TickerColor.textSecondary(for: colorScheme) : TickerColor.primary)
 
-                        Text(viewModel.isOfflineMode ? "Parsing Offline..." : "Parsing...")
+                        Text(parsingText(for: viewModel))
                             .Caption2()
-                            .foregroundStyle(viewModel.isOfflineMode ? TickerColor.textSecondary(for: colorScheme) : TickerColor.primary)
+                            .foregroundStyle((viewModel.isOfflineMode || viewModel.isFallbackMode) ? TickerColor.textSecondary(for: colorScheme) : TickerColor.primary)
                     }
                 } else if hasAnyActiveOptions {
                     HStack(spacing: TickerSpacing.xxs) {
@@ -227,5 +227,15 @@ struct NaturalLanguageOptionsPillsView: View {
         // Icon is considered received if we have a parsed configuration
         // Icon is always parsed, so show it once we have any config
         return viewModel.parsedConfiguration != nil
+    }
+
+    private func parsingText(for viewModel: NaturalLanguageViewModel) -> String {
+        if viewModel.isOfflineMode {
+            return "Parsing Offline..."
+        } else if viewModel.isFallbackMode {
+            return "Retrying..."
+        } else {
+            return "Parsing..."
+        }
     }
 }
