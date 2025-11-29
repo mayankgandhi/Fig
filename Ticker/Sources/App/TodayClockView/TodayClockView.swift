@@ -28,7 +28,6 @@ struct TodayClockView: View {
     @State private var shouldAnimateAlarms: Bool = false
     @State private var generatedTicker: Ticker?
     @Namespace private var editButtonNamespace
-    @Namespace private var addButtonNamespace
 
     init() {
         _viewModel = State(initialValue: TodayViewModel())
@@ -44,7 +43,6 @@ struct TodayClockView: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
                        
-
                     // Upcoming Alarms Section
                     VStack(alignment: .leading, spacing: TickerSpacing.md) {
                         HStack {
@@ -126,19 +124,10 @@ struct TodayClockView: View {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button {
                         TickerHaptics.selection()
-                        if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
-                            showNaturalLanguageSheet = true
-                        } else {
-                            showAddSheet = true
-                        }
+                        showNaturalLanguageSheet = true 
                     } label: {
-                        if #available(iOS 26.0, *), DeviceCapabilities.supportsAppleIntelligence {
-                            Image(systemName: "apple.intelligence")
-                        } else {
-                            Image(systemName: "plus")
-                        }
+                        Image(systemName: "apple.intelligence")
                     }
-                    .matchedTransitionSource(id: "addButton", in: addButtonNamespace)
 
                     Button {
                         TickerHaptics.selection()
@@ -149,28 +138,9 @@ struct TodayClockView: View {
                 }
             }
             .sheet(isPresented: $showNaturalLanguageSheet) {
-//                SubscriptionGate(feature: .aiAlarmCreation) {
+                SubscriptionGate(feature: .aiAlarmCreation) {
                     NaturalLanguageTickerView()
-//                }                
-            }
-            .sheet(isPresented: $showAddSheet, onDismiss: {
-                generatedTicker = nil
-            }) {
-                AddTickerView(
-                    namespace: addButtonNamespace
-                )
-                .presentationCornerRadius(TickerRadius.large)
-                .presentationDragIndicator(.visible)
-                .interactiveDismissDisabled()
-                .presentationBackground {
-                    ZStack {
-                        TickerColor.liquidGlassGradient(for: colorScheme)
-
-                        Rectangle()
-                            .fill(.ultraThinMaterial)
-                            .opacity(0.5)
-                    }
-                }
+                }                
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()

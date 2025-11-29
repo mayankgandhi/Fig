@@ -103,69 +103,10 @@ struct TickerPro: View {
                     .padding(.bottom, TickerSpacing.xs)
             }
 
-            // Features Grid
-            featuresGrid
         }
     }
     
-    private var featuresGrid: some View {
-        VStack(spacing: TickerSpacing.sm) {
-            ForEach(Array(configuration.premiumFeatures.enumerated()), id: \.element.id) { index, feature in
-                featureRow(feature)
-                
-                if index < configuration.premiumFeatures.count - 1 {
-                    Divider()
-                        .background(TickerColor.textTertiary(for: colorScheme).opacity(0.3))
-                }
-            }
-        }
-    }
-    
-    private func featureRow(_ feature: PremiumFeature) -> some View {
-        HStack(spacing: TickerSpacing.md) {
-            // Feature Icon
-            ZStack {
-                RoundedRectangle(cornerRadius: TickerRadius.small)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                TickerColor.primary.opacity(colorScheme == .dark ? 0.2 : 0.1),
-                                TickerColor.accent.opacity(colorScheme == .dark ? 0.15 : 0.08)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .frame(width: 40, height: 40)
-                
-                Image(systemName: feature.icon)
-                    .font(.system(size: 18, weight: .semibold))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [TickerColor.primary, TickerColor.accent],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
-            
-            // Feature Text
-            VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
-                Text(feature.title)
-                    .Subheadline()
-                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                
-                Text(feature.description)
-                    .Caption()
-                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                    .lineLimit(2)
-            }
-            
-            Spacer()
-        }
-        .padding(.vertical, TickerSpacing.xs)
-    }
-    
+  
     // MARK: - Action Button
     
     private var actionButton: some View {
