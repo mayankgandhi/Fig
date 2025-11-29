@@ -3,7 +3,7 @@ import ProjectDescription
 // Centralized app configuration
 let appName = "Ticker"
 let productName = "Ticker"
-let version = "1.1"
+let version = "1.2"
 let buildNumber = "1"
 let mainBundleId = "m.fig"
 let widgetsBundleId = "\(mainBundleId).widgets"
