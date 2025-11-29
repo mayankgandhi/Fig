@@ -106,12 +106,6 @@ private struct TickerCollectionEditorContent: View {
                 )
                 .padding(.top, TickerSpacing.sm)
 
-                // Inline validation banner
-                if let message = viewModel.validationMessages.first {
-                    ValidationBanner(message: message)
-                        .padding(.horizontal, TickerSpacing.md)
-                }
-
                 // Child Ticker Data List
                 ChildTickerDataListView(
                     childData: viewModel.childTickerData,
@@ -127,7 +121,7 @@ private struct TickerCollectionEditorContent: View {
                 )
                 .padding(.top, TickerSpacing.sm)
 
-                // Add Child Ticker Button
+                // Add Ticker Button
                 Button {
                     TickerHaptics.selection()
                     showAddChildSheet = true
@@ -135,7 +129,7 @@ private struct TickerCollectionEditorContent: View {
                     HStack(spacing: TickerSpacing.sm) {
                         Image(systemName: "plus.circle.fill")
                             .font(.callout.weight(.semibold))
-                        Text("Add Child Ticker")
+                        Text("Add Ticker")
                             .Body()
                     }
                     .foregroundStyle(TickerColor.primary)
@@ -194,7 +188,7 @@ private struct TickerCollectionEditorContent: View {
                 Text(errorMessage)
             }
         }
-        .alert("Delete Child Ticker", isPresented: $showDeleteChildAlert) {
+        .alert("Delete Ticker", isPresented: $showDeleteChildAlert) {
             Button("Cancel", role: .cancel) {
                 childDataToDelete = nil
             }
@@ -292,6 +286,9 @@ struct ExpandedFieldContentForCollection: View {
 
         case .icon:
             IconPickerViewMVVM(viewModel: viewModel.iconPickerViewModel)
+            
+        case .sound:
+            SoundPickerView(viewModel: viewModel.soundPickerViewModel)
 
         default:
             EmptyView()
@@ -382,6 +379,8 @@ struct OverlayCalloutForCollection<Content: View>: View {
             return 200
         case .icon:
             return 600
+        case .sound:
+            return 400
         default:
             return 400
         }
@@ -393,6 +392,8 @@ struct OverlayCalloutForCollection<Content: View>: View {
             return "Collection Label"
         case .icon:
             return "Collection Icon"
+        case .sound:
+            return "Collection Sound"
         default:
             return "Options"
         }

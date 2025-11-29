@@ -1,9 +1,9 @@
 /*
-See the LICENSE.txt file for this sample's licensing information.
-
-Abstract:
-A view that displays an individual alarm cell in the list.
-*/
+ See the LICENSE.txt file for this sample's licensing information.
+ 
+ Abstract:
+ A view that displays an individual alarm cell in the list.
+ */
 
 import SwiftUI
 import TickerCore
@@ -11,17 +11,17 @@ import DesignKit
 import Factory
 
 struct AlarmCell: View {
-
+    
     let alarmItem: Ticker
     let onTap: (() -> Void)?
     @Injected(\.tickerService) private var tickerService
     @Environment(\.colorScheme) private var colorScheme
-
+    
     init(alarmItem: Ticker, onTap: (() -> Void)? = nil) {
         self.alarmItem = alarmItem
         self.onTap = onTap
     }
-
+    
     var body: some View {
         Button(action: {
             DesignKitHaptics.selection()
@@ -31,44 +31,38 @@ struct AlarmCell: View {
                 // Icon with background circle
                 categoryIconView
                 
-                // Main content
-                VStack(alignment: .leading, spacing: DesignKit.xxs) {
-                    HStack(alignment: .firstTextBaseline) {
-                        Text(alarmItem.label)
-                            .tickerTitle()
+                
+                VStack(alignment: .leading, spacing: DesignKit.xs) {
+                    Text(alarmItem.label)
+                        .tickerTitle()
+                        .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
+                        .multilineTextAlignment(.leading)
+                    scheduleInfoView
+                        .caption2()
+                        .foregroundStyle(DesignKit.textSecondary(for: colorScheme))
+                        .multilineTextAlignment(.leading)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                
+                
+                VStack {
+                    // Time display
+                    if let schedule = alarmItem.schedule {
+                        scheduleText(for: schedule)
+                            .Title2()
                             .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
-                            .lineLimit(1)
-                        
-                        Spacer()
-                        
-                        // Time display
-                        if let schedule = alarmItem.schedule {
-                            scheduleText(for: schedule)
-                                .timeDisplay()
-                                .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
-                        } else if let countdown = alarmItem.countdown?.preAlert {
-                            Text(formatDuration(countdown.interval))
-                                .timeDisplay()
-                                .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
-                        }
+                            .multilineTextAlignment(.leading)
+                    } else if let countdown = alarmItem.countdown?.preAlert {
+                        Text(formatDuration(countdown.interval))
+                            .Title3()
+                            .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
+                            .multilineTextAlignment(.leading)
                     }
                     
-                    HStack {
-                        // Schedule info
-                        scheduleInfoView
-                            .detailText()
-                            .foregroundStyle(DesignKit.textSecondary(for: colorScheme))
-                        
-                        Spacer()
-                        
-                        // Enabled/disabled indicator
-                        if !alarmItem.isEnabled {
-                            Image(systemName: "pause.circle.fill")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundStyle(DesignKit.textTertiary(for: colorScheme))
-                        }
-                    }
+                    
+                    
                 }
+                
             }
             .padding(DesignKit.md)
             .background(cardBackground)
@@ -115,9 +109,9 @@ struct AlarmCell: View {
                 )
         }
     }
-
+    
     // MARK: - Subviews
-
+    
     @ViewBuilder
     private var categoryIconView: some View {
         let iconColor = iconColor
@@ -150,7 +144,7 @@ struct AlarmCell: View {
         }
         return "alarm"
     }
-
+    
     @ViewBuilder
     private var scheduleInfoView: some View {
         if let schedule = alarmItem.schedule {
@@ -167,26 +161,26 @@ struct AlarmCell: View {
             }
         }
     }
-
+    
     private func scheduleDescription(for schedule: TickerSchedule) -> String {
         return schedule.displaySummary
     }
-
+    
     @ViewBuilder
     private func scheduleText(for schedule: TickerSchedule) -> some View {
         switch schedule {
-        case .oneTime(let date):
-            Text(date, style: .time)
-        case .daily(let time), .weekdays(let time, _), .biweekly(let time, _), .monthly(_, let time), .yearly(_, _, let time):
-            Text(formatTime(time))
-        case .hourly(let interval, let time):
-            Text(formatTime(time))
-        case .every(_, _, let time):
-            // Always show time for all repeat schedules
-            Text(formatTime(time))
+            case .oneTime(let date):
+                Text(date, style: .time)
+            case .daily(let time), .weekdays(let time, _), .biweekly(let time, _), .monthly(_, let time), .yearly(_, _, let time):
+                Text(formatTime(time))
+            case .hourly(let interval, let time):
+                Text(formatTime(time))
+            case .every(_, _, let time):
+                // Always show time for all repeat schedules
+                Text(formatTime(time))
         }
     }
-
+    
     private func formatTime(_ time: TimeOfDay) -> String {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
@@ -198,13 +192,13 @@ struct AlarmCell: View {
         }
         return "\(time.hour):\(String(format: "%02d", time.minute))"
     }
-
+    
     private func formatDuration(_ interval: TimeInterval) -> String {
         let formatter = DateComponentsFormatter()
         formatter.unitsStyle = .abbreviated
         return formatter.string(from: interval) ?? interval.formatted()
     }
-
+    
 }
 
 // MARK: - Preview
@@ -213,23 +207,23 @@ struct AlarmCell: View {
     VStack(spacing: DesignKit.sm) {
         // Daily alarm example
         AlarmCell(
-alarmItem: Ticker(
-            label: "Lunch Break",
-            isEnabled: true,
-            schedule:
-                    .daily(
-                        time: TimeOfDay(hour: 12, minute: 30)
-                    ),
-            countdown: nil,
-            presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
-            tickerData: TickerData(
-                name: "Lunch Break",
-                icon: "fork.knife",
-                colorHex: "#06B6D4"
+            alarmItem: Ticker(
+                label: "Lunch Break",
+                isEnabled: true,
+                schedule:
+                        .daily(
+                            time: TimeOfDay(hour: 12, minute: 30)
+                        ),
+                countdown: nil,
+                presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
+                tickerData: TickerData(
+                    name: "Lunch Break",
+                    icon: "fork.knife",
+                    colorHex: "#06B6D4"
+                )
             )
         )
-)
-
+        
         // One-time alarm example
         AlarmCell(alarmItem: Ticker(
             label: "Morning Workout",
@@ -248,32 +242,32 @@ alarmItem: Ticker(
                 colorHex: "#FF6B35"
             )
         ))
-
+        
         // Disabled alarm example
         AlarmCell(
-alarmItem: Ticker(
-            label: "Bedtime Reminder",
-            isEnabled: false,
-            schedule:
-                    .daily(
-                        time: TimeOfDay(hour: 22, minute: 0)
-                    ),
-            countdown: nil,
-            presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
-            tickerData: TickerData(
-                name: "Wellness & Self-care",
-                icon: "bed.double.fill",
-                colorHex: "#6366F1"
+            alarmItem: Ticker(
+                label: "Bedtime Reminder",
+                isEnabled: false,
+                schedule:
+                        .daily(
+                            time: TimeOfDay(hour: 22, minute: 0)
+                        ),
+                countdown: nil,
+                presentation: TickerPresentation(tintColorHex: nil, secondaryButtonType: .none),
+                tickerData: TickerData(
+                    name: "Wellness & Self-care",
+                    icon: "bed.double.fill",
+                    colorHex: "#6366F1"
+                )
             )
         )
-)
     }
     .padding()
     .background(
         ZStack {
             DesignKit.liquidGlassGradient(for: .dark)
                 .ignoresSafeArea()
-
+            
             Rectangle()
                 .fill(.ultraThinMaterial)
                 .opacity(0.1)

@@ -2,8 +2,8 @@
 //  TickerCollectionDetailView.swift
 //  Ticker
 //
-//  Created by Claude Code
 //  Detail view for ticker collections showing child alarms
+//  Redesigned to match AlarmDetailView design system
 //
 
 import SwiftUI
@@ -12,191 +12,125 @@ import TickerCore
 import Factory
 
 struct TickerCollectionDetailView: View {
+    let tickerCollection: TickerCollection
+    let onEdit: () -> Void
+    let onDelete: () -> Void
 
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
     @Injected(\.tickerService) private var tickerService
-
-    let tickerCollection: TickerCollection
-    
     @Injected(\.tickerCollectionService) private var collectionService
 
     @State private var isToggling = false
-    @State private var showingEditView = false
+    @State private var alarmToShowDetail: Ticker?
 
     var body: some View {
-        List {
-            // Master toggle section
-            Section {
-                Toggle(isOn: Binding(
-                    get: { tickerCollection.isEnabled },
-                    set: { newValue in
-                        Task {
-                            await toggleTickerCollection(enabled: newValue)
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: TickerSpacing.xl) {
+                    // Header with icon and label
+                    CollectionDetailHeader(
+                        tickerCollection: tickerCollection,
+                        tickerService: tickerService
+                    )
+
+                    // Time display
+                    CollectionDetailTimeSection(tickerCollection: tickerCollection)
+
+                    // Options display with enhanced styling
+                    CollectionDetailOptionsSection(tickerCollection: tickerCollection)
+                        .padding(.top, TickerSpacing.sm)
+
+                    // Child tickers section
+                    CollectionChildTickersSection(
+                        tickerCollection: tickerCollection,
+                        onToggle: { ticker, enabled in
+                            await toggleChildTicker(ticker, enabled: enabled)
+                        },
+                        isToggling: $isToggling,
+                        onTickerTap: { ticker in
+                            alarmToShowDetail = ticker
                         }
-                    }
-                )) {
-                    HStack {
-                        Image(systemName: tickerCollection.collectionType.iconName)
-                            .foregroundStyle(tickerCollection.presentation.tintColor)
+                    )
+                    .padding(.top, TickerSpacing.sm)
+                }
+                .padding(TickerSpacing.md)
+                .padding(.bottom, TickerSpacing.xl)
+            }
+            .background(
+                ZStack {
+                    TickerColor.liquidGlassGradient(for: colorScheme)
+                        .ignoresSafeArea()
 
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(tickerCollection.label)
-                                .font(.headline)
-
-                            if let config = tickerCollection.sleepScheduleConfig {
-                                Text(config.formattedDuration)
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.1)
+                        .ignoresSafeArea()
+                }
+            )
+            .navigationTitle("Collection Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") {
+                        dismiss()
                     }
                 }
-                .disabled(isToggling)
-            }
 
-            // Sleep schedule section (for sleep schedule collections)
-            if let config = tickerCollection.sleepScheduleConfig {
-                Section {
-                    // Bedtime display
-                    if let bedtimeTicker = tickerCollection.childTickers?.first(where: { $0.label == "Bedtime" }) {
-                        childTickerRow(ticker: bedtimeTicker, config: config, isBedtime: true)
+                ToolbarItemGroup(placement: .primaryAction) {
+                    Button {
+                        TickerHaptics.selection()
+                        onEdit()
+                        dismiss()
+                    } label: {
+                        Image(systemName: "pencil")
+                            .Callout()
+                            .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     }
 
-                    // Wake up display
-                    if let wakeUpTicker = tickerCollection.childTickers?.first(where: { $0.label == "Wake Up" }) {
-                        childTickerRow(ticker: wakeUpTicker, config: config, isBedtime: false)
-                    }
-                } header: {
-                    Text("Schedule")
-                }
-
-               
-            }
-
-            // Child tickers section (generic, for other collection types)
-            if tickerCollection.collectionType != .sleepSchedule,
-               let children = tickerCollection.childTickers,
-               !children.isEmpty {
-                Section("Alarms") {
-                    ForEach(children) { child in
-                        genericChildTickerRow(ticker: child)
+                    Button(role: .destructive) {
+                        TickerHaptics.selection()
+                        onDelete()
+                        dismiss()
+                    } label: {
+                        Image(systemName: "trash")
+                            .Callout()
+                            .foregroundStyle(.red)
                     }
                 }
             }
-
-            // Delete section
-            Section {
-                Button(role: .destructive) {
-                    Task {
-                        await deleteTickerCollection()
-                    }
-                } label: {
-                    HStack {
-                        Spacer()
-                        Text("Delete Sleep Schedule")
-                        Spacer()
-                    }
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+        }
+        .sheet(item: $alarmToShowDetail) { ticker in
+            AlarmDetailView(
+                alarm: ticker,
+                onEdit: {
+                    // For child tickers, we might want to handle editing differently
+                    // For now, just dismiss the detail view
+                    alarmToShowDetail = nil
+                },
+                onDelete: {
+                    // For child tickers, we might want to handle deletion differently
+                    // For now, just dismiss the detail view
+                    alarmToShowDetail = nil
+                }
+            )
+            .presentationCornerRadius(TickerRadius.large)
+            .presentationBackground {
+                ZStack {
+                    TickerColor.liquidGlassGradient(for: colorScheme)
+                    
+                    Rectangle()
+                        .fill(.ultraThinMaterial)
+                        .opacity(0.5)
                 }
             }
         }
-        .navigationTitle(tickerCollection.label)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    showingEditView = true
-                }
-            }
-        }
-        .sheet(isPresented: $showingEditView) {
-            // TODO: Edit view for updating sleep schedule
-            Text("Edit view coming soon")
-        }
-    }
-
-    // MARK: - Child Ticker Row (Sleep Schedule specific)
-
-    @ViewBuilder
-    private func childTickerRow(ticker: Ticker, config: SleepScheduleConfiguration, isBedtime: Bool) -> some View {
-        Toggle(isOn: Binding(
-            get: { ticker.isEnabled },
-            set: { newValue in
-                Task {
-                    await toggleChildTicker(ticker, enabled: newValue)
-                }
-            }
-        )) {
-            HStack(spacing: 12) {
-                Image(systemName: isBedtime ? "bed.double.fill" : "alarm.fill")
-                    .foregroundStyle(isBedtime ? Color.blue : Color.orange)
-                    .frame(width: 30)
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(ticker.label)
-                        .font(.body)
-
-                    let time = isBedtime ? config.bedtime : config.wakeTime
-                    Text(time.formatted(as: .hourMinute))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
-        }
-        .disabled(isToggling)
-    }
-
-    // MARK: - Generic Child Ticker Row
-
-    @ViewBuilder
-    private func genericChildTickerRow(ticker: Ticker) -> some View {
-        Toggle(isOn: Binding(
-            get: { ticker.isEnabled },
-            set: { newValue in
-                Task {
-                    await toggleChildTicker(ticker, enabled: newValue)
-                }
-            }
-        )) {
-            HStack(spacing: 12) {
-                if let icon = ticker.tickerData?.icon {
-                    Image(systemName: icon)
-                        .foregroundStyle(tickerCollection.presentation.tintColor)
-                        .frame(width: 30)
-                }
-
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(ticker.label)
-                        .font(.body)
-
-                    if let schedule = ticker.schedule {
-                        Text(schedule.displaySummary)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-        }
-        .disabled(isToggling)
     }
 
     // MARK: - Actions
-
-    private func toggleTickerCollection(enabled: Bool) async {
-        guard !isToggling else { return }
-        isToggling = true
-        defer { isToggling = false }
-
-        do {
-            try await collectionService.toggleTickerCollection(
-                tickerCollection,
-                enabled: enabled,
-                modelContext: modelContext
-            )
-        } catch {
-            print("Failed to toggle ticker collection: \(error)")
-        }
-    }
 
     private func toggleChildTicker(_ ticker: Ticker, enabled: Bool) async {
         guard !isToggling else { return }
@@ -212,18 +146,6 @@ struct TickerCollectionDetailView: View {
             )
         } catch {
             print("Failed to toggle child ticker: \(error)")
-        }
-    }
-
-    private func deleteTickerCollection() async {
-        do {
-            try await collectionService.deleteTickerCollection(
-                tickerCollection,
-                modelContext: modelContext
-            )
-            dismiss()
-        } catch {
-            print("Failed to delete ticker collection: \(error)")
         }
     }
 }

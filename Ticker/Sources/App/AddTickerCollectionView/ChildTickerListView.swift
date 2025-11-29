@@ -21,7 +21,7 @@ struct ChildTickerListView: View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
             // Section header
             HStack {
-                Text("CHILD TICKERS")
+                Text("TICKERS")
                     .Caption2()
                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                     .textCase(.uppercase)
@@ -53,7 +53,7 @@ struct ChildTickerListView: View {
                 .font(.system(size: 48, weight: .light))
                 .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
             
-            Text("No child tickers")
+            Text("No tickers")
                 .Body()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
             

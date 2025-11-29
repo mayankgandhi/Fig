@@ -13,6 +13,7 @@ import TickerCore
 final class AddCollectionChildTickerViewModel {
     // MARK: - Child ViewModels
     var labelViewModel: LabelEditorViewModel
+    var timePickerViewModel: TimePickerViewModel
     var scheduleViewModel: ScheduleViewModel
 
     // MARK: - State
@@ -25,6 +26,7 @@ final class AddCollectionChildTickerViewModel {
     init(childToEdit: CollectionChildTickerData? = nil) {
         self.childToEdit = childToEdit
         self.labelViewModel = LabelEditorViewModel()
+        self.timePickerViewModel = TimePickerViewModel()
         self.scheduleViewModel = ScheduleViewModel()
 
         // Prefill if editing
@@ -97,7 +99,7 @@ final class AddCollectionChildTickerViewModel {
     // MARK: - Private Methods
 
     private func buildSchedule() -> TickerSchedule {
-        let time = extractTimeFromSchedule()
+        let time = TimeOfDay(hour: timePickerViewModel.selectedHour, minute: timePickerViewModel.selectedMinute)
 
         switch scheduleViewModel.selectedOption {
         case .oneTime:
@@ -155,31 +157,37 @@ final class AddCollectionChildTickerViewModel {
         case .oneTime(let date):
             scheduleViewModel.selectOption(.oneTime)
             scheduleViewModel.selectDate(date)
+            timePickerViewModel.setTimeFromDate(date)
 
         case .daily(let time):
             scheduleViewModel.selectOption(.daily)
             scheduleViewModel.updateSmartDate(for: time.hour, minute: time.minute)
+            timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
 
         case .weekdays(let time, let days):
             scheduleViewModel.selectOption(.weekdays)
             scheduleViewModel.selectedWeekdays = days
             scheduleViewModel.updateSmartDate(for: time.hour, minute: time.minute)
+            timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
 
         case .hourly(let interval, let time):
             scheduleViewModel.selectOption(.hourly)
             scheduleViewModel.hourlyInterval = interval
             scheduleViewModel.updateSmartDate(for: time.hour, minute: time.minute)
+            timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
 
         case .every(let interval, let unit, let time):
             scheduleViewModel.selectOption(.every)
             scheduleViewModel.everyInterval = interval
             scheduleViewModel.everyUnit = unit
             scheduleViewModel.updateSmartDate(for: time.hour, minute: time.minute)
+            timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
 
         case .biweekly(let time, let days):
             scheduleViewModel.selectOption(.biweekly)
             scheduleViewModel.biweeklyWeekdays = days
             scheduleViewModel.updateSmartDate(for: time.hour, minute: time.minute)
+            timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
 
         case .monthly(let day, let time):
             scheduleViewModel.selectOption(.monthly)
@@ -199,28 +207,22 @@ final class AddCollectionChildTickerViewModel {
                 scheduleViewModel.monthlyDayType = .lastOfMonth
             }
             scheduleViewModel.updateSmartDate(for: time.hour, minute: time.minute)
+            timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
 
         case .yearly(let month, let day, let time):
             scheduleViewModel.selectOption(.yearly)
             scheduleViewModel.yearlyMonth = month
             scheduleViewModel.yearlyDay = day
             scheduleViewModel.updateSmartDate(for: time.hour, minute: time.minute)
+            timePickerViewModel.setTime(hour: time.hour, minute: time.minute)
         }
-    }
-
-    private func extractTimeFromSchedule() -> TimeOfDay {
-        // For schedules that need time, extract from selected date
-        let calendar = Calendar.current
-        let components = calendar.dateComponents([.hour, .minute], from: scheduleViewModel.selectedDate)
-        let hour = components.hour ?? 9
-        let minute = components.minute ?? 0
-        return TimeOfDay(hour: hour, minute: minute)
     }
 }
 
 // MARK: - Expandable Field Enum
 
 enum SimplifiedExpandableField: Hashable {
+    case time
     case label
     case schedule
 }

@@ -2,8 +2,8 @@
 //  AddCollectionChildTickerView.swift
 //  fig
 //
-//  Simplified bottom sheet for adding/editing collection child tickers
-//  Only captures label and schedule - time is embedded in schedule configuration
+//  Bottom sheet for adding/editing collection tickers
+//  Captures label, time, and schedule configuration
 //
 
 import SwiftUI
@@ -37,6 +37,9 @@ struct AddCollectionChildTickerView: View {
     private var contentView: some View {
         ScrollView {
             VStack(spacing: TickerSpacing.xl) {
+                // Time Picker Card
+                TimePickerCard(viewModel: viewModel.timePickerViewModel)
+                
                 // Simplified Pills Section
                 pillsSection
                     .padding(.top, TickerSpacing.sm)
@@ -64,7 +67,7 @@ struct AddCollectionChildTickerView: View {
         .toolbar {
             ToolbarItem(placement: .principal) {
                 VStack(spacing: TickerSpacing.xxs) {
-                    Text(childToEdit == nil ? "Add Child Ticker" : "Edit Child Ticker")
+                    Text(childToEdit == nil ? "Add Ticker" : "Edit Ticker")
                         .Headline()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 }
@@ -102,6 +105,12 @@ struct AddCollectionChildTickerView: View {
             }
         }
         .toolbarBackground(.hidden, for: .navigationBar)
+        .onChange(of: viewModel.timePickerViewModel.selectedHour) { _, _ in
+            syncScheduleWithTimePicker()
+        }
+        .onChange(of: viewModel.timePickerViewModel.selectedMinute) { _, _ in
+            syncScheduleWithTimePicker()
+        }
         .onAppear {
             openLabelEditorInitially()
         }
@@ -169,6 +178,9 @@ struct AddCollectionChildTickerView: View {
     @ViewBuilder
     private func fieldContent(for field: SimplifiedExpandableField) -> some View {
         switch field {
+            case .time:
+                TimePickerCard(viewModel: viewModel.timePickerViewModel)
+                
             case .label:
                 LabelEditorView(
                     viewModel: viewModel.labelViewModel,
@@ -207,6 +219,14 @@ struct AddCollectionChildTickerView: View {
                 viewModel.expandedField = .label
             }
         }
+    }
+    
+    private func syncScheduleWithTimePicker() {
+        // Sync scheduleViewModel's selectedDate with time picker
+        viewModel.scheduleViewModel.updateSmartDate(
+            for: viewModel.timePickerViewModel.selectedHour,
+            minute: viewModel.timePickerViewModel.selectedMinute
+        )
     }
     
     private func focusFirstInvalidField() {
@@ -298,6 +318,8 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
     
     private var maxContentHeight: CGFloat {
         switch field {
+            case .time:
+                return 300
             case .label:
                 return 200
             case .schedule:
@@ -307,6 +329,8 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
     
     private var headerTitle: String {
         switch field {
+            case .time:
+                return "Time"
             case .label:
                 return "Label"
             case .schedule:

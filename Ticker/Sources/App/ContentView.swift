@@ -159,7 +159,16 @@ struct ContentView: View {
         }
         .sheet(item: $collectionToShowDetail) { collection in
             NavigationStack {
-                TickerCollectionDetailContainerView(tickerCollection: collection)
+                TickerCollectionDetailContainerView(
+                    tickerCollection: collection,
+                    onEdit: {
+                        collectionToEdit = collection
+                    },
+                    onDelete: {
+                        collectionToDelete = collection
+                        showDeleteCompositeAlert = true
+                    }
+                )
             }
             .presentationCornerRadius(DesignKit.large)
             .presentationBackground {

@@ -21,6 +21,7 @@ final class TickerCollectionEditorViewModel {
     // MARK: - Child ViewModels
     var labelViewModel: LabelEditorViewModel
     var iconPickerViewModel: IconPickerViewModel
+    var soundPickerViewModel: SoundPickerViewModel
     var optionsPillsViewModel: OptionsPillsViewModel
     
     // MARK: - State
@@ -45,6 +46,7 @@ final class TickerCollectionEditorViewModel {
         // Initialize child ViewModels
         self.labelViewModel = LabelEditorViewModel()
         self.iconPickerViewModel = IconPickerViewModel()
+        self.soundPickerViewModel = SoundPickerViewModel()
         self.optionsPillsViewModel = OptionsPillsViewModel()
         
         // Configure OptionsPillsViewModel
@@ -52,7 +54,7 @@ final class TickerCollectionEditorViewModel {
             schedule: nil,
             label: labelViewModel,
             countdown: nil,
-            sound: nil,
+            sound: soundPickerViewModel,
             icon: iconPickerViewModel
         )
         
@@ -75,7 +77,7 @@ final class TickerCollectionEditorViewModel {
             messages.append("Label must be 50 characters or fewer")
         }
         if childTickerData.isEmpty {
-            messages.append("Add at least one child ticker")
+            messages.append("Add at least one ticker")
         }
         
         return messages
@@ -118,7 +120,8 @@ final class TickerCollectionEditorViewModel {
     func saveTickerCollection() async {
         guard !isSaving else { return }
         guard canSave else {
-            errorMessage = "Please check your inputs"
+            // Show validation messages in error alert
+            errorMessage = validationMessages.joined(separator: "\n")
             showingError = true
             return
         }
@@ -139,9 +142,12 @@ final class TickerCollectionEditorViewModel {
                 secondaryButtonType: .none
             )
 
+            // Get selected sound name
+            let soundName = soundPickerViewModel.selectedSound?.fileName
+            
             // Convert CollectionChildTickerData to Ticker objects
             let tickers = childTickerData.map { data in
-                data.toTicker(presentation: presentation, icon: icon, colorHex: colorHex)
+                data.toTicker(presentation: presentation, icon: icon, colorHex: colorHex, soundName: soundName)
             }
 
             if isEditMode, let existingComposite = tickerCollectionToEdit {
@@ -186,6 +192,14 @@ final class TickerCollectionEditorViewModel {
             iconPickerViewModel.selectIcon(icon, colorHex: colorHex)
         } else {
             iconPickerViewModel.selectIcon("alarm", colorHex: "#8B5CF6")
+        }
+        
+        // Prefill sound from first child ticker (all should have same sound)
+        if let firstChild = collection.childTickers?.first, let soundFileName = firstChild.soundName {
+            // Find sound by fileName
+            if let sound = soundPickerViewModel.availableSounds.first(where: { $0.fileName == soundFileName }) {
+                soundPickerViewModel.selectSound(sound)
+            }
         }
         
         // Convert existing Tickers to CollectionChildTickerData for editing

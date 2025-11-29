@@ -23,15 +23,15 @@ struct CollectionChildTickerData: Identifiable, Hashable {
     }
 
     /// Convert to Ticker with inherited configuration from collection
-    /// All child tickers inherit presentation, sound (default), and no countdown
-    func toTicker(presentation: TickerPresentation, icon: String, colorHex: String) -> Ticker {
+    /// All child tickers inherit presentation, sound, and no countdown
+    func toTicker(presentation: TickerPresentation, icon: String, colorHex: String, soundName: String?) -> Ticker {
         return Ticker(
             label: label,
             isEnabled: true,
             schedule: schedule,
             countdown: nil, // No countdown for collection children
             presentation: presentation,
-            soundName: nil, // Use system default
+            soundName: soundName, // Inherited from collection
             tickerData: TickerData(
                 name: label,
                 icon: icon,

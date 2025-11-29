@@ -2,7 +2,7 @@
 //  TickerCollectionDetailView 2.swift
 //  Ticker
 //
-//  Created by Mayank Gandhi on 26/11/25.
+//  Container view for ticker collection detail that routes to appropriate view
 //
 
 import Factory
@@ -11,8 +11,9 @@ import SwiftUI
 import TickerCore
 
 struct TickerCollectionDetailContainerView: View {
-
     let tickerCollection: TickerCollection
+    let onEdit: () -> Void
+    let onDelete: () -> Void
 
     var body: some View {
         switch tickerCollection.collectionType {
@@ -26,7 +27,11 @@ struct TickerCollectionDetailContainerView: View {
                 )
             )
         @unknown default:
-            TickerCollectionDetailView(tickerCollection: tickerCollection)
+            TickerCollectionDetailView(
+                tickerCollection: tickerCollection,
+                onEdit: onEdit,
+                onDelete: onDelete
+            )
         }
     }
 }
