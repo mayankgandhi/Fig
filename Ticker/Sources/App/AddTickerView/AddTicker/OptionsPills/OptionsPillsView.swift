@@ -89,7 +89,6 @@ struct OptionsPillsView: View {
                 }
                 
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, TickerSpacing.md)
             .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.hasAnyActiveOptions)
         }

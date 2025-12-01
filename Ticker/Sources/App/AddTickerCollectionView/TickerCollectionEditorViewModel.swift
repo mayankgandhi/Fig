@@ -49,10 +49,10 @@ final class TickerCollectionEditorViewModel {
         self.soundPickerViewModel = SoundPickerViewModel()
         self.optionsPillsViewModel = OptionsPillsViewModel()
         
-        // Configure OptionsPillsViewModel
+        // Configure OptionsPillsViewModel (exclude label - it's shown as a separate text field)
         self.optionsPillsViewModel.configure(
             schedule: nil,
-            label: labelViewModel,
+            label: nil,
             countdown: nil,
             sound: soundPickerViewModel,
             icon: iconPickerViewModel

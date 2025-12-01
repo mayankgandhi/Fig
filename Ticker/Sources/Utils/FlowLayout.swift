@@ -15,11 +15,32 @@ struct FlowLayout: Layout {
     }
     
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        // Handle infinite width proposals properly
+        let containerWidth: CGFloat
+        if let proposedWidth = proposal.width, proposedWidth.isFinite {
+            containerWidth = proposedWidth
+        } else {
+            // If width is infinite or unspecified, calculate based on subview sizes
+            // Use a reasonable maximum (screen width) or calculate minimum required width
+            let maxSubviewWidth = subviews.map { $0.sizeThatFits(.unspecified).width }.max() ?? 0
+            let totalWidth = subviews.reduce(0) { $0 + $1.sizeThatFits(.unspecified).width + spacing } - spacing
+            // Use the larger of: max subview width, or total width if all fit on one line
+            // But cap at a reasonable maximum (e.g., 1000 points for very wide screens)
+            containerWidth = min(max(maxSubviewWidth, totalWidth), 1000)
+        }
+        
         let result = FlowResult(
-            in: proposal.replacingUnspecifiedDimensions().width,
+            in: containerWidth,
             subviews: subviews,
             spacing: spacing
         )
+        
+        // If proposal width is finite, expand to fill available width (like .frame(maxWidth: .infinity))
+        // Otherwise return the calculated size
+        if let proposedWidth = proposal.width, proposedWidth.isFinite {
+            return CGSize(width: proposedWidth, height: result.size.height)
+        }
+        
         return result.size
     }
     

@@ -64,6 +64,9 @@ private struct TickerCollectionEditorContent: View {
     @State private var childDataToDelete: CollectionChildTickerData?
     @State private var showDeleteChildAlert = false
     
+    // Focus state for label text field
+    @FocusState private var isLabelFieldFocused: Bool
+    
     init(
         namespace: Namespace.ID,
         tickerCollection: TickerCollection?,
@@ -98,7 +101,36 @@ private struct TickerCollectionEditorContent: View {
     private func contentView(viewModel: TickerCollectionEditorViewModel) -> some View {
         ScrollView {
             VStack(spacing: TickerSpacing.xl) {
-                // Options Pills for Label and Icon
+                // Label Text Field at the top
+                VStack(alignment: .leading, spacing: TickerSpacing.xs) {
+                    Text("Collection Label")
+                        .Caption()
+                        .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .textCase(.uppercase)
+                        .tracking(0.8)
+                    
+                    TextField("e.g., Morning Routine, Work Schedule", text: $viewModel.labelViewModel.labelText)
+                        .Body()
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                        .padding(TickerSpacing.md)
+                        .background(
+                            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                                .fill(TickerColor.surface(for: colorScheme))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                                .strokeBorder(
+                                    isLabelFieldFocused ? TickerColor.primary : TickerColor.textTertiary(for: colorScheme).opacity(0.2),
+                                    lineWidth: isLabelFieldFocused ? 2 : 1
+                                )
+                        )
+                        .focused($isLabelFieldFocused)
+                        .submitLabel(.done)
+                }
+                .padding(.horizontal, TickerSpacing.md)
+                .padding(.top, TickerSpacing.sm)
+                
+                // Options Pills for Icon and Sound
                 OptionsPillsView(
                     viewModel: viewModel.optionsPillsViewModel,
                     selectedIcon: viewModel.iconPickerViewModel.selectedIcon,
@@ -156,6 +188,12 @@ private struct TickerCollectionEditorContent: View {
         }
         .background(backgroundView)
         .navigationBarTitleDisplayMode(.inline)
+        .onAppear {
+            // Auto-focus the label text field when the view appears
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                isLabelFieldFocused = true
+            }
+        }
         .toolbar {
             TickerCollectionEditorToolbar(
                 isEditMode: isEditMode,
