@@ -12,12 +12,12 @@ import Gate
 import Factory
 
 struct TodayClockView: View {
-
+    
     @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
     @Injected(\.tickerService) private var tickerService
     @EnvironmentObject private var modelContextObserver: ModelContextObserver
-
+    
     @State private var showSettings: Bool = false
     @State private var showAddSheet: Bool = false
     @State private var showNaturalLanguageSheet: Bool = false
@@ -28,7 +28,7 @@ struct TodayClockView: View {
     @State private var shouldAnimateAlarms: Bool = false
     @State private var generatedTicker: Ticker?
     @Namespace private var editButtonNamespace
-
+    
     init() {
         _viewModel = State(initialValue: TodayViewModel())
     }
@@ -42,42 +42,42 @@ struct TodayClockView: View {
                         .frame(height: UIScreen.main.bounds.width)
                         .padding(.horizontal, 20)
                         .padding(.top, 8)
-                       
+                    
                     // Upcoming Alarms Section
                     VStack(alignment: .leading, spacing: TickerSpacing.md) {
                         HStack {
-
+                            
                             Text("Upcoming Tickers")
                                 .Title2()
                                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-
-
+                            
+                            
                             Spacer()
-
+                            
                             HStack(alignment: .center, spacing: TickerSpacing.md) {
                                 Image(systemName: "clock.fill")
                                     .Body()
                                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
+                                
                                 Text("\(viewModel.upcomingAlarmsCount)")
                                     .Body()
                                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
+                                
                             }
                         }
                         .padding(.horizontal, TickerSpacing.md)
                         .padding(.top, TickerSpacing.lg)
-
+                        
                         if !viewModel.hasUpcomingAlarms {
                             VStack(spacing: TickerSpacing.sm) {
                                 Image(systemName: "clock.badge.checkmark")
                                     .font(.system(.largeTitle, design: .rounded, weight: .medium))
                                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-
+                                
                                 Text("No upcoming Tickers")
                                     .TickerTitle()
                                     .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-
+                                
                                 Text("All upcoming alarms will appear here")
                                     .DetailText()
                                     .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
@@ -124,11 +124,11 @@ struct TodayClockView: View {
                 ToolbarItemGroup(placement: .primaryAction) {
                     Button {
                         TickerHaptics.selection()
-                        showNaturalLanguageSheet = true 
+                        showNaturalLanguageSheet = true
                     } label: {
                         Image(systemName: "apple.intelligence")
                     }
-
+                    
                     Button {
                         TickerHaptics.selection()
                         showSettings = true
@@ -140,7 +140,7 @@ struct TodayClockView: View {
             .sheet(isPresented: $showNaturalLanguageSheet) {
                 SubscriptionGate(feature: .aiAlarmCreation) {
                     NaturalLanguageTickerView()
-                }                
+                }
             }
             .sheet(isPresented: $showSettings) {
                 SettingsView()
@@ -167,7 +167,7 @@ struct TodayClockView: View {
                 Task {
                     await viewModel.refreshAlarms()
                 }
-
+                
                 // Reset and trigger animation when view appears
                 shouldAnimateAlarms = false
                 Task { @MainActor in
@@ -205,29 +205,29 @@ struct TodayClockView: View {
             )
         }
     }
-
+    
     // MARK: - Helper Methods
-
+    
     private func getTicker(for id: UUID) -> Ticker? {
         let allItemsDescriptor = FetchDescriptor<Ticker>()
         let allItems = try? modelContext.fetch(allItemsDescriptor)
         return allItems?.first(where: { $0.id == id })
     }
-
+    
     private func handleEditAlarm(_ presentation: UpcomingAlarmPresentation) {
         if let ticker = getTicker(for: presentation.baseAlarmId) {
             alarmToEdit = ticker
         }
     }
-
+    
     private func handleSkipAlarm(_ presentation: UpcomingAlarmPresentation) {
         alarmToSkip = presentation
         showSkipConfirmation = true
     }
-
+    
     private func performSkipAlarm(_ presentation: UpcomingAlarmPresentation) async {
         print("🔄 TodayClockView: Starting skip alarm for '\(presentation.displayName)'")
-
+        
         guard let ticker = getTicker(for: presentation.baseAlarmId) else {
             print("⚠️ Could not find ticker for skip action")
             await MainActor.run {
@@ -235,41 +235,23 @@ struct TodayClockView: View {
             }
             return
         }
-
+        
         // Play haptic feedback
         await MainActor.run {
             TickerHaptics.warning()
         }
-
-        // Check if this is a one-time alarm
-        if presentation.scheduleType == .oneTime {
-            // Delete the entire ticker for one-time alarms
-            print("   → Deleting one-time alarm...")
-            do {
-                try await tickerService.cancelAlarm(id: ticker.id, context: modelContext)
-                print("   ✅ Deleted one-time alarm: \(ticker.label)")
-            } catch {
-                print("   ❌ Failed to delete alarm: \(error)")
-            }
-        } else {
-            // For recurring alarms, skip just this instance
-            print("   → Skipping recurring alarm instance...")
-            do {
-                try await tickerService.skipAlarmInstance(
-                    tickerId: ticker.id,
-                    targetDate: presentation.nextAlarmTime,
-                    context: modelContext
-                )
-                print("   ✅ Skipped alarm instance for: \(ticker.label) at \(presentation.nextAlarmTime)")
-            } catch {
-                print("   ❌ Failed to skip alarm instance: \(error)")
-            }
+        
+        do {
+            try await tickerService.cancelAlarm(id: ticker.id, context: modelContext)
+            print("   ✅ Deleted one-time alarm: \(ticker.label)")
+        } catch {
+            print("   ❌ Failed to delete alarm: \(error)")
         }
-
+        
         // Refresh the alarm list and clock
         print("   → Refreshing alarm list and clock...")
         await viewModel.refreshAlarms()
-
+        
         // Clear the skip state
         await MainActor.run {
             alarmToSkip = nil
