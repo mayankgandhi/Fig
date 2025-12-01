@@ -70,6 +70,7 @@ struct SettingsView: View {
                 FAQView()
                 RoadmapMenuItemView()
                 HelpSupportView()
+                ReportBugView()
             }
         }
     }

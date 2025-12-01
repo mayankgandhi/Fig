@@ -453,7 +453,7 @@ extension TickerCountdown {
 // MARK: - AlarmPresentation
 
 public struct TickerPresentation: Codable, Hashable {
-    var tintColorHex: String?
+    public var tintColorHex: String?
     public var secondaryButtonType: SecondaryButtonType
     
     public var tintColor: Color {

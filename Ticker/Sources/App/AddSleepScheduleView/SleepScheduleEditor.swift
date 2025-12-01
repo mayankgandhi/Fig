@@ -38,6 +38,11 @@ struct SleepScheduleEditor: View {
                     // Sleep duration display
                     durationSection
 
+                    // Delete button (only shown when editing)
+                    if viewModel.tickerCollectionToUpdate != nil {
+                        deleteButtonSection
+                    }
+
                 }
                 .padding()
             }
@@ -52,14 +57,6 @@ struct SleepScheduleEditor: View {
                 }
 
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
-                    if viewModel.tickerCollectionToUpdate != nil {
-                        Button(role: .destructive) {
-                            showDeleteConfirmation = true
-                        } label: {
-                            Image(systemName: "trash")
-                        }
-                    }
-                    
                     Button("Save") {
                         Task {
                             await saveSleepSchedule()
@@ -182,7 +179,23 @@ struct SleepScheduleEditor: View {
         )
     }
 
-    
+    private var deleteButtonSection: some View {
+        Button(role: .destructive) {
+            showDeleteConfirmation = true
+        } label: {
+            Text("Delete Sleep Schedule")
+                .font(.body)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.red)
+                )
+        }
+        .padding(.top, 8)
+    }
 
     // MARK: - Actions
 

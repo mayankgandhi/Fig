@@ -244,6 +244,9 @@ private struct TickerCollectionEditorContent: View {
         .sheet(isPresented: $showAddChildSheet) {
             AddCollectionChildTickerView(
                 childToEdit: nil,
+                defaultIcon: viewModel.iconPickerViewModel.selectedIcon,
+                defaultColorHex: viewModel.iconPickerViewModel.selectedColorHex,
+                defaultSoundName: viewModel.soundPickerViewModel.selectedSound?.fileName,
                 onSave: { childData in
                     // Add the newly created child data to the composite's list
                     viewModel.addChildTickerData(childData)
@@ -257,6 +260,9 @@ private struct TickerCollectionEditorContent: View {
         .sheet(item: $childDataToEdit) { data in
             AddCollectionChildTickerView(
                 childToEdit: data,
+                defaultIcon: viewModel.iconPickerViewModel.selectedIcon,
+                defaultColorHex: viewModel.iconPickerViewModel.selectedColorHex,
+                defaultSoundName: viewModel.soundPickerViewModel.selectedSound?.fileName,
                 onSave: { updatedData in
                     // Update the child data in the composite's list
                     viewModel.updateChildTickerData(updatedData)

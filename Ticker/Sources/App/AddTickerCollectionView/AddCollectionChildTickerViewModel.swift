@@ -15,19 +15,55 @@ final class AddCollectionChildTickerViewModel {
     var labelViewModel: LabelEditorViewModel
     var timePickerViewModel: TimePickerViewModel
     var scheduleViewModel: ScheduleViewModel
+    var iconPickerViewModel: IconPickerViewModel
+    var soundPickerViewModel: SoundPickerViewModel
+    var countdownViewModel: CountdownConfigViewModel
+    var optionsPillsViewModel: OptionsPillsViewModel
 
     // MARK: - State
-    var expandedField: SimplifiedExpandableField? = nil
     var shouldShowValidationMessage = false
     private let childToEdit: CollectionChildTickerData?
+    private let defaultIcon: String?
+    private let defaultColorHex: String?
+    private let defaultSoundName: String?
 
     // MARK: - Initialization
 
-    init(childToEdit: CollectionChildTickerData? = nil) {
+    init(
+        childToEdit: CollectionChildTickerData? = nil,
+        defaultIcon: String? = nil,
+        defaultColorHex: String? = nil,
+        defaultSoundName: String? = nil
+    ) {
         self.childToEdit = childToEdit
+        self.defaultIcon = defaultIcon
+        self.defaultColorHex = defaultColorHex
+        self.defaultSoundName = defaultSoundName
         self.labelViewModel = LabelEditorViewModel()
         self.timePickerViewModel = TimePickerViewModel()
         self.scheduleViewModel = ScheduleViewModel()
+        self.iconPickerViewModel = IconPickerViewModel()
+        self.soundPickerViewModel = SoundPickerViewModel()
+        self.countdownViewModel = CountdownConfigViewModel()
+        self.optionsPillsViewModel = OptionsPillsViewModel()
+        
+        // Configure OptionsPillsViewModel with references to child view models
+        self.optionsPillsViewModel.configure(
+            schedule: scheduleViewModel,
+            label: labelViewModel,
+            countdown: countdownViewModel,
+            sound: soundPickerViewModel,
+            icon: iconPickerViewModel
+        )
+        
+        // Set default icon and sound from collection if provided
+        if let defaultIcon = defaultIcon, let defaultColorHex = defaultColorHex {
+            iconPickerViewModel.selectIcon(defaultIcon, colorHex: defaultColorHex)
+        }
+        
+        if let defaultSoundName = defaultSoundName {
+            soundPickerViewModel.selectSound(defaultSoundName)
+        }
 
         // Prefill if editing
         if let child = childToEdit {
@@ -38,7 +74,7 @@ final class AddCollectionChildTickerViewModel {
     // MARK: - Computed Properties
 
     var canSave: Bool {
-        labelViewModel.isValid && scheduleViewModel.repeatConfigIsValid
+        labelViewModel.isValid && scheduleViewModel.repeatConfigIsValid && countdownViewModel.isValid
     }
 
     var validationMessage: String? {
@@ -47,6 +83,9 @@ final class AddCollectionChildTickerViewModel {
         }
         if !scheduleViewModel.repeatConfigIsValid {
             return "Please complete schedule configuration"
+        }
+        if !countdownViewModel.isValid {
+            return "Countdown must be greater than 0 seconds"
         }
         return nil
     }
@@ -66,16 +105,8 @@ final class AddCollectionChildTickerViewModel {
 
     // MARK: - Field Management
 
-    func toggleField(_ field: SimplifiedExpandableField) {
-        if expandedField == field {
-            expandedField = nil
-        } else {
-            expandedField = field
-        }
-    }
-
     func collapseField() {
-        expandedField = nil
+        optionsPillsViewModel.collapseField()
     }
 
     // MARK: - Create Child Ticker Data
@@ -84,11 +115,33 @@ final class AddCollectionChildTickerViewModel {
         guard canSave else { return nil }
         let label = labelViewModel.labelText.isEmpty ? "Alarm" : labelViewModel.labelText
         let schedule = buildSchedule()
+        
+        // Build countdown if enabled
+        let countdown: TickerCountdown?
+        if countdownViewModel.isEnabled {
+            let duration = TickerCountdown.CountdownDuration(
+                hours: countdownViewModel.hours,
+                minutes: countdownViewModel.minutes,
+                seconds: countdownViewModel.seconds
+            )
+            countdown = TickerCountdown(preAlert: duration, postAlert: nil)
+        } else {
+            countdown = nil
+        }
+        
+        // Always store icon, color, and sound values (including defaults)
+        let icon = iconPickerViewModel.selectedIcon
+        let colorHex = iconPickerViewModel.selectedColorHex
+        let soundName = soundPickerViewModel.selectedSound?.fileName
 
         return CollectionChildTickerData(
             id: childToEdit?.id ?? UUID(),
             label: label,
-            schedule: schedule
+            schedule: schedule,
+            icon: icon,
+            colorHex: colorHex,
+            soundName: soundName,
+            countdown: countdown
         )
     }
 
@@ -150,6 +203,30 @@ final class AddCollectionChildTickerViewModel {
 
         // Extract schedule components and prefill schedule view model
         extractScheduleComponents(from: child.schedule)
+        
+        // Prefill icon and color - use custom if provided, otherwise defaults
+        if let icon = child.icon, let colorHex = child.colorHex {
+            iconPickerViewModel.selectIcon(icon, colorHex: colorHex)
+        } else if let defaultIcon = defaultIcon, let defaultColorHex = defaultColorHex {
+            iconPickerViewModel.selectIcon(defaultIcon, colorHex: defaultColorHex)
+        }
+        
+        // Prefill sound - use custom if provided, otherwise default
+        if let soundName = child.soundName {
+            soundPickerViewModel.selectSound(soundName)
+        } else if let defaultSoundName = defaultSoundName {
+            soundPickerViewModel.selectSound(defaultSoundName)
+        }
+        
+        // Prefill countdown if custom
+        if let countdown = child.countdown, let preAlert = countdown.preAlert {
+            countdownViewModel.isEnabled = true
+            countdownViewModel.setDuration(
+                hours: preAlert.hours,
+                minutes: preAlert.minutes,
+                seconds: preAlert.seconds
+            )
+        }
     }
 
     private func extractScheduleComponents(from schedule: TickerSchedule) {
@@ -219,10 +296,3 @@ final class AddCollectionChildTickerViewModel {
     }
 }
 
-// MARK: - Expandable Field Enum
-
-enum SimplifiedExpandableField: Hashable {
-    case time
-    case label
-    case schedule
-}

@@ -132,9 +132,19 @@ struct AlarmCell: View {
     }
     
     private var iconColor: Color {
-        if let tickerData = alarmItem.tickerData, let colorHex = tickerData.colorHex {
-            return Color(hex: colorHex) ?? DesignKit.primary
+        // Try ticker data first (matches widget logic)
+        if let tickerData = alarmItem.tickerData, let colorHex = tickerData.colorHex,
+           let color = Color(hex: colorHex) {
+            return color
         }
+        
+        // Try presentation tint (fallback for collection tickers)
+        if let tintHex = alarmItem.presentation.tintColorHex,
+           let color = Color(hex: tintHex) {
+            return color
+        }
+        
+        // Default to primary
         return DesignKit.primary
     }
     

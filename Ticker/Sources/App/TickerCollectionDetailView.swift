@@ -35,9 +35,6 @@ struct TickerCollectionDetailView: View {
                         tickerService: tickerService
                     )
 
-                    // Time display
-                    CollectionDetailTimeSection(tickerCollection: tickerCollection)
-
                     // Options display with enhanced styling
                     CollectionDetailOptionsSection(tickerCollection: tickerCollection)
                         .padding(.top, TickerSpacing.sm)

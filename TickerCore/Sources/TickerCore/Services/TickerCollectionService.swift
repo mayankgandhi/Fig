@@ -177,13 +177,20 @@ public final class TickerCollectionService {
 
         // Update child tickers
         if let children = collection.childTickers, children.count == 2 {
-            // Update bedtime (first child)
-            children[0].schedule = .daily(time: bedtime)
-            try await tickerService.updateAlarm(children[0], context: modelContext)
+            // Find bedtime and wake-up tickers by label (don't assume order)
+            guard let bedtimeTicker = children.first(where: { $0.label == "Bedtime" }),
+                  let wakeUpTicker = children.first(where: { $0.label == "Wake Up" }) else {
+                print("   ❌ Could not find bedtime or wake-up ticker by label")
+                throw TickerCollectionServiceError.invalidConfiguration
+            }
+            
+            // Update bedtime ticker
+            bedtimeTicker.schedule = .daily(time: bedtime)
+            try await tickerService.updateAlarm(bedtimeTicker, context: modelContext)
 
-            // Update wake-up (second child)
-            children[1].schedule = .daily(time: wakeTime)
-            try await tickerService.updateAlarm(children[1], context: modelContext)
+            // Update wake-up ticker
+            wakeUpTicker.schedule = .daily(time: wakeTime)
+            try await tickerService.updateAlarm(wakeUpTicker, context: modelContext)
 
             print("   ✅ Sleep Schedule updated")
         }

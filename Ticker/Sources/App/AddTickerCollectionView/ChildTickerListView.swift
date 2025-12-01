@@ -176,9 +176,19 @@ struct ChildTickerListView: View {
     }
     
     private func iconColor(for ticker: Ticker) -> Color {
-        if let tickerData = ticker.tickerData, let colorHex = tickerData.colorHex {
-            return Color(hex: colorHex) ?? TickerColor.primary
+        // Try ticker data first (matches widget logic)
+        if let tickerData = ticker.tickerData, let colorHex = tickerData.colorHex,
+           let color = Color(hex: colorHex) {
+            return color
         }
+        
+        // Try presentation tint (fallback for collection tickers)
+        if let tintHex = ticker.presentation.tintColorHex,
+           let color = Color(hex: tintHex) {
+            return color
+        }
+        
+        // Default to primary
         return TickerColor.primary
     }
     

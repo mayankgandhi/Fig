@@ -12,6 +12,9 @@ import TickerCore
 struct AddCollectionChildTickerView: View {
     let childToEdit: CollectionChildTickerData?
     let onSave: (CollectionChildTickerData) -> Void
+    let defaultIcon: String?
+    let defaultColorHex: String?
+    let defaultSoundName: String?
 
     @Environment(\.dismiss) private var dismiss
     @Environment(\.colorScheme) private var colorScheme
@@ -19,10 +22,24 @@ struct AddCollectionChildTickerView: View {
     @State private var viewModel: AddCollectionChildTickerViewModel
     @State private var hasAutoExpandedLabel = false
     
-    init(childToEdit: CollectionChildTickerData? = nil, onSave: @escaping (CollectionChildTickerData) -> Void) {
+    init(
+        childToEdit: CollectionChildTickerData? = nil,
+        defaultIcon: String? = nil,
+        defaultColorHex: String? = nil,
+        defaultSoundName: String? = nil,
+        onSave: @escaping (CollectionChildTickerData) -> Void
+    ) {
         self.childToEdit = childToEdit
+        self.defaultIcon = defaultIcon
+        self.defaultColorHex = defaultColorHex
+        self.defaultSoundName = defaultSoundName
         self.onSave = onSave
-        _viewModel = State(initialValue: AddCollectionChildTickerViewModel(childToEdit: childToEdit))
+        _viewModel = State(initialValue: AddCollectionChildTickerViewModel(
+            childToEdit: childToEdit,
+            defaultIcon: defaultIcon,
+            defaultColorHex: defaultColorHex,
+            defaultSoundName: defaultSoundName
+        ))
     }
     
     var body: some View {
@@ -40,9 +57,13 @@ struct AddCollectionChildTickerView: View {
                 // Time Picker Card
                 TimePickerCard(viewModel: viewModel.timePickerViewModel)
                 
-                // Simplified Pills Section
-                pillsSection
-                    .padding(.top, TickerSpacing.sm)
+                // Options Pills with all options
+                OptionsPillsView(
+                    viewModel: viewModel.optionsPillsViewModel,
+                    selectedIcon: viewModel.iconPickerViewModel.selectedIcon,
+                    selectedColorHex: viewModel.iconPickerViewModel.selectedColorHex
+                )
+                .padding(.top, TickerSpacing.sm)
                 
                 // Validation Banner
                 if let message = viewModel.validationBannerMessage {
@@ -57,8 +78,8 @@ struct AddCollectionChildTickerView: View {
         }
         // Overlay for expanded fields
         .overlay(alignment: .top) {
-            if let field = viewModel.expandedField {
-                expandedFieldContent(for: field)
+            if let field = viewModel.optionsPillsViewModel.expandedField {
+                ChildTickerExpandedFieldContent(field: field, viewModel: viewModel)
                     .zIndex(100)
             }
         }
@@ -116,86 +137,6 @@ struct AddCollectionChildTickerView: View {
         }
     }
     
-    // MARK: - Pills Section
-    
-    @ViewBuilder
-    private var pillsSection: some View {
-        VStack(spacing: TickerSpacing.md) {
-            // Label Pill
-            Button {
-                TickerHaptics.selection()
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    viewModel.toggleField(.label)
-                }
-            } label: {
-                TickerPill(
-                    icon: "textformat",
-                    title: viewModel.displayLabel,
-                    isActive: viewModel.expandedField == .label,
-                    hasValue: !viewModel.labelViewModel.isEmpty,
-                    size: .large
-                )
-            }
-            
-            // Schedule Pill
-            Button {
-                TickerHaptics.selection()
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    viewModel.toggleField(.schedule)
-                }
-            } label: {
-                TickerPill(
-                    icon: "repeat",
-                    title: viewModel.displaySchedule,
-                    isActive: viewModel.expandedField == .schedule,
-                    hasValue: viewModel.scheduleViewModel.hasScheduleValue,
-                    size: .large
-                )
-            }
-        }
-        .padding(.horizontal, TickerSpacing.md)
-    }
-    
-    // MARK: - Expanded Field Content
-    
-    @ViewBuilder
-    private func expandedFieldContent(for field: SimplifiedExpandableField) -> some View {
-        AddCompositeOverlayCallout(
-            field: field,
-            viewModel: viewModel,
-            colorScheme: colorScheme,
-            onDismiss: {
-                TickerHaptics.selection()
-                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                    viewModel.collapseField()
-                }
-            }
-        ) {
-            fieldContent(for: field)
-        }
-    }
-    
-    @ViewBuilder
-    private func fieldContent(for field: SimplifiedExpandableField) -> some View {
-        switch field {
-            case .time:
-                TimePickerCard(viewModel: viewModel.timePickerViewModel)
-                
-            case .label:
-                LabelEditorView(
-                    viewModel: viewModel.labelViewModel,
-                    onDismiss: {
-                        TickerHaptics.selection()
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                            viewModel.collapseField()
-                        }
-                    }
-                )
-                
-            case .schedule:
-                ScheduleView(viewModel: viewModel.scheduleViewModel)
-        }
-    }
     
     // MARK: - Background View
     
@@ -216,7 +157,7 @@ struct AddCollectionChildTickerView: View {
         hasAutoExpandedLabel = true
         DispatchQueue.main.async {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                viewModel.expandedField = .label
+                viewModel.optionsPillsViewModel.expandedField = .label
             }
         }
     }
@@ -232,49 +173,109 @@ struct AddCollectionChildTickerView: View {
     private func focusFirstInvalidField() {
         if !viewModel.labelViewModel.isValid {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                viewModel.expandedField = .label
+                viewModel.optionsPillsViewModel.expandedField = .label
             }
             return
         }
         
         if !viewModel.scheduleViewModel.repeatConfigIsValid {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-                viewModel.expandedField = .schedule
+                viewModel.optionsPillsViewModel.expandedField = .schedule
+            }
+            return
+        }
+        
+        if !viewModel.countdownViewModel.isValid {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                viewModel.optionsPillsViewModel.expandedField = .countdown
             }
         }
     }
 }
 
-// MARK: - Overlay Callout
+// MARK: - Expanded Field Content for Child Ticker
 
-private struct AddCompositeOverlayCallout<Content: View>: View {
-    let field: SimplifiedExpandableField
+struct ChildTickerExpandedFieldContent: View {
+    let field: ExpandableField
     let viewModel: AddCollectionChildTickerViewModel
-    let colorScheme: ColorScheme
-    let onDismiss: () -> Void
+
+    var body: some View {
+        OverlayCalloutForChildTicker(field: field, viewModel: viewModel) {
+            fieldContent
+        }
+    }
+
+    // MARK: - Field Content
+
+    @ViewBuilder
+    private var fieldContent: some View {
+        switch field {
+        case .time:
+            // Time picker is shown directly in main view via TimePickerCard
+            EmptyView()
+
+        case .schedule:
+            ScheduleView(viewModel: viewModel.scheduleViewModel)
+
+        case .label:
+            LabelEditorView(
+                viewModel: viewModel.labelViewModel,
+                onDismiss: {
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        viewModel.collapseField()
+                    }
+                }
+            )
+
+        case .countdown:
+            CountdownConfigView(viewModel: viewModel.countdownViewModel)
+
+        case .sound:
+            SoundPickerView(viewModel: viewModel.soundPickerViewModel)
+
+        case .icon:
+            IconPickerViewMVVM(viewModel: viewModel.iconPickerViewModel)
+        }
+    }
+}
+
+// MARK: - Overlay Callout for Child Ticker
+
+struct OverlayCalloutForChildTicker<Content: View>: View {
+    let field: ExpandableField
+    let viewModel: AddCollectionChildTickerViewModel
     @ViewBuilder let content: Content
-    
+
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         ZStack {
-            // Background tap area to dismiss
+            // Background tap area to dismiss overlay
             Color.clear
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    onDismiss()
+                    TickerHaptics.selection()
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        viewModel.collapseField()
+                    }
                 }
             
             // Overlay content
             VStack(spacing: 0) {
-                // Header
+                // Header with dismiss button
                 HStack {
                     Text(headerTitle)
                         .Headline()
                         .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                    
+
                     Spacer()
-                    
+
                     Button {
-                        onDismiss()
+                        TickerHaptics.selection()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                            viewModel.collapseField()
+                        }
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(.title2, design: .rounded, weight: .regular))
@@ -283,10 +284,10 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
                     }
                 }
                 .padding(TickerSpacing.md)
-                
+
                 Divider()
-                
-                // Content area
+
+                // Content area with adaptive max height
                 ScrollView {
                     content
                         .padding(TickerSpacing.md)
@@ -315,26 +316,38 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
             ))
         }
     }
-    
+
+    // MARK: - Computed Properties
+
     private var maxContentHeight: CGFloat {
         switch field {
-            case .time:
-                return 300
-            case .label:
-                return 200
-            case .schedule:
-                return 600
+        case .time:
+            return 400
+        case .schedule, .icon:
+            return 600
+        case .label:
+            return 200
+        case .countdown:
+            return 350
+        case .sound:
+            return 400
         }
     }
-    
+
     private var headerTitle: String {
         switch field {
             case .time:
-                return "Time"
-            case .label:
-                return "Label"
+                return "Alarm Time"
             case .schedule:
                 return "Schedule"
+            case .label:
+                return "Alarm Label"
+            case .countdown:
+                return "Pre-Alert Countdown"
+            case .icon:
+                return "Alarm Icon"
+            case .sound:
+                return "Alarm Sound"
         }
     }
 }
@@ -348,6 +361,9 @@ private struct AddCompositeOverlayCallout<Content: View>: View {
         .sheet(isPresented: $showSheet) {
             AddCollectionChildTickerView(
                 childToEdit: nil,
+                defaultIcon: "alarm",
+                defaultColorHex: "#8B5CF6",
+                defaultSoundName: nil,
                 onSave: { _ in }
             )
         }
