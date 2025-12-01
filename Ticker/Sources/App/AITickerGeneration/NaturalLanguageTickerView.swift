@@ -14,6 +14,7 @@ import OpenAI
 struct NaturalLanguageTickerView: View {
 
     @State private var viewModel: NaturalLanguageViewModel?
+    @FocusState private var isInputFieldFocused: Bool
 
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.dismiss) private var dismiss
@@ -102,7 +103,10 @@ struct NaturalLanguageTickerView: View {
                 Text(errorMessage)
             }
         }
-        
+        .onAppear {
+            isInputFieldFocused = true
+        }
+
     }
     
     // MARK: - Header Section
@@ -218,6 +222,7 @@ struct NaturalLanguageTickerView: View {
                 .scrollContentBackground(.hidden)
                 .background(Color.clear)
                 .padding(TickerSpacing.md)
+                .focused($isInputFieldFocused)
 
                 // Progress indicator overlay
                 if viewModel.isParsing || viewModel.isGeneratingConfig {
