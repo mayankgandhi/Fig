@@ -32,6 +32,7 @@ struct UnifiedAlarmListView: View {
     let onDelete: (Ticker) -> Void
     let onEditComposite: (TickerCollection) -> Void
     let onDeleteComposite: (TickerCollection) -> Void
+    let onAddToCollection: ((Ticker) -> Void)?
 
     @Environment(\.colorScheme) private var colorScheme
     
@@ -59,6 +60,17 @@ struct UnifiedAlarmListView: View {
                             Label("Edit", systemImage: "pencil")
                         }
                         .tint(.blue)
+                        
+                        // Only show "Add to Collection" for standalone tickers
+                        if ticker.parentTickerCollection == nil, let onAddToCollection = onAddToCollection {
+                            Button {
+                                DesignKitHaptics.selection()
+                                onAddToCollection(ticker)
+                            } label: {
+                                Label("Add to Collection", systemImage: "square.stack.3d.up.fill")
+                            }
+                            .tint(.blue)
+                        }
 
                         Button(role: .destructive) {
                             DesignKitHaptics.selection()

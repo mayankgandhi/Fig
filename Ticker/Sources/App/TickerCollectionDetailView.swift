@@ -24,6 +24,8 @@ struct TickerCollectionDetailView: View {
 
     @State private var isToggling = false
     @State private var alarmToShowDetail: Ticker?
+    @State private var alarmToDelete: Ticker?
+    @State private var showDeleteAlert = false
 
     var body: some View {
         NavigationStack {
@@ -109,9 +111,8 @@ struct TickerCollectionDetailView: View {
                     alarmToShowDetail = nil
                 },
                 onDelete: {
-                    // For child tickers, we might want to handle deletion differently
-                    // For now, just dismiss the detail view
-                    alarmToShowDetail = nil
+                    alarmToDelete = ticker
+                    showDeleteAlert = true
                 }
             )
             .presentationCornerRadius(TickerRadius.large)
@@ -123,6 +124,25 @@ struct TickerCollectionDetailView: View {
                         .fill(.ultraThinMaterial)
                         .opacity(0.5)
                 }
+            }
+        }
+        .alert("Delete Ticker", isPresented: $showDeleteAlert) {
+            Button("Cancel", role: .cancel) {
+                alarmToDelete = nil
+            }
+            Button("Delete", role: .destructive) {
+                if let ticker = alarmToDelete {
+                    TickerHaptics.warning()
+                    Task {
+                        try? await tickerService.cancelAlarm(id: ticker.id, context: modelContext)
+                    }
+                }
+                alarmToDelete = nil
+                alarmToShowDetail = nil
+            }
+        } message: {
+            if let ticker = alarmToDelete {
+                Text("Are you sure you want to delete \"\(ticker.label)\"? This action cannot be undone.")
             }
         }
     }

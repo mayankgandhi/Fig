@@ -10,6 +10,7 @@ import TickerCore
 
 @Observable
 final class TimePickerViewModel {
+
     var selectedHour: Int
     var selectedMinute: Int
 

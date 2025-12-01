@@ -451,6 +451,156 @@ public final class TickerCollectionService {
         print("   ✅ Composite ticker deleted")
     }
 
+    // MARK: - Add Ticker to Collection Operations
+
+    /// Add an existing ticker to an existing ticker collection
+    @MainActor
+    public func addTickerToCollection(
+        _ ticker: Ticker,
+        collection: TickerCollection,
+        modelContext: ModelContext
+    ) async throws {
+        print("➕ Adding ticker to collection")
+        print("   → Ticker ID: \(ticker.id)")
+        print("   → Ticker label: '\(ticker.label)'")
+        print("   → Collection ID: \(collection.id)")
+        print("   → Collection label: '\(collection.label)'")
+
+        // Validate that ticker is not already in a collection
+        guard ticker.parentTickerCollection == nil else {
+            print("   ❌ Ticker is already in a collection")
+            throw TickerCollectionServiceError.invalidConfiguration
+        }
+
+        // Validate that collection exists and is custom type
+        guard collection.collectionType == .custom else {
+            print("   ❌ Can only add to custom collections")
+            throw TickerCollectionServiceError.invalidConfiguration
+        }
+
+        // Store original enabled state
+        let wasEnabled = ticker.isEnabled
+
+        // Set parent relationship
+        ticker.parentTickerCollection = collection
+
+        // Add ticker to collection's children
+        if collection.childTickers == nil {
+            collection.childTickers = []
+        }
+        collection.childTickers?.append(ticker)
+
+        // Update ticker's presentation to match collection (optional - preserve original for now)
+        // We could optionally update the presentation here if desired
+
+        // Save to SwiftData
+        do {
+            try modelContext.save()
+            print("   ✅ SwiftData save successful")
+        } catch {
+            print("   ❌ SwiftData save failed: \(error)")
+            throw TickerCollectionServiceError.swiftDataSaveFailed(underlying: error)
+        }
+
+        // Reschedule alarm if it was enabled
+        if wasEnabled {
+            print("   → Rescheduling alarm...")
+            try await tickerService.updateAlarm(ticker, context: modelContext)
+            print("   → Alarm rescheduled successfully")
+        }
+
+        // Update collection's enabled state (if any child is enabled, collection is enabled)
+        if let children = collection.childTickers {
+            collection.isEnabled = children.contains { $0.isEnabled }
+        }
+
+        // Final save
+        try modelContext.save()
+
+        // Refresh widgets
+        refreshWidgetTimelines()
+        print("   ✅ Ticker added to collection successfully")
+    }
+
+    /// Add an existing ticker to a new custom ticker collection
+    @MainActor
+    public func addTickerToNewCollection(
+        _ ticker: Ticker,
+        label: String,
+        icon: String,
+        colorHex: String,
+        modelContext: ModelContext
+    ) async throws -> TickerCollection {
+        print("➕ Adding ticker to new collection")
+        print("   → Ticker ID: \(ticker.id)")
+        print("   → Ticker label: '\(ticker.label)'")
+        print("   → New collection label: '\(label)'")
+
+        // Validate that ticker is not already in a collection
+        guard ticker.parentTickerCollection == nil else {
+            print("   ❌ Ticker is already in a collection")
+            throw TickerCollectionServiceError.invalidConfiguration
+        }
+
+        // Store original enabled state
+        let wasEnabled = ticker.isEnabled
+
+        // Create the new collection
+        let presentation = TickerPresentation(
+            tintColorHex: colorHex,
+            secondaryButtonType: .none
+        )
+
+        let tickerCollection = TickerCollection(
+            label: label,
+            collectionType: .custom,
+            configuration: nil,
+            presentation: presentation,
+            tickerData: TickerData(
+                name: label,
+                icon: icon,
+                colorHex: colorHex
+            ),
+            isEnabled: true
+        )
+
+        print("   → Created parent TickerCollection: \(tickerCollection.id)")
+
+        // Set parent relationship
+        ticker.parentTickerCollection = tickerCollection
+
+        // Add ticker to collection's children
+        tickerCollection.childTickers = [ticker]
+
+        // Insert into context
+        modelContext.insert(tickerCollection)
+
+        // Save to SwiftData
+        do {
+            try modelContext.save()
+            print("   ✅ SwiftData save successful")
+        } catch {
+            print("   ❌ SwiftData save failed: \(error)")
+            // Rollback
+            modelContext.delete(tickerCollection)
+            try? modelContext.save()
+            throw TickerCollectionServiceError.swiftDataSaveFailed(underlying: error)
+        }
+
+        // Reschedule alarm if it was enabled
+        if wasEnabled {
+            print("   → Rescheduling alarm...")
+            try await tickerService.updateAlarm(ticker, context: modelContext)
+            print("   → Alarm rescheduled successfully")
+        }
+
+        // Refresh widgets
+        refreshWidgetTimelines()
+        print("   ✅ Ticker added to new collection successfully")
+
+        return tickerCollection
+    }
+
     // MARK: - Helper Methods
 
     private func refreshWidgetTimelines() {

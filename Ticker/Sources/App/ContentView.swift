@@ -37,6 +37,7 @@ struct ContentView: View {
     @State private var showDeleteAlert = false
     @State private var showDeleteCompositeAlert = false
     @State private var searchText = ""
+    @State private var tickerToAddToCollection: Ticker?
     
     @Namespace private var addButtonNamespace
     @Namespace private var editButtonNamespace
@@ -224,6 +225,14 @@ struct ContentView: View {
                     sheetBackground
                 }
         }
+        .sheet(item: $tickerToAddToCollection) { ticker in
+            AddToCollectionView(tickerToAdd: ticker)
+                .presentationCornerRadius(DesignKit.large)
+                .presentationDragIndicator(.visible)
+                .presentationBackground {
+                    sheetBackground
+                }
+        }
         .alert("Delete Ticker", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {
                 alarmToDelete = nil
@@ -322,6 +331,9 @@ struct ContentView: View {
                     onDeleteComposite: { collection in
                         collectionToDelete = collection
                         showDeleteCompositeAlert = true
+                    },
+                    onAddToCollection: { ticker in
+                        tickerToAddToCollection = ticker
                     }
                 )
             } else {

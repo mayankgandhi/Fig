@@ -3,11 +3,13 @@
 //  alarm
 //
 //  Centralized data fetching service for all widgets
-//  Provides SwiftData access to alarm data via App Groups
+//  Uses AlarmKit as the source of truth for active alarms
 //
 
 import SwiftUI
 import SwiftData
+import AlarmKit
+import Factory
 
 /// Centralized service for fetching alarm data in widgets
 public struct WidgetDataFetcher {
@@ -15,6 +17,7 @@ public struct WidgetDataFetcher {
     // MARK: - Public Methods
 
     /// Fetches upcoming alarms within the specified time window
+    /// Uses AlarmKit as the source of truth for active alarms, then matches to Ticker objects
     /// - Parameters:
     ///   - limit: Maximum number of alarms to return (nil for no limit)
     ///   - withinHours: Time window in hours to search for upcoming alarms
@@ -23,43 +26,109 @@ public struct WidgetDataFetcher {
     public static func fetchUpcomingAlarms(limit: Int? = nil, withinHours: Int = 24) async -> [UpcomingAlarmPresentation] {
         // Explicitly run on background thread to avoid blocking widget rendering
         return await Task.detached(priority: .userInitiated) {
+            // 1. Get AlarmKit services (source of truth)
+            let alarmManager = Container.shared.alarmManager()
+            let stateManager = Container.shared.alarmStateManager()
+            
+            // 2. Query active alarms from AlarmKit
+            let alarmKitAlarms: [Alarm]
+            do {
+                alarmKitAlarms = try stateManager.queryAlarmKit(alarmManager: alarmManager)
+            } catch {
+                // Log error with more context for debugging
+                print("❌ WidgetDataFetcher: Failed to query AlarmKit: \(error)")
+                print("   → Error type: \(type(of: error))")
+                print("   → Error description: \(error.localizedDescription)")
+                // Return empty array - AlarmKit is source of truth, no fallback
+                return []
+            }
+            
+            // 3. Filter alarms to next 24 hours based on alertingTime
+            let now = Date()
+            let timeWindowEnd = now.addingTimeInterval(Double(withinHours) * 60 * 60)
+            // Use consistent calendar instance to avoid timezone changes during execution
+            let calendar = Calendar.current
+            
+            let upcomingAlarmKitAlarms = alarmKitAlarms.compactMap { alarm -> (Alarm, Date)? in
+                guard let alertingTime = alarm.alertingTime else {
+                    return nil
+                }
+                // Include alarms at or after current time and within the time window
+                // Using >= to include alarms exactly at current moment
+                guard alertingTime >= now && alertingTime <= timeWindowEnd else {
+                    return nil
+                }
+                return (alarm, alertingTime)
+            }
+            
+            // 4. Fetch Tickers from SwiftData to get presentation data
             guard let context = createModelContext() else {
                 return []
             }
-
-            // Fetch all enabled alarms
-            let descriptor = FetchDescriptor<Ticker>(
-                predicate: #Predicate { $0.isEnabled },
-                sortBy: [SortDescriptor(\.createdAt, order: .reverse)]
-            )
-
-            guard let alarms = try? context.fetch(descriptor) else {
+            
+            let descriptor = FetchDescriptor<Ticker>()
+            guard let allTickers = try? context.fetch(descriptor) else {
                 return []
             }
-
-        // Expand schedules to get upcoming dates using TickerScheduleExpander
-        let now = Date()
-        let timeWindow = now.addingTimeInterval(Double(withinHours) * 60 * 60)
-        let calendar = Calendar.current
-        let expander = TickerScheduleExpander(calendar: calendar)
-
-        var upcomingAlarms: [UpcomingAlarmPresentation] = []
-
-        for alarm in alarms {
-            guard let schedule = alarm.schedule else { continue }
-
-            // Expand schedule
-            let window = DateInterval(start: now, end: timeWindow)
-            let expandedDates = expander.expandSchedule(schedule, within: window)
-
-            // Limit to first 3 occurrences per alarm
-            let limitedDates = Array(expandedDates)
-
-            for alarmDate in limitedDates {
-                let hour = calendar.component(.hour, from: alarmDate)
-                let minute = calendar.component(.minute, from: alarmDate)
-
+            
+            // 5. Build mapping from AlarmKit alarm IDs to Ticker objects
+            // Similar to AlarmSynchronizationService mapping logic
+            var alarmKitIDsToTicker: [UUID: Ticker] = [:]
+            
+            // Map main ticker IDs
+            for ticker in allTickers {
+                alarmKitIDsToTicker[ticker.id] = ticker
+            }
+            
+            // Map generated alarm IDs (for collection schedules)
+            for ticker in allTickers {
+                for generatedID in ticker.generatedAlarmKitIDs {
+                    // Warn if we're overwriting an existing mapping (shouldn't happen with unique UUIDs)
+                    if let existingTicker = alarmKitIDsToTicker[generatedID], existingTicker.id != ticker.id {
+                        print("⚠️ WidgetDataFetcher: Generated ID \(generatedID) already mapped to different ticker")
+                        print("   → Existing: \(existingTicker.id) (\(existingTicker.displayName))")
+                        print("   → New: \(ticker.id) (\(ticker.displayName))")
+                    }
+                    alarmKitIDsToTicker[generatedID] = ticker
+                }
+            }
+            
+            // 6. Create presentations by matching AlarmKit alarms to Tickers
+            var upcomingAlarms: [UpcomingAlarmPresentation] = []
+            
+            for (alarm, alertingTime) in upcomingAlarmKitAlarms {
+                // Find the matching Ticker
+                guard let ticker = alarmKitIDsToTicker[alarm.id] else {
+                    // Skip alarms that don't have a matching Ticker
+                    continue
+                }
+                
+                // Only include alarms from enabled tickers
+                guard ticker.isEnabled else {
+                    continue
+                }
+                
+                // Calculate actual alarm time (accounting for countdown)
+                // When a countdown exists, AlarmKit schedules at countdown start time,
+                // but we want to display the actual alarm time
+                let actualAlarmTime: Date
+                if let countdownDuration = ticker.countdown?.preAlert?.interval {
+                    // Add countdown duration back to get the actual alarm time
+                    actualAlarmTime = alertingTime.addingTimeInterval(countdownDuration)
+                } else {
+                    actualAlarmTime = alertingTime
+                }
+                
+                // Extract time components from actual alarm time
+                let hour = calendar.component(.hour, from: actualAlarmTime)
+                let minute = calendar.component(.minute, from: actualAlarmTime)
+                
+                // Map schedule type from Ticker's schedule
                 let scheduleType: UpcomingAlarmPresentation.ScheduleType = {
+                    guard let schedule = ticker.schedule else {
+                        return .oneTime // Default fallback
+                    }
+                    
                     switch schedule {
                     case .oneTime: return .oneTime
                     case .daily: return .daily
@@ -80,36 +149,32 @@ public struct WidgetDataFetcher {
                         return .every(interval: interval, unit: unitString)
                     }
                 }()
-
+                
                 let presentation = UpcomingAlarmPresentation(
-                    baseAlarmId: alarm.id,
-                    displayName: alarm.displayName,
-                    icon: alarm.tickerData?.icon ?? "alarm",
-                    color: extractColor(from: alarm),
-                    nextAlarmTime: alarmDate,
+                    baseAlarmId: ticker.id,
+                    displayName: ticker.displayName,
+                    icon: ticker.tickerData?.icon ?? "alarm",
+                    color: extractColor(from: ticker),
+                    nextAlarmTime: actualAlarmTime,
                     scheduleType: scheduleType,
                     hour: hour,
                     minute: minute,
-                    hasCountdown: alarm.countdown?.preAlert != nil,
-                    tickerDataTitle: alarm.tickerData?.name
+                    hasCountdown: ticker.countdown?.preAlert != nil,
+                    tickerDataTitle: ticker.tickerData?.name
                 )
-
+                
                 upcomingAlarms.append(presentation)
             }
-        }
-
-        // Filter out past alarms (critical for removing triggered alarms)
-        upcomingAlarms = upcomingAlarms.filter { $0.nextAlarmTime > now }
-
-        // Sort by next alarm time
-        upcomingAlarms.sort { $0.nextAlarmTime < $1.nextAlarmTime }
-
-        // Apply limit if specified
-        if let limit = limit {
-            upcomingAlarms = Array(upcomingAlarms.prefix(limit))
-        }
-
-        return upcomingAlarms
+            
+            // 7. Sort by next alarm time
+            upcomingAlarms.sort { $0.nextAlarmTime < $1.nextAlarmTime }
+            
+            // 8. Apply limit if specified
+            if let limit = limit {
+                upcomingAlarms = Array(upcomingAlarms.prefix(limit))
+            }
+            
+            return upcomingAlarms
         }.value
     }
 

@@ -87,9 +87,3 @@ struct AppView: View {
         }
     }
 }
-
-#Preview {
-    @Previewable @Injected(\.tickerService) var tickerService
-    AppView()
-        .environment(tickerService)
-}

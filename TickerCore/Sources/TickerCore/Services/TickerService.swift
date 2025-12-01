@@ -613,14 +613,32 @@ extension Alarm {
     public var alertingTime: Date? {
         guard let schedule else { return nil }
         
+        let calendar = Calendar.current
+        let now = Date()
+        
         switch schedule {
             case .fixed(let date):
                 return date
             case .relative(let relative):
-                var components = Calendar.current.dateComponents([.year, .month, .day, .hour, .minute], from: Date())
+                // Get today's date with the specified hour/minute
+                var components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: now)
                 components.hour = relative.time.hour
                 components.minute = relative.time.minute
-                return Calendar.current.date(from: components)
+                components.second = 0
+                
+                guard var alarmDate = calendar.date(from: components) else {
+                    return nil
+                }
+                
+                // If the alarm time has passed today, move to tomorrow
+                if alarmDate <= now {
+                    guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: alarmDate) else {
+                        return alarmDate // Fallback to today if tomorrow calculation fails
+                    }
+                    alarmDate = tomorrow
+                }
+                
+                return alarmDate
             @unknown default:
                 return nil
         }
