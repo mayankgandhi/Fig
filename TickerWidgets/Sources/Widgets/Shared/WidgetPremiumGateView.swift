@@ -79,15 +79,19 @@ private extension WidgetPremiumGateView {
 
     @ViewBuilder
     var proBadge: some View {
+        let isSubscribed = SubscriptionService.shared.isSubscribed || SubscriptionAccessStore.isUserSubscribed()
+        
         HStack(spacing: TickerSpacing.xxs) {
-            Image(systemName: "crown.fill")
-                .font(
-                    .system(
-                        size: widgetFamily == .systemSmall ? 10 : 12,
-                        weight: .semibold,
-                        design: .rounded
+            if !isSubscribed {
+                Image(systemName: "crown.fill")
+                    .font(
+                        .system(
+                            size: widgetFamily == .systemSmall ? 10 : 12,
+                            weight: .semibold,
+                            design: .rounded
+                        )
                     )
-                )
+            }
 
             if widgetFamily == .systemSmall {
                 Text("Pro")

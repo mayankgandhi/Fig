@@ -62,22 +62,22 @@ struct ContentView: View {
         // Add ticker collections
         items.append(contentsOf: allTickerCollections.map { .collection($0) })
 
-        // Sort by creation date (most recent first)
+        // Sort alphabetically by label (case-insensitive)
         return items.sorted { item1, item2 in
-            let date1: Date
-            let date2: Date
+            let label1: String
+            let label2: String
 
             switch item1 {
-            case .ticker(let ticker): date1 = ticker.createdAt
-            case .collection(let collection): date1 = collection.createdAt
+            case .ticker(let ticker): label1 = ticker.label
+            case .collection(let collection): label1 = collection.label
             }
 
             switch item2 {
-            case .ticker(let ticker): date2 = ticker.createdAt
-            case .collection(let collection): date2 = collection.createdAt
+            case .ticker(let ticker): label2 = ticker.label
+            case .collection(let collection): label2 = collection.label
             }
 
-            return date1 > date2
+            return label1.localizedCaseInsensitiveCompare(label2) == .orderedAscending
         }
     }
 

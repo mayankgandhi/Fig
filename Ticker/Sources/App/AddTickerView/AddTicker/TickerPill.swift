@@ -8,6 +8,7 @@
 
 import SwiftUI
 import TickerCore
+import Gate
 
 // MARK: - Pill Size
 
@@ -61,6 +62,7 @@ struct TickerPill: View {
     let isProFeature: Bool
 
     @Environment(\.colorScheme) private var colorScheme
+    @StateObject private var subscriptionService = SubscriptionService.shared
 
     init(
         icon: String,
@@ -90,8 +92,8 @@ struct TickerPill: View {
                 .font(.system(size: fontSize, weight: .semibold, design: .rounded))
                 .foregroundStyle(textColor)
             
-            // Pro feature indicator
-            if isProFeature {
+            // Pro feature indicator - only show if user is not subscribed
+            if isProFeature && !subscriptionService.isSubscribed {
                 Image(systemName: "crown.fill")
                     .font(.system(size: size.iconSize * 0.7, weight: .semibold))
                     .foregroundStyle(TickerColor.primary)
