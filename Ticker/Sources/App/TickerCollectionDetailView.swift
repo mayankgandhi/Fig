@@ -24,8 +24,11 @@ struct TickerCollectionDetailView: View {
 
     @State private var isToggling = false
     @State private var alarmToShowDetail: Ticker?
+    @State private var alarmToEdit: Ticker?
     @State private var alarmToDelete: Ticker?
     @State private var showDeleteAlert = false
+    
+    @Namespace private var editButtonNamespace
 
     var body: some View {
         NavigationStack {
@@ -106,9 +109,9 @@ struct TickerCollectionDetailView: View {
             AlarmDetailView(
                 alarm: ticker,
                 onEdit: {
-                    // For child tickers, we might want to handle editing differently
-                    // For now, just dismiss the detail view
+                    // Dismiss the detail view and open the edit sheet
                     alarmToShowDetail = nil
+                    alarmToEdit = ticker
                 },
                 onDelete: {
                     alarmToDelete = ticker
@@ -125,6 +128,21 @@ struct TickerCollectionDetailView: View {
                         .opacity(0.5)
                 }
             }
+        }
+        .sheet(item: $alarmToEdit) { ticker in
+            AddTickerView(namespace: editButtonNamespace, prefillTickerId: ticker.persistentModelID, isEditMode: true)
+                .presentationCornerRadius(TickerRadius.large)
+                .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled()
+                .presentationBackground {
+                    ZStack {
+                        TickerColor.liquidGlassGradient(for: colorScheme)
+                        
+                        Rectangle()
+                            .fill(.ultraThinMaterial)
+                            .opacity(0.5)
+                    }
+                }
         }
         .alert("Delete Ticker", isPresented: $showDeleteAlert) {
             Button("Cancel", role: .cancel) {
