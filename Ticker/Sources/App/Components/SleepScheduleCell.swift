@@ -116,13 +116,13 @@ struct SleepScheduleCell: View {
                         endPoint: .bottomTrailing
                     )
                 )
-                .frame(width: 56, height: 56)
+                .frame(width: 48, height: 48)
             
             // Icon
             Image(systemName: "bed.double.fill")
                 .font(.system(.title2, design: .rounded, weight: .semibold))
                 .foregroundStyle(tintColor)
-                .frame(width: 28, height: 28)
+                .frame(width: 24, height: 24)
         }
     }
     
@@ -145,11 +145,11 @@ struct SleepScheduleCell: View {
             // Time display - Hero element
             if let time = time {
                 Text(time.formatted(as: .hourMinute))
-                    .timeDisplay()
+                    .Title2()
                     .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
             } else {
                 Text("--:--")
-                    .timeDisplay()
+                    .Title2()
                     .foregroundStyle(DesignKit.textTertiary(for: colorScheme))
             }
         }
