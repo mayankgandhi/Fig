@@ -176,7 +176,7 @@ final class ScheduleViewModel {
             return displayDate
         } else {
             // Show "Date, Repeat"
-            return "\(displayDate), \(displayRepeat)"
+            return "\(displayRepeat)"
         }
     }
 
