@@ -39,11 +39,16 @@ struct RepeatOptionsView: View {
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, TickerSpacing.md)
-                .animation(.easeInOut(duration: 0.2), value: viewModel.selectedOption)
+                .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: viewModel.selectedOption)
+                .accessibilityLabel("Description")
+                .accessibilityValue(descriptionForOption(viewModel.selectedOption))
 
             // Validation Message
             if let validationMessage = validationMessage {
                 validationMessageView(message: validationMessage)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Warning")
+                    .accessibilityValue(validationMessage)
             }
 
             // Configuration View for selected option
@@ -53,12 +58,18 @@ struct RepeatOptionsView: View {
         }
     }
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     @ViewBuilder
     private func repeatOptionButton(for option: RepeatOptionsViewModel.RepeatOption) -> some View {
         Button {
             TickerHaptics.selection()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+            if reduceMotion {
                 viewModel.selectOption(option)
+            } else {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    viewModel.selectOption(option)
+                }
             }
         } label: {
             TickerPill(
@@ -69,6 +80,9 @@ struct RepeatOptionsView: View {
                 size: .compact
             )
         }
+        .accessibilityLabel("\(option.rawValue) repeat")
+        .accessibilityHint(descriptionForOption(option))
+        .accessibilityAddTraits(viewModel.selectedOption == option ? [.isSelected] : [])
     }
     
     private func descriptionForOption(_ option: RepeatOptionsViewModel.RepeatOption) -> String {

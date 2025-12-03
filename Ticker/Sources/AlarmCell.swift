@@ -30,8 +30,9 @@ struct AlarmCell: View {
             HStack(spacing: DesignKit.md) {
                 // Icon with background circle
                 categoryIconView
-                
-                
+                    .accessibilityHidden(true)
+
+
                 VStack(alignment: .leading, spacing: DesignKit.xs) {
                     Text(alarmItem.label)
                         .tickerTitle()
@@ -43,8 +44,8 @@ struct AlarmCell: View {
                         .multilineTextAlignment(.leading)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                
-                
+
+
                 VStack {
                     // Time display
                     if let schedule = alarmItem.schedule {
@@ -58,11 +59,11 @@ struct AlarmCell: View {
                             .foregroundStyle(DesignKit.textPrimary(for: colorScheme))
                             .multilineTextAlignment(.leading)
                     }
-                    
-                    
-                    
+
+
+
                 }
-                
+
             }
             .padding(DesignKit.md)
             .background(cardBackground)
@@ -75,6 +76,56 @@ struct AlarmCell: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityValue(accessibilityValue)
+        .accessibilityHint("Double tap to view alarm details")
+    }
+
+    // MARK: - Accessibility Helpers
+
+    private var accessibilityLabel: String {
+        return "\(alarmItem.label) alarm"
+    }
+
+    private var accessibilityValue: String {
+        var components: [String] = []
+
+        // Add time information
+        if let schedule = alarmItem.schedule {
+            switch schedule {
+            case .oneTime(let date):
+                components.append("Set for \(date.formatted(.dateTime.hour().minute()))")
+            case .daily(let time):
+                components.append("Daily at \(formatTime(time))")
+            case .weekdays(let time, _):
+                components.append("Weekdays at \(formatTime(time))")
+            case .biweekly(let time, _):
+                components.append("Biweekly at \(formatTime(time))")
+            case .monthly(_, let time):
+                components.append("Monthly at \(formatTime(time))")
+            case .yearly(_, _, let time):
+                components.append("Yearly at \(formatTime(time))")
+            case .hourly(let interval, let time):
+                components.append("Every \(Int(interval)) hours starting at \(formatTime(time))")
+            case .every(_, _, let time):
+                components.append("Custom repeat at \(formatTime(time))")
+            }
+        } else if let countdown = alarmItem.countdown?.preAlert {
+            components.append("Countdown: \(formatDuration(countdown.interval))")
+        }
+
+        // Add schedule description
+        if let schedule = alarmItem.schedule {
+            components.append(scheduleDescription(for: schedule))
+        }
+
+        // Add enabled/disabled status
+        if !alarmItem.isEnabled {
+            components.append("Disabled")
+        }
+
+        return components.joined(separator: ", ")
     }
     
     // MARK: - Card Background
@@ -160,13 +211,13 @@ struct AlarmCell: View {
         if let schedule = alarmItem.schedule {
             HStack(spacing: DesignKit.xxs) {
                 Image(systemName: schedule.icon)
-                    .font(.system(size: 12, weight: .medium))
+                    .Caption()
                 Text(scheduleDescription(for: schedule))
             }
         } else if alarmItem.countdown?.preAlert != nil {
             HStack(spacing: DesignKit.xxs) {
                 Image(systemName: "timer")
-                    .font(.system(size: 12, weight: .medium))
+                    .Caption()
                 Text("Countdown")
             }
         }

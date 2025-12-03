@@ -132,6 +132,57 @@ struct AlarmLiveActivity: Widget {
                 return TickerColor.disabled
         }
     }
+
+    // MARK: - Accessibility Helpers
+
+    private func accessibilityLabel(for attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> String {
+        let name = attributes.metadata?.name ?? "Alarm"
+        let modeText = modeName(for: state.mode)
+        return "\(name) \(modeText)"
+    }
+
+    private func accessibilityValue(for state: AlarmPresentationState) -> String {
+        switch state.mode {
+        case .countdown(let countdown):
+            let remaining = countdown.fireDate.timeIntervalSinceNow
+            return formatAccessibleDuration(remaining)
+        case .paused(let pausedState):
+            let remaining = pausedState.totalCountdownDuration - pausedState.previouslyElapsedDuration
+            return formatAccessibleDuration(remaining)
+        case .alert:
+            return "Alarm is alerting"
+        @unknown default:
+            return ""
+        }
+    }
+
+    private func modeName(for mode: AlarmPresentationState.Mode) -> String {
+        switch mode {
+        case .countdown: return "countdown running"
+        case .paused: return "countdown paused"
+        case .alert: return "alerting"
+        @unknown default: return "inactive"
+        }
+    }
+
+    private func formatAccessibleDuration(_ seconds: TimeInterval) -> String {
+        let hours = Int(seconds) / 3600
+        let minutes = (Int(seconds) % 3600) / 60
+        let secs = Int(seconds) % 60
+
+        var components: [String] = []
+        if hours > 0 {
+            components.append("\(hours) \(hours == 1 ? "hour" : "hours")")
+        }
+        if minutes > 0 {
+            components.append("\(minutes) \(minutes == 1 ? "minute" : "minutes")")
+        }
+        if secs > 0 || components.isEmpty {
+            components.append("\(secs) \(secs == 1 ? "second" : "seconds")")
+        }
+
+        return components.joined(separator: ", ") + " remaining"
+    }
     
     var body: some WidgetConfiguration {
         ActivityConfiguration(for: AlarmAttributes<TickerData>.self) { context in
@@ -165,18 +216,22 @@ struct AlarmLiveActivity: Widget {
             VStack(spacing: TickerSpacing.lg) {
                 HStack(alignment: .top) {
                     tickerCategory(metadata: attributes.metadata)
+                        .accessibilityHidden(true)
                     Spacer()
                     // App branding
                     Text("Ticker")
                         .SmallText()
                         .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
+                        .accessibilityHidden(true)
                 }
-                
+
                 bottomView(attributes: attributes, state: state)
             }
             .padding(.all, TickerSpacing.md)
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("Alarm countdown: \(state.mode)")
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel(accessibilityLabel(for: attributes, state: state))
+            .accessibilityValue(accessibilityValue(for: state))
+            .accessibilityHint("Alarm countdown display with controls")
         } else {
             // Show minimal/empty view for alert state or non-countdown tickers
             EmptyView()

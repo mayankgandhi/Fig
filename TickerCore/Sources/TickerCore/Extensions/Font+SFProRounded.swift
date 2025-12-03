@@ -66,30 +66,36 @@ public extension View {
     }
 
     // MARK: - Consistent Typography Hierarchy
-    
-    /// Apply consistent time display font (28pt) - for card time displays
+    // All custom fonts now use Dynamic Type for full accessibility support
+
+    /// Apply consistent time display font - for card time displays (uses Title style, ~28pt base)
+    /// Scales with Dynamic Type for accessibility
      func TimeDisplay() -> some View {
-        self.font(.system(size: 28, weight: .bold, design: .rounded))
+        self.font(.Title)
     }
-    
-    /// Apply consistent ticker title font (18pt) - for ticker names
+
+    /// Apply consistent ticker title font - for ticker names (uses Title3 style, ~20pt base)
+    /// Scales with Dynamic Type for accessibility
      func TickerTitle() -> some View {
-        self.font(.system(size: 18, weight: .semibold, design: .rounded))
+        self.font(.Title3)
     }
-    
-    /// Apply consistent detail text font (15pt) - for schedule details
+
+    /// Apply consistent detail text font - for schedule details (uses Subheadline style, ~15pt base)
+    /// Scales with Dynamic Type for accessibility
      func DetailText() -> some View {
-        self.font(.system(size: 15, weight: .medium, design: .rounded))
+        self.font(.Subheadline)
     }
-    
-    /// Apply consistent button text font (14pt) - for buttons and labels
+
+    /// Apply consistent button text font - for buttons and labels (uses Footnote style, ~13pt base)
+    /// Scales with Dynamic Type for accessibility
      func ButtonText() -> some View {
-        self.font(.system(size: 14, weight: .semibold, design: .rounded))
+        self.font(.Footnote)
     }
-    
-    /// Apply consistent small text font (12pt) - for secondary info
+
+    /// Apply consistent small text font - for secondary info (uses Caption style, ~12pt base)
+    /// Scales with Dynamic Type for accessibility
      func SmallText() -> some View {
-        self.font(.system(size: 12, weight: .medium, design: .rounded))
+        self.font(.Caption)
     }
 
 }

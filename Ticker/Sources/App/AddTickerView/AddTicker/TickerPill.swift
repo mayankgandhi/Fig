@@ -85,17 +85,17 @@ struct TickerPill: View {
     var body: some View {
         HStack(spacing: size.spacing) {
             Image(systemName: icon)
-                .font(.system(size: size.iconSize, weight: .semibold, design: .rounded))
+                .font(iconFont)
                 .foregroundStyle(iconColor)
 
             Text(title)
-                .font(.system(size: fontSize, weight: .semibold, design: .rounded))
+                .font(textFont)
                 .foregroundStyle(textColor)
-            
+
             // Pro feature indicator - only show if user is not subscribed
             if isProFeature && !subscriptionService.isSubscribed {
                 Image(systemName: "crown.fill")
-                    .font(.system(size: size.iconSize * 0.7, weight: .semibold))
+                    .font(badgeFont)
                     .foregroundStyle(TickerColor.primary)
             }
         }
@@ -118,11 +118,27 @@ struct TickerPill: View {
 
     // MARK: - Computed Properties
 
-    private var fontSize: CGFloat {
+    private var textFont: Font {
         switch size {
-        case .compact: return 13
-        case .standard: return 15
-        case .large: return 17
+        case .compact: return .system(.footnote, design: .rounded, weight: .semibold)
+        case .standard: return .system(.subheadline, design: .rounded, weight: .semibold)
+        case .large: return .system(.body, design: .rounded, weight: .semibold)
+        }
+    }
+
+    private var iconFont: Font {
+        switch size {
+        case .compact: return .system(.caption, design: .rounded, weight: .semibold)
+        case .standard: return .system(.footnote, design: .rounded, weight: .semibold)
+        case .large: return .system(.subheadline, design: .rounded, weight: .semibold)
+        }
+    }
+
+    private var badgeFont: Font {
+        switch size {
+        case .compact: return .system(.caption2, design: .rounded, weight: .semibold)
+        case .standard: return .system(.caption, design: .rounded, weight: .semibold)
+        case .large: return .system(.caption, design: .rounded, weight: .semibold)
         }
     }
 

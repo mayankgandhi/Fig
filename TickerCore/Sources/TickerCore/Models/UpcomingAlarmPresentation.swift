@@ -209,6 +209,34 @@ public struct UpcomingAlarmPresentation: Identifiable, Equatable, Codable {
             case .yearly: return Color(red: 0.800, green: 0.200, blue: 0.400) // Pink
             }
         }
+
+        /// Accessible description for VoiceOver
+        public var accessibleDescription: String {
+            switch self {
+            case .oneTime: return "One time only"
+            case .daily: return "Repeats daily"
+            case .weekdays(let days):
+                if days.count == 7 { return "Repeats daily" }
+                if days.count == 5 && !days.contains(0) && !days.contains(6) { return "Repeats on weekdays" }
+                if days.count == 2 && days.contains(0) && days.contains(6) { return "Repeats on weekends" }
+                return "Repeats on \(days.count) days per week"
+            case .hourly(let interval):
+                return "Repeats every \(interval) \(interval == 1 ? "hour" : "hours")"
+            case .every(let interval, let unit):
+                let unitText: String
+                switch unit.lowercased() {
+                case "minutes": unitText = interval == 1 ? "minute" : "minutes"
+                case "hours": unitText = interval == 1 ? "hour" : "hours"
+                case "days": unitText = interval == 1 ? "day" : "days"
+                case "weeks": unitText = interval == 1 ? "week" : "weeks"
+                default: unitText = unit
+                }
+                return "Repeats every \(interval) \(unitText)"
+            case .biweekly: return "Repeats every two weeks"
+            case .monthly: return "Repeats monthly"
+            case .yearly: return "Repeats yearly"
+            }
+        }
     }
 
     /// Dynamically formatted time until alarm

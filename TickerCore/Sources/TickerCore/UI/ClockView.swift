@@ -13,7 +13,8 @@ import SwiftUI
 /// Takes current date as parameter instead of using TimelineView
 public struct ClockFaceView: View {
     @Environment(\.colorScheme) private var colorScheme
-    
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     struct MinuteMark: Identifiable {
         var id: Double {
             angle
@@ -214,7 +215,7 @@ public struct ClockFaceView: View {
                     .scaleEffect(alarmAnimationStates[event.id] == true ? 1.0 : 0.1)
                     .opacity(alarmAnimationStates[event.id] == true ? 1.0 : 0.0)
                     .animation(
-                        .spring(response: 0.6, dampingFraction: 0.8, blendDuration: 0)
+                        reduceMotion ? nil : .spring(response: 0.6, dampingFraction: 0.8, blendDuration: 0)
                         .delay(Double(index) * 0.1),
                         value: alarmAnimationStates[event.id]
                     )
@@ -368,7 +369,9 @@ public struct ClockView: View {
     var upcomingAlarms: [UpcomingAlarmPresentation]
     var shouldAnimateAlarms: Bool = false
     var showSecondsHand: Bool = true
-    
+
+    @Environment(\.accessibilityEnabled) private var accessibilityEnabled
+
     public init(
         upcomingAlarms: [UpcomingAlarmPresentation],
         shouldAnimateAlarms: Bool = false,
@@ -378,15 +381,101 @@ public struct ClockView: View {
         self.shouldAnimateAlarms = shouldAnimateAlarms
         self.showSecondsHand = showSecondsHand
     }
-    
+
     public var body: some View {
+        if accessibilityEnabled {
+            accessibleClockView
+        } else {
+            TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
+                ClockFaceView(
+                    currentDate: timeline.date,
+                    upcomingAlarms: upcomingAlarms,
+                    shouldAnimateAlarms: shouldAnimateAlarms,
+                    showSecondsHand: showSecondsHand
+                )
+            }
+        }
+    }
+
+    /// Accessible text-based alternative to the analog clock
+    private var accessibleClockView: some View {
         TimelineView(.periodic(from: .now, by: 1.0)) { timeline in
-            ClockFaceView(
-                currentDate: timeline.date,
-                upcomingAlarms: upcomingAlarms,
-                shouldAnimateAlarms: shouldAnimateAlarms,
-                showSecondsHand: showSecondsHand
-            )
+            VStack(spacing: 20) {
+                // Current time display
+                Text(timeline.date, style: .time)
+                    .font(.largeTitle)
+                    .fontWeight(.semibold)
+                    .accessibilityLabel("Current time")
+                    .accessibilityValue(timeline.date.formatted(.dateTime.hour().minute()))
+
+                Divider()
+                    .padding(.horizontal)
+
+                // Upcoming alarms list
+                if !upcomingAlarms.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Upcoming Alarms")
+                            .font(.headline)
+                            .accessibilityAddTraits(.isHeader)
+                            .padding(.horizontal)
+
+                        ForEach(upcomingAlarms) { alarm in
+                            HStack(spacing: 12) {
+                                Image(systemName: alarm.icon)
+                                    .font(.title3)
+                                    .foregroundStyle(alarm.color)
+                                    .frame(width: 32)
+                                    .accessibilityHidden(true)
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(alarm.displayName)
+                                        .font(.body)
+                                        .fontWeight(.medium)
+
+                                    Text("\(alarm.hour):\(String(format: "%02d", alarm.minute))")
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+
+                                Spacer()
+
+                                if alarm.hasCountdown {
+                                    Text("With countdown")
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color(.secondarySystemBackground))
+                                        .clipShape(Capsule())
+                                }
+                            }
+                            .padding(.horizontal)
+                            .padding(.vertical, 8)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .padding(.horizontal)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityLabel("\(alarm.displayName) alarm at \(alarm.hour):\(String(format: "%02d", alarm.minute))")
+                            .accessibilityValue(alarm.hasCountdown ? "With countdown enabled" : "")
+                        }
+                    }
+                } else {
+                    VStack(spacing: 8) {
+                        Image(systemName: "alarm.fill")
+                            .font(.largeTitle)
+                            .foregroundStyle(.secondary)
+
+                        Text("No upcoming alarms")
+                            .font(.body)
+                            .foregroundStyle(.secondary)
+                    }
+                    .padding()
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("No upcoming alarms")
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical)
         }
     }
 }

@@ -128,13 +128,17 @@ struct TodayClockView: View {
                     } label: {
                         Image(systemName: "apple.intelligence")
                     }
-                    
+                    .accessibilityLabel("AI alarm creation")
+                    .accessibilityHint("Create alarms using natural language")
+
                     Button {
                         TickerHaptics.selection()
                         showSettings = true
                     } label: {
                         Image(systemName: "gear")
                     }
+                    .accessibilityLabel("Settings")
+                    .accessibilityHint("Opens app settings")
                 }
             }
             .sheet(isPresented: $showNaturalLanguageSheet) {

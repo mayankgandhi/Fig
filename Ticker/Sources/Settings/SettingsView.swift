@@ -91,21 +91,23 @@ struct SettingsView: View {
                 Circle()
                     .fill(TickerColor.primary.opacity(0.1))
                     .frame(width: 24, height: 24)
-                
+
                 Image(systemName: icon)
                     .SmallText()
                     .foregroundStyle(TickerColor.primary)
             }
-            
+            .accessibilityHidden(true)
+
             Text(title)
                 .DetailText()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 .textCase(.uppercase)
                 .tracking(0.5)
-            
+
             Spacer()
         }
         .padding(.leading, TickerSpacing.xs)
+        .accessibilityAddTraits(.isHeader)
     }
 }
 

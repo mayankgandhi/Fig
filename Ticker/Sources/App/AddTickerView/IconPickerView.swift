@@ -35,11 +35,18 @@ struct IconPickerView: View {
         }
     }
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private func selectIcon(_ iconPair: IconColorPair) {
         TickerHaptics.selection()
-        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+        if reduceMotion {
             selectedIcon = iconPair.symbol
             selectedColorHex = iconPair.colorHex
+        } else {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                selectedIcon = iconPair.symbol
+                selectedColorHex = iconPair.colorHex
+            }
         }
     }
 }
@@ -87,6 +94,9 @@ private struct IconCell: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel(IconMetadata.accessibleLabel(for: iconPair.symbol))
+        .accessibilityAddTraits(isSelected ? .isSelected : [])
+        .accessibilityHint(isSelected ? "Currently selected" : "Double tap to select this icon")
     }
 }
 

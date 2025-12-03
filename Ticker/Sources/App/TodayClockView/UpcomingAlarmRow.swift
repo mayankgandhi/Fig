@@ -32,6 +32,7 @@ struct UpcomingAlarmRow: View {
                         .foregroundStyle(presentation.color)
                 }
                 .layoutPriority(1)
+                .accessibilityHidden(true)
 
                 // Alarm details
                 VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
@@ -49,6 +50,7 @@ struct UpcomingAlarmRow: View {
                         Text("•")
                             .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
                             .fixedSize()
+                            .accessibilityHidden(true)
 
                         Text(presentation.timeUntilAlarm(from: context.date))
                             .Footnote()
@@ -72,6 +74,10 @@ struct UpcomingAlarmRow: View {
                 x: TickerShadow.subtle.x,
                 y: TickerShadow.subtle.y
             )
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel(accessibilityLabel(for: context.date))
+            .accessibilityValue(accessibilityValue)
+            .accessibilityHint("Hold to edit or skip this alarm")
             .contextMenu {
                 Button {
                     TickerHaptics.selection()
@@ -79,6 +85,7 @@ struct UpcomingAlarmRow: View {
                 } label: {
                     Label("Edit", systemImage: "pencil")
                 }
+                .accessibilityLabel("Edit \(presentation.displayName) alarm")
 
                 Button {
                     TickerHaptics.selection()
@@ -86,8 +93,35 @@ struct UpcomingAlarmRow: View {
                 } label: {
                     Label("Skip Alarm", systemImage: "bell.slash")
                 }
+                .accessibilityLabel("Skip \(presentation.displayName) alarm")
+                .accessibilityHint(presentation.scheduleType == .oneTime ? "This will delete the one-time alarm" : "Skip this occurrence, alarm will repeat as scheduled")
             }
         }
+    }
+
+    // MARK: - Accessibility Helpers
+
+    private func accessibilityLabel(for currentDate: Date) -> String {
+        return "\(presentation.displayName) alarm"
+    }
+
+    private var accessibilityValue: String {
+        var components: [String] = []
+
+        // Add time
+        let timeFormatter = DateFormatter()
+        timeFormatter.timeStyle = .short
+        components.append("at \(timeFormatter.string(from: presentation.nextAlarmTime))")
+
+        // Add schedule type
+        components.append(presentation.scheduleType.accessibleDescription)
+
+        // Add countdown if enabled
+        if presentation.hasCountdown {
+            components.append("with countdown")
+        }
+
+        return components.joined(separator: ", ")
     }
 }
 

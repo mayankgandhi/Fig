@@ -94,6 +94,23 @@ struct ContentView: View {
         }
     }
 
+    // MARK: - Accessibility Rotor Helpers
+
+    private var enabledTickers: [Ticker] {
+        standaloneTickers.filter { $0.isEnabled }
+    }
+
+    private var disabledTickers: [Ticker] {
+        standaloneTickers.filter { !$0.isEnabled }
+    }
+
+    private func alarmItemLabel(_ item: AlarmListItem) -> String {
+        switch item {
+        case .ticker(let ticker): return ticker.label
+        case .collection(let collection): return collection.label
+        }
+    }
+
     var body: some View {
         NavigationStack {
             content
@@ -110,6 +127,27 @@ struct ContentView: View {
                             showAddCollectionSheet: $showAddCollectionSheet,
                             namespace: addButtonNamespace
                         )
+                    }
+                }
+                .accessibilityRotor("All Tickers") {
+                    ForEach(allAlarmItems.indices, id: \.self) { index in
+                        let item = allAlarmItems[index]
+                        AccessibilityRotorEntry(alarmItemLabel(item), id: index)
+                    }
+                }
+                .accessibilityRotor("Active Tickers") {
+                    ForEach(enabledTickers, id: \.id) { ticker in
+                        AccessibilityRotorEntry(ticker.label, id: ticker.id)
+                    }
+                }
+                .accessibilityRotor("Disabled Tickers") {
+                    ForEach(disabledTickers, id: \.id) { ticker in
+                        AccessibilityRotorEntry(ticker.label, id: ticker.id)
+                    }
+                }
+                .accessibilityRotor("Collections") {
+                    ForEach(allTickerCollections, id: \.id) { collection in
+                        AccessibilityRotorEntry(collection.label, id: collection.id)
                     }
                 }
         }

@@ -23,6 +23,7 @@ struct AlarmDetailTimeSection: View {
                 HStack(spacing: TickerSpacing.xxs) {
                     Image(systemName: schedule.icon)
                         .Caption()
+                        .accessibilityHidden(true)
                     Text(scheduleTypeLabel(for: schedule))
                         .Footnote()
                 }
@@ -34,6 +35,9 @@ struct AlarmDetailTimeSection: View {
         .background(TickerColor.surface(for: colorScheme).opacity(0.5))
         .background(.ultraThinMaterial)
         .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("Alarm time")
+        .accessibilityValue(accessibilityValue)
     }
     
     // MARK: - Helper Methods
@@ -100,6 +104,15 @@ struct AlarmDetailTimeSection: View {
         case .monthly: return "Monthly ticker"
         case .yearly: return "Yearly ticker"
         }
+    }
+
+    // MARK: - Accessibility
+
+    private var accessibilityValue: String {
+        guard let schedule = alarm.schedule else { return "" }
+        let time = timeString(for: schedule)
+        let type = scheduleTypeLabel(for: schedule)
+        return "\(time), \(type)"
     }
 }
 

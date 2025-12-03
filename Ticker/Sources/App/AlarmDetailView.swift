@@ -66,6 +66,8 @@ struct AlarmDetailView: View {
                             .Callout()
                             .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                     }
+                    .accessibilityLabel("Edit alarm")
+                    .accessibilityHint("Opens the alarm editor")
 
                     Button(role: .destructive) {
                         TickerHaptics.selection()
@@ -76,6 +78,8 @@ struct AlarmDetailView: View {
                             .Callout()
                             .foregroundStyle(.red)
                     }
+                    .accessibilityLabel("Delete alarm")
+                    .accessibilityHint("Permanently removes this alarm")
                 }
             }
             .presentationDetents([.medium, .large])
