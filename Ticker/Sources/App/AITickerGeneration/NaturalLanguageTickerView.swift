@@ -69,6 +69,13 @@ struct NaturalLanguageTickerView: View {
                 generateButtonSection(viewModel: viewModel)
             }
             .padding(TickerSpacing.lg)
+            .contentShape(Rectangle())
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        isInputFieldFocused = false
+                    }
+            )
         }
         // Overlay presentation for all expandable fields
         .overlay(alignment: .top) {

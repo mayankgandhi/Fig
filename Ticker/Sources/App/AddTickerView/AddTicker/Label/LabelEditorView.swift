@@ -51,6 +51,10 @@ struct LabelEditorView: View {
                 .Caption()
                 .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
         }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            isTextFieldFocused = false
+        }
         .onAppear {
             // Auto-focus the text field when the view appears
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {

@@ -178,6 +178,13 @@ private struct TickerCollectionEditorContent: View {
                 Spacer(minLength: 300)
             }
             .padding(.top, TickerSpacing.md)
+            .contentShape(Rectangle())
+            .simultaneousGesture(
+                TapGesture()
+                    .onEnded { _ in
+                        isLabelFieldFocused = false
+                    }
+            )
         }
         // Overlay presentation for all expandable fields
         .overlay(alignment: .top) {
