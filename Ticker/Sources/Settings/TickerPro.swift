@@ -12,7 +12,7 @@ struct TickerPro: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header Section
+            // Header Section with App Icon
             headerSection
 
             // Content Section
@@ -21,7 +21,7 @@ struct TickerPro: View {
             // Action Button
             actionButton
         }
-        .padding(TickerSpacing.xs)
+        .padding(TickerSpacing.md)
         .glassEffect(in: .rect(cornerRadius: TickerRadius.xlarge))
         .shadow(color: Color.black.opacity(0.1), radius: 16, x: 0, y: 8)
         .sheet(isPresented: $showPaywall) {
@@ -34,45 +34,73 @@ struct TickerPro: View {
     // MARK: - Header Section
 
     private var headerSection: some View {
-        HStack(spacing: TickerSpacing.md) {
-            // Pro Icon
-            iconView
+        VStack(spacing: TickerSpacing.md) {
+            // App Icon and Title Row
+            HStack(spacing: TickerSpacing.md) {
+                // App Icon
+                appIconView
+                
+                VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
+                    Text(configuration.premiumBrandName)
+                        .Title2()
+                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
 
-            VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
-                Text(configuration.premiumBrandName)
-                    .Title2()
-                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                    subscriptionStatusText
+                        .Subheadline()
+                        .foregroundStyle(statusColor)
+                }
 
-                subscriptionStatusText
-                    .Subheadline()
-                    .foregroundStyle(statusColor)
+                Spacer()
             }
-
-            Spacer()
+            
+            // Description
+            if !subscriptionService.isSubscribed {
+                Text("Unlock the full power of Ticker with premium features")
+                    .Body()
+                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    .multilineTextAlignment(.leading)
+            }
         }
-        .padding(.bottom, TickerSpacing.lg)
     }
-
-    private var iconView: some View {
+    
+    private var appIconView: some View {
         ZStack {
-            Circle()
-                .fill(iconColor.opacity(0.2))
-                .frame(width: 40, height: 40)
-
-            Image(systemName: iconSymbol)
-                .font(.system(size: 20, weight: .semibold))
-                .foregroundStyle(iconColor)
-                .symbolEffect(.bounce, value: subscriptionService.isSubscribed)
+            // Gradient background
+            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            TickerColor.primary.opacity(0.2),
+                            TickerColor.accent.opacity(0.15)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(width: 64, height: 64)
+            
+            // App Icon
+            Image("AppIconImage")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 56, height: 56)
+                .clipShape(RoundedRectangle(cornerRadius: TickerRadius.small))
+                .shadow(color: TickerColor.primary.opacity(0.3), radius: 8, x: 0, y: 4)
         }
-        .glassEffect(.regular.tint(iconColor))
-    }
-
-    private var iconSymbol: String {
-        subscriptionService.isSubscribed ? "checkmark.seal.fill" : "sparkles"
-    }
-
-    private var iconColor: Color {
-        subscriptionService.isSubscribed ? TickerColor.success : TickerColor.primary
+        .overlay(
+            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                .strokeBorder(
+                    LinearGradient(
+                        colors: [
+                            TickerColor.primary.opacity(0.3),
+                            TickerColor.accent.opacity(0.2)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1
+                )
+        )
     }
 
     private var subscriptionStatusText: Text {
@@ -96,22 +124,70 @@ struct TickerPro: View {
     }
 
     // MARK: - Content Section
-
+    
     @ViewBuilder
     private var contentSection: some View {
         if subscriptionService.isSubscribed {
-            Text("Thanks for being a Pro Member!")
+            Text("Thanks for being a Pro Member! 🎉")
                 .Headline()
                 .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, TickerSpacing.md)
-        } else {
-            Text("Everything you need to stay on track")
-                .Headline()
-                .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                .padding(.bottom, TickerSpacing.xs)
         }
+    }
+    
+    private func featureRow(feature: PremiumFeature, isEnabled: Bool) -> some View {
+        HStack(spacing: TickerSpacing.md) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(
+                        isEnabled
+                            ? TickerColor.success.opacity(0.15)
+                            : TickerColor.primary.opacity(0.15)
+                    )
+                    .frame(width: 40, height: 40)
+                
+                Image(systemName: feature.icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(
+                        isEnabled
+                            ? TickerColor.success
+                            : TickerColor.primary
+                    )
+            }
+            
+            // Text
+            VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
+                Text(feature.title)
+                    .Body()
+                    .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
+                
+                Text(feature.description)
+                    .Caption()
+                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
+                    .lineLimit(2)
+            }
+            
+            Spacer()
+            
+            // Checkmark or lock
+            if isEnabled {
+                Image(systemName: "checkmark.circle.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(TickerColor.success)
+            } else {
+                Image(systemName: "lock.fill")
+                    .font(.system(size: 16))
+                    .foregroundStyle(TickerColor.textSecondary(for: colorScheme).opacity(0.5))
+            }
+        }
+        .padding(TickerSpacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: TickerRadius.medium)
+                .fill(TickerColor.surface(for: colorScheme).opacity(0.5))
+        )
     }
 
     // MARK: - Action Button
@@ -125,6 +201,7 @@ struct TickerPro: View {
                 } else {
                     Image(systemName: buttonIcon)
                         .font(.system(size: 16, weight: .semibold))
+                        .symbolEffect(.pulse, value: !subscriptionService.isSubscribed)
 
                     Text(buttonTitle)
                         .ButtonText()
@@ -135,6 +212,14 @@ struct TickerPro: View {
             .background(buttonBackgroundColor)
             .foregroundStyle(buttonForegroundColor)
             .clipShape(RoundedRectangle(cornerRadius: TickerRadius.medium))
+            .shadow(
+                color: !subscriptionService.isSubscribed 
+                    ? TickerColor.primary.opacity(0.3) 
+                    : Color.clear,
+                radius: !subscriptionService.isSubscribed ? 12 : 0,
+                x: 0,
+                y: !subscriptionService.isSubscribed ? 4 : 0
+            )
         }
         .glassEffect(.regular.interactive())
         .disabled(subscriptionService.isLoading)
