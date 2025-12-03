@@ -36,6 +36,7 @@ public final class OpenAITickerService {
             - Keep the label short and concise
             
             For dates:
+            - Today's Date (\(Date().formatted(date: .long, time: .complete))
             - Use Date format "yyyy-MM-dd'T'HH:mm:ss"
             - If not specified, use today's date with the specified time
             - Compute date appropriately if mentioned terms like tomorrow, next week, etc
