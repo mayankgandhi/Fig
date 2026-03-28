@@ -1,8 +1,24 @@
 # Tuist
 .tuist
-Derived/
-*.xcodeproj
-*.xcworkspace
+
+# Generated Xcode projects and workspaces
+**/*.xcodeproj
+**/*.xcworkspace/*
+!**/*.xcworkspace/xcshareddata
+!**/*.xcworkspace/xcshareddata/*
+!**/*.xcworkspace/xcshareddata/swiftpm
+!**/*.xcworkspace/xcshareddata/swiftpm/*
+
+# Tuist generated files
+**/Derived/
+Tuist.xcworkspace
+
+# Tuist build and cache
+.build/
+
+# Tuist dependencies
+Tuist/Dependencies/SwiftPackageManager
+Tuist/Dependencies/graph.json
 
 # macOS
 .DS_Store

@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1010"
+   version = "1.3">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "3A4D0B1F69D65EDA45F7E5C8"
+               BuildableName = "Gate.framework"
+               BlueprintName = "Gate"
+               ReferencedContainer = "container:../../Gate/Gate.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5DBBF047C94E9DB37B8E5592"
+               BuildableName = "GateTests.xctest"
+               BlueprintName = "GateTests"
+               ReferencedContainer = "container:../../Gate/Gate.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "D211416C0AFC863EB979CCC1"
+               BuildableName = "PostHog.framework"
+               BlueprintName = "PostHog"
+               ReferencedContainer = "container:../Tuist/.build/tuist-derived/PostHog/PostHog.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "21ACE72DE79281C9B6CD27E0"
+               BuildableName = "RevenueCat.framework"
+               BlueprintName = "RevenueCat"
+               ReferencedContainer = "container:../Tuist/.build/tuist-derived/RevenueCat/RevenueCat.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "44AFEA04B5A773F7F7ABF378"
+               BuildableName = "RevenueCatUI.framework"
+               BlueprintName = "RevenueCatUI"
+               ReferencedContainer = "container:../Tuist/.build/tuist-derived/RevenueCat/RevenueCat.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C7EFFE82360786D223D5EBDF"
+               BuildableName = "Roadmap.framework"
+               BlueprintName = "Roadmap"
+               ReferencedContainer = "container:../Tuist/.build/tuist-derived/Roadmap/Roadmap.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "8B81BEAD99D5FE5B19F44F75"
+               BuildableName = "Telemetry.framework"
+               BlueprintName = "Telemetry"
+               ReferencedContainer = "container:../../Telemetry/Telemetry.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BEED855349E2806D0D3703BC"
+               BuildableName = "TelemetryTests.xctest"
+               BlueprintName = "TelemetryTests"
+               ReferencedContainer = "container:../../Telemetry/Telemetry.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "04A4897054D6F5B363AAFAA7"
+               BuildableName = "Ticker.app"
+               BlueprintName = "Ticker"
+               ReferencedContainer = "container:Ticker.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "3E606F403BDFBD160EB782DE"
+               BuildableName = "TickerCore.framework"
+               BlueprintName = "TickerCore"
+               ReferencedContainer = "container:../TickerCore/TickerCore.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "197751D9A47E8F0091388FDB"
+               BuildableName = "TickerCoreTests.xctest"
+               BlueprintName = "TickerCoreTests"
+               ReferencedContainer = "container:../TickerCore/TickerCore.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "55CA673FC2AE636864DAFAE6"
+               BuildableName = "TickerTests.xctest"
+               BlueprintName = "TickerTests"
+               ReferencedContainer = "container:Ticker.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DACDE145B1C60C0B30F35914"
+               BuildableName = "TickerUITests.xctest"
+               BlueprintName = "TickerUITests"
+               ReferencedContainer = "container:Ticker.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F7976715EC655F756890BA32"
+               BuildableName = "TickerWidgets.appex"
+               BlueprintName = "TickerWidgets"
+               ReferencedContainer = "container:../TickerWidgets/TickerWidgets.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "9E225D70D6A3236729D902CB"
+               BuildableName = "phlibwebp.framework"
+               BlueprintName = "phlibwebp"
+               ReferencedContainer = "container:../Tuist/.build/tuist-derived/PostHog/PostHog.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "5DBBF047C94E9DB37B8E5592"
+               BuildableName = "GateTests.xctest"
+               BlueprintName = "GateTests"
+               ReferencedContainer = "container:../../Gate/Gate.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "BEED855349E2806D0D3703BC"
+               BuildableName = "TelemetryTests.xctest"
+               BlueprintName = "TelemetryTests"
+               ReferencedContainer = "container:../../Telemetry/Telemetry.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "197751D9A47E8F0091388FDB"
+               BuildableName = "TickerCoreTests.xctest"
+               BlueprintName = "TickerCoreTests"
+               ReferencedContainer = "container:../TickerCore/TickerCore.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "55CA673FC2AE636864DAFAE6"
+               BuildableName = "TickerTests.xctest"
+               BlueprintName = "TickerTests"
+               ReferencedContainer = "container:Ticker.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "DACDE145B1C60C0B30F35914"
+               BuildableName = "TickerUITests.xctest"
+               BlueprintName = "TickerUITests"
+               ReferencedContainer = "container:Ticker.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "NO"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "3A4D0B1F69D65EDA45F7E5C8"
+            BuildableName = "Gate.framework"
+            BlueprintName = "Gate"
+            ReferencedContainer = "container:../../Gate/Gate.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = ""
+      useCustomWorkingDirectory = "NO"
+      debugDocumentVersioning = "YES">
+      <MacroExpansion>
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "3A4D0B1F69D65EDA45F7E5C8"
+            BuildableName = "Gate.framework"
+            BlueprintName = "Gate"
+            ReferencedContainer = "container:../../Gate/Gate.xcodeproj">
+         </BuildableReference>
+      </MacroExpansion>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>

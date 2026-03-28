@@ -366,6 +366,9 @@ extension TickerSchedule {
 // MARK: - TickerCountdown
 
 struct TickerCountdown: Codable, Hashable {
+    /// Default post-alert (ringing) duration: 5 minutes
+    static let defaultPostAlertInterval: TimeInterval = 300
+
     var preAlert: CountdownDuration?
     var postAlert: PostAlertBehavior?
 
@@ -494,16 +497,16 @@ extension Ticker {
         guard let countdown = countdown else { return nil }
 
         let preAlert = countdown.preAlert?.interval
-        let postAlert: TimeInterval? = {
+        let postAlert: TimeInterval = {
             switch countdown.postAlert {
             case .snooze(let duration), .repeat(let duration):
                 return duration.interval
             case .openApp, .none:
-                return nil
+                return TickerCountdown.defaultPostAlertInterval
             }
         }()
 
-        guard preAlert != nil || postAlert != nil else { return nil }
+        guard preAlert != nil else { return nil }
         return .init(preAlert: preAlert, postAlert: postAlert)
     }
 
