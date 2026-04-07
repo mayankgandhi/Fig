@@ -25,7 +25,7 @@
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
       <PathRunnable
-         FilePath = "/Users/mayankgandhi/.local/share/mise/installs/tuist/4.99.0/bin/tuist"
+         FilePath = "/Users/mayankgandhi/.local/share/mise/installs/tuist/4.118.1/bin/tuist"
          runnableDebuggingMode = "0">
       </PathRunnable>
       <CommandLineArguments>
