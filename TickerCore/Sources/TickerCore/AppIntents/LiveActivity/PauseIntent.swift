@@ -15,7 +15,11 @@ import AppIntents
 @available(iOS 26.0, *)
 public struct PauseIntent: LiveActivityIntent {
     public func perform() throws -> some IntentResult {
-        try AlarmManager.shared.pause(id: UUID(uuidString: alarmID)!)
+        guard let alarmUUID = UUID(uuidString: alarmID) else {
+            print("⚠️ [PauseIntent] Invalid alarmID string: '\(alarmID)'")
+            throw IntentError.invalidAlarmID
+        }
+        try AlarmManager.shared.pause(id: alarmUUID)
         return .result()
     }
 

@@ -15,7 +15,11 @@ import AppIntents
 @available(iOS 26.0, *)
 public struct ResumeIntent: LiveActivityIntent {
     public func perform() throws -> some IntentResult {
-        try AlarmManager.shared.resume(id: UUID(uuidString: alarmID)!)
+        guard let alarmUUID = UUID(uuidString: alarmID) else {
+            print("⚠️ [ResumeIntent] Invalid alarmID string: '\(alarmID)'")
+            throw IntentError.invalidAlarmID
+        }
+        try AlarmManager.shared.resume(id: alarmUUID)
         return .result()
     }
 
