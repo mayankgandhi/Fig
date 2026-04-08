@@ -23,11 +23,14 @@ struct AlarmControls: View {
             switch state.mode {
                 case .countdown:
                     ButtonView(config: presentation.countdown?.pauseButton, intent: PauseIntent(alarmID: state.alarmID.uuidString), tint: TickerColor.paused)
-                  
+
                 case .paused:
                     ButtonView(config: presentation.paused?.resumeButton, intent: ResumeIntent(alarmID: state.alarmID.uuidString), tint: TickerColor.running)
-                    
-                default:
+
+                case .alert:
+                    EmptyView()
+
+                @unknown default:
                     EmptyView()
             }
             
