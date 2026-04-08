@@ -41,8 +41,8 @@ public enum TickerColor {
     /// Success state - vibrant lime
     public static let success = Color(red: 0.518, green: 0.800, blue: 0.086) // #84CC16
     
-    /// Warning state - bright amber
-    public static let warning = Color(red: 0.965, green: 0.620, blue: 0.043) // #F59E0B
+    /// Warning state - red
+    public static let warning = Color(red: 0.937, green: 0.267, blue: 0.267) // #EF4444
     
     /// Danger/destructive - hot pink (less aggressive than red)
     public static let danger = Color(red: 0.925, green: 0.247, blue: 0.600) // #EC4899
@@ -55,8 +55,8 @@ public enum TickerColor {
     /// Running - electric lime
     public static let running = Color(red: 0.518, green: 0.800, blue: 0.086) // #84CC16
     
-    /// Paused - warm orange
-    public static let paused = Color(red: 0.984, green: 0.573, blue: 0.235) // #FB923C
+    /// Paused - slate blue-gray
+    public static let paused = Color(red: 0.580, green: 0.639, blue: 0.722) // #94A3B8
     
     /// Alerting - bright fuchsia
     public static let alerting = Color(red: 0.851, green: 0.275, blue: 0.937) // #D946EF
