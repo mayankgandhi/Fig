@@ -7,7 +7,6 @@
 
 import AlarmKit
 import AppIntents
-import SwiftData
 
 /// An intent that opens the app and stops the alarm
 ///
@@ -17,28 +16,12 @@ import SwiftData
 @available(iOS 26.0, *)
 public struct OpenAlarmAppIntent: LiveActivityIntent {
     
-    
-    private func getSharedModelContext() -> ModelContext {
-        // Get shared ModelContainer for App Groups access
-        let schema = Schema([Ticker.self])
-        let modelConfiguration: ModelConfiguration
-        
-        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.m.fig") {
-            modelConfiguration = ModelConfiguration(schema: schema, url: sharedURL.appendingPathComponent("Ticker.sqlite"))
-        } else {
-            modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        }
-        
-        do {
-            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
-            return ModelContext(container)
-        } catch {
-            fatalError("Could not create ModelContext: \(error)")
-        }
-    }
-    
+
     public func perform() throws -> some IntentResult {
-        let alarmUUID = UUID(uuidString: alarmID)!
+        guard let alarmUUID = UUID(uuidString: alarmID) else {
+            print("⚠️ [OpenAlarmAppIntent] Invalid alarmID string: '\(alarmID)'")
+            throw IntentError.invalidAlarmID
+        }
         print("🛑 OpenAlarmAppIntent.perform() called with alarmID: \(alarmUUID)")
 
         // Stop the alarm using AlarmManager
@@ -49,7 +32,7 @@ public struct OpenAlarmAppIntent: LiveActivityIntent {
     }
     
     public static var title: LocalizedStringResource = "Open App"
-    public static var description = IntentDescription("Opens the Sample app")
+    public static var description = IntentDescription("Opens the Ticker app")
     public static var openAppWhenRun = true
     
     @Parameter(title: "alarmID")
