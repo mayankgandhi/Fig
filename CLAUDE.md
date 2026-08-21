@@ -10,7 +10,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Bundle ID**: m.fig
 **Deployment Target**: iOS 26.0+
 **Build System**: Tuist (for project generation)
-**Swift Version**: 6.0
+**Swift Version**: Toolchain 6.0 (`Tuist.swift`), but targets compile in **Swift 5 language
+mode** — `SWIFT_VERSION = 5.0` in the generated project. Tuist's `swiftVersion:` selects the
+toolchain, not the language mode. TickerCore additionally sets
+`SWIFT_STRICT_CONCURRENCY = complete`, so it gets full concurrency diagnostics without the
+language-mode flip. Do not claim Swift 6 semantics apply project-wide.
 
 ## Architecture
 
@@ -45,17 +49,28 @@ Located in `TickerCore/Sources/TickerCore/`
 **Purpose**: Shared business logic and models used across all targets (app, widgets, extensions)
 
 **Key Components**:
-- `Ticker.swift` - Core `Ticker` SwiftData model with schedule, countdown, and presentation configuration
+- `Models/Ticker.swift` - Core `Ticker` SwiftData model with schedule, countdown, and presentation configuration. `alarmKitSchedule` is the single predicate for "can AlarmKit express this natively?" — `usesNativeAlarmKitSchedule` derives from it, and nothing should reimplement that test
+- `Models/TickerSchema.swift` - **The only place** that builds a `Schema` or opens the App Group store. Four sites used to do it independently with disagreeing model sets; a mismatch risks an unrecoverable launch crash. Owns `VersionedSchema` + `SchemaMigrationPlan`
+- `Models/AlarmBudget.swift` - Global (64) and per-ticker (32) caps on armed alarms, keeping the app clear of AlarmKit's own opaque limit
+- `Services/AlarmScheduling.swift` - Protocol seam over `AlarmManager`, which cannot be constructed or subclassed. Without it no alarm error path is testable; `Container.alarmManager` vends `any AlarmScheduling`
+- `Services/AlarmTelemetry.swift` - Telemetry facade + `AlarmReactionRecorder`. TickerCore raises events; the app target installs a PostHog sink
+- `Services/AlarmFireDetector.swift` - Answers "did alarms fire?" by absence inference over `AlarmOccurrenceLog` plus drained intent reactions. **Not** `alarmUpdates`, which is in-process only and cannot observe a fire while the app is dead
+- `Services/AlarmScheduleMigration.swift` - One-shot upgrade of expansion-backed weekday tickers to native recurrence. Cancels, verifies the cancel landed, then arms — skipping the ticker if verification fails, because arming over a live alarm means two alerts
 - `AlarmMetadata.swift` - Shared data structures for alarm state synchronization
 - `TickerScheduleExpander.swift` - Logic for expanding alarm schedules
 - `AlarmOccurrenceService.swift` - Calculates alarm occurrences
 - `AlarmHealth.swift` - Health monitoring for alarms
-- `TickerDesignSystem.swift` - Centralized design tokens and Liquid Glass components
+- `UI/TickerDesignSystem.swift` - Centralized design tokens and Liquid Glass components
 - `ClockView.swift` - Shared clock UI component
 - `UpcomingAlarmPresentation.swift` - Shared UI for upcoming alarms
 - `ActivityIconMapper.swift` - Maps activities to icons
-- `AlarmGenerationStrategy.swift` - Strategies for generating alarms
-- `RegenerationRateLimiter.swift` - Rate limiting for alarm regeneration
+- `Models/AlarmGenerationStrategy.swift` - Strategies for generating alarms
+- `Utilities/RegenerationRateLimiter.swift` - Rate limiting for alarm regeneration
+
+**Note on `Shared/`**: the top-level `Shared/` directory is **not compiled into any
+target** — no `Project.swift` sources glob references it. It holds stale duplicates of
+`TickerDesignSystem.swift`, `Font+SFProRounded.swift`, `Ticker.swift` and others. Edit the
+`TickerCore/Sources/TickerCore/` copies; editing `Shared/` changes nothing at runtime.
 
 ### 3. TickerWidgets (App Extension Target)
 Located in `TickerWidgets/Sources/`
@@ -154,13 +169,50 @@ tuist install
 - Dependencies are managed via `Tuist/Package.swift`
 - The workspace includes Ticker, TickerCore, and TickerWidgets targets
 
+## Testing
+
+**Run the suite** (the TickerCore scheme holds the alarm tests):
+
+```bash
+tuist generate --no-open   # required after any Project.swift change
+xcodebuild test -workspace Ticker.xcworkspace -scheme TickerCore \
+  -destination "platform=iOS Simulator,name=iPhone 17 Pro"
+```
+
+Current state: **293 tests, 0 failures**.
+
+**Conventions**
+- XCTest, one file per subject, `test_subject_behaviour` or `testSubject_Behaviour` naming
+- `FakeAlarmScheduler` (in `TestAlarmFactory.swift`) substitutes for `AlarmManager` via
+  `Container.shared.alarmManager.register { ... }`. It can inject `scheduleError`,
+  `cancelError` and `scheduleLimit`, which is how the error paths are reachable at all
+- `TestAlarmFactory.makeAlarm` builds real `AlarmKit.Alarm` values by round-tripping JSON
+  through `Codable` — `Alarm` has no public initializer
+- `TestModelContextFactory` gives an in-memory `ModelContext`
+- Tests touching `AlarmOccurrenceLog`, `AlarmReactionRecorder` or `AlarmScheduleMigration`
+  write to the **shared App Group defaults**, which are process-global. Clear their keys in
+  `setUp` and `tearDown` or they leak between tests
+- Inject a fixed clock rather than reading wall time. A wall-time test in
+  `TickerConfigurationParserTests` passed all day and failed only between 22:00 and midnight
+
+**Expectations**
+- New function → a test. Bug fix → a regression test. New error path → a test that triggers it
+- New conditional → tests for both branches
+- Never commit code that makes existing tests fail
+
+**Not unit-testable — needs a real device** (`/ios-qa`): the five `LiveActivityIntent`s run in
+a short-lived process no unit test can host, and AlarmKit draws its own system alert. Live
+Activity rendering, Dynamic Island layout, and the weekday upgrade's double-alert behaviour
+all have to be verified on hardware.
+
 ## SwiftData Usage
 
 The app uses SwiftData for persistent alarm storage:
-- Primary model: `Ticker` (defined in `TickerCore/Sources/TickerCore/Ticker.swift`)
-- Models use the `@Model` macro (Swift 6.0)
-- The `ModelContainer` is configured in `Ticker/Sources/App/figApp.swift` with persistent storage
-- Schema: `Schema([Ticker.self])`
+- Primary model: `Ticker` (defined in `TickerCore/Sources/TickerCore/Models/Ticker.swift`)
+- Models use the `@Model` macro
+- The `ModelContainer` comes from `TickerSchema.makeSharedContainer()`, called in `Ticker/Sources/App/figApp.swift`
+- Schema: **always** `TickerSchema.current` — never construct `Schema([...])` directly. Three processes (app, widget, intents) open one store, and whichever opens first after an update decides how it migrates
+- Opening the store returns an error rather than trapping. A `fatalError` here is a launch crash loop whose only remedy is deleting the app, which takes every alarm with it
 - Shared app group storage at `group.m.fig` container for cross-target access
 - Views access data using `@Query` for fetching and `@Environment(\.modelContext)` for mutations
 - AlarmKit integration via `generatedAlarmKitIDs` property for bidirectional sync
