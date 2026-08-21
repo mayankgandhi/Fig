@@ -357,6 +357,12 @@ public final class TickerService {
             print("   → Canceling alarm ID: \(id)")
             try? alarmManager.cancel(id: id)
         }
+
+        // Retire their occurrence-log entries along with them. An entry left
+        // behind for a cancelled alarm is later read as "past and no longer
+        // armed" — the exact signature of a fire — so editing an alarm would
+        // report a fire that never happened.
+        AlarmOccurrenceLog.remove(alarmIDs: alarmItem.generatedAlarmKitIDs)
         
         // Save to SwiftData first
         print("   → Saving to SwiftData...")
@@ -404,6 +410,14 @@ public final class TickerService {
                     print("   → Scheduling with AlarmKit...")
                     _ = try await alarmManager.schedule(id: uniqueAlarmID, configuration: configuration)
                     alarmItem.generatedAlarmKitIDs = [uniqueAlarmID]
+
+                    // Same bookkeeping scheduleSimpleAlarm does. Without it an
+                    // edited one-shot alarm is absent from the occurrence log,
+                    // so when it does fire there is nothing to infer it from and
+                    // the fire goes uncounted.
+                    if case .fixed(let fireDate)? = alarmItem.alarmKitSchedule {
+                        AlarmOccurrenceLog.record(alarmID: uniqueAlarmID, fireDate: fireDate)
+                    }
                     print("   → Simple schedule rescheduled successfully with unique ID: \(uniqueAlarmID)")
                 } else {
                     print("   → Using collection schedule rescheduling via regeneration service")
@@ -472,7 +486,13 @@ public final class TickerService {
                         print("   ⚠️ Failed to cancel AlarmKit alarm \(generatedID): \(error)")
                     }
                 }
-                
+
+                // Drop their occurrence-log entries too. A cancelled alarm is
+                // "past and no longer armed" once its date rolls by, which is
+                // indistinguishable from a fire — so deleting an alarm would
+                // later be counted as that alarm having rung.
+                AlarmOccurrenceLog.remove(alarmIDs: generatedIDs)
+
                 // Delete from SwiftData
                 print("   → Deleting from SwiftData...")
                 context.delete(alarmItem)

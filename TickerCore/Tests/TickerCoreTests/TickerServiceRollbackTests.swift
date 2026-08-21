@@ -179,6 +179,71 @@ final class TickerServiceRollbackTests: XCTestCase {
         )
     }
 
+    // MARK: - Occurrence-log lifecycle (adversarial review)
+
+    /// A cancelled alarm that stays in the occurrence log is later read as
+    /// "past and no longer armed" — the exact signature of a fire. Deleting an
+    /// alarm would therefore be reported as that alarm having rung, inflating
+    /// the one metric this release exists to produce.
+    @MainActor
+    func test_cancelAlarm_removesTheOccurrenceFromTheLog() async throws {
+        let key = "scheduledAlarmOccurrences"
+        let defaults = UserDefaults(suiteName: TickerSchema.appGroupIdentifier)
+        defaults?.removeObject(forKey: key)
+        defer { defaults?.removeObject(forKey: key) }
+
+        let ticker = makeTicker()
+        let context = try TestModelContextFactory.createContextWithTickers([ticker])
+
+        let service = TickerService()
+        try await service.scheduleAlarm(from: ticker, context: context)
+        let armedID = try XCTUnwrap(ticker.generatedAlarmKitIDs.first)
+        XCTAssertTrue(AlarmOccurrenceLog.all().contains { $0.alarmID == armedID })
+
+        try await service.cancelAlarm(id: ticker.id, context: context)
+
+        XCTAssertFalse(
+            AlarmOccurrenceLog.all().contains { $0.alarmID == armedID },
+            "A cancelled alarm must leave the log, or its passing date is counted as a fire"
+        )
+    }
+
+    /// Editing an alarm cancels and re-arms it under a fresh occurrence ID. The
+    /// old entry has to go and the new one has to be written, or the edited
+    /// alarm both reports a phantom fire (old ID) and fails to report its real
+    /// one (new ID missing from the log).
+    @MainActor
+    func test_updateAlarm_swapsTheOccurrenceLogEntryForTheNewID() async throws {
+        let key = "scheduledAlarmOccurrences"
+        let defaults = UserDefaults(suiteName: TickerSchema.appGroupIdentifier)
+        defaults?.removeObject(forKey: key)
+        defer { defaults?.removeObject(forKey: key) }
+
+        let ticker = makeTicker()
+        let context = try TestModelContextFactory.createContextWithTickers([ticker])
+
+        let service = TickerService()
+        try await service.scheduleAlarm(from: ticker, context: context)
+        let originalID = try XCTUnwrap(ticker.generatedAlarmKitIDs.first)
+
+        // Edit it: same ticker, a different one-shot time.
+        ticker.schedule = .oneTime(date: Date().addingTimeInterval(7200))
+        try await service.updateAlarm(ticker, context: context)
+
+        let newID = try XCTUnwrap(ticker.generatedAlarmKitIDs.first)
+        XCTAssertNotEqual(newID, originalID, "An edit re-arms under a fresh occurrence ID")
+
+        let logged = Set(AlarmOccurrenceLog.all().map(\.alarmID))
+        XCTAssertFalse(
+            logged.contains(originalID),
+            "The superseded occurrence must not linger and be counted as a fire"
+        )
+        XCTAssertTrue(
+            logged.contains(newID),
+            "The replacement occurrence must be logged, or its real fire is never counted"
+        )
+    }
+
     // MARK: - Cancellation
 
     @MainActor
