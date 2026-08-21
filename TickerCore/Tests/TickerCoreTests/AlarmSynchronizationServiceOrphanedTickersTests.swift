@@ -35,44 +35,34 @@ final class AlarmSynchronizationServiceOrphanedTickersTests: XCTestCase {
     
     // MARK: - Orphaned Tickers Tests
     
-    func testSynchronize_DeletesOrphanedTicker_NoMatchingAlarms() async throws {
+    func testSynchronize_RetainsOrphanedTicker_WhenNoAlarmsAreArmed() async throws {
         // Given: Ticker in SwiftData but no matching alarms in AlarmManager
         let ticker = Ticker.mockDailyMorning
         let tickerID = ticker.id
-        
+
         let context = try TestModelContextFactory.createContextWithTickers([ticker])
         mockStateManager.mockAlarms = [] // No alarms
-        
+
         // When
         await service.synchronize(
             alarmManager: alarmManager,
             stateManager: mockStateManager,
             context: context
         )
-        
-        // Then: Ticker should be deleted if it has no upcoming alarms
-        let descriptor = FetchDescriptor<Ticker>()
-        let tickers = try context.fetch(descriptor)
-        
-        // Check if ticker has upcoming alarms
-        if let schedule = ticker.schedule {
-            let expander = TickerScheduleExpander()
-            let oneYear: TimeInterval = 365 * 24 * 3600
-            let upcomingDates = expander.expandSchedule(
-                schedule,
-                withinCustomWindow: Date(),
-                duration: oneYear,
-                maxAlarms: 1
-            )
-            
-            if upcomingDates.isEmpty {
-                // No upcoming alarms - should be deleted
-                XCTAssertTickersNotExist(in: context, tickerIDs: [tickerID])
-            } else {
-                // Has upcoming alarms - should be kept
-                XCTAssertTickersExist(in: context, tickerIDs: [tickerID])
-            }
-        }
+
+        // Then: the row survives unconditionally. Reconciliation no longer calls
+        // context.delete at all, so this is asserted flatly rather than
+        // re-deriving the expected outcome from the same expander the service
+        // uses — a test that computes its own expectation from production logic
+        // passes whichever way the logic goes.
+        XCTAssertTickersExist(in: context, tickerIDs: [tickerID])
+
+        // A daily ticker still has upcoming occurrences, so it stays enabled.
+        let stored = try context.fetch(FetchDescriptor<Ticker>())
+        XCTAssertTrue(
+            try XCTUnwrap(stored.first { $0.id == tickerID }).isEnabled,
+            "A ticker with upcoming occurrences must not be retired"
+        )
     }
     
     func testSynchronize_KeepsTicker_WithUpcomingAlarms() async throws {
@@ -143,7 +133,7 @@ final class AlarmSynchronizationServiceOrphanedTickersTests: XCTestCase {
         XCTAssertTickersExist(in: context, tickerIDs: [tickerID])
     }
     
-    func testSynchronize_DeletesTicker_WithNoSchedule() async throws {
+    func testSynchronize_RetainsTicker_WithNoSchedule() async throws {
         // Given: Ticker with nil schedule
         let ticker = Ticker.mockNoSchedule
         let tickerID = ticker.id
@@ -247,7 +237,7 @@ final class AlarmSynchronizationServiceOrphanedTickersTests: XCTestCase {
     
     // MARK: - Multiple Orphaned Tickers
     
-    func testSynchronize_DeletesMultipleOrphanedTickers() async throws {
+    func testSynchronize_RetiresMultipleSpentTickers() async throws {
         // Given: Multiple tickers with no matching alarms
         let pastTicker1 = Ticker.mockOneTimePast
         let pastTicker2 = Ticker(
