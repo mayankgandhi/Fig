@@ -122,6 +122,9 @@ public final class TickerService {
     
     // MARK: - Schedule Management
     
+    /// `@MainActor` because it mutates SwiftData models through a main-actor
+    /// `ModelContext` that SwiftUI `@Query` reads concurrently.
+    @MainActor
     public func scheduleAlarm(from alarmItem: Ticker, context: ModelContext) async throws {
         print("🔔 TickerService.scheduleAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
@@ -139,12 +142,14 @@ public final class TickerService {
         }
         
         // 2. Determine if this is a simple or collection schedule
-        guard let schedule = alarmItem.schedule else {
+        guard alarmItem.schedule != nil else {
             print("   ❌ No schedule found")
             throw TickerServiceError.invalidConfiguration
         }
 
-        let isSimpleSchedule = isSimple(schedule)
+        // Derived from `alarmKitSchedule` rather than a parallel switch, so the
+        // two can never disagree about which schedules AlarmKit handles natively.
+        let isSimpleSchedule = alarmItem.usesNativeAlarmKitSchedule
         print("   → isSimpleSchedule: \(isSimpleSchedule)")
 
         if isSimpleSchedule {
@@ -161,6 +166,7 @@ public final class TickerService {
     
     // MARK: - Private Scheduling Methods
     
+    @MainActor
     private func scheduleSimpleAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         print("   🔧 scheduleSimpleAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
@@ -179,39 +185,54 @@ public final class TickerService {
         }
         print("   → Configuration built successfully")
         
+        // Tracks whether THIS call inserted the row. The rollback below may only
+        // remove a row it created — deleting a pre-existing, user-authored ticker
+        // because a reschedule failed is data loss, not a rollback.
+        var didInsert = false
+
         // Schedule with AlarmKit using the unique ID
         do {
             print("   → Scheduling with AlarmKit...")
             _ = try await alarmManager.schedule(id: uniqueAlarmID, configuration: configuration)
             print("   → AlarmKit scheduling successful")
-            
+
+            // One-shot alarms disappear from AlarmKit once they fire, which is what
+            // makes absence inference work. Recurring `.relative` alarms stay armed,
+            // so there is nothing to infer and nothing to record.
+            if case .fixed(let fireDate)? = alarmItem.alarmKitSchedule {
+                AlarmOccurrenceLog.record(alarmID: uniqueAlarmID, fireDate: fireDate)
+            }
+
             // Store the generated ID in the ticker's generatedAlarmKitIDs array
             alarmItem.generatedAlarmKitIDs = [uniqueAlarmID]
             alarmItem.isEnabled = true
             print("   → Updated alarmItem properties with unique alarm ID: \(uniqueAlarmID)")
-            
+
             // Save to SwiftData on main thread
             print("   → Saving to SwiftData...")
-            await MainActor.run {
-                // Check if item is already in context before inserting
-                let allItemsDescriptor = FetchDescriptor<Ticker>()
-                let allItems = try? context.fetch(allItemsDescriptor)
-                let existingItems = allItems?.filter { $0.id == alarmItem.id }
-                if existingItems?.isEmpty ?? true {
-                    context.insert(alarmItem)
-                    print("   → Inserted new alarm into context")
-                } else {
-                    print("   → Alarm already exists in context, updating in place")
-                }
-                try? context.save()
+            // Already on the main actor, so no hop is needed. This also replaces a
+            // full `FetchDescriptor<Ticker>()` table scan plus in-memory filter,
+            // which ran on the main thread once per scheduled alarm — and once per
+            // child when a collection was created.
+            let existingID = alarmItem.id
+            var existsDescriptor = FetchDescriptor<Ticker>(
+                predicate: #Predicate<Ticker> { $0.id == existingID }
+            )
+            existsDescriptor.fetchLimit = 1
+            let alreadyStored = !((try? context.fetch(existsDescriptor)) ?? []).isEmpty
+            if alreadyStored {
+                print("   → Alarm already exists in context, updating in place")
+            } else {
+                context.insert(alarmItem)
+                print("   → Inserted new alarm into context")
+                didInsert = true
             }
+            try? context.save()
             print("   → SwiftData save successful")
 
             // Refresh widget timelines on main thread
             print("   → Refreshing widget timelines...")
-            await MainActor.run {
-                refreshWidgetTimelines()
-            }
+            refreshWidgetTimelines()
             print("   → Widget timelines refreshed")
 
         } catch let error as TickerServiceError {
@@ -220,25 +241,36 @@ public final class TickerService {
         } catch {
             print("   ❌ General error")
             dump(error)
-            print("   → Rolling back SwiftData changes...")
-            // Rollback: remove from SwiftData if scheduling failed
-            // Only delete if we just inserted it
-            let alarmID = alarmItem.id
-            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
-                ticker.id == alarmID
-            })
-            if let existingItem = try? context.fetch(descriptor).first {
-                context.delete(existingItem)
-                try? context.save()
+            // Rollback is limited to rows this call created. A pre-existing ticker
+            // stays put: a failed reschedule must never destroy the user's alarm.
+            if didInsert {
+                print("   → Rolling back the row this call inserted...")
+                let alarmID = alarmItem.id
+                let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
+                    ticker.id == alarmID
+                })
+                if let existingItem = try? context.fetch(descriptor).first {
+                    context.delete(existingItem)
+                    try? context.save()
+                }
+            } else {
+                print("   → Pre-existing ticker preserved (no rollback delete)")
             }
             throw TickerServiceError.schedulingFailed(underlying: error)
         }
         print("   ✅ scheduleSimpleAlarm() completed successfully")
     }
     
+    @MainActor
     private func scheduleCollectionAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         print("   🔧 scheduleCollectionAlarm() using regeneration service")
-        
+
+        // See scheduleSimpleAlarm: rollback may only remove a row this call created.
+        // TickerCollectionService re-enables existing child tickers through here, and
+        // `parentTickerCollection` is the inverse of a `.cascade` relationship — so a
+        // rollback delete could take out the whole collection.
+        var didInsert = false
+
         // Use the regeneration service to handle alarm generation with the new 48-hour window approach
         do {
             // Force regeneration since this is a new alarm
@@ -253,51 +285,48 @@ public final class TickerService {
             
             // Save to SwiftData on main thread
             print("   → Saving to SwiftData...")
-            await MainActor.run {
-                // Check if item is already in context before inserting
-                let allItemsDescriptor = FetchDescriptor<Ticker>()
-                let allItems = try? context.fetch(allItemsDescriptor)
-                let existingItems = allItems?.filter { $0.id == alarmItem.id }
-                if existingItems?.isEmpty ?? true {
-                    context.insert(alarmItem)
-                    print("   → Inserted new alarm into context")
-                } else {
-                    print("   → Alarm already exists in context, updating in place")
-                }
-                try? context.save()
+            // Already on the main actor, so no hop is needed. This also replaces a
+            // full `FetchDescriptor<Ticker>()` table scan plus in-memory filter,
+            // which ran on the main thread once per scheduled alarm — and once per
+            // child when a collection was created.
+            let existingID = alarmItem.id
+            var existsDescriptor = FetchDescriptor<Ticker>(
+                predicate: #Predicate<Ticker> { $0.id == existingID }
+            )
+            existsDescriptor.fetchLimit = 1
+            let alreadyStored = !((try? context.fetch(existsDescriptor)) ?? []).isEmpty
+            if alreadyStored {
+                print("   → Alarm already exists in context, updating in place")
+            } else {
+                context.insert(alarmItem)
+                print("   → Inserted new alarm into context")
+                didInsert = true
             }
+            try? context.save()
             print("   → SwiftData save successful")
 
             // Refresh widget timelines on main thread
             print("   → Refreshing widget timelines...")
-            await MainActor.run {
-                refreshWidgetTimelines()
-            }
+            refreshWidgetTimelines()
             print("   → Widget timelines refreshed")
 
         } catch {
             print("   ❌ Collection alarm scheduling failed: \(error)")
-            // Regeneration service handles its own alarm rollback
-            // Just clean up SwiftData record
-            let alarmID = alarmItem.id
-            let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
-                ticker.id == alarmID
-            })
-            if let existingItem = try? context.fetch(descriptor).first {
-                context.delete(existingItem)
-                try? context.save()
-                print("   → Removed alarm from SwiftData")
+            // Regeneration service handles its own alarm rollback.
+            if didInsert {
+                let alarmID = alarmItem.id
+                let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
+                    ticker.id == alarmID
+                })
+                if let existingItem = try? context.fetch(descriptor).first {
+                    context.delete(existingItem)
+                    try? context.save()
+                    print("   → Removed the row this call inserted")
+                }
+            } else {
+                print("   → Pre-existing ticker preserved (no rollback delete)")
             }
             throw TickerServiceError.schedulingFailed(underlying: error)
-        }
-    }
-    
-    private func isSimple(_ schedule: TickerSchedule) -> Bool {
-        switch schedule {
-            case .oneTime, .daily:
-                return true
-            case .hourly, .weekdays, .biweekly, .monthly, .yearly, .every:
-                return false
         }
     }
     
@@ -314,6 +343,7 @@ public final class TickerService {
         return temp
     }
     
+    @MainActor
     public func updateAlarm(_ alarmItem: Ticker, context: ModelContext) async throws {
         print("🔄 TickerService.updateAlarm() started")
         print("   → alarmItem ID: \(alarmItem.id)")
@@ -349,12 +379,12 @@ public final class TickerService {
                 throw TickerServiceError.notAuthorized
             }
             
-            guard let schedule = alarmItem.schedule else {
+            guard alarmItem.schedule != nil else {
                 print("   ❌ No schedule found")
                 throw TickerServiceError.invalidConfiguration
             }
-            
-            let isSimpleSchedule = isSimple(schedule)
+
+            let isSimpleSchedule = alarmItem.usesNativeAlarmKitSchedule
             print("   → isSimpleSchedule: \(isSimpleSchedule)")
             
             do {
@@ -403,13 +433,12 @@ public final class TickerService {
 
             // Refresh widget timelines on main thread
             print("   → Refreshing widget timelines...")
-            await MainActor.run {
-                refreshWidgetTimelines()
-            }
+            refreshWidgetTimelines()
             print("   → Widget timelines refreshed")
         }
     }
     
+    @MainActor
     public func cancelAlarm(id: UUID, context: ModelContext?) async throws {
         print("🗑️ TickerService.cancelAlarm() started")
         print("   → id: \(id)")
@@ -596,6 +625,54 @@ public final class TickerService {
         )
     }
 
+    /// Runs the once-per-launch maintenance that keeps alarms alive and
+    /// observable: the schedule migration, then fire detection.
+    ///
+    /// Order matters — migration rewrites `generatedAlarmKitIDs`, and detection
+    /// reads AlarmKit state, so detection must see the post-migration world.
+    @MainActor
+    public func runLaunchMaintenance(context: ModelContext) async {
+        await AlarmScheduleMigration.runIfNeeded(
+            alarmManager: alarmManager,
+            stateManager: stateManager,
+            configurationBuilder: configurationBuilder,
+            context: context
+        )
+
+        AlarmFireDetector.detect(
+            alarmManager: alarmManager,
+            stateManager: stateManager,
+            context: context
+        )
+    }
+
+    /// Regenerates alarms for every enabled ticker that needs it.
+    ///
+    /// This is the guaranteed-ish path for expansion-backed schedules. The
+    /// background task is best effort — `BGAppRefreshTask` is opportunistic and
+    /// iOS deprioritises apps the user rarely opens, which is exactly the profile
+    /// of a wake-up alarm. Rate limiting is handled inside the regeneration
+    /// service, so calling this on every foreground is cheap.
+    @MainActor
+    public func regenerateEnabledTickers(context: ModelContext, force: Bool = false) async {
+        let descriptor = FetchDescriptor<Ticker>()
+        guard let tickers = try? context.fetch(descriptor) else { return }
+
+        for ticker in tickers where ticker.isEnabled {
+            // Natively scheduled tickers need no expansion.
+            guard !ticker.usesNativeAlarmKitSchedule else { continue }
+            do {
+                try await regenerationService.regenerateAlarmsIfNeeded(
+                    ticker: ticker,
+                    context: context,
+                    force: force
+                )
+            } catch {
+                print("⚠️ Regeneration failed for '\(ticker.displayName)': \(error)")
+            }
+        }
+    }
+
     /// Manually trigger synchronization
     /// Uses AlarmManager.alarms as source of truth
     /// Call this when app comes to foreground or after stopping an alarm
@@ -610,37 +687,82 @@ public final class TickerService {
 }
 
 extension Alarm {
+    /// The next moment this alarm will alert.
+    ///
+    /// Recurrence-aware. The previous implementation ignored
+    /// `Relative.repeats` entirely and always answered "today, or tomorrow if
+    /// that time has passed" — which was harmless while every recurring schedule
+    /// was expanded into `.fixed` alarms, but wrong the moment `.weekdays` maps
+    /// natively: a Mon-Fri alarm would report "tomorrow at 7am" on a Saturday in
+    /// both the widget and the Today view.
     public var alertingTime: Date? {
         guard let schedule else { return nil }
-        
-        let calendar = Calendar.current
+
+        // `autoupdatingCurrent` so a timezone change is picked up rather than
+        // frozen at first access.
+        let calendar = Calendar.autoupdatingCurrent
         let now = Date()
-        
+
         switch schedule {
             case .fixed(let date):
                 return date
+
             case .relative(let relative):
-                // Get today's date with the specified hour/minute
-                var components = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: now)
+                let allowedWeekdays: Set<Locale.Weekday>? = {
+                    switch relative.repeats {
+                    case .weekly(let days):
+                        return days.isEmpty ? nil : Set(days)
+                    case .never:
+                        return nil
+                    @unknown default:
+                        return nil
+                    }
+                }()
+
+                var components = calendar.dateComponents([.year, .month, .day], from: now)
                 components.hour = relative.time.hour
                 components.minute = relative.time.minute
                 components.second = 0
-                
-                guard var alarmDate = calendar.date(from: components) else {
+
+                guard let todayAtTime = calendar.date(from: components) else {
                     return nil
                 }
-                
-                // If the alarm time has passed today, move to tomorrow
-                if alarmDate <= now {
-                    guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: alarmDate) else {
-                        return alarmDate // Fallback to today if tomorrow calculation fails
+
+                // Walk forward a full week to find the next matching occurrence.
+                for dayOffset in 0...7 {
+                    guard let candidate = calendar.date(byAdding: .day, value: dayOffset, to: todayAtTime),
+                          candidate > now else {
+                        continue
                     }
-                    alarmDate = tomorrow
+                    guard let allowedWeekdays else {
+                        return candidate
+                    }
+                    let weekdayIndex = calendar.component(.weekday, from: candidate)
+                    if let weekday = Locale.Weekday(calendarWeekday: weekdayIndex),
+                       allowedWeekdays.contains(weekday) {
+                        return candidate
+                    }
                 }
-                
-                return alarmDate
+                return nil
+
             @unknown default:
                 return nil
+        }
+    }
+}
+
+extension Locale.Weekday {
+    /// Maps `Calendar`'s 1-based weekday component (1 = Sunday) to `Locale.Weekday`.
+    init?(calendarWeekday: Int) {
+        switch calendarWeekday {
+        case 1: self = .sunday
+        case 2: self = .monday
+        case 3: self = .tuesday
+        case 4: self = .wednesday
+        case 5: self = .thursday
+        case 6: self = .friday
+        case 7: self = .saturday
+        default: return nil
         }
     }
 }

@@ -155,7 +155,11 @@ public final class Ticker {
 // MARK: - TickerCountdown
 
 public struct TickerCountdown: Codable, Hashable {
-    /// Default post-alert (ringing) duration: 5 minutes
+    /// Default repeat/snooze countdown applied after an alert: 5 minutes.
+    ///
+    /// This is NOT the ringing duration — that is controlled by the system and
+    /// cannot be configured. The old name and comment ("post-alert (ringing)
+    /// duration") described behaviour AlarmKit does not have.
     public static let defaultPostAlertInterval: TimeInterval = 300
 
     public var preAlert: CountdownDuration?
@@ -303,57 +307,133 @@ public struct TickerPresentation: Codable, Hashable {
 // MARK: - AlarmKit Conversion
 
 extension Ticker {
+
+    /// The one predicate that decides whether this ticker has a countdown, used
+    /// by both the presentation and the countdown duration.
+    ///
+    /// These used to disagree: `AlarmConfigurationBuilder.buildPresentation`
+    /// gated on `countdown != nil` while `alarmKitCountdownDuration` gated on
+    /// `countdown.preAlert != nil`. A ticker with a countdown but no pre-alert
+    /// therefore handed AlarmKit a countdown *presentation* with a nil countdown
+    /// *duration* — and, if the user picked the Repeat button, a `.countdown`
+    /// secondary behavior with nothing to count.
+    public var hasPreAlertCountdown: Bool {
+        countdown?.preAlert != nil
+    }
+
     @available(iOS 26.0, *)
     public var alarmKitCountdownDuration: Alarm.CountdownDuration? {
         guard let countdown = countdown else { return nil }
 
         let preAlert = countdown.preAlert?.interval
-        let postAlert: TimeInterval = {
+
+        // `postAlert` is the repeat/snooze countdown that runs *after* the alert.
+        // It is not the ring duration — AlarmKit controls how long an alarm rings
+        // and it is not configurable.
+        let postAlert: TimeInterval? = {
             switch countdown.postAlert {
             case .snooze(let duration), .repeat(let duration):
                 return duration.interval
-            case .openApp, .none:
+            case .openApp:
                 return TickerCountdown.defaultPostAlertInterval
+            case .none:
+                return nil
             }
         }()
 
-        guard preAlert != nil else { return nil }
+        // Previously `guard preAlert != nil` discarded `postAlert` entirely for
+        // any alarm without a pre-alert, so the snooze interval never reached
+        // AlarmKit.
+        guard preAlert != nil || postAlert != nil else { return nil }
         return .init(preAlert: preAlert, postAlert: postAlert)
+    }
+
+    /// True when AlarmKit can express this schedule natively, so it needs no
+    /// expansion into disposable one-time alarms.
+    ///
+    /// This is the single source of truth for "is this a simple schedule?".
+    /// Four separate copies of that question used to exist — two private
+    /// `isSimpleSchedule` helpers plus the implicit ones inside
+    /// `alarmKitSchedule` and `AlarmRegenerationService.queryCurrentAlarms` —
+    /// and they could disagree.
+    @available(iOS 26.0, *)
+    public var usesNativeAlarmKitSchedule: Bool {
+        alarmKitSchedule != nil
     }
 
     @available(iOS 26.0, *)
     public var alarmKitSchedule: Alarm.Schedule? {
         guard let schedule = schedule else { return nil }
 
+        let preAlert = countdown?.preAlert?.interval
+
         switch schedule {
         case .oneTime(let date):
-            // If there's a countdown, schedule the alarm to start the countdown before the actual alarm time
-            if let countdownDuration = countdown?.preAlert?.interval {
-                let countdownStartDate = date.addingTimeInterval(-countdownDuration)
-                return .fixed(countdownStartDate)
+            // With a pre-alert, the alarm has to start counting down early.
+            if let preAlert {
+                return .fixed(date.addingTimeInterval(-preAlert))
             }
             return .fixed(date)
 
         case .daily(let time):
-            // If there's a countdown, adjust the time to start the countdown before the alarm time
-            if let countdownDuration = countdown?.preAlert?.interval {
-                let countdownStartTime = time.addingTimeInterval(-countdownDuration)
-                let alarmTime = Alarm.Schedule.Relative.Time(hour: countdownStartTime.hour, minute: countdownStartTime.minute)
-                return .relative(
-                    .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
-                )
-            } else {
-                let alarmTime = Alarm.Schedule.Relative.Time(hour: time.hour, minute: time.minute)
-                return .relative(
-                    .init(time: alarmTime, repeats: .weekly(TickerSchedule.Weekday.allCases.map{ $0.localeWeekday }))
-                )
-            }
+            return Ticker.relativeSchedule(
+                time: time,
+                days: TickerSchedule.Weekday.allCases,
+                preAlertInterval: preAlert
+            )
 
-        default:
-            // Collection schedules are expanded into multiple one-time alarms
-            // by the TickerService, so they don't need direct AlarmKit mapping
+        case .weekdays(let time, let days):
+            // AlarmKit's `Recurrence.weekly` takes an arbitrary weekday set, so
+            // "Mon-Fri at 7am" maps natively and does not need the regeneration
+            // pipeline at all. This case used to fall through to `default` and
+            // return nil, which put the single most common alarm in the product
+            // onto the expansion path — and therefore at the mercy of a
+            // background task that was never scheduled.
+            guard !days.isEmpty else { return nil }
+            return Ticker.relativeSchedule(
+                time: time,
+                days: days,
+                preAlertInterval: preAlert
+            )
+
+        case .hourly, .every, .biweekly, .monthly, .yearly:
+            // Genuinely inexpressible in AlarmKit; expanded into one-time alarms
+            // by AlarmRegenerationService.
             return nil
         }
+    }
+
+    /// Builds a weekly relative schedule, rotating the weekday set when the
+    /// pre-alert pushes the start time back across midnight.
+    ///
+    /// Example: `.weekdays(00:30, [.monday])` with a 60-minute pre-alert must
+    /// start at 23:30 on **Sunday**. Mapping the weekdays straight through would
+    /// produce 23:30 on Monday and alert on Tuesday — a full day late, every week.
+    @available(iOS 26.0, *)
+    static func relativeSchedule(
+        time: TimeOfDay,
+        days: [TickerSchedule.Weekday],
+        preAlertInterval: TimeInterval?
+    ) -> Alarm.Schedule {
+        let minutesInDay = 24 * 60
+        let preAlertMinutes = Int((preAlertInterval ?? 0) / 60)
+        let rawMinutes = time.hour * 60 + time.minute - preAlertMinutes
+
+        // Floored division so negatives roll back a whole day.
+        let dayOffset = Int(floor(Double(rawMinutes) / Double(minutesInDay)))
+        let normalizedMinutes = ((rawMinutes % minutesInDay) + minutesInDay) % minutesInDay
+
+        let startTime = Alarm.Schedule.Relative.Time(
+            hour: normalizedMinutes / 60,
+            minute: normalizedMinutes % 60
+        )
+
+        let rotatedDays: [Locale.Weekday] = days.map { day in
+            let shifted = (((day.rawValue + dayOffset) % 7) + 7) % 7
+            return (TickerSchedule.Weekday(rawValue: shifted) ?? day).localeWeekday
+        }
+
+        return .relative(.init(time: startTime, repeats: .weekly(rotatedDays)))
     }
 
     @available(iOS 26.0, *)

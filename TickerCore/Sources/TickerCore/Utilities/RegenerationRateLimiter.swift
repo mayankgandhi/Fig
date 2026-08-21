@@ -10,16 +10,28 @@ import Foundation
 
 // MARK: - RegenerationRateLimiter
 
-@Observable
-public class RegenerationRateLimiter {
+/// Process-wide rate limiter for alarm regeneration.
+///
+/// Two problems with the previous implementation:
+///
+/// 1. `recordRegeneration` wrote through `queue.async(flags: .barrier)`, so the
+///    write had not necessarily landed when a different thread called
+///    `canRegenerate` — the limiter could be bypassed exactly when regeneration
+///    triggers fire close together, which is the case it exists to handle.
+/// 2. Its API took `Ticker`, a non-Sendable SwiftData model, and captured it in
+///    a `@Sendable` closure that ran on a background queue. SwiftData models are
+///    bound to the context that created them.
+///
+/// It now keys off `UUID` and takes the lock synchronously for reads and writes.
+public final class RegenerationRateLimiter: @unchecked Sendable {
+
     /// Minimum time between regenerations for the same ticker (in seconds)
     private let minimumInterval: TimeInterval = 3600  // 1 hour
 
     /// Tracks last regeneration time for each ticker ID
     private var lastRegenerationTimes: [UUID: Date] = [:]
 
-    /// Thread-safe access queue
-    private let queue = DispatchQueue(label: "com.fig.regeneration.ratelimiter", attributes: .concurrent)
+    private let lock = NSLock()
 
     // MARK: - Singleton
 
@@ -29,76 +41,47 @@ public class RegenerationRateLimiter {
 
     // MARK: - Rate Limiting
 
-    /// Check if regeneration is allowed for a ticker
-    /// - Parameters:
-    ///   - ticker: The ticker to check
-    ///   - force: If true, bypass rate limiting
-    /// - Returns: True if regeneration is allowed
-    public func canRegenerate(ticker: Ticker, force: Bool = false) -> Bool {
-        // Always allow if forced
-        if force {
-            return true
-        }
+    /// Check if regeneration is allowed for a ticker.
+    public func canRegenerate(tickerID: UUID, force: Bool = false) -> Bool {
+        if force { return true }
 
-        return queue.sync {
-            guard let lastTime = lastRegenerationTimes[ticker.id] else {
-                // Never regenerated before
-                return true
-            }
-
-            let timeSinceLastRegeneration = Date().timeIntervalSince(lastTime)
-            return timeSinceLastRegeneration >= minimumInterval
+        lock.lock(); defer { lock.unlock() }
+        guard let lastTime = lastRegenerationTimes[tickerID] else {
+            return true  // Never regenerated before
         }
+        return Date().timeIntervalSince(lastTime) >= minimumInterval
     }
 
-    /// Record a regeneration attempt for a ticker
-    /// - Parameter ticker: The ticker that was regenerated
-    public func recordRegeneration(for ticker: Ticker) {
-        queue.async(flags: .barrier) {
-            self.lastRegenerationTimes[ticker.id] = Date()
-        }
+    /// Record a regeneration attempt. Synchronous: the next `canRegenerate` on
+    /// any thread must observe it.
+    public func recordRegeneration(for tickerID: UUID) {
+        lock.lock(); defer { lock.unlock() }
+        lastRegenerationTimes[tickerID] = Date()
     }
 
-    /// Get time remaining until regeneration is allowed again
-    /// - Parameter ticker: The ticker to check
-    /// - Returns: Time remaining in seconds, or 0 if regeneration is allowed
-    public func timeUntilNextAllowedRegeneration(for ticker: Ticker) -> TimeInterval {
-        return queue.sync {
-            guard let lastTime = lastRegenerationTimes[ticker.id] else {
-                return 0  // Never regenerated, so allowed now
-            }
-
-            let timeSinceLastRegeneration = Date().timeIntervalSince(lastTime)
-            let remaining = minimumInterval - timeSinceLastRegeneration
-
-            return max(0, remaining)
-        }
+    /// Time remaining until regeneration is allowed again, or 0 if allowed now.
+    public func timeUntilNextAllowedRegeneration(for tickerID: UUID) -> TimeInterval {
+        lock.lock(); defer { lock.unlock() }
+        guard let lastTime = lastRegenerationTimes[tickerID] else { return 0 }
+        return max(0, minimumInterval - Date().timeIntervalSince(lastTime))
     }
 
-    /// Clear the regeneration history for a ticker
-    /// Useful when a ticker is deleted or reset
-    /// - Parameter tickerID: The ID of the ticker to clear
+    /// Clear the regeneration history for a ticker.
     public func clearHistory(for tickerID: UUID) {
-        queue.async(flags: .barrier) {
-            self.lastRegenerationTimes.removeValue(forKey: tickerID)
-        }
+        lock.lock(); defer { lock.unlock() }
+        lastRegenerationTimes.removeValue(forKey: tickerID)
     }
 
-    /// Clear all regeneration history
-    /// Useful for testing or debugging
+    /// Clear all regeneration history. Useful for testing.
     public func clearAllHistory() {
-        queue.async(flags: .barrier) {
-            self.lastRegenerationTimes.removeAll()
-        }
+        lock.lock(); defer { lock.unlock() }
+        lastRegenerationTimes.removeAll()
     }
 
     // MARK: - Debug Information
 
-    /// Get debug information about rate limiting status
-    /// - Parameter ticker: The ticker to check
-    /// - Returns: Human-readable status string
-    public func debugStatus(for ticker: Ticker) -> String {
-        let remaining = timeUntilNextAllowedRegeneration(for: ticker)
+    public func debugStatus(for tickerID: UUID) -> String {
+        let remaining = timeUntilNextAllowedRegeneration(for: tickerID)
 
         if remaining == 0 {
             return "Ready for regeneration"
