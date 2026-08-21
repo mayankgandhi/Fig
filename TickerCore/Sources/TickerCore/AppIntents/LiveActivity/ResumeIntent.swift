@@ -8,32 +8,37 @@
 import AlarmKit
 import AppIntents
 
-/// An intent that resumes a paused countdown alarm
-///
-/// This intent is used in Live Activities and Dynamic Island presentations
-/// to allow users to resume a countdown timer that was previously paused.
+/// An intent that resumes a paused countdown alarm.
 @available(iOS 26.0, *)
 public struct ResumeIntent: LiveActivityIntent {
-    public func perform() throws -> some IntentResult {
-        guard let alarmUUID = UUID(uuidString: alarmID) else {
-            print("⚠️ [ResumeIntent] Invalid alarmID string: '\(alarmID)'")
-            throw IntentError.invalidAlarmID
-        }
-        try AlarmManager.shared.resume(id: alarmUUID)
-        return .result()
-    }
 
-    public static var title: LocalizedStringResource = "Resume"
-    public static var description = IntentDescription("Resume a countdown")
+    public static let title: LocalizedStringResource = "Resume"
+    public static let description = IntentDescription("Resume a countdown")
 
     @Parameter(title: "alarmID")
     public var alarmID: String
+
+    public init() {
+        self.alarmID = ""
+    }
 
     public init(alarmID: String) {
         self.alarmID = alarmID
     }
 
-    public init() {
-        self.alarmID = ""
+    public func perform() throws -> some IntentResult {
+        guard let alarmUUID = UUID(uuidString: alarmID) else {
+            print("⚠️ ResumeIntent: ignoring malformed alarmID '\(alarmID)'")
+            return .result()
+        }
+
+        do {
+            try AlarmManager.shared.resume(id: alarmUUID)
+            AlarmReactionRecorder.record(.resumed, alarmID: alarmUUID)
+        } catch {
+            print("❌ ResumeIntent: failed to resume \(alarmUUID): \(error)")
+        }
+
+        return .result()
     }
 }
