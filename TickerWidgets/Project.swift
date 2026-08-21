@@ -2,7 +2,7 @@ import ProjectDescription
 
 // Configuration
 let widgetsName = "TickerWidgets"
-let version = "1.3"
+let version = "1.4"
 let buildNumber = "1"
 let widgetsBundleId = "m.fig.widgets"
 let developmentTeam = "Q7HVAVTGUP"
