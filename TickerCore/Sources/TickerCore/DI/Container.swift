@@ -17,7 +17,11 @@ public extension Container {
 
     // MARK: - AlarmKit Services
 
-    var alarmManager: Factory<AlarmManager> {
+    /// Vended as `any AlarmScheduling` rather than the concrete `AlarmManager` so
+    /// tests can substitute a fake. `AlarmManager` cannot be constructed or
+    /// subclassed, so without this seam no error path in the alarm pipeline is
+    /// reachable from a test.
+    var alarmManager: Factory<any AlarmScheduling> {
         self { AlarmManager.shared }
             .singleton
     }
