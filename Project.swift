@@ -25,6 +25,16 @@ let project = Project(
                 "CFBundleVersion": .string(buildNumber),
                 "UILaunchScreen": [:],
                 "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire.",
+                // Required for ActivityKit. AlarmKit presents its countdown and alert
+                // UI as a Live Activity, so without this the Dynamic Island and
+                // lock-screen presentations never start.
+                "NSSupportsLiveActivities": .boolean(true),
+                // BGAppRefreshTask needs the `fetch` background mode in addition to
+                // the permitted-identifiers list below. `processing` is deliberately
+                // omitted: no BGProcessingTaskRequest is ever submitted.
+                "UIBackgroundModes": .array([
+                    .string("fetch")
+                ]),
                 "BGTaskSchedulerPermittedIdentifiers": .array([
                     .string("com.fig.alarm.regeneration")
                 ])
