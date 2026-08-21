@@ -626,22 +626,29 @@ public final class TickerService {
     }
 
     /// Runs the once-per-launch maintenance that keeps alarms alive and
-    /// observable: the schedule migration, then fire detection.
+    /// observable: fire detection, then the schedule migration.
     ///
-    /// Order matters — migration rewrites `generatedAlarmKitIDs`, and detection
-    /// reads AlarmKit state, so detection must see the post-migration world.
+    /// Order matters, and detection has to come first. The migration calls
+    /// `AlarmOccurrenceLog.remove` for every alarm a migrated ticker owned, so
+    /// running it first would discard occurrences that had already fired but not
+    /// yet been counted — silently deflating the fire rate on the first launch
+    /// after upgrade, for exactly the `.weekdays` tickers this release converts.
+    ///
+    /// Detecting first cannot over-count in exchange: inference only fires for an
+    /// occurrence that is in the past AND no longer armed, and pre-migration the
+    /// legacy alarms are all still armed.
     @MainActor
     public func runLaunchMaintenance(context: ModelContext) async {
+        AlarmFireDetector.detect(
+            alarmManager: alarmManager,
+            stateManager: stateManager,
+            context: context
+        )
+
         await AlarmScheduleMigration.runIfNeeded(
             alarmManager: alarmManager,
             stateManager: stateManager,
             configurationBuilder: configurationBuilder,
-            context: context
-        )
-
-        AlarmFireDetector.detect(
-            alarmManager: alarmManager,
-            stateManager: stateManager,
             context: context
         )
     }
