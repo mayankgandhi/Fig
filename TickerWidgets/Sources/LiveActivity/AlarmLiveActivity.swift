@@ -104,14 +104,18 @@ struct AlarmLiveActivity: Widget {
         state: AlarmPresentationState
     ) -> some View {
         VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            // The lock screen banner has room to grow, so it uses the design
+            // system's Dynamic Type styles rather than fixed point sizes. The
+            // Dynamic Island surfaces below deliberately keep fixed sizes: those
+            // regions have hard geometry and scaling text clips them.
             HStack(alignment: .firstTextBaseline, spacing: TickerSpacing.sm) {
                 Image(systemName: icon(attributes))
-                    .font(.system(size: 18, weight: .semibold))
+                    .Headline()
                     .foregroundStyle(isAlerting(state.mode) ? TickerColor.alerting : tint(attributes))
                     .accessibilityHidden(true)
 
                 Text(title(attributes))
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .Headline()
                     .lineLimit(1)
 
                 Spacer(minLength: 0)
@@ -142,7 +146,7 @@ struct AlarmLiveActivity: Widget {
             // Fire time leads. It answers "what time is it / why am I awake"
             // before the label answers "which alarm".
             Text(formatted(alert.time))
-                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .LargeTitle()
                 .monospacedDigit()
                 .foregroundStyle(TickerColor.alerting)
                 .lineLimit(1)
@@ -150,7 +154,7 @@ struct AlarmLiveActivity: Widget {
 
         case .countdown(let countdown):
             Text(timerInterval: Date.now...countdown.fireDate, countsDown: true)
-                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .LargeTitle()
                 .monospacedDigit()
                 .foregroundStyle(tint(attributes))
                 .lineLimit(1)
@@ -158,7 +162,7 @@ struct AlarmLiveActivity: Widget {
 
         case .paused(let paused):
             Text(remaining(paused).formatted(pattern(for: remaining(paused))))
-                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .LargeTitle()
                 .monospacedDigit()
                 .foregroundStyle(TickerColor.paused)
                 .lineLimit(1)
