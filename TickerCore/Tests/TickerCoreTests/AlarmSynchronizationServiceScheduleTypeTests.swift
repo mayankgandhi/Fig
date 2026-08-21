@@ -49,18 +49,21 @@ final class AlarmSynchronizationServiceScheduleTypeTests: XCTestCase {
         XCTAssertTickersExist(in: context, tickerIDs: [ticker.id])
     }
     
-    func testSynchronize_OneTimeSchedule_PastDate() async throws {
+    /// Previously asserted deletion. Reconciliation must never destroy a
+    /// user-created row; see
+    /// `testSynchronize_RetainsButDisablesTicker_WithPastOneTimeSchedule`.
+    func testSynchronize_OneTimeSchedule_PastDate_IsRetainedNotDeleted() async throws {
         let ticker = Ticker.mockOneTimePast
         let context = try TestModelContextFactory.createContextWithTickers([ticker])
         mockStateManager.mockAlarms = []
-        
+
         await service.synchronize(
             alarmManager: alarmManager,
             stateManager: mockStateManager,
             context: context
         )
-        
-        XCTAssertTickersNotExist(in: context, tickerIDs: [ticker.id])
+
+        XCTAssertTickersExist(in: context, tickerIDs: [ticker.id])
     }
     
     // MARK: - Daily Schedule Tests

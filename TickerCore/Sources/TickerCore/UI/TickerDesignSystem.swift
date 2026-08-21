@@ -63,6 +63,29 @@ public enum TickerColor {
     
     /// Disabled state - neutral gray
     public static let disabled = Color(red: 0.584, green: 0.584, blue: 0.596) // #959598
+
+    // MARK: - Alert Surface Tokens
+    //
+    // The Dynamic Island is always black regardless of appearance, so anything
+    // drawn there must not derive its colour from `colorScheme`. Routing Island
+    // text through `textPrimary(for:)` returned `absoluteBlack` in light
+    // appearance — black on black on the one surface that must never fail.
+
+    /// Primary text/glyph colour on the Dynamic Island. Fixed, never theme-derived.
+    public static let onIslandPrimary = Color(red: 1.0, green: 1.0, blue: 1.0)
+
+    /// Secondary text on the Dynamic Island.
+    public static let onIslandSecondary = Color(red: 0.78, green: 0.78, blue: 0.80)
+
+    /// Stop-control colour for the alerting state.
+    ///
+    /// `danger` (#EC4899, "hot pink - less aggressive than red") measures 3.66:1
+    /// against white, below the WCAG AA 4.5:1 floor for text. A deliberate brand
+    /// softness that is exactly wrong on the control someone presses half-asleep.
+    public static let stop = Color(red: 0.839, green: 0.145, blue: 0.184) // #D62530
+
+    /// Snooze-control colour for the alerting state.
+    public static let snooze = Color(red: 0.235, green: 0.353, blue: 0.918) // #3C5AEA
     
     // MARK: Text Hierarchy
     

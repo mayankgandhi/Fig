@@ -25,6 +25,12 @@ public enum RegenerationTrigger {
 // MARK: - AlarmRegenerationServiceProtocol
 
 public protocol AlarmRegenerationServiceProtocol {
+    /// `@MainActor` for the same reason as `AlarmSynchronizationService`: this
+    /// reads and writes SwiftData models through a main-actor `ModelContext`.
+    /// Splitting isolation mid-operation (reading `generatedAlarmKitIDs` off-main
+    /// and writing it inside `MainActor.run`) was last-writer-wins against the
+    /// launch sync running concurrently over a second context.
+    @MainActor
     func regenerateAlarmsIfNeeded(
         ticker: Ticker,
         context: ModelContext,
@@ -63,6 +69,7 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     ///   - ticker: The ticker to regenerate alarms for
     ///   - context: SwiftData model context
     ///   - force: If true, bypass rate limiting and regeneration checks
+    @MainActor
     public func regenerateAlarmsIfNeeded(
         ticker: Ticker,
         context: ModelContext,
@@ -77,8 +84,8 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
         }
 
         // Check rate limiting (unless forced)
-        guard force || rateLimiter.canRegenerate(ticker: ticker, force: force) else {
-            let remaining = rateLimiter.timeUntilNextAllowedRegeneration(for: ticker)
+        guard force || rateLimiter.canRegenerate(tickerID: ticker.id, force: force) else {
+            let remaining = rateLimiter.timeUntilNextAllowedRegeneration(for: ticker.id)
             print("   ⏸ Rate limited (retry in \(Int(remaining))s)")
             return
         }
@@ -87,7 +94,7 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
 
         do {
             try await regenerateAlarms(ticker: ticker, context: context)
-            rateLimiter.recordRegeneration(for: ticker)
+            rateLimiter.recordRegeneration(for: ticker.id)
             print("   ✅ Regeneration successful")
         } catch {
             print("   ❌ Regeneration failed: \(error)")
@@ -99,13 +106,26 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     /// - Parameter ticker: The ticker to check
     /// - Returns: True if regeneration is needed
     public func shouldRegenerate(ticker: Ticker) -> Bool {
-        // Use ticker's built-in logic
+        // A natively-expressible schedule is armed as one recurring AlarmKit
+        // alarm and must never be expanded into one-time alarms. Doing so leaves
+        // the recurrence armed (`queryCurrentAlarms` only sees `.fixed` alarms,
+        // so it is never in `toDelete`) while adding expansion alarms for the
+        // same mornings — a double alert.
+        //
+        // Every current caller already filters on this, which is precisely the
+        // problem: the predicate was copied into three call sites and omitted
+        // here, the one place that is public API. Answering correctly at the
+        // source is what stops the next caller getting it wrong.
+        guard !ticker.usesNativeAlarmKitSchedule else { return false }
+
+        // Otherwise defer to the ticker's own staleness logic.
         return ticker.needsRegeneration
     }
 
     // MARK: - Private: Core Regeneration
 
     /// Perform diff-based atomic alarm regeneration
+    @MainActor
     private func regenerateAlarms(ticker: Ticker, context: ModelContext) async throws {
         guard let schedule = ticker.schedule else {
             throw TickerServiceError.invalidConfiguration
@@ -135,24 +155,25 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
             toAdd: toAdd
         )
 
-        // Update ticker state on success
+        // Update ticker state on success. Already on the main actor, so the
+        // previous `MainActor.run` hop (which split this operation's isolation in
+        // half) is gone.
         print("   → Updating ticker state...")
-        await MainActor.run {
-            ticker.generatedAlarmKitIDs = newIDs
-            ticker.lastRegenerationDate = Date()
-            ticker.lastRegenerationSuccess = true
-            ticker.nextScheduledRegeneration = calculateNextRegenerationDate(for: ticker)
+        ticker.generatedAlarmKitIDs = newIDs
+        ticker.lastRegenerationDate = Date()
+        ticker.lastRegenerationSuccess = true
+        ticker.nextScheduledRegeneration = calculateNextRegenerationDate(for: ticker)
 
-            do {
-                try context.save()
-                print("   → SwiftData saved")
-            } catch {
-                print("   ⚠️ Failed to save context: \(error)")
-            }
+        do {
+            try context.save()
+            print("   → SwiftData saved")
+        } catch {
+            print("   ⚠️ Failed to save context: \(error)")
         }
     }
 
     /// Query current alarms from AlarmKit
+    @MainActor
     private func queryCurrentAlarms(for ticker: Ticker) async throws -> [(id: UUID, date: Date)] {
         var result: [(UUID, Date)] = []
 
@@ -162,13 +183,24 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
         // Filter to only this ticker's alarms
         let tickerAlarmIDs = Set(ticker.generatedAlarmKitIDs)
 
-        for alarm in allAlarms {
-            // Only include alarms that belong to this ticker
-            if tickerAlarmIDs.contains(alarm.id) {
-                // Extract date from alarm configuration
-                if case .fixed(let date) = alarm.schedule {
-                    result.append((alarm.id, date))
-                }
+        // Alarms are scheduled with the pre-alert already subtracted, but the
+        // expander produces un-shifted alert times. Add the offset back so both
+        // sides of the diff are in the same units — otherwise the intersection is
+        // always empty and every regeneration cancels and recreates every alarm.
+        let preAlert = ticker.countdown?.preAlert?.interval ?? 0
+
+        for alarm in allAlarms where tickerAlarmIDs.contains(alarm.id) {
+            switch alarm.schedule {
+            case .fixed(let date):
+                result.append((alarm.id, date.addingTimeInterval(preAlert)))
+            case .relative:
+                // Natively recurring alarms are not produced by expansion and must
+                // not be considered stale by the diff below.
+                continue
+            case .none:
+                continue
+            @unknown default:
+                continue
             }
         }
 
@@ -178,11 +210,14 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     /// Calculate target alarm dates based on schedule and strategy
     /// Uses lastRegenerationDate to prevent duplicate alarm creation
     private func calculateTargetDates(schedule: TickerSchedule, strategy: AlarmGenerationStrategy, ticker: Ticker) -> [Date] {
-        // Use lastRegenerationDate as the starting point if available
-        // This ensures we only create NEW alarms after the last regeneration
-        // to prevent duplicates when regeneration runs multiple times
-        let startDate = ticker.lastRegenerationDate ?? Date()
-        return scheduleExpander.expandSchedule(schedule, from: startDate, strategy: strategy)
+        // Always expand from now.
+        //
+        // This used to start from `ticker.lastRegenerationDate ?? Date()`. After
+        // the first successful pass that value is by definition in the past, and
+        // it was reused as the origin on every subsequent run — so the target
+        // window never advanced with wall-clock time. Deduplication is
+        // `computeDiff`'s job, not the origin's.
+        scheduleExpander.expandSchedule(schedule, from: Date(), strategy: strategy)
     }
 
     /// Compute diff between current and target alarm states
@@ -191,37 +226,66 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
         targetDates: [Date],
         ticker: Ticker
     ) -> (toDelete: [UUID], toAdd: [Date]) {
-        let currentDates = Set(currentAlarms.map { $0.date })
-        let targetDatesSet = Set(targetDates)
+        // Compare with a tolerance rather than by exact `Date` equality. These
+        // dates make a round trip through AlarmKit and back, and sub-second drift
+        // would make every alarm look stale.
+        let tolerance: TimeInterval = 1
+
+        func matches(_ lhs: Date, _ rhs: Date) -> Bool {
+            abs(lhs.timeIntervalSince(rhs)) < tolerance
+        }
 
         // Find alarms to delete (in current but not in target)
         let toDelete = currentAlarms
-            .filter { !targetDatesSet.contains($0.date) }
+            .filter { current in !targetDates.contains { matches($0, current.date) } }
             .map { $0.id }
 
         // Find alarms to add (in target but not in current)
-        let toAdd = targetDates.filter { !currentDates.contains($0) }
+        let toAdd = targetDates.filter { target in
+            !currentAlarms.contains { matches($0.date, target) }
+        }
 
         return (toDelete, toAdd)
     }
 
     /// Execute alarm changes atomically
+    @MainActor
     private func executeAtomicTransaction(
         ticker: Ticker,
         toDelete: [UUID],
         toAdd: [Date]
     ) async throws -> [UUID] {
-        var newIDs: [UUID] = []
-        var rollbackIDs: [UUID] = []
+        var addedIDs: [UUID] = []
+
+        // Pre-flight budget check. Trimming here — with a log and a telemetry
+        // event — is much better than letting AlarmKit throw
+        // `maximumLimitReached` part-way through and silently arming nothing.
+        var toAdd = toAdd
+        let globalCount = (try? stateManager.queryAlarmKit(alarmManager: alarmManager).count) ?? 0
+        let survivingTickerCount = ticker.generatedAlarmKitIDs.filter { !toDelete.contains($0) }.count
+        let allowance = AlarmBudget.allowance(
+            currentGlobalCount: globalCount - toDelete.count,
+            currentTickerCount: survivingTickerCount
+        )
+
+        if toAdd.count > allowance {
+            print("   ⚠️ Alarm budget: trimming \(toAdd.count) requested alarms to \(allowance)")
+            print("      → \(globalCount) armed globally, limit \(AlarmBudget.maxScheduledAlarms)")
+            AlarmTelemetry.record(
+                .alarmBudgetExhausted(scheduled: globalCount, limit: AlarmBudget.maxScheduledAlarms)
+            )
+            toAdd = Array(toAdd.prefix(allowance))
+        }
 
         do {
-            // Delete stale alarms
-            for alarmID in toDelete {
-                try alarmManager.cancel(id: alarmID)
-                print("     → Deleted alarm \(alarmID)")
-            }
-
-            // Add new alarms
+            // ADD FIRST, THEN DELETE.
+            //
+            // The previous order cancelled the stale alarms up front and the catch
+            // block only undid the *newly created* ones — so a mid-transaction
+            // failure (AlarmError.maximumLimitReached is the realistic case) left
+            // the ticker with zero alarms and no way to get them back. Scheduling
+            // first means a failure costs nothing: we cancel only our own work and
+            // the user's existing alarms are still armed.
             for date in toAdd {
                 let alarmID = UUID()
                 let oneTimeSchedule = TickerSchedule.oneTime(date: date)
@@ -232,24 +296,46 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
                 }
 
                 let _ = try await alarmManager.schedule(id: alarmID, configuration: configuration)
-                newIDs.append(alarmID)
-                rollbackIDs.append(alarmID)
+                addedIDs.append(alarmID)
+                // Record the occurrence so a fire can be inferred at next launch.
+                AlarmOccurrenceLog.record(alarmID: alarmID, fireDate: date)
                 print("     → Added alarm \(alarmID) for \(date)")
             }
 
-            // Keep existing valid alarms
-            let currentIDs = ticker.generatedAlarmKitIDs
-            let validIDs = currentIDs.filter { !toDelete.contains($0) }
-            newIDs = validIDs + newIDs
+            // Every add succeeded, so it is now safe to retire the stale alarms.
+            // A cancel that fails is not fatal — the next sync reconciles it — and
+            // must not roll back the adds we just committed.
+            for alarmID in toDelete {
+                do {
+                    try alarmManager.cancel(id: alarmID)
+                    print("     → Deleted alarm \(alarmID)")
+                } catch {
+                    print("     ⚠️ Could not cancel stale alarm \(alarmID): \(error)")
+                }
+            }
 
-            return newIDs
+            let survivingIDs = ticker.generatedAlarmKitIDs.filter { !toDelete.contains($0) }
+            return survivingIDs + addedIDs
 
         } catch {
-            // Rollback: delete any newly created alarms
-            print("     ⚠️ Transaction failed, rolling back...")
-            for alarmID in rollbackIDs {
+            // Roll back only what this transaction created.
+            print("     ⚠️ Transaction failed, rolling back \(addedIDs.count) new alarm(s)...")
+            for alarmID in addedIDs {
                 try? alarmManager.cancel(id: alarmID)
             }
+
+            if let alarmError = error as? AlarmManager.AlarmError, alarmError == .maximumLimitReached {
+                // Previously unhandled anywhere in the app. Name it explicitly so
+                // the failure is attributable instead of looking like a generic
+                // scheduling error.
+                print("     ❌ AlarmKit reported maximumLimitReached")
+                AlarmTelemetry.record(
+                    .alarmBudgetExhausted(scheduled: globalCount, limit: AlarmBudget.maxScheduledAlarms)
+                )
+            } else {
+                AlarmTelemetry.record(.alarmScheduleFailed(reason: "regeneration_transaction_failed"))
+            }
+
             throw error
         }
     }
@@ -257,6 +343,7 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     // MARK: - Helper Methods
 
     /// Query the count of active alarms from AlarmKit
+    @MainActor
     private func queryActiveAlarmCount(for ticker: Ticker) async -> Int {
         // Get all alarms from AlarmKit via state manager
         guard let allAlarms = try? stateManager.queryAlarmKit(alarmManager: alarmManager) else {

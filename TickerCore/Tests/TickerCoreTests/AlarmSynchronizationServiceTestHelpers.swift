@@ -74,22 +74,21 @@ class MockAlarmStateManager: AlarmStateManagerProtocol {
 
     // MARK: - AlarmStateManagerProtocol Implementation
 
-    /// Centralized AlarmKit query method
-    /// This is the only protocol method - matches the simplified AlarmStateManager
-    func queryAlarmKit(alarmManager: AlarmManager) throws -> [Alarm] {
+    /// Centralized AlarmKit query method.
+    ///
+    /// Returns `mockAlarms` unconditionally. It previously fell through to
+    /// `alarmManager.alarms` whenever `mockAlarms` was empty — and no test ever
+    /// set it — so every synchronization test silently ran against the real
+    /// `AlarmManager.shared` and whatever the host simulator happened to hold.
+    /// "No alarms armed" is a legitimate, and very important, test fixture.
+    func queryAlarmKit(alarmManager: any AlarmScheduling) throws -> [Alarm] {
         queryCallCount += 1
 
         if shouldFailQuery {
             throw queryError ?? NSError(domain: "TestError", code: 1, userInfo: [NSLocalizedDescriptionKey: "Mock query error"])
         }
 
-        // Return mock alarms if set, otherwise use real alarm manager
-        if !mockAlarms.isEmpty {
-            return mockAlarms
-        }
-
-        // Otherwise use the real alarm manager
-        return try alarmManager.alarms
+        return mockAlarms
     }
 
     // MARK: - Test Helper Methods

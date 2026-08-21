@@ -17,7 +17,7 @@
                BlueprintIdentifier = "76B6AA49FA091870B2ED7D8E"
                BuildableName = "DesignKit.framework"
                BlueprintName = "DesignKit"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/DesignKit/DesignKit.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/DesignKit/DesignKit.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -31,7 +31,7 @@
                BlueprintIdentifier = "374966D1D7AB94212268A710"
                BuildableName = "Factory.framework"
                BlueprintName = "Factory"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/Factory/Factory.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/Factory/Factory.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -45,7 +45,7 @@
                BlueprintIdentifier = "3A4D0B1F69D65EDA45F7E5C8"
                BuildableName = "Gate.framework"
                BlueprintName = "Gate"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/Gate/Gate.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/Gate/Gate.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -59,7 +59,7 @@
                BlueprintIdentifier = "9636ED511F55237CEB6C6C72"
                BuildableName = "HTTPTypes.framework"
                BlueprintName = "HTTPTypes"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/swift-http-types/swift-http-types.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/swift-http-types/swift-http-types.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -73,7 +73,7 @@
                BlueprintIdentifier = "FAA76F08536973FCC165469E"
                BuildableName = "OpenAI.framework"
                BlueprintName = "OpenAI"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/OpenAI/OpenAI.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/OpenAI/OpenAI.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -87,7 +87,7 @@
                BlueprintIdentifier = "7E421179DB0866D0FFC975B9"
                BuildableName = "OpenAPIRuntime.framework"
                BlueprintName = "OpenAPIRuntime"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/swift-openapi-runtime/swift-openapi-runtime.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/swift-openapi-runtime/swift-openapi-runtime.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -101,7 +101,7 @@
                BlueprintIdentifier = "D211416C0AFC863EB979CCC1"
                BuildableName = "PostHog.framework"
                BlueprintName = "PostHog"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/PostHog/PostHog.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/PostHog/PostHog.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -115,7 +115,7 @@
                BlueprintIdentifier = "6408EC1C47E0DF7E3905771D"
                BuildableName = "PostHog_PostHog.bundle"
                BlueprintName = "PostHog_PostHog"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/PostHog/PostHog.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/PostHog/PostHog.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -129,7 +129,7 @@
                BlueprintIdentifier = "21ACE72DE79281C9B6CD27E0"
                BuildableName = "RevenueCat.framework"
                BlueprintName = "RevenueCat"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/RevenueCat/RevenueCat.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/RevenueCat/RevenueCat.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -143,7 +143,7 @@
                BlueprintIdentifier = "44AFEA04B5A773F7F7ABF378"
                BuildableName = "RevenueCatUI.framework"
                BlueprintName = "RevenueCatUI"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/RevenueCat/RevenueCat.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/RevenueCat/RevenueCat.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -157,7 +157,7 @@
                BlueprintIdentifier = "20D11414D967CB74A4137604"
                BuildableName = "RevenueCat_RevenueCat.bundle"
                BlueprintName = "RevenueCat_RevenueCat"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/RevenueCat/RevenueCat.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/RevenueCat/RevenueCat.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -171,7 +171,7 @@
                BlueprintIdentifier = "98ADE906B41B6AC211790D90"
                BuildableName = "RevenueCat_RevenueCatUI.bundle"
                BlueprintName = "RevenueCat_RevenueCatUI"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/RevenueCat/RevenueCat.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/RevenueCat/RevenueCat.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -185,7 +185,7 @@
                BlueprintIdentifier = "C7EFFE82360786D223D5EBDF"
                BuildableName = "Roadmap.framework"
                BlueprintName = "Roadmap"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/Roadmap/Roadmap.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/Roadmap/Roadmap.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -199,7 +199,7 @@
                BlueprintIdentifier = "8B81BEAD99D5FE5B19F44F75"
                BuildableName = "Telemetry.framework"
                BlueprintName = "Telemetry"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/Telemetry/Telemetry.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/Telemetry/Telemetry.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -297,7 +297,7 @@
                BlueprintIdentifier = "9E225D70D6A3236729D902CB"
                BuildableName = "phlibwebp.framework"
                BlueprintName = "phlibwebp"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/PostHog/PostHog.xcodeproj">
+               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/PostHog/PostHog.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -359,7 +359,7 @@
             BlueprintIdentifier = "76B6AA49FA091870B2ED7D8E"
             BuildableName = "DesignKit.framework"
             BlueprintName = "DesignKit"
-            ReferencedContainer = "container:Tuist/.build/tuist-derived/DesignKit/DesignKit.xcodeproj">
+            ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/DesignKit/DesignKit.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </LaunchAction>
@@ -375,7 +375,7 @@
             BlueprintIdentifier = "76B6AA49FA091870B2ED7D8E"
             BuildableName = "DesignKit.framework"
             BlueprintName = "DesignKit"
-            ReferencedContainer = "container:Tuist/.build/tuist-derived/DesignKit/DesignKit.xcodeproj">
+            ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/DesignKit/DesignKit.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>

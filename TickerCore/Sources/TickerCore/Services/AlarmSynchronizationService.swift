@@ -19,8 +19,15 @@ import AlarmKit
 // MARK: - AlarmSynchronizationService Protocol
 
 public protocol AlarmSynchronizationServiceProtocol {
+    /// `@MainActor` is load-bearing, not decoration. `ModelContext` is not
+    /// thread-safe, and the context passed here is created on the main actor and
+    /// read concurrently by `@Query` in SwiftUI views. This used to be a
+    /// nonisolated `async` requirement awaited from a `@MainActor` caller, which
+    /// meant the whole reconciliation — fetch, mutate, delete, save — ran off the
+    /// main actor against a main-actor context. That is a data race.
+    @MainActor
     func synchronize(
-        alarmManager: AlarmManager,
+        alarmManager: any AlarmScheduling,
         stateManager: AlarmStateManagerProtocol,
         context: ModelContext
     ) async
@@ -37,11 +44,12 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
     /// Performs full bidirectional synchronization between AlarmKit and SwiftData
     /// Uses AlarmManager.alarms as the single source of truth
     /// - Parameters:
-    ///   - alarmManager: AlarmManager to query for active alarms
+    ///   - alarmManager: Scheduler to query for active alarms
     ///   - stateManager: State manager to update
     ///   - context: SwiftData context for persistence
+    @MainActor
     public func synchronize(
-        alarmManager: AlarmManager,
+        alarmManager: any AlarmScheduling,
         stateManager: AlarmStateManagerProtocol,
         context: ModelContext
     ) async {
@@ -150,10 +158,17 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
             print("✅ Updated \(tickersUpdated) tickers with cleaned generatedAlarmKitIDs")
         }
 
-        // CLEANUP SWIFTDATA (SwiftData → AlarmManager)
-        print("🧹 Cleaning up SwiftData Tickers...")
-        var tickersToDelete: [Ticker] = []
-        var tickersDeleted = 0
+        // RECONCILE SWIFTDATA (SwiftData → AlarmManager)
+        //
+        // Reconciliation NEVER deletes a user-created Ticker. A one-time alarm that
+        // has already fired has no live AlarmKit alarm and no future occurrence,
+        // which used to match the deletion predicate exactly — so the app silently
+        // destroyed the user's alarm the first time it went off. Those tickers are
+        // now retired (switched off, kept in the list) the way the system Clock app
+        // switches off a one-time alarm after it rings.
+        print("🧹 Reconciling SwiftData Tickers...")
+        var tickersToRetire: [Ticker] = []
+        var tickersRetired = 0
 
         for ticker in allTickers {
             // Check if this Ticker has ANY alarm in AlarmManager
@@ -235,32 +250,35 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
 
                 let shouldRegenerate = ticker.isEnabled &&
                                      ticker.schedule != nil &&
-                                     !isSimpleSchedule(ticker.schedule!) &&
+                                     !ticker.usesNativeAlarmKitSchedule &&
                                      ticker.needsRegeneration
 
                 if hasUpcomingAlarms {
-                    // Don't delete - this ticker has future alarms scheduled
+                    // Future alarms are scheduled - leave it alone
                 } else if shouldRegenerate {
                     print("🔄 Ticker '\(ticker.displayName)' has no active alarms but needs regeneration - keeping for regeneration")
-                    // Don't mark for deletion - let regeneration service handle it
+                    // Let the regeneration service handle it
                 } else {
-                    print("🗑️ Ticker '\(ticker.displayName)' (ID: \(ticker.id)) has NO alarms in AlarmManager - marking for deletion")
+                    print("🌙 Ticker '\(ticker.displayName)' (ID: \(ticker.id)) has no alarms left - retiring (switching off, NOT deleting)")
                     print("    → Checked IDs: [\(ticker.id)] + generated: \(ticker.generatedAlarmKitIDs)")
-                    tickersToDelete.append(ticker)
+                    tickersToRetire.append(ticker)
                 }
             }
         }
 
-        // Delete orphaned Tickers
-        if !tickersToDelete.isEmpty {
-            print("🗑️ Deleting \(tickersToDelete.count) orphaned Ticker(s)...")
+        // Retire spent Tickers. Deliberately NOT context.delete — user-created rows
+        // are never destroyed by reconciliation. `Ticker.parentTickerCollection` is
+        // the inverse of a `.cascade` relationship, so a single delete here could
+        // also take out a whole collection.
+        if !tickersToRetire.isEmpty {
+            print("🌙 Retiring \(tickersToRetire.count) spent Ticker(s)...")
 
-            for ticker in tickersToDelete {
-                // Remove from SwiftData
-                context.delete(ticker)
-                print("   → Deleted '\(ticker.displayName)' from SwiftData")
+            for ticker in tickersToRetire {
+                ticker.isEnabled = false
+                ticker.generatedAlarmKitIDs = []
+                print("   → Retired '\(ticker.displayName)' (kept in SwiftData)")
 
-                tickersDeleted += 1
+                tickersRetired += 1
             }
         }
 
@@ -283,25 +301,11 @@ public struct AlarmSynchronizationService: AlarmSynchronizationServiceProtocol {
         print("🔄 Widgets refresh initiated")
 
         // Log summary
-        let tickersToKeep = allTickers.filter { ticker in
-            !tickersToDelete.contains { $0.id == ticker.id }
-        }
         print("✨ Synchronization complete:")
         print("   → Kept \(alarmsToKeep.count) valid alarms")
         print("   → Cancelled \(alarmsCancelled) invalid alarms")
-        print("   → Deleted \(tickersDeleted) orphaned Tickers")
-        print("   → Remaining Tickers in SwiftData: \(tickersToKeep.count)")
+        print("   → Retired \(tickersRetired) spent Tickers (none deleted)")
+        print("   → Tickers in SwiftData: \(allTickers.count)")
     }
     
-    // MARK: - Helper Methods
-    
-    /// Determine if a schedule is simple (1:1 AlarmKit mapping) or collection (requires regeneration)
-    private func isSimpleSchedule(_ schedule: TickerSchedule) -> Bool {
-        switch schedule {
-        case .oneTime, .daily:
-            return true
-        case .hourly, .weekdays, .biweekly, .monthly, .yearly, .every:
-            return false
-        }
-    }
 }

@@ -10,7 +10,7 @@ import SwiftUI
 
 // MARK: - Accessibility Extensions
 
-extension View {
+public extension View {
     /// Applies standardized accessibility label and optional hint to a button
     /// - Parameters:
     ///   - label: The accessibility label describing what the button does
@@ -87,10 +87,11 @@ private struct AdaptiveAnimationModifier: ViewModifier {
     let animation: Animation
 
     func body(content: Content) -> some View {
-        if reduceMotion {
-            content
-        } else {
-            content.animation(animation, value: UUID())
+        // `animation(_:value: UUID())` minted a fresh value on every body
+        // evaluation, so the animation retriggered on every render instead of
+        // tracking real change. `transaction` is the correct valueless form.
+        content.transaction { transaction in
+            transaction.animation = reduceMotion ? nil : animation
         }
     }
 }
@@ -112,7 +113,7 @@ private struct AdaptiveAnimationValueModifier<V: Equatable>: ViewModifier {
 
 // MARK: - Layout Adaptation
 
-extension View {
+public extension View {
     /// Switches between compact and accessible layouts based on Dynamic Type size
     /// - Parameters:
     ///   - compact: Layout to use for standard size categories
@@ -142,7 +143,7 @@ private struct AdaptiveLayoutModifier: ViewModifier {
 
 // MARK: - Typography with Accessibility Scaling
 
-extension View {
+public extension View {
     /// Applies a text style that fully supports accessibility sizes
     /// - Parameter style: The text style to apply
     /// - Returns: View with scaled font
@@ -153,7 +154,7 @@ extension View {
 
 // MARK: - Accessibility Trait Helpers
 
-extension View {
+public extension View {
     /// Adds button trait along with additional custom traits
     func accessibleButtonTraits(_ additional: AccessibilityTraits = []) -> some View {
         self

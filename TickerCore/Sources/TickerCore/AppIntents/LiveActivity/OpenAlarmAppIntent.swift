@@ -8,41 +8,51 @@
 import AlarmKit
 import AppIntents
 
-/// An intent that opens the app and stops the alarm
+/// An intent that stops the alarm and opens the app.
 ///
-/// This intent is used in Live Activities and Dynamic Island presentations
-/// as a custom secondary button action. When triggered, it stops the alarm
-/// and opens the main app.
+/// Installed as the secondary action when `TickerPresentation.secondaryButtonType`
+/// is `.openApp` — which is the default, so this runs for most alarms.
+///
+/// It must be handed the AlarmKit *occurrence* ID. It previously received the
+/// SwiftData Ticker ID, so `stop(id:)` threw on every invocation: the app opened
+/// (`openAppWhenRun`) while the alarm carried on ringing.
 @available(iOS 26.0, *)
 public struct OpenAlarmAppIntent: LiveActivityIntent {
-    
 
-    public func perform() throws -> some IntentResult {
-        guard let alarmUUID = UUID(uuidString: alarmID) else {
-            print("⚠️ [OpenAlarmAppIntent] Invalid alarmID string: '\(alarmID)'")
-            throw IntentError.invalidAlarmID
-        }
-        print("🛑 OpenAlarmAppIntent.perform() called with alarmID: \(alarmUUID)")
+    public static let title: LocalizedStringResource = "Open App"
+    public static let description = IntentDescription("Opens Ticker and stops the alarm")
+    public static let openAppWhenRun = true
 
-        // Stop the alarm using AlarmManager
-        try AlarmManager.shared.stop(id: alarmUUID)
-        print("   ✅ Successfully stopped alarm \(alarmUUID)")
-
-        return .result()
-    }
-    
-    public static var title: LocalizedStringResource = "Open App"
-    public static var description = IntentDescription("Opens the Ticker app")
-    public static var openAppWhenRun = true
-    
     @Parameter(title: "alarmID")
     public var alarmID: String
-    
+
+    public init() {
+        self.alarmID = ""
+    }
+
     public init(alarmID: String) {
         self.alarmID = alarmID
     }
-    
-    public init() {
-        self.alarmID = ""
+
+    public func perform() throws -> some IntentResult {
+        guard let alarmUUID = UUID(uuidString: alarmID) else {
+            print("⚠️ OpenAlarmAppIntent: ignoring malformed alarmID '\(alarmID)'")
+            return .result()
+        }
+
+        print("🛑 OpenAlarmAppIntent.perform() for alarm \(alarmUUID)")
+
+        do {
+            try AlarmManager.shared.stop(id: alarmUUID)
+            print("   ✅ Stopped alarm \(alarmUUID)")
+            AlarmReactionRecorder.record(.openedApp, alarmID: alarmUUID)
+        } catch {
+            // Still open the app — that is the half of this intent the user asked
+            // for — but do not pretend the alarm was stopped.
+            print("   ❌ Failed to stop alarm \(alarmUUID): \(error)")
+            AlarmReactionRecorder.record(.stopFailed, alarmID: alarmUUID)
+        }
+
+        return .result()
     }
 }

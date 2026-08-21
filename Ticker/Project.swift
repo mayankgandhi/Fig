@@ -3,7 +3,7 @@ import ProjectDescription
 // Centralized app configuration
 let appName = "Ticker"
 let productName = "Ticker"
-let version = "1.3"
+let version = "1.4"
 let buildNumber = "1"
 let mainBundleId = "m.fig"
 let widgetsBundleId = "\(mainBundleId).widgets"
@@ -25,6 +25,10 @@ let project = Project(
                 "CFBundleVersion": .string(buildNumber),
                 "UILaunchScreen": [:],
                 "NSAlarmKitUsageDescription": "This app needs access to alarms to notify you when your timers expire.",
+                "NSSupportsLiveActivities": .boolean(true),
+                "UIBackgroundModes": .array([
+                    .string("fetch")
+                ]),
                 "BGTaskSchedulerPermittedIdentifiers": .array([
                     .string("com.fig.alarm.regeneration")
                 ])

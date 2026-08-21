@@ -191,21 +191,11 @@ public struct WidgetDataFetcher {
     /// Creates a ModelContext with App Groups support
     /// - Returns: ModelContext configured for shared container access, or nil on failure
     private static func createModelContext() -> ModelContext? {
-        let schema = Schema([Ticker.self])
-
-        // Try to use shared container first, fallback to local if not available
-        let modelConfiguration: ModelConfiguration
-        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.m.fig") {
-            modelConfiguration = ModelConfiguration(schema: schema, url: sharedURL.appendingPathComponent("Ticker.sqlite"))
-        } else {
-            modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        }
-
-        guard let modelContainer = try? ModelContainer(for: schema, configurations: [modelConfiguration]) else {
-            return nil
-        }
-
-        return ModelContext(modelContainer)
+        // Must use the same schema as the app. WidgetKit reloads timelines on
+        // install and update, so the widget extension is often the first process
+        // to open the store after an upgrade — if it opened it under a narrower
+        // model set it would decide the migration on everyone's behalf.
+        TickerSchema.makeSharedContext()
     }
 
 

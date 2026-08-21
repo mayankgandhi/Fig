@@ -34,7 +34,15 @@ public protocol TickerScheduleExpanderProtocol {
 public struct TickerScheduleExpander: TickerScheduleExpanderProtocol {
     private let calendar: Calendar
 
-    public init(calendar: Calendar = .current) {
+    /// Defaults to `autoupdatingCurrent`, not `current`.
+    ///
+    /// `Calendar.current` is a snapshot that does not track timezone changes.
+    /// `AlarmRegenerationService` is a `.singleton` and resolves this expander
+    /// once, so it held a calendar frozen at first access: after flying from
+    /// New York to London, regeneration kept computing 07:00 *New York* while
+    /// `WidgetDataFetcher` re-read `Calendar.current` per call and displayed a
+    /// different time than the alarm would actually fire.
+    public init(calendar: Calendar = .autoupdatingCurrent) {
         self.calendar = calendar
     }
 

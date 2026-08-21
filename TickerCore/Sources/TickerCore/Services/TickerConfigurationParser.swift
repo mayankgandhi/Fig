@@ -14,9 +14,52 @@ import SwiftUI
 
 public class TickerConfigurationParser {
     private let activityMapper = ActivityIconMapper()
-    
+
+    /// Clock seam. Relative expressions ("in 2 hours") are resolved against this,
+    /// so their midnight-rollover behaviour can be tested at a fixed instant
+    /// instead of depending on when the suite happens to run.
+    var now: () -> Date = { Date() }
+
     public init() {
-    
+
+    }
+
+    // MARK: - Relative Expressions
+
+    /// Resolves "in N hours" / "in N minutes" to an absolute moment.
+    ///
+    /// Single source of truth for relative expressions. `parseTime` takes the
+    /// hour and minute from this and `parseDate` takes the day, so the two can
+    /// never disagree about which day "in 2 hours" lands on.
+    ///
+    /// They used to disagree: the time was computed as `now + N` and then reduced
+    /// to hour and minute, while the date fell through to "today". At 22:02,
+    /// "in 2 hours" produced today at 00:02 — twenty-two hours in the past, so
+    /// the alarm could not ring. Same shape for "in 30 minutes" after 23:30.
+    private func resolvedRelativeMoment(in input: String) -> Date? {
+        let calendar = Calendar.current
+        let reference = now()
+
+        let patterns: [(String, (Int) -> Date?)] = [
+            ("in (\\d+) hours?", { calendar.date(byAdding: .hour, value: $0, to: reference) }),
+            ("in (\\d+) minutes?", { calendar.date(byAdding: .minute, value: $0, to: reference) })
+        ]
+
+        for (pattern, resolve) in patterns {
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) else {
+                continue
+            }
+            let range = NSRange(location: 0, length: input.utf16.count)
+            guard let match = regex.firstMatch(in: input, options: [], range: range),
+                  let numberRange = Range(match.range(at: 1), in: input),
+                  let number = Int(input[numberRange]),
+                  let resolved = resolve(number) else {
+                continue
+            }
+            return resolved
+        }
+
+        return nil
     }
 
     // MARK: - Natural Language Parsing
@@ -366,38 +409,11 @@ public class TickerConfigurationParser {
     }
 
     private func parseRelativeTimeExpressions(from input: String) -> TimeOfDay? {
-        let lowercaseInput = input.lowercased()
-        let calendar = Calendar.current
-        let now = Date()
-
-        // Parse expressions like "in 2 hours", "in 30 minutes"
-        let timePatterns = [
-            ("in (\\d+) hours?", { hours in
-                let futureDate = calendar.date(byAdding: .hour, value: hours, to: now) ?? now
-                let components = calendar.dateComponents([.hour, .minute], from: futureDate)
-                return TimeOfDay(hour: components.hour ?? 0, minute: components.minute ?? 0)
-            }),
-            ("in (\\d+) minutes?", { minutes in
-                let futureDate = calendar.date(byAdding: .minute, value: minutes, to: now) ?? now
-                let components = calendar.dateComponents([.hour, .minute], from: futureDate)
-                return TimeOfDay(hour: components.hour ?? 0, minute: components.minute ?? 0)
-            })
-        ]
-
-        for (pattern, handler) in timePatterns {
-            if let regex = try? NSRegularExpression(pattern: pattern, options: .caseInsensitive) {
-                let range = NSRange(location: 0, length: input.utf16.count)
-                if let match = regex.firstMatch(in: input, options: [], range: range) {
-                    let numberRange = match.range(at: 1)
-                    if let numberString = Range(numberRange, in: input).map({ String(input[$0]) }),
-                       let number = Int(numberString) {
-                        return handler(number)
-                    }
-                }
-            }
-        }
-
-        return nil
+        // Derives only the wall-clock part of the shared resolved moment. The
+        // day it lands on is read from the same helper by `parseDate`.
+        guard let moment = resolvedRelativeMoment(in: input) else { return nil }
+        let components = Calendar.current.dateComponents([.hour, .minute], from: moment)
+        return TimeOfDay(hour: components.hour ?? 0, minute: components.minute ?? 0)
     }
 
     private func extractTimeFromEntitiesEnhanced(input: String, entities: ParsedEntities) -> TimeOfDay? {
@@ -504,7 +520,7 @@ public class TickerConfigurationParser {
     private func parseDate(from input: String, entities: ParsedEntities) -> Date {
         let lowercaseInput = input.lowercased()
         let calendar = Calendar.current
-        let now = Date()
+        let now = self.now()
 
         // Check for relative dates with more comprehensive patterns
         if lowercaseInput.contains("tomorrow") {
@@ -556,6 +572,14 @@ public class TickerConfigurationParser {
         // Use NSDateFormatter for date parsing
         if let explicitDate {
             return explicitDate
+        }
+
+        // "in N hours" / "in N minutes" carries its own day. Reading it from the
+        // same helper `parseTime` uses is what stops the two disagreeing: the
+        // time used to roll past midnight while the date stayed on today,
+        // producing an alarm up to a day in the past.
+        if let moment = resolvedRelativeMoment(in: input) {
+            return moment
         }
 
         // Default to today

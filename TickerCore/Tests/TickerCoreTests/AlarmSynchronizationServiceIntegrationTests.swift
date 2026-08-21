@@ -302,9 +302,11 @@ final class AlarmSynchronizationServiceIntegrationTests: XCTestCase {
         let descriptor = FetchDescriptor<Ticker>()
         let remainingTickers = try context.fetch(descriptor)
         
-        // Past one-time should be deleted, others kept
-        XCTAssertFalse(remainingTickers.contains { $0.id == oneTimePastID }, "Past ticker should be deleted")
+        // Nothing is deleted. The spent one-time ticker is retired (switched off)
+        // and the future one stays armed.
+        XCTAssertTrue(remainingTickers.contains { $0.id == oneTimePastID }, "Past ticker should be retained")
         XCTAssertTrue(remainingTickers.contains { $0.id == oneTimeFutureID }, "Future ticker should be kept")
+        XCTAssertFalse(try XCTUnwrap(remainingTickers.first { $0.id == oneTimePastID }).isEnabled)
     }
     
     // MARK: - Complex Real-World Scenarios

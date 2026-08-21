@@ -3,7 +3,6 @@
 //  alarm
 //
 //  Reusable button component for Live Activity
-//  Supports app intents with customizable styling and haptic feedback
 //
 
 import AppIntents
@@ -11,41 +10,44 @@ import AlarmKit
 import SwiftUI
 import TickerCore
 
-/// Generic button view for Live Activity actions
+/// Generic button view for Live Activity actions.
 struct ButtonView<I>: View where I: AppIntent {
+
     var config: AlarmButton
     var intent: I
     var tint: Color
-    @State private var isPressed = false
-    
-    init?(config: AlarmButton?, intent: I, tint: Color) {
+    /// Alert-state controls are sized for someone acting half-asleep with their
+    /// eyes barely open, not for an attentive user.
+    var prominent: Bool = false
+
+    init?(config: AlarmButton?, intent: I, tint: Color, prominent: Bool = false) {
         guard let config else { return nil }
         self.config = config
         self.intent = intent
         self.tint = tint
+        self.prominent = prominent
     }
-    
+
+    private var side: CGFloat {
+        prominent ? TickerSpacing.tapTargetPreferred : TickerSpacing.tapTargetMin
+    }
+
     var body: some View {
         Button(intent: intent) {
             Image(systemName: config.systemImageName)
-            .Subheadline()
-            .foregroundStyle(TickerColor.absoluteWhite)
-            .padding(TickerSpacing.md)
-            .background(
-                Capsule()
-                    .fill(tint)
-                    .overlay(
-                        Capsule()
-                            .fill(Color.white.opacity(isPressed ? 0.3 : 0))
-                            .animation(.easeInOut(duration: 0.1), value: isPressed)
-                    )
-            )
+                .font(.system(size: prominent ? 22 : 16, weight: .semibold))
+                .foregroundStyle(TickerColor.absoluteWhite)
+                .frame(minWidth: side, minHeight: side)
+                .background(Capsule().fill(tint))
         }
-        .buttonStyle(PlainButtonStyle())
-        .scaleEffect(isPressed ? 0.95 : 1.0)
-        .animation(.easeInOut(duration: 0.1), value: isPressed)
-        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
-            isPressed = pressing
-        }, perform: {})
+        .buttonStyle(.plain)
+        // `config.text` was carried all the way here and then thrown away, so
+        // VoiceOver announced the raw SF Symbol name ("stop.fill") instead of
+        // "Stop". Widgets cannot run gesture-based press feedback either — only
+        // `Button(intent:)` is interactive — so the old `@State isPressed` plus
+        // `onLongPressGesture` was dead code driving a scale effect that never
+        // fired.
+        .accessibilityLabel(Text(config.text))
+        .accessibilityAddTraits(.isButton)
     }
 }

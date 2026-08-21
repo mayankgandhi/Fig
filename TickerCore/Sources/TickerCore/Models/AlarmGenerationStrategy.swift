@@ -31,15 +31,20 @@ public enum AlarmGenerationStrategy: Codable, Equatable, Hashable {
 
     // MARK: - Max Alarms
 
-    /// Maximum number of alarms to generate (prevents overwhelming the system)
+    /// Maximum number of alarms to generate (prevents overwhelming the system).
+    ///
+    /// Every strategy is now capped. `.mediumFrequency` and `.lowFrequency`
+    /// previously returned `nil` (unlimited), which is how a handful of recurring
+    /// tickers could exhaust AlarmKit's per-app budget. The values are bounded by
+    /// `AlarmBudget.maxAlarmsPerTicker`, which is the real ceiling.
     var maxAlarms: Int? {
         switch self {
         case .highFrequency:
-            return 100  // Cap high-frequency at 100 alarms
+            return AlarmBudget.maxAlarmsPerTicker
         case .mediumFrequency:
-            return nil  // Unlimited for medium-frequency
+            return AlarmBudget.maxAlarmsPerTicker
         case .lowFrequency:
-            return nil  // Unlimited for low-frequency
+            return AlarmBudget.maxAlarmsPerTicker
         }
     }
 

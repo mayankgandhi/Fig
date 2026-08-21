@@ -936,8 +936,14 @@ final class TickerScheduleExpanderTests: XCTestCase {
         let dates = expander.expandSchedule(schedule, from: testDate, strategy: strategy)
         
         // Then
-        // Medium frequency: 48-hour window, unlimited alarms
-        XCTAssertGreaterThanOrEqual(dates.count, 48, "Should return at least 48 dates for hourly schedule")
+        // Medium frequency used to be unlimited, which is how a few recurring
+        // tickers exhausted AlarmKit's per-app budget and every later schedule()
+        // silently failed. It is now bounded by AlarmBudget.maxAlarmsPerTicker,
+        // which still covers more than the 24-hour regeneration threshold.
+        XCTAssertEqual(dates.count, AlarmBudget.maxAlarmsPerTicker,
+                       "Hourly expansion should be capped at the per-ticker budget")
+        XCTAssertGreaterThan(dates.count, 24,
+                             "Coverage must exceed the medium-frequency regeneration threshold")
     }
     
     func testExpandSchedule_WithStrategy_LowFrequency() {
