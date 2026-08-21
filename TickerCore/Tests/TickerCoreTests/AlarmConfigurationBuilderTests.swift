@@ -483,10 +483,12 @@ final class AlarmConfigurationBuilderTests: XCTestCase {
     }
 
     func testBuildConfiguration_WithNilSchedule() {
-        // Given
+        // Given: timer mode is a countdown with no schedule — the countdown is
+        // what makes it fire, so it is a valid configuration.
         let ticker = Ticker(
             label: "Timer",
-            schedule: nil // Timer mode
+            schedule: nil,
+            countdown: TickerCountdown(preAlert: .init(hours: 0, minutes: 10, seconds: 0))
         )
         let occurrenceAlarmID = UUID()
 
@@ -495,6 +497,15 @@ final class AlarmConfigurationBuilderTests: XCTestCase {
 
         // Then
         XCTAssertNotNil(configuration, "Configuration should be created without schedule (timer mode)")
+    }
+
+    /// Neither a schedule nor a countdown means the alarm can never fire.
+    /// `buildConfiguration` used to return non-nil unconditionally, which made
+    /// the `guard let configuration` at every call site dead code and hid this
+    /// misconfiguration entirely.
+    func testBuildConfiguration_WithNoScheduleAndNoCountdown_ReturnsNil() {
+        let ticker = Ticker(label: "Unfireable", schedule: nil, countdown: nil)
+        XCTAssertNil(builder.buildConfiguration(from: ticker, occurrenceAlarmID: UUID()))
     }
 
     func testBuildConfiguration_WithAllMockTypes() {

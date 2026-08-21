@@ -94,24 +94,34 @@ final class AlarmSynchronizationServiceOrphanedTickersTests: XCTestCase {
         XCTAssertTickersExist(in: context, tickerIDs: [tickerID])
     }
     
-    func testSynchronize_DeletesTicker_WithPastOneTimeSchedule() async throws {
+    /// This test used to assert the opposite — that a fired one-time ticker is
+    /// deleted. That behaviour was the "alarm rings once and then it's gone" bug:
+    /// reconciliation silently destroyed user-created data. A spent alarm is now
+    /// retired (switched off, kept in the list) the way the system Clock app
+    /// switches off a one-time alarm after it rings.
+    func testSynchronize_RetainsButDisablesTicker_WithPastOneTimeSchedule() async throws {
         // Given: One-time ticker with past date
-        let pastDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
         let ticker = Ticker.mockOneTimePast
         let tickerID = ticker.id
-        
+
         let context = try TestModelContextFactory.createContextWithTickers([ticker])
         mockStateManager.mockAlarms = []
-        
+
         // When
         await service.synchronize(
             alarmManager: alarmManager,
             stateManager: mockStateManager,
             context: context
         )
-        
-        // Then: Ticker should be deleted (past date, no upcoming alarms)
-        XCTAssertTickersNotExist(in: context, tickerIDs: [tickerID])
+
+        // Then: the row survives...
+        XCTAssertTickersExist(in: context, tickerIDs: [tickerID])
+
+        // ...and is switched off rather than deleted.
+        let descriptor = FetchDescriptor<Ticker>()
+        let stored = try XCTUnwrap(try? context.fetch(descriptor))
+        let retired = try XCTUnwrap(stored.first { $0.id == tickerID })
+        XCTAssertFalse(retired.isEnabled, "A spent one-time alarm should be retired, not deleted")
     }
     
     func testSynchronize_KeepsTicker_WithFutureOneTimeSchedule() async throws {
@@ -148,8 +158,10 @@ final class AlarmSynchronizationServiceOrphanedTickersTests: XCTestCase {
             context: context
         )
         
-        // Then: Ticker should be deleted (no schedule, no upcoming alarms)
-        XCTAssertTickersNotExist(in: context, tickerIDs: [tickerID])
+        // Then: retained, not deleted. Reconciliation must never destroy a
+        // user-created row — a ticker with a broken or missing schedule is a bug
+        // to surface, not data to throw away.
+        XCTAssertTickersExist(in: context, tickerIDs: [tickerID])
     }
     
     // MARK: - Regeneration Tests
@@ -254,32 +266,37 @@ final class AlarmSynchronizationServiceOrphanedTickersTests: XCTestCase {
             context: context
         )
         
-        // Then: Both tickers should be deleted
+        // Then: both survive and are switched off, rather than being deleted.
         let descriptor = FetchDescriptor<Ticker>()
         let tickers = try context.fetch(descriptor)
-        
-        XCTAssertFalse(tickers.contains { $0.id == pastTicker1.id }, "Past ticker 1 should be deleted")
-        XCTAssertFalse(tickers.contains { $0.id == pastTicker2.id }, "Past ticker 2 should be deleted")
+
+        XCTAssertTrue(tickers.contains { $0.id == pastTicker1.id }, "Past ticker 1 should be retained")
+        XCTAssertTrue(tickers.contains { $0.id == pastTicker2.id }, "Past ticker 2 should be retained")
+        XCTAssertFalse(try XCTUnwrap(tickers.first { $0.id == pastTicker1.id }).isEnabled)
+        XCTAssertFalse(try XCTUnwrap(tickers.first { $0.id == pastTicker2.id }).isEnabled)
     }
     
-    func testSynchronize_MixedKeepAndDeleteTickers() async throws {
-        // Given: Mix of tickers - some should be kept, some deleted
-        let keepTicker = Ticker.mockDailyMorning // Has upcoming alarms
-        let deleteTicker = Ticker.mockOneTimePast // Past date
-        
-        let context = try TestModelContextFactory.createContextWithTickers([keepTicker, deleteTicker])
+    func testSynchronize_MixedActiveAndSpentTickers() async throws {
+        // Given: one ticker with upcoming alarms, one already spent
+        let activeTicker = Ticker.mockDailyMorning // Has upcoming alarms
+        let spentTicker = Ticker.mockOneTimePast   // Past date
+
+        let context = try TestModelContextFactory.createContextWithTickers([activeTicker, spentTicker])
         mockStateManager.mockAlarms = []
-        
+
         // When
         await service.synchronize(
             alarmManager: alarmManager,
             stateManager: mockStateManager,
             context: context
         )
-        
-        // Then: Keep ticker should remain, delete ticker should be removed
-        XCTAssertTickersExist(in: context, tickerIDs: [keepTicker.id])
-        XCTAssertTickersNotExist(in: context, tickerIDs: [deleteTicker.id])
+
+        // Then: both rows survive; only their enabled state differs.
+        XCTAssertTickersExist(in: context, tickerIDs: [activeTicker.id, spentTicker.id])
+
+        let tickers = try context.fetch(FetchDescriptor<Ticker>())
+        XCTAssertTrue(try XCTUnwrap(tickers.first { $0.id == activeTicker.id }).isEnabled)
+        XCTAssertFalse(try XCTUnwrap(tickers.first { $0.id == spentTicker.id }).isEnabled)
     }
 }
 
