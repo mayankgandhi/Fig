@@ -22,23 +22,24 @@ struct figApp: App {
     @State private var hasInitialized = false
     
     var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Ticker.self,
-            TickerCollection.self
-        ])
-        
-        // Use App Groups for shared data access with widget extension
-        let modelConfiguration: ModelConfiguration
-        if let sharedURL = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: "group.m.fig") {
-            modelConfiguration = ModelConfiguration(schema: schema, url: sharedURL.appendingPathComponent("Ticker.sqlite"))
-        } else {
-            modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-        }
-        
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            return try TickerSchema.makeSharedContainer()
         } catch {
-            fatalError("Could not create ModelContainer: \(error)")
+            // Deliberately not fatalError. A failed migration used to become a
+            // launch crash loop whose only remedy was deleting the app — which
+            // takes every alarm the user ever created with it. Degrade to an
+            // in-memory store so the app still launches and the failure is
+            // reportable instead of terminal.
+            print("❌ Could not open the shared Ticker store: \(error)")
+            AlarmTelemetry.record(.alarmScheduleFailed(reason: "model_container_open_failed"))
+            do {
+                return try ModelContainer(
+                    for: TickerSchema.current,
+                    configurations: [ModelConfiguration(schema: TickerSchema.current, isStoredInMemoryOnly: true)]
+                )
+            } catch {
+                fatalError("Could not create an in-memory ModelContainer: \(error)")
+            }
         }
     }()
     
@@ -56,6 +57,11 @@ struct figApp: App {
 
         // Initialize Factory container
         Container.setupDependencies()
+
+        // Give TickerCore somewhere to send alarm telemetry. Without this the
+        // alarm pipeline is unmeasurable: the app had ~158 analytics events and
+        // not one of them recorded an alarm firing.
+        AlarmTelemetry.install(PostHogAlarmTelemetrySink())
         
         // Configure UserService with Ticker-specific settings and migration
         let sharedDefaults = UserDefaults(suiteName: "group.m.fig") ?? .standard
@@ -74,8 +80,14 @@ struct figApp: App {
         // Keep widget extensions in sync with the latest subscription state.
         SubscriptionStatusObserver.shared.start()
         
-        // Register background task handler
+        // Register background task handler, then submit the first request.
+        //
+        // `scheduleBackgroundTask()` used to be called only from inside
+        // `handleBackgroundTask`, so nothing ever submitted the initial request:
+        // the task never fired, and therefore never rescheduled itself. The
+        // regeneration background task has never run in this app.
         registerBackgroundTasks()
+        scheduleBackgroundTask()
         
         // Register for time zone change notifications
         registerTimeZoneChangeObserver()
@@ -112,11 +124,20 @@ struct figApp: App {
                                 ).track()
                             }
                             
+                            // Migrate schedules that AlarmKit can now express
+                            // natively, then detect fires that happened while the
+                            // app was not running. Both must run before sync, which
+                            // reconciles against AlarmKit state.
+                            await tickerService.runLaunchMaintenance(context: context)
+
                             // Synchronize alarms on app launch (main priority)
                             AnalyticsEvents.alarmSyncStarted.track()
                             let syncStartTime = Date()
                             await tickerService.synchronizeAlarmsOnLaunch(context: context)
                             let syncDuration = Int(Date().timeIntervalSince(syncStartTime) * 1000)
+
+                            // Top up expansion-backed schedules.
+                            await tickerService.regenerateEnabledTickers(context: context)
                             
                             // Track sync completed
                             let syncedDescriptor = FetchDescriptor<Ticker>()
@@ -130,6 +151,20 @@ struct figApp: App {
                         }
                         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
                             AnalyticsEvents.appForegrounded.track()
+
+                            // Foreground is the only trigger we actually control.
+                            // This handler previously did nothing but fire an
+                            // analytics event, while `RegenerationTrigger` in
+                            // TickerCore documented `appForeground` as the
+                            // "PRIMARY - guaranteed" path and nothing ever
+                            // constructed it. Rate limiting lives inside the
+                            // regeneration service, so this is cheap to repeat.
+                            Task { @MainActor in
+                                let context = ModelContext(sharedModelContainer)
+                                await tickerService.runLaunchMaintenance(context: context)
+                                await tickerService.synchronizeAlarms(context: context)
+                                await tickerService.regenerateEnabledTickers(context: context)
+                            }
                         }
                 } else {
                     // Onboarding flow
@@ -143,35 +178,17 @@ struct figApp: App {
     }
     
     // MARK: - App Lifecycle Management
-    /// Regenerate alarms for all enabled tickers
+    /// Regenerate alarms for all enabled tickers.
+    ///
+    /// `@MainActor` so this cannot interleave with launch synchronization. Both
+    /// build a `ModelContext` over the same container and mutate the same rows;
+    /// running them concurrently made `generatedAlarmKitIDs` last-writer-wins.
+    @MainActor
     private func regenerateAllEnabledTickers() async {
         let context = ModelContext(sharedModelContainer)
-        let descriptor = FetchDescriptor<Ticker>(predicate: #Predicate<Ticker> { ticker in
-            ticker.isEnabled == true
-        })
-        
-        do {
-            let tickers = try context.fetch(descriptor)
-            print("🔄 Found \(tickers.count) enabled tickers to check")
-            
-            for ticker in tickers {
-                // Check if regeneration is needed (non-blocking, respects rate limiting)
-                do {
-                    try await regenerationService.regenerateAlarmsIfNeeded(
-                        ticker: ticker,
-                        context: context,
-                        force: false
-                    )
-                } catch {
-                    print("⚠️ Failed to regenerate \(ticker.displayName): \(error)")
-                    // Continue with other tickers even if one fails
-                }
-            }
-        } catch {
-            print("❌ Failed to fetch enabled tickers: \(error)")
-        }
+        await tickerService.regenerateEnabledTickers(context: context)
     }
-    
+
     // MARK: - Background Tasks
     
     /// Register background task handlers
