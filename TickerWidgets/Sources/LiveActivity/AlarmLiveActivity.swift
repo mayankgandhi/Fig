@@ -2,11 +2,18 @@
 //  AlarmLiveActivity.swift
 //  alarm
 //
-//  Live Activity configuration for alarm countdown and alerts
-//  Refactored to use extracted components
+//  Live Activity configuration for alarm countdown and alerts.
 //
-//  Note: LiveActivity intents (PauseIntent, StopIntent, ResumeIntent) are located
-//  at fig/AppIntents/LiveActivity/
+//  Every surface here previously returned `EmptyView()` for the `.alert` mode,
+//  and also for any alarm without a countdown — which is every plain "wake me at
+//  7am" alarm, because `AlarmConfigurationBuilder` builds an alert-only
+//  presentation in that case. The result was a blank Dynamic Island and a blank
+//  lock-screen banner at exactly the moment the product has to work.
+//
+//  Note on scope: AlarmKit draws its own full-screen system alert from
+//  `AlarmPresentation.Alert`. What this file controls is the Dynamic Island and
+//  the lock-screen / Home Screen banner — what the user sees when the alarm
+//  fires while they are in another app, or after dismissing the system UI.
 //
 
 import ActivityKit
@@ -17,391 +24,305 @@ import WidgetKit
 import TickerCore
 
 struct AlarmLiveActivity: Widget {
-    
-    @Environment(\.colorScheme) var colorScheme
-    
-    private func isCountdownMode(_ mode: AlarmPresentationState.Mode) -> Bool {
-        switch mode {
-            case .countdown: return true
-            case .paused, .alert: return false
-            @unknown default: return false
+
+    // MARK: - Derived values
+
+    /// Brand tint for this alarm.
+    ///
+    /// The old idiom was `Color(hex: metadata?.colorHex ?? "#000000") ?? .primary`,
+    /// which never fell back: `Color.init?(hex:)` parses "000000" successfully, so
+    /// an alarm with no colour rendered a black dot and a black keyline on the
+    /// always-black Dynamic Island.
+    private func tint(_ attributes: AlarmAttributes<TickerData>) -> Color {
+        attributes.metadata?.colorHex.flatMap(Color.init(hex:)) ?? TickerColor.primary
+    }
+
+    private func icon(_ attributes: AlarmAttributes<TickerData>) -> String {
+        attributes.metadata?.icon ?? "bell.fill"
+    }
+
+    /// The alarm's own title. Sourced from `presentation.alert.title` (the
+    /// ticker's label) rather than `metadata.name`, so the Live Activity and
+    /// AlarmKit's system alert always say the same thing — the two fields are
+    /// independently editable.
+    private func title(_ attributes: AlarmAttributes<TickerData>) -> LocalizedStringResource {
+        attributes.presentation.alert.title
+    }
+
+    private func isAlerting(_ mode: AlarmPresentationState.Mode) -> Bool {
+        if case .alert = mode { return true }
+        return false
+    }
+
+    /// Locale-aware wall-clock rendering of the alert time. `Mode.Alert.time` is
+    /// a raw hour/minute pair, so 12h vs 24h and AM/PM placement have to come
+    /// from the formatter, not from string interpolation.
+    private func formatted(_ time: Alarm.Schedule.Relative.Time) -> String {
+        var components = DateComponents()
+        components.hour = time.hour
+        components.minute = time.minute
+        guard let date = Calendar.autoupdatingCurrent.date(from: components) else {
+            return String(format: "%d:%02d", time.hour, time.minute)
+        }
+        return date.formatted(date: .omitted, time: .shortened)
+    }
+
+    // MARK: - Configuration
+
+    var body: some WidgetConfiguration {
+        ActivityConfiguration(for: AlarmAttributes<TickerData>.self) { context in
+            lockScreenView(attributes: context.attributes, state: context.state)
+                .activityBackgroundTint(nil)
+        } dynamicIsland: { context in
+            DynamicIsland {
+                DynamicIslandExpandedRegion(.leading) {
+                    expandedLeading(attributes: context.attributes, state: context.state)
+                }
+                DynamicIslandExpandedRegion(.trailing) {
+                    expandedTrailing(attributes: context.attributes, state: context.state)
+                }
+                DynamicIslandExpandedRegion(.bottom) {
+                    AlarmControls(presentation: context.attributes.presentation, state: context.state)
+                        .padding(.top, TickerSpacing.xs)
+                }
+            } compactLeading: {
+                compactLeading(attributes: context.attributes, state: context.state)
+            } compactTrailing: {
+                compactTrailing(attributes: context.attributes, state: context.state)
+            } minimal: {
+                minimal(attributes: context.attributes, state: context.state)
+            }
+            .keylineTint(isAlerting(context.state.mode) ? TickerColor.alerting : tint(context.attributes))
         }
     }
 
-    private func isPausedMode(_ mode: AlarmPresentationState.Mode) -> Bool {
-        switch mode {
-            case .paused: return true
-            case .countdown, .alert: return false
-            @unknown default: return false
+    // MARK: - Lock Screen
+
+    @ViewBuilder
+    private func lockScreenView(
+        attributes: AlarmAttributes<TickerData>,
+        state: AlarmPresentationState
+    ) -> some View {
+        VStack(alignment: .leading, spacing: TickerSpacing.md) {
+            HStack(alignment: .firstTextBaseline, spacing: TickerSpacing.sm) {
+                Image(systemName: icon(attributes))
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(isAlerting(state.mode) ? TickerColor.alerting : tint(attributes))
+                    .accessibilityHidden(true)
+
+                Text(title(attributes))
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .lineLimit(1)
+
+                Spacer(minLength: 0)
+            }
+
+            HStack(alignment: .center, spacing: TickerSpacing.md) {
+                primaryReadout(attributes: attributes, state: state)
+
+                Spacer(minLength: 0)
+
+                AlarmControls(presentation: attributes.presentation, state: state)
+            }
+        }
+        .padding(TickerSpacing.md)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(accessibilityLabel(for: attributes, state: state))
+        .accessibilityValue(accessibilityValue(for: state))
+    }
+
+    /// The single most legible-in-under-a-second datum for each mode.
+    @ViewBuilder
+    private func primaryReadout(
+        attributes: AlarmAttributes<TickerData>,
+        state: AlarmPresentationState
+    ) -> some View {
+        switch state.mode {
+        case .alert(let alert):
+            // Fire time leads. It answers "what time is it / why am I awake"
+            // before the label answers "which alarm".
+            Text(formatted(alert.time))
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(TickerColor.alerting)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+
+        case .countdown(let countdown):
+            Text(timerInterval: Date.now...countdown.fireDate, countsDown: true)
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(tint(attributes))
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+
+        case .paused(let paused):
+            Text(remaining(paused).formatted(pattern(for: remaining(paused))))
+                .font(.system(size: 34, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(TickerColor.paused)
+                .lineLimit(1)
+                .minimumScaleFactor(0.6)
+
+        @unknown default:
+            EmptyView()
         }
     }
-    
-    // Helper to build Dynamic Island expanded content
+
+    // MARK: - Dynamic Island: expanded
+
     @ViewBuilder
-    private func dynamicIslandContent(
+    private func expandedLeading(
         attributes: AlarmAttributes<TickerData>,
         state: AlarmPresentationState
     ) -> some View {
-        expandedBottomView(attributes: attributes, state: state)
-    }
-    
-    @ViewBuilder
-    private func compactLeadingContent(
-        attributes: AlarmAttributes<TickerData>,
-        state: AlarmPresentationState
-    ) -> some View {
-        let tint = Color(hex: attributes.metadata?.colorHex ?? "#000000") ?? TickerColor.primary
         HStack(spacing: TickerSpacing.xs) {
+            Image(systemName: icon(attributes))
+                .font(.system(size: 15, weight: .semibold))
+                .foregroundStyle(isAlerting(state.mode) ? TickerColor.alerting : tint(attributes))
+
+            Text(title(attributes))
+                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                // Island colours are fixed: routing them through colorScheme
+                // returned black text on the permanently black Island.
+                .foregroundStyle(TickerColor.onIslandPrimary)
+                .lineLimit(1)
+        }
+        .accessibilityHidden(true)
+    }
+
+    @ViewBuilder
+    private func expandedTrailing(
+        attributes: AlarmAttributes<TickerData>,
+        state: AlarmPresentationState
+    ) -> some View {
+        Group {
             switch state.mode {
-            case .countdown, .paused:
-                Image(systemName: stateIcon(for: state.mode))
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundStyle(tint)
-                    .symbolEffect(.pulse, isActive: isCountdownMode(state.mode))
-                countdown(state: state, maxWidth: 50)
-                    .ButtonText()
-            case .alert:
-                Image(systemName: "bell.fill")
-                    .font(.system(size: 10, weight: .bold))
+            case .alert(let alert):
+                Text(formatted(alert.time))
                     .foregroundStyle(TickerColor.alerting)
-                    .symbolEffect(.pulse, isActive: true)
-                Text(attributes.metadata?.name ?? "Alarm")
-                    .ButtonText()
-                    .lineLimit(1)
+            case .countdown(let countdown):
+                Text(timerInterval: Date.now...countdown.fireDate, countsDown: true)
+                    .foregroundStyle(TickerColor.onIslandPrimary)
+            case .paused(let paused):
+                Text(remaining(paused).formatted(pattern(for: remaining(paused))))
+                    .foregroundStyle(TickerColor.onIslandSecondary)
             @unknown default:
                 EmptyView()
             }
         }
-    }
-    
-    @ViewBuilder
-    private func compactTrailingContent(
-        attributes: AlarmAttributes<TickerData>,
-        state: AlarmPresentationState
-    ) -> some View {
-        AlarmProgressView(
-            tickerIcon: attributes.metadata?.icon,
-            mode: state.mode,
-            tint: Color(
-                hex: attributes.metadata?.colorHex ?? "#000000"
-            ) ?? TickerColor.primary
-        )
-    }
-    
-    @ViewBuilder
-    private func minimalContent(
-        attributes: AlarmAttributes<TickerData>,
-        state: AlarmPresentationState
-    ) -> some View {
-        minimalDynamicIslandView(attributes: attributes, state: state)
-    }
-    
-    private func stateIcon(for mode: AlarmPresentationState.Mode) -> String {
-        switch mode {
-            case .countdown: return "timer"
-            case .paused: return "pause.circle.fill"
-            case .alert: return "bell.fill"
-            @unknown default: return "bell"
-        }
+        .font(.system(size: 20, weight: .bold, design: .rounded))
+        .monospacedDigit()
+        .lineLimit(1)
+        .minimumScaleFactor(0.7)
     }
 
-    private func stateColor(for mode: AlarmPresentationState.Mode) -> Color {
-        switch mode {
-            case .countdown:
-                return TickerColor.running
-            case .paused:
-                return TickerColor.paused
-            case .alert:
-                return TickerColor.alerting
+    // MARK: - Dynamic Island: compact + minimal
+
+    @ViewBuilder
+    private func compactLeading(
+        attributes: AlarmAttributes<TickerData>,
+        state: AlarmPresentationState
+    ) -> some View {
+        Image(systemName: isAlerting(state.mode) ? "bell.badge.fill" : icon(attributes))
+            .font(.system(size: 14, weight: .semibold))
+            .foregroundStyle(isAlerting(state.mode) ? TickerColor.alerting : tint(attributes))
+            .symbolEffect(.pulse, options: .repeating, isActive: isAlerting(state.mode))
+    }
+
+    @ViewBuilder
+    private func compactTrailing(
+        attributes: AlarmAttributes<TickerData>,
+        state: AlarmPresentationState
+    ) -> some View {
+        Group {
+            switch state.mode {
+            case .alert(let alert):
+                Text(formatted(alert.time))
+                    .foregroundStyle(TickerColor.alerting)
+            case .countdown(let countdown):
+                Text(timerInterval: Date.now...countdown.fireDate, countsDown: true)
+                    .foregroundStyle(TickerColor.onIslandPrimary)
+            case .paused(let paused):
+                Text(remaining(paused).formatted(pattern(for: remaining(paused))))
+                    .foregroundStyle(TickerColor.onIslandSecondary)
             @unknown default:
-                return TickerColor.disabled
+                EmptyView()
+            }
         }
+        .font(.system(size: 13, weight: .semibold, design: .rounded))
+        .monospacedDigit()
+        .lineLimit(1)
+        .frame(maxWidth: 58)
     }
 
-    // MARK: - Accessibility Helpers
+    /// Exactly one glyph. The minimal region is roughly 24pt across; the previous
+    /// implementation put an HStack of a 20pt ZStack plus a text run in there.
+    @ViewBuilder
+    private func minimal(
+        attributes: AlarmAttributes<TickerData>,
+        state: AlarmPresentationState
+    ) -> some View {
+        Image(systemName: isAlerting(state.mode) ? "bell.badge.fill" : icon(attributes))
+            .font(.system(size: 14, weight: .bold))
+            .foregroundStyle(isAlerting(state.mode) ? TickerColor.alerting : tint(attributes))
+            .symbolEffect(.pulse, options: .repeating, isActive: isAlerting(state.mode))
+    }
 
-    private func accessibilityLabel(for attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> String {
+    // MARK: - Helpers
+
+    private func remaining(_ paused: AlarmPresentationState.Mode.Paused) -> Duration {
+        .seconds(max(0, paused.totalCountdownDuration - paused.previouslyElapsedDuration))
+    }
+
+    private func pattern(for duration: Duration) -> Duration.TimeFormatStyle {
+        let pattern: Duration.TimeFormatStyle.Pattern =
+            duration > .seconds(3600) ? .hourMinuteSecond : .minuteSecond
+        return .time(pattern: pattern)
+    }
+
+    // MARK: - Accessibility
+
+    private func accessibilityLabel(
+        for attributes: AlarmAttributes<TickerData>,
+        state: AlarmPresentationState
+    ) -> String {
         let name = attributes.metadata?.name ?? "Alarm"
-        let modeText = modeName(for: state.mode)
-        return "\(name) \(modeText)"
+        switch state.mode {
+        case .alert: return "\(name), alarm ringing"
+        case .countdown: return "\(name), countdown running"
+        case .paused: return "\(name), countdown paused"
+        @unknown default: return name
+        }
     }
 
     private func accessibilityValue(for state: AlarmPresentationState) -> String {
         switch state.mode {
+        case .alert(let alert):
+            return "Set for \(formatted(alert.time))"
         case .countdown(let countdown):
-            let remaining = max(0, countdown.fireDate.timeIntervalSinceNow)
-            return formatAccessibleDuration(remaining)
-        case .paused(let pausedState):
-            let remaining = pausedState.totalCountdownDuration - pausedState.previouslyElapsedDuration
-            return formatAccessibleDuration(remaining)
-        case .alert:
-            return "Alarm is alerting"
+            return formatAccessibleDuration(countdown.fireDate.timeIntervalSinceNow)
+        case .paused(let paused):
+            return formatAccessibleDuration(
+                paused.totalCountdownDuration - paused.previouslyElapsedDuration
+            )
         @unknown default:
             return ""
         }
     }
 
-    private func modeName(for mode: AlarmPresentationState.Mode) -> String {
-        switch mode {
-        case .countdown: return "countdown running"
-        case .paused: return "countdown paused"
-        case .alert: return "alerting"
-        @unknown default: return "inactive"
-        }
-    }
-
     private func formatAccessibleDuration(_ seconds: TimeInterval) -> String {
-        let hours = Int(seconds) / 3600
-        let minutes = (Int(seconds) % 3600) / 60
-        let secs = Int(seconds) % 60
+        let total = max(0, Int(seconds))
+        let hours = total / 3600
+        let minutes = (total % 3600) / 60
+        let secs = total % 60
 
         var components: [String] = []
-        if hours > 0 {
-            components.append("\(hours) \(hours == 1 ? "hour" : "hours")")
-        }
-        if minutes > 0 {
-            components.append("\(minutes) \(minutes == 1 ? "minute" : "minutes")")
-        }
-        if secs > 0 || components.isEmpty {
-            components.append("\(secs) \(secs == 1 ? "second" : "seconds")")
-        }
+        if hours > 0 { components.append("\(hours) \(hours == 1 ? "hour" : "hours")") }
+        if minutes > 0 { components.append("\(minutes) \(minutes == 1 ? "minute" : "minutes")") }
+        if secs > 0 || components.isEmpty { components.append("\(secs) \(secs == 1 ? "second" : "seconds")") }
 
         return components.joined(separator: ", ") + " remaining"
-    }
-    
-    var body: some WidgetConfiguration {
-        ActivityConfiguration(for: AlarmAttributes<TickerData>.self) { context in
-            // The Lock Screen presentation.
-            lockScreenView(attributes: context.attributes, state: context.state)
-        } dynamicIsland: { context in
-            DynamicIsland {
-                DynamicIslandExpandedRegion(.bottom) {
-                    dynamicIslandContent(attributes: context.attributes, state: context.state)
-                }
-            } compactLeading: {
-                compactLeadingContent(attributes: context.attributes, state: context.state)
-            } compactTrailing: {
-                compactTrailingContent(attributes: context.attributes, state: context.state)
-            } minimal: {
-                minimalContent(attributes: context.attributes, state: context.state)
-            }
-            .keylineTint(Color(
-                hex: context.attributes.metadata?.colorHex ?? "#000000"
-            ) ?? TickerColor.primary)
-        }
-    }
-    
-    @ViewBuilder
-    func lockScreenView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        VStack(spacing: TickerSpacing.lg) {
-            HStack(alignment: .top) {
-                tickerCategory(metadata: attributes.metadata)
-                    .accessibilityHidden(true)
-                Spacer()
-                Text("Ticker")
-                    .SmallText()
-                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-                    .accessibilityHidden(true)
-            }
-
-            bottomView(attributes: attributes, state: state)
-        }
-        .padding(.all, TickerSpacing.md)
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel(accessibilityLabel(for: attributes, state: state))
-        .accessibilityValue(accessibilityValue(for: state))
-        .accessibilityHint("Alarm display with controls")
-    }
-    
-    func bottomView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        HStack(spacing: TickerSpacing.md) {
-            VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-                switch state.mode {
-                case .countdown, .paused:
-                    countdown(state: state, maxWidth: 150)
-                        .TimeDisplay()
-                case .alert:
-                    Text("Alerting")
-                        .TimeDisplay()
-                        .foregroundStyle(TickerColor.alerting)
-                @unknown default:
-                    EmptyView()
-                }
-
-                HStack(spacing: TickerSpacing.sm) {
-                    Image(systemName: stateIcon(for: state.mode))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(stateColor(for: state.mode))
-                        .symbolEffect(.pulse, isActive: !isPausedMode(state.mode))
-
-                    Text(modeName(for: state.mode).capitalized)
-                        .DetailText()
-                }
-            }
-
-            Spacer()
-
-            AlarmControls(presentation: attributes.presentation, state: state)
-        }
-    }
-    
-    func countdown(state: AlarmPresentationState, maxWidth: CGFloat = .infinity) -> some View {
-        Group {
-            switch state.mode {
-                case .countdown(let countdown):
-                    Text(timerInterval: Date.now ... countdown.fireDate, countsDown: true)
-                        .TimeDisplay()
-                case .paused(let state):
-                    let remaining = Duration.seconds(state.totalCountdownDuration - state.previouslyElapsedDuration)
-                    let pattern: Duration.TimeFormatStyle.Pattern = remaining > .seconds(60 * 60) ? .hourMinuteSecond : .minuteSecond
-                    Text(remaining.formatted(.time(pattern: pattern)))
-                        .TimeDisplay()
-                case .alert:
-                    EmptyView()
-                @unknown default:
-                    EmptyView()
-            }
-        }
-        .monospacedDigit()
-        .lineLimit(1)
-        .minimumScaleFactor(0.5)
-    }
-    
-    @ViewBuilder func tickerCategory(metadata: TickerData?) -> some View {
-        if let name = metadata?.name, let icon = metadata?.icon, let colorHex = metadata?.colorHex {
-            HStack(spacing: TickerSpacing.xs) {
-                Image(systemName: icon)
-                    .Title2()
-                    .bold()
-                    .foregroundStyle(
-                        Color(hex: colorHex) ?? TickerColor
-                            .textPrimary(for: colorScheme)
-                    )
-                Text(name)
-                    .Title2()
-                    .bold()
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-                    .foregroundStyle(
-                        Color(hex: colorHex) ?? TickerColor
-                            .textPrimary(for: colorScheme)
-                    )
-            }
-        } else {
-            EmptyView()
-        }
-    }
-    
-    // MARK: - Dynamic Island Expanded Leading View
-    func expandedLeadingView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        VStack(alignment: .leading, spacing: TickerSpacing.sm) {
-            // Alarm category/name with icon
-            if let metadata = attributes.metadata {
-                HStack(spacing: TickerSpacing.xs) {
-                    Image(systemName: metadata.icon ?? "bell.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(
-                            Color(hex: metadata.colorHex ?? "#000000") ?? TickerColor.primary
-                        )
-                    
-                    Text(metadata.name ?? "Alarm")
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
-                        .foregroundStyle(TickerColor.textPrimary(for: colorScheme))
-                        .lineLimit(1)
-                }
-            }
-            
-            // Status indicator with app branding
-            VStack(alignment: .leading, spacing: TickerSpacing.xxs) {
-                HStack(spacing: TickerSpacing.xs) {
-                    Image(systemName: stateIcon(for: state.mode))
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(stateColor(for: state.mode))
-                        .symbolEffect(.pulse, isActive: isCountdownMode(state.mode))
-                    Text(modeName(for: state.mode).capitalized)
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                }
-                
-                // App branding
-                Text("Ticker")
-                    .font(.system(size: 9, weight: .regular, design: .rounded))
-                    .foregroundStyle(TickerColor.textTertiary(for: colorScheme))
-            }
-        }
-    }
-    
-    // MARK: - Dynamic Island Expanded Bottom View
-    func expandedBottomView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        HStack(spacing: TickerSpacing.lg) {
-            // Countdown time - prominently displayed
-            VStack(alignment: .leading, spacing: TickerSpacing.xs) {
-                Group {
-                    switch state.mode {
-                    case .countdown(let countdown):
-                        Text(timerInterval: Date.now ... countdown.fireDate, countsDown: true)
-                            .font(.system(size: 28, weight: .bold, design: .monospaced))
-                            .foregroundStyle(
-                                Color(hex: attributes.metadata?.colorHex ?? "#000000") ?? TickerColor.primary
-                            )
-                    case .paused(let state):
-                        let remaining = Duration.seconds(state.totalCountdownDuration - state.previouslyElapsedDuration)
-                        let pattern: Duration.TimeFormatStyle.Pattern = remaining > .seconds(60 * 60) ? .hourMinuteSecond : .minuteSecond
-                        Text(remaining.formatted(.time(pattern: pattern)))
-                            .font(.system(size: 28, weight: .bold, design: .monospaced))
-                            .foregroundStyle(
-                                Color(hex: attributes.metadata?.colorHex ?? "#000000") ?? TickerColor.primary
-                            )
-                    case .alert:
-                        Text("Alerting")
-                            .font(.system(size: 28, weight: .bold, design: .monospaced))
-                            .foregroundStyle(TickerColor.alerting)
-                    @unknown default:
-                        EmptyView()
-                    }
-                }
-                .monospacedDigit()
-                .lineLimit(1)
-
-                HStack(spacing: TickerSpacing.xs) {
-                    Image(systemName: stateIcon(for: state.mode))
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(stateColor(for: state.mode))
-                        .symbolEffect(.pulse, isActive: isCountdownMode(state.mode))
-                    Text(modeName(for: state.mode).capitalized)
-                        .font(.system(size: 11, weight: .medium, design: .rounded))
-                        .foregroundStyle(TickerColor.textSecondary(for: colorScheme))
-                }
-            }
-            
-            Spacer()
-            
-            // Controls and progress indicator
-            VStack(spacing: TickerSpacing.sm) {
-                AlarmProgressView(
-                    tickerIcon: attributes.metadata?.icon,
-                    mode: state.mode,
-                    tint: Color(
-                        hex: attributes.metadata?.colorHex ?? "#000000"
-                    ) ?? TickerColor.primary
-                )
-                .frame(width: 44, height: 44)
-                
-                AlarmControls(presentation: attributes.presentation, state: state)
-            }
-        }
-        .padding(.horizontal, TickerSpacing.md)
-    }
-    
-    // MARK: - Dynamic Island Minimal View
-    func minimalDynamicIslandView(attributes: AlarmAttributes<TickerData>, state: AlarmPresentationState) -> some View {
-        let tint = Color(hex: attributes.metadata?.colorHex ?? "#000000") ?? TickerColor.primary
-        return AlarmProgressView(
-            tickerIcon: attributes.metadata?.icon,
-            mode: state.mode,
-            tint: tint
-        )
-        .frame(width: 22, height: 22)
     }
 }
 
@@ -419,24 +340,32 @@ struct AlarmLiveActivity: Widget {
     AlarmLiveActivity.mockPausedState()
 }
 
-#Preview("Live Activity - Alert", as: .content, using: AlarmLiveActivity.mockAttributes(title: "Meeting Reminder", icon: "calendar")) {
+#Preview("Live Activity - Alert", as: .content, using: AlarmLiveActivity.mockAttributes(title: "Wake up", icon: "alarm.fill")) {
     AlarmLiveActivity()
 } contentStates: {
     AlarmLiveActivity.mockAlertState()
 }
 
-#Preview("Live Activity - Dynamic Island Expanded", as: .dynamicIsland(.expanded), using: AlarmLiveActivity.mockAttributes()) {
+#Preview("Alert - Dynamic Island Expanded", as: .dynamicIsland(.expanded), using: AlarmLiveActivity.mockAttributes(title: "Wake up", icon: "alarm.fill")) {
+    AlarmLiveActivity()
+} contentStates: {
+    AlarmLiveActivity.mockAlertState()
+}
+
+#Preview("Alert - Dynamic Island Compact", as: .dynamicIsland(.compact), using: AlarmLiveActivity.mockAttributes(title: "Wake up", icon: "alarm.fill")) {
+    AlarmLiveActivity()
+} contentStates: {
+    AlarmLiveActivity.mockAlertState()
+}
+
+#Preview("Alert - Dynamic Island Minimal", as: .dynamicIsland(.minimal), using: AlarmLiveActivity.mockAttributes(title: "Wake up", icon: "alarm.fill")) {
+    AlarmLiveActivity()
+} contentStates: {
+    AlarmLiveActivity.mockAlertState()
+}
+
+#Preview("Countdown - Dynamic Island Expanded", as: .dynamicIsland(.expanded), using: AlarmLiveActivity.mockAttributes()) {
     AlarmLiveActivity()
 } contentStates: {
     AlarmLiveActivity.mockCountdownState()
-}
-
-#Preview("Live Activity - Dynamic Island Minimal", as: .dynamicIsland(.minimal), using: AlarmLiveActivity.mockAttributes()) {
-    AlarmLiveActivity()
-} contentStates: {
-    AlarmLiveActivity.mockCountdownState()
-}
-
-#Preview("Full Preview Showcase") {
-    AlarmLiveActivityPreview()
 }

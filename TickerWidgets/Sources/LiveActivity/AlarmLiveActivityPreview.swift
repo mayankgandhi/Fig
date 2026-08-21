@@ -275,8 +275,10 @@ extension AlarmLiveActivityPreview {
                         Circle()
                             .fill(stateColor(for: state.mode))
                             .frame(width: 12, height: 12)
-                            .scaleEffect(isCountdownMode(state.mode) ? 1.3 : 1.0)
-                            .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(state.mode))
+                            // `isCountdownMode` is constant for the whole life of a
+                            // countdown, so a `.repeatForever` animation keyed on it
+                            // never restarts and never ran. Nothing to animate here.
+                            .scaleEffect(1.0)
                         
                         Text(statusText(for: state.mode))
                             .font(.system(size: 15, weight: .semibold))
@@ -387,8 +389,7 @@ extension AlarmLiveActivityPreview {
             Circle()
                 .fill(stateColor(for: state.mode).opacity(0.15))
                 .frame(width: 24, height: 24)
-                .scaleEffect(isCountdownMode(state.mode) ? 1.3 : 1.0)
-                .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isCountdownMode(state.mode))
+                .scaleEffect(1.0)
             
             AlarmProgressView(
                 tickerIcon: attributes.metadata?.icon,
