@@ -106,7 +106,19 @@ public class AlarmRegenerationService: AlarmRegenerationServiceProtocol {
     /// - Parameter ticker: The ticker to check
     /// - Returns: True if regeneration is needed
     public func shouldRegenerate(ticker: Ticker) -> Bool {
-        // Use ticker's built-in logic
+        // A natively-expressible schedule is armed as one recurring AlarmKit
+        // alarm and must never be expanded into one-time alarms. Doing so leaves
+        // the recurrence armed (`queryCurrentAlarms` only sees `.fixed` alarms,
+        // so it is never in `toDelete`) while adding expansion alarms for the
+        // same mornings — a double alert.
+        //
+        // Every current caller already filters on this, which is precisely the
+        // problem: the predicate was copied into three call sites and omitted
+        // here, the one place that is public API. Answering correctly at the
+        // source is what stops the next caller getting it wrong.
+        guard !ticker.usesNativeAlarmKitSchedule else { return false }
+
+        // Otherwise defer to the ticker's own staleness logic.
         return ticker.needsRegeneration
     }
 
