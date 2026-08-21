@@ -27,6 +27,85 @@ final class TickerConfigurationParserTests: XCTestCase {
         super.tearDown()
     }
 
+    // MARK: - Relative Expressions Crossing Midnight (regression)
+
+    /// Pins the clock instead of trusting wall time. The wall-time version of
+    /// this behaviour passed all day and failed only between 22:00 and midnight,
+    /// which is how the bug survived: "in 2 hours" resolved its time to 00:02
+    /// while its date stayed on today, producing an alarm ~22 hours in the past.
+    private func makeParser(at instant: Date) -> TickerConfigurationParser {
+        let fixed = TickerConfigurationParser()
+        fixed.now = { instant }
+        return fixed
+    }
+
+    private func date(year: Int, month: Int, day: Int, hour: Int, minute: Int) -> Date {
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        components.minute = minute
+        return calendar.date(from: components) ?? Date()
+    }
+
+    func testRelativeHours_CrossingMidnight_RollsTheDateForward() async throws {
+        // 2026-08-21 22:02 + 2h = 2026-08-22 00:02
+        let instant = date(year: 2026, month: 8, day: 21, hour: 22, minute: 2)
+        let fixed = makeParser(at: instant)
+
+        let configuration = try await fixed.parseConfiguration(from: "In 2 hours remind me to drink water.")
+
+        XCTAssertEqual(configuration.time.hour, 0)
+        XCTAssertEqual(configuration.time.minute, 2)
+
+        let resolved = calendar.dateComponents([.year, .month, .day], from: configuration.date)
+        XCTAssertEqual(resolved.day, 22, "The date must roll forward with the time, not stay on today")
+        XCTAssertEqual(resolved.month, 8)
+        XCTAssertEqual(resolved.year, 2026)
+    }
+
+    func testRelativeMinutes_CrossingMidnight_RollsTheDateForward() async throws {
+        // 2026-08-21 23:45 + 30m = 2026-08-22 00:15
+        let instant = date(year: 2026, month: 8, day: 21, hour: 23, minute: 45)
+        let fixed = makeParser(at: instant)
+
+        let configuration = try await fixed.parseConfiguration(from: "In 30 minutes remind me to stretch.")
+
+        XCTAssertEqual(configuration.time.hour, 0)
+        XCTAssertEqual(configuration.time.minute, 15)
+
+        let resolved = calendar.dateComponents([.day], from: configuration.date)
+        XCTAssertEqual(resolved.day, 22, "A half-hour reminder at 23:45 belongs to tomorrow")
+    }
+
+    func testRelativeHours_CrossingMonthBoundary_RollsMonthAndDay() async throws {
+        // 2026-08-31 23:30 + 2h = 2026-09-01 01:30
+        let instant = date(year: 2026, month: 8, day: 31, hour: 23, minute: 30)
+        let fixed = makeParser(at: instant)
+
+        let configuration = try await fixed.parseConfiguration(from: "In 2 hours remind me to drink water.")
+
+        let resolved = calendar.dateComponents([.year, .month, .day], from: configuration.date)
+        XCTAssertEqual(resolved.day, 1)
+        XCTAssertEqual(resolved.month, 9, "The rollover must carry the month too")
+        XCTAssertEqual(resolved.year, 2026)
+    }
+
+    func testRelativeHours_WithinTheSameDay_StaysOnToday() async throws {
+        // The case that always worked, kept so the fix cannot regress it.
+        let instant = date(year: 2026, month: 8, day: 21, hour: 9, minute: 15)
+        let fixed = makeParser(at: instant)
+
+        let configuration = try await fixed.parseConfiguration(from: "In 2 hours remind me to drink water.")
+
+        XCTAssertEqual(configuration.time.hour, 11)
+        XCTAssertEqual(configuration.time.minute, 15)
+
+        let resolved = calendar.dateComponents([.day], from: configuration.date)
+        XCTAssertEqual(resolved.day, 21, "No rollover means no date change")
+    }
+
     // MARK: - Helpers
 
     private func assertSameDay(_ date: Date, as reference: Date, file: StaticString = #filePath, line: UInt = #line) {
