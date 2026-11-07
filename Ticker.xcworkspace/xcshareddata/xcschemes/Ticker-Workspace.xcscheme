@@ -112,20 +112,6 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "6408EC1C47E0DF7E3905771D"
-               BuildableName = "PostHog_PostHog.bundle"
-               BlueprintName = "PostHog_PostHog"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/PostHog/PostHog.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
                BlueprintIdentifier = "21ACE72DE79281C9B6CD27E0"
                BuildableName = "RevenueCat.framework"
                BlueprintName = "RevenueCat"
@@ -143,34 +129,6 @@
                BlueprintIdentifier = "44AFEA04B5A773F7F7ABF378"
                BuildableName = "RevenueCatUI.framework"
                BlueprintName = "RevenueCatUI"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/RevenueCat/RevenueCat.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "20D11414D967CB74A4137604"
-               BuildableName = "RevenueCat_RevenueCat.bundle"
-               BlueprintName = "RevenueCat_RevenueCat"
-               ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/RevenueCat/RevenueCat.xcodeproj">
-            </BuildableReference>
-         </BuildActionEntry>
-         <BuildActionEntry
-            buildForTesting = "YES"
-            buildForRunning = "YES"
-            buildForProfiling = "YES"
-            buildForArchiving = "YES"
-            buildForAnalyzing = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "98ADE906B41B6AC211790D90"
-               BuildableName = "RevenueCat_RevenueCatUI.bundle"
-               BlueprintName = "RevenueCat_RevenueCatUI"
                ReferencedContainer = "container:Tuist/.build/tuist-derived/Projects/RevenueCat/RevenueCat.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
