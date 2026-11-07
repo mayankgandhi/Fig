@@ -1,0 +1,19 @@
+# Acceptance: Ticker (Fig) launches cleanly on a fresh install and presents the
+# onboarding welcome screen.
+#
+# Start state: m.fig installed, onboarding not yet completed.
+# Read-only — the flow never taps Continue, so onboarding state does not
+# advance and repeated runs need no cleanup.
+#
+# Selector note: this screen is pure SwiftUI with no UIKit chrome — no tab bar
+# and no navigation bar — so NOTHING on it reaches the runner's projected
+# UIView tree (even `role: button` finds no match). The executable evidence is
+# therefore the launch verdict plus a full-screen snapshot. A failed `launch:`
+# scores as errored and is itself a verdict about the app, which makes this a
+# genuine launch smoke test; it cannot assert content structurally until the
+# app exposes accessibility identifiers at the UIView layer.
+steps:
+  - echo: "Baseline: fresh install of m.fig, onboarding welcome screen"
+  - launch: m.fig
+  - await: { idle: true, timeout: 20000 }
+  - snapshot: onboarding-welcome
