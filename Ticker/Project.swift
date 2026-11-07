@@ -40,7 +40,7 @@ let project = Project(
             resources: [
                 "Resources/**/**",
                 "Resources/*",
-                .folderReference(path: "AppIcon.icon")
+                .folderReference(path: "Resources/AppIcon.icon")
             ],
             entitlements: .dictionary([
                 "com.apple.security.application-groups": .array([.string("group.m.fig")]),
