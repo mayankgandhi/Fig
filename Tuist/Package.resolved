@@ -1,0 +1,95 @@
+{
+  "pins" : [
+    {
+      "identity" : "designkit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mayankgandhi/DesignKit",
+      "state" : {
+        "revision" : "98ed6e4f7b57f8a14a510ec9178c67483e069aa0",
+        "version" : "1.0.2"
+      }
+    },
+    {
+      "identity" : "factory",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hmlongco/Factory",
+      "state" : {
+        "revision" : "ccc898f21992ebc130bc04cc197460a5ae230bcf",
+        "version" : "2.5.3"
+      }
+    },
+    {
+      "identity" : "gate",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mayankgandhi/Gate",
+      "state" : {
+        "revision" : "965a00d1d950d4b75fc59e8871a7649faa21a608",
+        "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "openai",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/MacPaw/OpenAI.git",
+      "state" : {
+        "revision" : "0e1a00cee0b59e37729b96ebd116bb827aab86f2",
+        "version" : "0.6.0"
+      }
+    },
+    {
+      "identity" : "posthog-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PostHog/posthog-ios.git",
+      "state" : {
+        "revision" : "4e9850f767988f394e8584b0bf61ce85674775eb",
+        "version" : "3.93.6"
+      }
+    },
+    {
+      "identity" : "purchases-ios",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RevenueCat/purchases-ios.git",
+      "state" : {
+        "revision" : "cbeb5bba52560757295beabed38d0c396ca2180d",
+        "version" : "5.102.3"
+      }
+    },
+    {
+      "identity" : "roadmap",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/AvdLee/Roadmap",
+      "state" : {
+        "revision" : "faacea19bfa486f6ceef5ed191bd5662a77a6643",
+        "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "swift-http-types",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-http-types",
+      "state" : {
+        "revision" : "bff4b6903cdc99dda49649dd52f46c11cfd3ed50",
+        "version" : "1.8.0"
+      }
+    },
+    {
+      "identity" : "swift-openapi-runtime",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-openapi-runtime",
+      "state" : {
+        "revision" : "b9ebb3f06f1dac717156a04f0919ad444cbcf8f5",
+        "version" : "1.13.4"
+      }
+    },
+    {
+      "identity" : "telemetry",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/mayankgandhi/Telemetry",
+      "state" : {
+        "revision" : "17ba7b399a710adaf88f24f8136078be86759763",
+        "version" : "1.0.0"
+      }
+    }
+  ],
+  "version" : 2
+}

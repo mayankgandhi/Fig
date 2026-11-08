@@ -36,6 +36,8 @@ import PackageDescription
             "OpenAI": iOSDeploymentTarget,
             "OpenAPIRuntime": iOSDeploymentTarget,
             "phlibwebp": iOSDeploymentTarget,
+            "PHPLCrashReporter": iOSDeploymentTarget,
+            "PostHogObjCExceptionSupport": iOSDeploymentTarget,
             "PostHog": iOSDeploymentTarget,
             "RevenueCat": iOSDeploymentTarget,
             "RevenueCatUI": iOSDeploymentTarget,

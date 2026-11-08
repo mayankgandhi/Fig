@@ -49,6 +49,8 @@ xcuserdata/
 Packages/
 Package.pins
 Package.resolved
+# ...except the app's own resolution, which is the lock the build gate needs.
+!Tuist/Package.resolved
 
 # CocoaPods
 Pods/
