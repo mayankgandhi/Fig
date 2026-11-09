@@ -279,12 +279,29 @@ public class ActivityIconMapper {
         return timeWords.contains(word)
     }
     
+    /// Deterministic label extraction. Must honour the whole promise on its own.
+    ///
+    /// `extractCustomLabelWithNL` keeps only `.noun`/`.verb`, which drops numbers,
+    /// punctuation and closed-class words (determiners, prepositions, pronouns,
+    /// adverbs) *structurally* — it never needed to name them. This path has no
+    /// part-of-speech information, so everything that tagging used to remove has
+    /// to be removed explicitly here.
+    ///
+    /// That distinction is not academic: `lexicalClass` is not always available.
+    /// On the iOS 27 simulator `NLTagger.availableTagSchemes(for: .word,
+    /// language: .english)` is only `[Language, Script, TokenType, Lemma]`, so
+    /// every word tags as `OtherWord`, the NL path yields nothing, and this
+    /// method produces the user-visible title. When it only filtered a
+    /// time-word list, "Every 3 hours starting at 9 am remind me to stretch."
+    /// became the label "3 9 Stretch." instead of "Stretch".
     private func extractCustomLabel(from input: String) -> String {
-        // Try to extract a meaningful label from the input
+        // Strip surrounding punctuation so a sentence-final token matches the
+        // word lists — "stretch." has to filter the same as "stretch", and
+        // "am." the same as "am".
         let words = input.components(separatedBy: .whitespacesAndNewlines)
+            .map { $0.trimmingCharacters(in: CharacterSet.alphanumerics.inverted).lowercased() }
             .filter { !$0.isEmpty }
-            .map { $0.lowercased() }
-        
+
         // Remove common time-related words
         let timeWords: Set<String> = [
             "a", "an", "at", "am", "pm", "and", "every", "each", "daily", "tomorrow",
@@ -299,8 +316,30 @@ public class ActivityIconMapper {
             "fri", "sat", "sun", "january", "february", "march", "april", "may", "june",
             "july", "august", "september", "october", "november", "december"
         ]
-        let filteredWords = words.filter { !timeWords.contains($0) }
-        
+
+        // Closed-class words. Tagging excluded these by keeping only nouns and
+        // verbs; without tags they have to be listed. They never carry the
+        // activity, so dropping them cannot lose a label.
+        let functionWords: Set<String> = [
+            "the", "this", "that", "these", "those", "some", "any", "all", "both",
+            "on", "of", "for", "by", "after", "during", "until", "till", "upon",
+            "into", "onto", "off", "out", "down", "over", "under",
+            "or", "but", "so", "than", "then", "as", "if",
+            "i", "you", "he", "she", "it", "we", "they", "us", "him", "her",
+            "them", "his", "their", "our", "your", "its",
+            "soon", "later", "again", "now", "always", "never", "please", "just",
+            "is", "are", "was", "were", "been", "being"
+        ]
+        // "up" is deliberately absent: the "follow up" collapse below needs it.
+
+        let filteredWords = words.filter { word in
+            // Pure numbers and clock readings ("3", "45", "8:15") are schedule
+            // values, never part of the activity. Tokens that merely contain a
+            // digit ("5k", "c25k") are kept — those are part of the label.
+            let isScheduleValue = word.allSatisfy { $0.isNumber || $0 == ":" }
+            return !isScheduleValue && !timeWords.contains(word) && !functionWords.contains(word)
+        }
+
         if !filteredWords.isEmpty {
             // Capitalize first letter of each word
             var resultWords: [String] = []
